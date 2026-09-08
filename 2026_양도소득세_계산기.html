@@ -169,6 +169,14 @@
               <option value="yes">조정대상지역</option>
             </select>
           </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-600 mb-1">중과 제외 경과조치</label>
+            <select id="transRelief" class="input-field w-full px-4 py-2.5 rounded-lg">
+              <option value="no">해당 없음</option>
+              <option value="yes">요건 충족 (§167조의3①12호의2)</option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">보유 2년 이상 주택 중 2026.5.9까지 토지거래허가 신청 또는 매매계약을 마치고 기한 내 양도한 경우</p>
+          </div>
           <div id="residenceGroup">
             <label class="block text-sm font-bold text-gray-600 mb-1">거주기간 (1세대 1주택)</label>
             <div class="relative">
@@ -361,7 +369,7 @@
         <div class="font-bold text-red-800 mb-1">다주택 중과세율</div>
         <div>• 2주택 (조정지역): 기본세율 <b>+20%p</b></div>
         <div>• 3주택 이상 (조정지역): 기본세율 <b>+30%p</b></div>
-        <div class="text-red-600 mt-1">※ 중과 한시배제는 2026.5.9 양도분까지 — 2026.5.10부터 중과 부활(§104⑦)</div>
+        <div class="text-red-600 mt-1">※ 2026.5.10부터 중과 부활(§104⑦). 보유 2년 이상 주택은 §167조의3①12호의2 경과조치(2026.5.9까지 토지거래허가 신청·매매계약) 확인</div>
       </div>
       <div class="p-3 bg-green-50 rounded-lg">
         <div class="font-bold text-green-800 mb-1">장기보유특별공제</div>
@@ -489,7 +497,12 @@ function determineTaxType(holdMonths) {
   // 중과 한시배제 기준일 (2026.5.9까지)
   const saleDate = new Date(document.getElementById('saleDate').value);
   const suspensionEnd = new Date('2026-05-09');
-  const isSuspended = saleDate <= suspensionEnd;
+  /* 소득세법 시행령 §167조의3①12호의2(3주택)·§167조의10①12호의2(2주택)
+     가목 2026.5.9까지 양도 / 나·다목 토지거래허가·매매계약 경과조치.
+     세 목 모두 '보유기간 2년 이상'이 공통 요건이므로 2년 미만에는 적용되지 않는다. */
+  const reliefEl = document.getElementById('transRelief');
+  const isRelief = !!(reliefEl && reliefEl.value === 'yes');
+  const isSuspended = (saleDate <= suspensionEnd) || isRelief;
 
   let result = {
     method: 'basic',   // basic, flat, surtax
@@ -518,7 +531,7 @@ function determineTaxType(holdMonths) {
     }
     /* 소득세법 제104조 ⑦ 후단 — 조정대상지역 다주택 주택의 보유기간이 2년 미만이면
        중과세율 산출세액과 단기세율 산출세액 중 큰 세액을 산출세액으로 한다. */
-    if (result.method === 'flat' && holdMonths < 24 && isRegulated && !isSuspended) {
+    if (result.method === 'flat' && holdMonths < 24 && isRegulated) {
       if (houseCount === '2') result.cmpSurtax = 20;
       else if (houseCount === '3') result.cmpSurtax = 30;
     }
