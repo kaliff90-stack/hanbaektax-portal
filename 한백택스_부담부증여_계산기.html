@@ -161,7 +161,9 @@ input,select,textarea{touch-action:auto}
       <div class="row" id="bd_relief_row" style="display:none"><div class="lbl">중과 제외 경과조치</div><div class="input-cell"><select id="bd_relief" onchange="calcBurden()">
         <option value="no" selected>해당 없음</option>
         <option value="yes">요건 충족 (§167조의3①12호의2)</option>
-      </select></div></div>
+      </select></div><div class="note">부담부증여는 가목(2026.5.9까지 양도)만 해당</div></div>
+      <div class="row" id="bd_gift_date_row" style="display:none"><div class="lbl">└ 증여(양도)예정일</div><div class="input-cell"><input type="date" id="bd_gift_date" onchange="calcBurden()"></div><div class="note">미입력 시 오늘</div></div>
+      <div class="row" id="bd_relief_result_row" style="display:none"><div class="lbl">└ 기한 판정</div><div class="auto-cell" id="bd_relief_result">-</div><div class="note">나·다목은 매매계약 전제라 부담부증여에 적용되지 않음</div></div>
       <div class="row sub-row"><div class="lbl">양도가액 (=채무액 D)</div><div class="auto-cell" id="bd_transfer_value">400,000,000</div></div>
       <div class="row sub-row"><div class="lbl">(-) 취득가액·필요경비 안분 (×D/G)</div><div class="auto-cell" id="bd_acq_portion">200,000,000</div></div>
       <div class="row sub-row"><div class="lbl">양도차익</div><div class="auto-cell" id="bd_gain">200,000,000</div></div>
@@ -288,7 +290,7 @@ function calcTransferTax(asset,transferValue,acqPortion,hold,live,zone,exemptApp
   let calcTax=0, rate='기본세율 (6~45%)', surcharge=0;
   /* §167조의3①12호의2 중과 제외 경과조치 (보유 2년 이상에만 적용) */
   var _bdRelEl=document.getElementById('bd_relief');
-  var _bdRelief=!!(_bdRelEl&&_bdRelEl.value==='yes');
+  var _bdRelief=!!(_bdRelEl&&_bdRelEl.value==='yes')&&_bdReliefGate();
   const isHouse=(asset==='house1'||asset==='house_multi'||asset==='house_general');
   if(isHouse && hold<2){
     /* 소득세법 제104조 ⑦ 후단 — 2년 미만 다주택은 중과세율 세액과 단기세율 세액 중 큰 세액 */
@@ -313,6 +315,31 @@ function calcTransferTax(asset,transferValue,acqPortion,hold,live,zone,exemptApp
 }
 
 // ========== 부담부증여 메인 ==========
+/* ===== 부담부증여의 중과 제외 경과조치 판정 =====
+   시행령 §167조의3①12호의2 (2주택은 §167조의10①12호의2)
+     가목 : 2026.5.9까지 양도하는 주택
+     나목·다목 : '매매계약' 체결·토지거래허가를 요건으로 하므로,
+                 증여계약으로 이루어지는 부담부증여에는 적용되지 않는다.
+   부담부증여의 채무인수분은 증여일에 양도가 있은 것으로 보므로 증여일을 양도일로 판정한다.
+   'YYYY-MM-DD' 는 로컬 자정으로 파싱한다(new Date(str) 은 UTC 자정이라 KST에서 하루 밀림). */
+function _bdReliefGate(){
+  var el=document.getElementById('bd_gift_date');
+  var out=document.getElementById('bd_relief_result');
+  var t=new Date();
+  var gift=new Date(t.getFullYear(),t.getMonth(),t.getDate());
+  if(el&&el.value){
+    var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(el.value);
+    if(m) gift=new Date(+m[1],+m[2]-1,+m[3]);
+  }
+  var cutoff=new Date(2026,4,9); // 2026.5.9
+  var ok=gift<=cutoff;
+  if(out){
+    out.textContent=ok?'적용 — 가목(2026.05.09까지 양도)':'미적용 — 가목 기한 경과 (2026.05.09)';
+    out.style.color=ok?'#2F855A':'#C53030';
+  }
+  return ok;
+}
+
 function calcBurden(){
   const relation=document.getElementById('bd_relation').value;
   const asset=document.getElementById('bd_asset').value;
@@ -329,6 +356,10 @@ function calcBurden(){
   document.getElementById('bd_zone_row').style.display=isMulti?'flex':'none';
   var _bdRelRow=document.getElementById('bd_relief_row');
   if(_bdRelRow){_bdRelRow.style.display=isMulti?'flex':'none';}
+  var _bdOn=isMulti&&_bdRelEl&&_bdRelEl.value==='yes';
+  ['bd_gift_date_row','bd_relief_result_row'].forEach(function(id){
+    var e=document.getElementById(id); if(e) e.style.display=_bdOn?'flex':'none';
+  });
 
   // ===== 양도세 (채무인수분) =====
   const transferValue=D;

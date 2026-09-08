@@ -695,6 +695,99 @@ function syncTransferPeriod(){
   calcTransfer();
 }
 
+/* ========== 중과 제외 경과조치 양도기한 판정 ==========
+   소득세법 시행령 §167조의3①12호의2 (1세대 3주택), §167조의10①12호의2 (1세대 2주택)
+     가목 : 2026.5.9까지 양도하는 주택
+     나목 : 토지거래허가 대상 — 2026.5.9까지 허가신청·허가·계약금 수령 +
+            매매계약 체결일부터 4개월(표 지역 6개월) 이내 양도.
+            단, 2026.5.10 이후 계약 체결분은 2026.9.9까지(표 지역 2026.11.9까지) 양도
+     다목 : 허가 대상 아님 — 2026.5.9까지 계약 체결·계약금 수령 +
+            계약 체결일부터 4개월(표 지역 6개월) 이내 양도
+   표 지역 = 서울 21개 자치구(성동·마포·강동·영등포·양천·동작·광진·중·종로·서대문·
+              강서·노원·성북·구로·동대문·관악·은평·중랑·금천·강북·도봉) 및
+             경기 12개 지역(수원 장안·팔달·영통, 성남 수정·중원·분당, 안양 동안,
+              과천, 용인 수지, 광명, 하남, 의왕)
+   기간 계산은 민법 §157·§160(초일불산입·역법적 계산)에 따라 계약일의 응당일로 만료한다.
+   예: 계약일 2026.5.9 + 4개월 → 2026.9.9 (시행령 단서의 날짜와 일치) */
+function _fmtDate(d){
+  return d.getFullYear()+'.'+('0'+(d.getMonth()+1)).slice(-2)+'.'+('0'+d.getDate()).slice(-2);
+}
+/* 'YYYY-MM-DD' 를 로컬 자정으로 파싱한다. new Date('2026-09-09') 는 UTC 자정으로 해석되어
+   KST(UTC+9)에서는 같은 날 09:00 이 되므로, 기한 당일 양도가 '경과'로 잘못 판정된다. */
+function _relParse(str){
+  if(!str) return null;
+  var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(str);
+  if(!m) return null;
+  return new Date(+m[1], +m[2]-1, +m[3]);
+}
+function _addMonths(d,n){
+  var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  var day=x.getDate();
+  x.setMonth(x.getMonth()+n);
+  if(x.getDate()<day) x.setDate(0); // 말일 보정
+  return x;
+}
+function _reliefGate(type,relief){
+  var rows=['tr_relief_route_row','tr_relief_contract_row','tr_relief_region_row','tr_relief_result_row'];
+  var isMulti=(type==='house_multi2'||type==='house_multi3');
+  var show=isMulti&&relief==='yes';
+  for(var i=0;i<rows.length;i++){
+    var el=document.getElementById(rows[i]);
+    if(el) el.style.display=show?'flex':'none';
+  }
+  if(!show) return relief;
+
+  var route=(document.getElementById('tr_relief_route')||{}).value||'na';
+  var region=(document.getElementById('tr_relief_region')||{}).value||'general';
+  var months=(region==='listed')?6:4;
+  var contractStr=(document.getElementById('tr_relief_contract')||{}).value||'';
+  var sellStr=(document.getElementById('tr_sell_date')||{}).value||'';
+  var _t=new Date();
+  var sell=_relParse(sellStr)||new Date(_t.getFullYear(),_t.getMonth(),_t.getDate());
+  var out=document.getElementById('tr_relief_result');
+  var note=document.getElementById('tr_relief_result_note');
+  var cutoff=new Date(2026,4,9); // 2026.5.9
+
+  // 가목 — 계약일 불문, 2026.5.9까지 양도
+  if(route==='ga'){
+    var okGa=sell<=cutoff;
+    if(out){out.textContent=okGa?'적용 — 2026.05.09까지 양도':'미적용 — 기한 경과 (2026.05.09)';out.style.color=okGa?'#2F855A':'#C53030';}
+    if(note) note.textContent='가목: 2026.5.9까지 양도';
+    return okGa?'yes':'no';
+  }
+
+  // 나목·다목 — 계약 체결일 기준
+  if(!contractStr){
+    if(out){out.textContent='매매계약 체결일 입력 필요';out.style.color='#B7791F';}
+    if(note) note.textContent='체결일을 입력해야 양도기한을 판정합니다';
+    return 'no';
+  }
+  var contract=_relParse(contractStr);
+  var deadline, basis;
+  if(route==='na'&&contract>cutoff){
+    // 2026.5.10 이후 계약 체결분 — 단서의 고정 기한
+    deadline=(region==='listed')?new Date(2026,10,9):new Date(2026,8,9);
+    basis='나목 단서: 2026.5.10 이후 계약 → 고정기한';
+  } else {
+    if(route==='da'&&contract>cutoff){
+      if(out){out.textContent='미적용 — 다목은 2026.05.09까지 계약 체결분만';out.style.color='#C53030';}
+      if(note) note.textContent='다목: 계약 체결일이 2026.5.9을 넘었습니다';
+      return 'no';
+    }
+    deadline=_addMonths(contract,months);
+    basis=(route==='na'?'나목':'다목')+': 계약일 + '+months+'개월';
+  }
+  var ok=sell<=deadline;
+  var days=Math.ceil((deadline-sell)/86400000);
+  if(out){
+    out.textContent=(ok?'적용 — 양도기한 ':'미적용 — 기한 경과 ')+_fmtDate(deadline)
+      +(ok?(days>=0?' (D-'+days+')':''):'');
+    out.style.color=ok?(days<=14?'#B7791F':'#2F855A'):'#C53030';
+  }
+  if(note) note.textContent=basis+(ok&&days<=14?' · 기한 임박, 잔금일 확인 요망':'');
+  return ok?'yes':'no';
+}
+
 function calcTransfer(){
   const type=document.getElementById('tr_type').value;
   const zone=document.getElementById('tr_zone').value;
@@ -712,6 +805,8 @@ function calcTransfer(){
   document.getElementById('tr_zone_row').style.display=(type==='house_multi2'||type==='house_multi3')?'flex':'none';
   var _relRow=document.getElementById('tr_relief_row');
   if(_relRow){_relRow.style.display=(type==='house_multi2'||type==='house_multi3')?'flex':'none';}
+  /* 경과조치 양도기한 판정 — 기한을 넘기면 요건 충족을 선택했더라도 중과 제외를 적용하지 않는다. */
+  relief=_reliefGate(type,relief);
   document.getElementById('tr_live_row').style.display=is1House?'flex':'none';
   document.getElementById('tr_movein_row').style.display=is1House?'flex':'none';
   document.getElementById('tr_moveout_row').style.display=is1House?'flex':'none';
