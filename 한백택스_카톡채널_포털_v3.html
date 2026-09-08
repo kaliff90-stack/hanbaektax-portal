@@ -357,14 +357,9 @@ input::placeholder,textarea::placeholder{color:var(--g4)}
 <div class="info"><div class="lbl">전화문의</div><div class="val">02-2277-3101</div></div>
 <i class="fa-solid fa-chevron-right" style="color:var(--g4)"></i>
 </div>
-<div class="contact-btn" onclick="callMobile()">
-<i class="fa-solid fa-mobile-screen-button" style="background:var(--ok)"></i>
-<div class="info"><div class="lbl">담당자 휴대폰</div><div class="val">010-2629-7741</div></div>
-<i class="fa-solid fa-chevron-right" style="color:var(--g4)"></i>
-</div>
 <div class="contact-btn" onclick="openContact()">
 <i class="fa-solid fa-headset" style="background:var(--p)"></i>
-<div class="info"><div class="lbl">빠른 문의</div><div class="val">전화·문자·이메일 한번에</div></div>
+<div class="info"><div class="lbl">빠른 문의</div><div class="val">전화·이메일 한번에</div></div>
 <i class="fa-solid fa-chevron-right" style="color:var(--g4)"></i>
 </div>
 <a class="contact-btn" href="mailto:hb090@hanbaektax.kr">
@@ -377,8 +372,7 @@ input::placeholder,textarea::placeholder{color:var(--g4)}
 대표세무사 차재영<br>
 서울특별시 중구 동호로 315, 2층<br>
 (장충동2가, 신안빌딩)<br>
-Tel 02-2277-3101 / Fax 02-2277-3161<br>
-Mobile 010-2629-7741
+Tel 02-2277-3101 / Fax 02-2277-3161
 </div>
 </div>
 
@@ -563,7 +557,7 @@ Mobile 010-2629-7741
 <button class="btn btn-p w-full" style="padding:16px;font-size:16px" onclick="requestDiagnosis()">
 <i class="fa-solid fa-comment-dots"></i> 무료 경정청구 진단 신청
 </button>
-<div class="fs-11 mt-8" style="color:var(--text3)">버튼을 누르면 선택한 업종·공제항목이 담긴 상담 문자가 자동 작성됩니다<br>평일 09:00~18:00 · 토요일 09:00~13:00</div>
+<div class="fs-11 mt-8" style="color:var(--text3)">버튼을 누르면 선택한 업종·공제항목이 담긴 상담 메일이 자동 작성됩니다<br>평일 09:00~18:00 · 토요일 09:00~13:00</div>
 </div>
 
 </div>
@@ -618,7 +612,7 @@ Mobile 010-2629-7741
 </button>
 <div class="fs-11 text-center mt-8" style="color:var(--text3)">버튼을 누르면 휴대폰 공유창이 열려 카카오톡·메일·드라이브 등으로<br>실제 파일을 첨부해 보낼 수 있습니다.</div>
 <div class="text-center mt-12">
-<button class="btn btn-o btn-sm" onclick="openContact()"><i class="fa-solid fa-headset"></i> 전화·문자로 문의</button>
+<button class="btn btn-o btn-sm" onclick="openContact()"><i class="fa-solid fa-headset"></i> 전화·이메일로 문의</button>
 </div>
 
 </div>
@@ -747,15 +741,14 @@ Mobile 010-2629-7741
 <i class="fa-solid fa-headset" style="color:#fff;font-size:24px"></i>
 </div>
 
-<!-- Contact action sheet (전화·문자·이메일) -->
+<!-- Contact action sheet (전화·이메일) -->
 <div class="sheet-ov" id="contactSheet" onclick="if(event.target===this)closeContact()">
 <div class="sheet">
 <div class="sheet-handle"></div>
 <div class="sheet-title">세무법인 한백택스 문의</div>
 <div class="sheet-sub" id="contactSub">평일 09:00~18:00 · 토 09:00~13:00</div>
 <a class="sheet-item" href="tel:02-2277-3101"><i class="fa-solid fa-phone" style="background:var(--p)"></i><div><div class="si-t">전화 상담</div><div class="si-s">02-2277-3101 (대표번호)</div></div></a>
-<a class="sheet-item" href="tel:010-2629-7741"><i class="fa-solid fa-mobile-screen-button" style="background:var(--ok)"></i><div><div class="si-t">담당자 휴대폰</div><div class="si-s">010-2629-7741</div></div></a>
-<button class="sheet-item" onclick="smsConsult()"><i class="fa-solid fa-comment-sms" style="background:var(--ac)"></i><div><div class="si-t">문자로 상담 신청</div><div class="si-s">상담 내용이 자동으로 작성됩니다</div></div></button>
+<button class="sheet-item" onclick="mailConsult()"><i class="fa-solid fa-envelope-open-text" style="background:var(--ac)"></i><div><div class="si-t">이메일로 상담 신청</div><div class="si-s">상담 내용이 자동으로 작성됩니다</div></div></button>
 <a class="sheet-item" href="mailto:hb090@hanbaektax.kr"><i class="fa-solid fa-envelope" style="background:var(--pr)"></i><div><div class="si-t">이메일 문의</div><div class="si-s">hb090@hanbaektax.kr</div></div></a>
 <a class="sheet-item" href="https://map.kakao.com/?q=서울특별시 중구 동호로 315" target="_blank"><i class="fa-solid fa-location-dot" style="background:var(--ng)"></i><div><div class="si-t">사무실 위치</div><div class="si-s">서울 중구 동호로 315, 2층 (신안빌딩)</div></div></a>
 <button class="btn btn-o w-full mt-12" onclick="closeContact()">닫기</button>
@@ -767,8 +760,7 @@ Mobile 010-2629-7741
 const COMPANY = {
   name:'세무법인 한백택스', eng:'HANBAEK TAX', ceo:'대표세무사 차재영',
   addr:'서울특별시 중구 동호로 315, 신안빌딩 2층 (장충동2가 173-1)',
-  tel:'02-2277-3101', fax:'02-2277-3161', email:'hb090@hanbaektax.kr',
-  mobile:'010-2629-7741'
+  tel:'02-2277-3101', fax:'02-2277-3161', email:'hb090@hanbaektax.kr'
 };
 let uploadedFiles = [];
 let currentCalMonth = new Date().getMonth(); // 0-based
@@ -829,7 +821,7 @@ function toggleDark(){
 function toggleNoti(el){ el.classList.toggle('on'); toast(el.classList.contains('on')?'알림 켜짐':'알림 꺼짐'); }
 
 /* ===================== CONTACT (전화 중심) ===================== */
-let consultText = '';  // 문자 상담 시 자동 작성될 내용
+let consultText = '';  // 이메일 상담 시 자동 작성될 내용
 function openContact(text, sub){
   consultText = text || '';
   document.getElementById('contactSub').textContent = sub || '평일 09:00~18:00 · 토 09:00~13:00';
@@ -839,18 +831,15 @@ function closeContact(){ document.getElementById('contactSheet').classList.remov
 /* openKakao를 호출하던 모든 버튼은 전화 중심 연락 시트로 연결 */
 function openKakao(){ openContact(); }
 function callTel(){ window.location.href='tel:'+COMPANY.tel; }
-function callMobile(){ window.location.href='tel:'+COMPANY.mobile; }
-/* SMS 본문 자동작성 (iOS/Android 구분자 처리) */
-function smsTo(number, body){
-  const ua = navigator.userAgent || '';
-  const sep = /iPhone|iPad|iPod|Macintosh/i.test(ua) ? '&' : '?';
-  window.location.href = `sms:${number}${sep}body=${encodeURIComponent(body)}`;
+/* 상담 메일 본문 자동작성 */
+function mailTo(address, subject, body){
+  window.location.href = `mailto:${address}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
-function smsConsult(){
+function mailConsult(){
   const name = (localStorage.getItem('userName')||'').trim();
   const body = consultText
     || `[한백택스 상담 신청]\n${name?'성함/상호: '+name+'\n':''}문의 내용: `;
-  smsTo(COMPANY.mobile, body);
+  mailTo(COMPANY.email, '[한백택스] 상담 신청', body);
   closeContact();
 }
 function shareKakao(){
@@ -1286,7 +1275,7 @@ function calcRefund(){
   toast('시뮬레이션 완료');
 }
 
-/* 무료 진단 신청 — 선택 내용으로 상담 문자 자동작성 */
+/* 무료 진단 신청 — 선택 내용으로 상담 이메일 자동작성 */
 function requestDiagnosis(){
   const biz=(BIZ_TYPES[selectedBizType]||{}).name||'';
   const taxNames={income:'종합소득세',corp:'법인세',vat:'부가가치세'};
@@ -1301,26 +1290,26 @@ function requestDiagnosis(){
     (rev?`연매출(수입): ${fmtW(rev)}\n`:'')+
     `관심 공제항목: ${checked.length?checked.join(', '):'(미선택)'}\n`+
     `→ 경정청구 가능 여부 진단을 요청합니다.`;
-  openContact(text, '무료 진단 신청 — 문자로 보내거나 전화 주세요');
+  openContact(text, '무료 진단 신청 — 이메일로 보내거나 전화 주세요');
 }
 
-/* 세무대리 신청 — 문자 자동작성 */
+/* 세무대리 신청 — 이메일 자동작성 */
 function requestService(){
   const name=(localStorage.getItem('senderName')||localStorage.getItem('userName')||'').trim();
   const text=`[한백택스 세무대리 신청]\n`+
     `${name?'성함/상호: '+name+'\n':''}`+
     `사업자번호: \n업종: \n신청 업무(기장/신고/상담 등): \n`+
     `→ 세무대리 상담을 신청합니다.`;
-  openContact(text, '세무대리 신청 — 빈칸을 채워 문자로 보내주세요');
+  openContact(text, '세무대리 신청 — 빈칸을 채워 이메일로 보내주세요');
 }
 
-/* 수임동의 완료 알림 — 문자 자동작성 */
+/* 수임동의 완료 알림 — 이메일 자동작성 */
 function notifySuim(){
   const name=(localStorage.getItem('senderName')||localStorage.getItem('userName')||'').trim();
   const text=`[한백택스 수임동의 완료 알림]\n`+
     `${name?'성함/상호: '+name+'\n':''}`+
     `홈택스에서 세무법인 한백택스(차재영) 수임동의를 완료했습니다. 확인 부탁드립니다.`;
-  openContact(text, '수임동의 완료를 문자로 알려주세요');
+  openContact(text, '수임동의 완료를 이메일로 알려주세요');
 }
 
 /* ===================== UPLOAD ===================== */
