@@ -689,10 +689,25 @@ function calcTransfer(){
     else{calcTaxAmt=taxBase*0.60;rateDesc='분양권 2년 이상: 60%';}
   } else if(isHouse && !is1House){
     // 주택(다주택) 단기보유 할증
-    if(holdYrs<1){
-      calcTaxAmt=taxBase*0.70;rateDesc='주택 1년 미만 단기: 70%';
-    } else if(holdYrs<2){
-      calcTaxAmt=taxBase*0.60;rateDesc='주택 1~2년 단기: 60%';
+    if(holdYrs<2){
+      /* 소득세법 제104조 ⑦ 후단 — 조정대상지역 다주택 주택의 보유기간이 2년 미만이면
+         중과세율(기본세율+20/30%p) 산출세액과 단기세율(§104①2·3호) 산출세액 중
+         큰 세액을 양도소득 산출세액으로 한다. */
+      var _shortRate=(holdYrs<1)?0.70:0.60;
+      var _shortTax=taxBase*_shortRate;
+      var _hvRate=(zone==='yes'&&type==='house_multi2')?0.20:((zone==='yes'&&type==='house_multi3')?0.30:0);
+      var _heavyTax=_hvRate?(incomeTax(taxBase)+taxBase*_hvRate):0;
+      if(_heavyTax>_shortTax){
+        calcTaxAmt=incomeTax(taxBase);
+        surcharge=taxBase*_hvRate;
+        if(typeof surchargeRow!=='undefined'&&surchargeRow){surchargeRow.style.display='flex';}
+        var _sn=document.getElementById('tr_surcharge_note');
+        if(_sn){_sn.textContent=(_hvRate===0.20?'2주택':'3주택+')+' 조정지역 +'+Math.round(_hvRate*100)+'%p (§104⑦ 후단)';}
+        rateDesc='기본세율 + '+Math.round(_hvRate*100)+'%p (§104⑦ 후단: 단기세율보다 큼)';
+      } else {
+        calcTaxAmt=_shortTax;
+        rateDesc=(holdYrs<1)?'주택 1년 미만 단기: 70%':'주택 1~2년 단기: 60%';
+      }
     } else {
       calcTaxAmt=incomeTax(taxBase);rateDesc='기본세율 (6~45%)';
       // 다주택 중과 (조정대상지역)

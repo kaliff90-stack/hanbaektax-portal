@@ -283,8 +283,14 @@ function calcTransferTax(asset,transferValue,acqPortion,hold,live,zone,exemptApp
   const base=Math.max(income-2500000,0);
   let calcTax=0, rate='기본세율 (6~45%)', surcharge=0;
   const isHouse=(asset==='house1'||asset==='house_multi'||asset==='house_general');
-  if(isHouse && hold<1){ calcTax=base*0.70; rate='주택 1년미만 단기 70%'; }
-  else if(isHouse && hold<2){ calcTax=base*0.60; rate='주택 1~2년 단기 60%'; }
+  if(isHouse && hold<2){
+    /* 소득세법 제104조 ⑦ 후단 — 2년 미만 다주택은 중과세율 세액과 단기세율 세액 중 큰 세액 */
+    var _sr=(hold<1)?0.70:0.60, _st=base*_sr;
+    var _hr=(asset==='house_multi'&&zone==='20')?0.20:((asset==='house_multi'&&zone==='30')?0.30:0);
+    var _ht=_hr?(incomeTax(base)+base*_hr):0;
+    if(_ht>_st){ calcTax=incomeTax(base); surcharge=base*_hr; rate='기본세율+'+Math.round(_hr*100)+'%p(§104⑦ 후단)'; }
+    else { calcTax=_st; rate=(hold<1)?'주택 1년미만 단기 70%':'주택 1~2년 단기 60%'; }
+  }
   else if(asset==='land_nonbiz'){
     if(hold<1){calcTax=base*0.50;rate='비사업용토지 1년미만 50%';}
     else if(hold<2){calcTax=base*0.40;rate='비사업용토지 1~2년 40%';}

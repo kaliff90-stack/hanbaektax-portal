@@ -516,6 +516,12 @@ function determineTaxType(holdMonths) {
         result.rateLabel = '기본세율 (중과 한시배제)';
       }
     }
+    /* 소득세법 제104조 ⑦ 후단 — 조정대상지역 다주택 주택의 보유기간이 2년 미만이면
+       중과세율 산출세액과 단기세율 산출세액 중 큰 세액을 산출세액으로 한다. */
+    if (result.method === 'flat' && holdMonths < 24 && isRegulated && !isSuspended) {
+      if (houseCount === '2') result.cmpSurtax = 20;
+      else if (houseCount === '3') result.cmpSurtax = 30;
+    }
   }
 
   // 토지
@@ -683,6 +689,16 @@ function calculate() {
     incomeTax = Math.floor(taxBase * taxType.flatRate / 100);
     appliedRate = taxType.flatRate;
     rateDesc = `단일세율 ${taxType.flatRate}%`;
+    if (taxType.cmpSurtax) {
+      // §104⑦ 후단 — 중과세율 세액이 더 크면 그것을 산출세액으로 한다
+      const basicC = calcBasicTax(taxBase);
+      const heavyTax = basicC.tax + Math.floor(taxBase * taxType.cmpSurtax / 100);
+      if (heavyTax > incomeTax) {
+        incomeTax = heavyTax;
+        appliedRate = basicC.rate + taxType.cmpSurtax;
+        rateDesc = `기본세율 ${basicC.rate}% + 중과 ${taxType.cmpSurtax}%p = ${appliedRate}% (§104⑦ 후단)`;
+      }
+    }
   } else if (taxType.method === 'surtax') {
     const basic = calcBasicTax(taxBase);
     const surtax = Math.floor(taxBase * taxType.surtaxRate / 100);
