@@ -158,6 +158,10 @@ input,select,textarea{touch-action:auto}
         <option value="20">2주택 중과 (+20%p)</option>
         <option value="30">3주택+ 중과 (+30%p)</option>
       </select></div></div>
+      <div class="row" id="bd_relief_row" style="display:none"><div class="lbl">중과 제외 경과조치</div><div class="input-cell"><select id="bd_relief" onchange="calcBurden()">
+        <option value="no" selected>해당 없음</option>
+        <option value="yes">요건 충족 (§167조의3①12호의2)</option>
+      </select></div></div>
       <div class="row sub-row"><div class="lbl">양도가액 (=채무액 D)</div><div class="auto-cell" id="bd_transfer_value">400,000,000</div></div>
       <div class="row sub-row"><div class="lbl">(-) 취득가액·필요경비 안분 (×D/G)</div><div class="auto-cell" id="bd_acq_portion">200,000,000</div></div>
       <div class="row sub-row"><div class="lbl">양도차익</div><div class="auto-cell" id="bd_gain">200,000,000</div></div>
@@ -282,6 +286,9 @@ function calcTransferTax(asset,transferValue,acqPortion,hold,live,zone,exemptApp
   const income=Math.max(taxableGain-lthold,0);
   const base=Math.max(income-2500000,0);
   let calcTax=0, rate='기본세율 (6~45%)', surcharge=0;
+  /* §167조의3①12호의2 중과 제외 경과조치 (보유 2년 이상에만 적용) */
+  var _bdRelEl=document.getElementById('bd_relief');
+  var _bdRelief=!!(_bdRelEl&&_bdRelEl.value==='yes');
   const isHouse=(asset==='house1'||asset==='house_multi'||asset==='house_general');
   if(isHouse && hold<2){
     /* 소득세법 제104조 ⑦ 후단 — 2년 미만 다주택은 중과세율 세액과 단기세율 세액 중 큰 세액 */
@@ -297,8 +304,8 @@ function calcTransferTax(asset,transferValue,acqPortion,hold,live,zone,exemptApp
     else{calcTax=incomeTax(base);surcharge=base*0.10;rate='기본세율+10%p(비사업용)';}
   } else {
     calcTax=incomeTax(base);
-    if(asset==='house_multi' && hold>=2 && zone==='20'){surcharge=base*0.20;rate='기본세율+20%p(2주택중과)';}
-    else if(asset==='house_multi' && hold>=2 && zone==='30'){surcharge=base*0.30;rate='기본세율+30%p(3주택중과)';}
+    if(asset==='house_multi' && hold>=2 && zone==='20' && !_bdRelief){surcharge=base*0.20;rate='기본세율+20%p(2주택중과)';}
+    else if(asset==='house_multi' && hold>=2 && zone==='30' && !_bdRelief){surcharge=base*0.30;rate='기본세율+30%p(3주택중과)';}
   }
   const totalCalc=Math.round(calcTax)+Math.round(surcharge);
   const localTax=Math.round(totalCalc*0.1);
@@ -320,6 +327,8 @@ function calcBurden(){
   const isMulti=(asset==='house_multi');
   document.getElementById('bd_exempt_row').style.display=isHouse1?'flex':'none';
   document.getElementById('bd_zone_row').style.display=isMulti?'flex':'none';
+  var _bdRelRow=document.getElementById('bd_relief_row');
+  if(_bdRelRow){_bdRelRow.style.display=isMulti?'flex':'none';}
 
   // ===== 양도세 (채무인수분) =====
   const transferValue=D;

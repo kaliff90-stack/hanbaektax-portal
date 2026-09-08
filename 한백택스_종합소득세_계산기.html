@@ -698,6 +698,10 @@ function syncTransferPeriod(){
 function calcTransfer(){
   const type=document.getElementById('tr_type').value;
   const zone=document.getElementById('tr_zone').value;
+  /* 소득세법 시행령 §167조의3①12호의2(3주택)·§167조의10①12호의2(2주택) 중과 제외 경과조치.
+     세 목 모두 '보유기간 2년 이상'이 공통 요건이므로 2년 미만에는 적용되지 않는다. */
+  var _relEl=document.getElementById('tr_relief');
+  var relief=(_relEl&&_relEl.value==='yes')?'yes':'no';
   const sell=v('tr_sell'),buy=v('tr_buy'),exp=v('tr_expense');
   const holdYrs=v('tr_hold_years'),liveYrs=v('tr_live_years');
   const gain=sell-buy-exp;
@@ -706,6 +710,8 @@ function calcTransfer(){
   const isHouse=type.startsWith('house')||type==='pre_sale';
   const is1House=type==='house1';
   document.getElementById('tr_zone_row').style.display=(type==='house_multi2'||type==='house_multi3')?'flex':'none';
+  var _relRow=document.getElementById('tr_relief_row');
+  if(_relRow){_relRow.style.display=(type==='house_multi2'||type==='house_multi3')?'flex':'none';}
   document.getElementById('tr_live_row').style.display=is1House?'flex':'none';
   document.getElementById('tr_movein_row').style.display=is1House?'flex':'none';
   document.getElementById('tr_moveout_row').style.display=is1House?'flex':'none';
@@ -742,7 +748,7 @@ function calcTransfer(){
     ltholdRate=Math.min(Math.min(holdYrs,15)*2,30)/100;
   } else if(type==='house_multi2'||type==='house_multi3'){
     // 다주택 중과 대상(조정지역): 장특공 배제
-    if(zone==='yes'){ltholdEnabled=false;ltholdRate=0;}
+    if(zone==='yes'&&relief!=='yes'){ltholdEnabled=false;ltholdRate=0;}
     else if(holdYrs>=3){ltholdRate=Math.min(Math.min(holdYrs,15)*2,30)/100;}
   } else if(type==='non_biz_land'){
     // 비사업용 토지: 장특공 배제
@@ -790,7 +796,7 @@ function calcTransfer(){
     } else {
       calcTaxAmt=incomeTax(taxBase);rateDesc='기본세율 (6~45%)';
       // 다주택 중과 (조정대상지역)
-      if(zone==='yes'){
+      if(zone==='yes'&&relief!=='yes'){
         surchargeRow.style.display='flex';
         if(type==='house_multi2'){
           surcharge=taxBase*0.20;

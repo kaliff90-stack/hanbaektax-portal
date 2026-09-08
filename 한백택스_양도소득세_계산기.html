@@ -219,7 +219,7 @@ button:active{transform:scale(0.95);transition:transform 0.1s}
         <option value="non_biz_land">비사업용 토지</option>
         <option value="pre_sale">분양권·입주권</option>
       </select></div></div>
-      <div class="row" id="tr_zone_row"><div class="lbl">조정대상지역 여부</div><div class="input-cell"><select id="tr_zone" onchange="calcTransfer()"><option value="no">비조정지역</option><option value="yes">조정대상지역</option></select></div></div>
+      <div class="row" id="tr_zone_row"><div class="lbl">조정대상지역 여부</div><div class="input-cell"><select id="tr_zone" onchange="calcTransfer()"><option value="no">비조정지역</option><option value="yes">조정대상지역</option></select></div></div><div class="row" id="tr_relief_row" style="display:none"><div class="lbl">중과 제외 경과조치</div><div class="input-cell"><select id="tr_relief" onchange="calcTransfer()"><option value="no">해당 없음</option><option value="yes">요건 충족</option></select></div><div class="note">시행령 §167조의3①12호의2 — 보유 2년 이상 + 2026.5.9까지 토지거래허가 신청·매매계약</div></div>
       <div class="row"><div class="lbl">양도가액</div><div class="input-cell"><input type="number" id="tr_sell" value="1500000000" oninput="calcTransfer()"></div><div class="note">← 실거래가</div></div>
       <div class="row"><div class="lbl">취득가액</div><div class="input-cell"><input type="number" id="tr_buy" value="900000000" oninput="calcTransfer()"></div><div class="note">← 실거래가</div></div>
       <div class="row"><div class="lbl">필요경비 (취득세 등)</div><div class="input-cell"><input type="number" id="tr_expense" value="40000000" oninput="calcTransfer()"></div><div class="note">취득세·중개수수료·법무비 등</div></div>
@@ -647,6 +647,10 @@ function syncTransferPeriod(){
 function calcTransfer(){
   const type=document.getElementById('tr_type').value;
   const zone=document.getElementById('tr_zone').value;
+  /* 소득세법 시행령 §167조의3①12호의2(3주택)·§167조의10①12호의2(2주택) 중과 제외 경과조치.
+     세 목 모두 '보유기간 2년 이상'이 공통 요건이므로 2년 미만에는 적용되지 않는다. */
+  var _relEl=document.getElementById('tr_relief');
+  var relief=(_relEl&&_relEl.value==='yes')?'yes':'no';
   const sell=v('tr_sell'),buy=v('tr_buy'),exp=v('tr_expense');
   const holdYrs=v('tr_hold_years'),liveYrs=v('tr_live_years');
   const gain=sell-buy-exp;
@@ -655,6 +659,8 @@ function calcTransfer(){
   const isHouse=type.startsWith('house')||type==='pre_sale';
   const is1House=type==='house1';
   document.getElementById('tr_zone_row').style.display=(type==='house_multi2'||type==='house_multi3')?'flex':'none';
+  var _relRow=document.getElementById('tr_relief_row');
+  if(_relRow){_relRow.style.display=(type==='house_multi2'||type==='house_multi3')?'flex':'none';}
   document.getElementById('tr_live_row').style.display=is1House?'flex':'none';
   document.getElementById('tr_movein_row').style.display=is1House?'flex':'none';
   document.getElementById('tr_moveout_row').style.display=is1House?'flex':'none';
@@ -691,7 +697,7 @@ function calcTransfer(){
     ltholdRate=Math.min(Math.min(holdYrs,15)*2,30)/100;
   } else if(type==='house_multi2'||type==='house_multi3'){
     // 다주택 중과 대상(조정지역): 장특공 배제
-    if(zone==='yes'){ltholdEnabled=false;ltholdRate=0;}
+    if(zone==='yes'&&relief!=='yes'){ltholdEnabled=false;ltholdRate=0;}
     else if(holdYrs>=3){ltholdRate=Math.min(Math.min(holdYrs,15)*2,30)/100;}
   } else if(type==='non_biz_land'){
     // 비사업용 토지: 장특공 배제
@@ -739,7 +745,7 @@ function calcTransfer(){
     } else {
       calcTaxAmt=incomeTax(taxBase);rateDesc='기본세율 (6~45%)';
       // 다주택 중과 (조정대상지역)
-      if(zone==='yes'){
+      if(zone==='yes'&&relief!=='yes'){
         surchargeRow.style.display='flex';
         if(type==='house_multi2'){
           surcharge=taxBase*0.20;
