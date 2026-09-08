@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📅 세금 신고기한 캘린더 | 한백택스</title>
+<meta name="description" content="연간 세무 신고기한 D-day · 거래처별 완료체크 · 부가세·원천세·법인세·종소세">
+<meta name="theme-color" content="#1B3A5C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="신고기한">
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Nanum Gothic',sans-serif}
+:root{--navy:#1B3A5C;--blue:#2E6DA4;--gold:#C8963E;--bg:#f0f2f5;--gray:#718096;--light:#EDF2F7;--input-bg:#FFF8E1;--auto-bg:#FDF2E9;--border:#CBD5E0;--green:#D1FAE5;--green-txt:#065F46;--red:#C53030;--red-bg:#FEE2E2}
+body{background:var(--bg);color:#2D3748;min-height:100vh;font-size:16px;padding-bottom:40px}
+.top-bar{background:var(--navy);color:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.top-bar h1{font-size:23px}.top-bar .sub{font-size:13px;color:#a0b4cc;margin-top:3px}
+.brand-bar{background:var(--navy);color:var(--gold);text-align:center;padding:7px;font-size:14px;font-weight:700;border-bottom:3px solid var(--gold)}
+.standalone-back{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;margin:14px 24px 0}
+.wrap{max-width:1100px;margin:0 auto;padding:18px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:18px}
+.toolbar label{font-weight:800;color:var(--navy);font-size:14px}
+.toolbar select,.toolbar input{padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-weight:700;color:var(--navy);background:var(--input-bg);font-size:15px}
+.sp{flex:1}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.chip{padding:8px 16px;border-radius:20px;border:2px solid var(--border);background:#fff;font-weight:700;font-size:14px;cursor:pointer;color:var(--gray)}
+.chip.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.upcoming{background:var(--navy);color:#fff;border-radius:14px;padding:20px 24px;margin-bottom:20px}
+.upcoming h3{font-size:18px;margin-bottom:14px;color:var(--gold)}
+.up-card{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,0.08);border-radius:10px;padding:12px 16px;margin-bottom:8px}
+.dday{font-size:22px;font-weight:800;min-width:90px;text-align:center;color:var(--gold)}
+.dday.urgent{color:#FCA5A5}
+.up-card .ti{flex:1}.up-card .ti b{font-size:16px}.up-card .ti .dt{font-size:13px;color:#a0b4cc;margin-top:2px}
+.month-grp{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:14px;overflow:hidden}
+.month-hdr{background:var(--light);padding:12px 18px;font-weight:800;color:var(--navy);font-size:16px;display:flex;justify-content:space-between}
+.ev{display:flex;align-items:center;gap:12px;padding:13px 18px;border-top:1px solid var(--light)}
+.ev.done{opacity:.5}
+.ev .chk{width:26px;height:26px;border:2px solid var(--border);border-radius:7px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff}
+.ev .chk.on{background:var(--green-txt);border-color:var(--green-txt)}
+.ev .date{font-weight:800;color:var(--blue);min-width:54px}
+.ev .body{flex:1}.ev .body b{font-size:15px}.ev.done .body b{text-decoration:line-through}
+.ev .tags{margin-top:3px}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:5px;font-weight:700;margin-right:4px;background:var(--auto-bg);color:var(--gold)}
+.tag.원천{background:#E0F2FE;color:#0369A1}.tag.부가세{background:#DCFCE7;color:#15803D}.tag.법인{background:#FEF3C7;color:#B45309}.tag.종소세{background:#FCE7F3;color:#BE185D}.tag.지급명세{background:#EDE9FE;color:#6D28D9}.tag.기타{background:var(--light);color:var(--gray)}
+.note{font-size:12px;color:var(--gray)}
+.disclaimer{font-size:13px;color:var(--gray);padding:18px;line-height:1.7;background:#fff;border:1px solid var(--border);border-radius:12px;margin-top:16px}.disclaimer b{color:var(--navy)}
+.add-bar{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.add-bar input{padding:9px 12px;border:1px solid var(--border);border-radius:7px;font-family:inherit}
+.btn{background:var(--blue);color:#fff;border:none;padding:10px 18px;border-radius:8px;font-weight:800;cursor:pointer;font-family:inherit;font-size:14px}
+@media(max-width:700px){.wrap{padding:10px 8px}.top-bar h1{font-size:18px}.dday{min-width:64px;font-size:18px}}
+</style>
+</head>
+<body>
+<div class="top-bar"><div><h1>세무법인 한백택스</h1><div class="sub">대표세무사 차재영 | 서울특별시 중구 동호로 315, 2층</div></div><div style="color:var(--gold);font-weight:800;font-size:12px">신고기한 캘린더</div></div>
+<div class="brand-bar">HANBAEK TAX — 연간 세무 신고기한 대시보드</div>
+<a class="standalone-back" href="한백택스_세무계산_포털.html">← 전체 세무계산 포털</a>
+
+<div class="wrap">
+  <div class="toolbar">
+    <label>연도</label><select id="year" onchange="render()"></select>
+    <label>오늘</label><input type="date" id="today">
+    <span class="sp"></span>
+    <span class="note">✔ 체크는 이 브라우저에 저장됩니다</span>
+  </div>
+
+  <div class="filters" id="filters"></div>
+
+  <div class="add-bar">
+    <b style="color:var(--navy)">＋ 직접 일정 추가</b>
+    <input type="date" id="cu_date">
+    <input type="text" id="cu_title" placeholder="일정명 (예: ○○상사 부가세 자료마감)" style="flex:1;min-width:160px">
+    <button class="btn" onclick="addCustom()">추가</button>
+  </div>
+
+  <div class="upcoming" id="upcoming"></div>
+  <div id="calendar"></div>
+
+  <div class="disclaimer">※ 일반적인 세무 신고기한(12월말 결산법인·일반 사업자 기준)입니다. <b>토·일·공휴일이 기한이면 다음 영업일</b>로 연장됩니다. 반기납부·성실신고·연결납세·면세사업자 등 개별 사정에 따라 기한이 다를 수 있으니 거래처별로 확인하세요. 부가세 개인 예정고지(4·10월), 원천세 반기납부(1·7월 10일) 등은 필터에서 선택해 보세요.</div>
+</div>
+
+<script>
+const LS='hanbaek_tax_calendar_v1';
+let STATE={done:{},custom:[],filter:'전체'};
+try{const r=localStorage.getItem(LS);if(r)STATE=Object.assign(STATE,JSON.parse(r));}catch(e){}
+function save(){localStorage.setItem(LS,JSON.stringify(STATE));}
+
+// 연간 세무일정 템플릿: {m,d, title, cat, types, note}  (m=월,d=일; m='*'면 매월)
+const TEMPLATE=[
+  {m:'*',d:10,title:'원천세 신고·납부 (전월 지급분)',cat:'원천',note:'지방소득세 특별징수 포함'},
+  {m:'*',d:'말',title:'간이지급명세서(사업·기타소득)·일용근로 지급명세서 제출',cat:'지급명세',note:'전월 지급분'},
+  {m:1,d:10,title:'원천세 반기납부 (하반기분)',cat:'원천',note:'반기납부 승인자'},
+  {m:1,d:25,title:'부가가치세 2기 확정신고·납부',cat:'부가세',note:'법인·개인 일반과세'},
+  {m:1,d:25,title:'간이과세자 부가가치세 신고·납부',cat:'부가세',note:'직전연도분'},
+  {m:2,d:10,title:'면세사업자 사업장현황 신고',cat:'기타',note:'개인 면세'},
+  {m:2,d:'말',title:'이자·배당·연금·기타소득 지급명세서 제출',cat:'지급명세'},
+  {m:3,d:10,title:'근로·퇴직·사업·기타소득 지급명세서 제출',cat:'지급명세',note:'연말정산 지급명세서'},
+  {m:3,d:10,title:'연말정산 환급·추가징수 반영',cat:'원천'},
+  {m:3,d:31,title:'법인세 신고·납부 (12월 결산)',cat:'법인'},
+  {m:4,d:25,title:'부가가치세 1기 예정신고(법인)·예정고지(개인)',cat:'부가세'},
+  {m:5,d:31,title:'종합소득세·지방소득세 확정신고·납부',cat:'종소세'},
+  {m:6,d:30,title:'성실신고확인대상 종합소득세 신고',cat:'종소세'},
+  {m:7,d:10,title:'원천세 반기납부 (상반기분)',cat:'원천',note:'반기납부 승인자'},
+  {m:7,d:25,title:'부가가치세 1기 확정신고·납부',cat:'부가세'},
+  {m:8,d:31,title:'법인세 중간예납 (12월 결산)',cat:'법인'},
+  {m:10,d:25,title:'부가가치세 2기 예정신고(법인)·예정고지(개인)',cat:'부가세'},
+  {m:11,d:30,title:'종합소득세 중간예납 납부',cat:'종소세'},
+];
+const CATS=['전체','부가세','원천','법인','종소세','지급명세','기타'];
+
+function lastDay(y,m){return new Date(y,m,0).getDate();}
+function fmtDate(y,m,d){return y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+function genEvents(year){
+  const evs=[];
+  TEMPLATE.forEach((t,ti)=>{
+    const months=t.m==='*'?[1,2,3,4,5,6,7,8,9,10,11,12]:[t.m];
+    months.forEach(mo=>{
+      const day=t.d==='말'?lastDay(year,mo):t.d;
+      evs.push({id:'t'+ti+'_'+year+'_'+mo,date:fmtDate(year,mo,day),title:t.title,cat:t.cat,note:t.note||'',mo});
+    });
+  });
+  STATE.custom.filter(c=>c.date.slice(0,4)==String(year)).forEach((c,ci)=>{
+    evs.push({id:c.id,date:c.date,title:c.title,cat:'기타',note:'직접추가',mo:+c.date.slice(5,7),custom:true});
+  });
+  return evs.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
+}
+function ddayText(date,today){
+  const d=(new Date(date)-new Date(today))/(1000*60*60*24);
+  const n=Math.round(d);
+  if(n===0)return['D-DAY',true];
+  if(n>0)return['D-'+n,n<=7];
+  return['종료',false];
+}
+function render(){
+  const year=+document.getElementById('year').value;
+  const today=document.getElementById('today').value;
+  // filters
+  const fc=document.getElementById('filters');fc.innerHTML='';
+  CATS.forEach(c=>{const d=document.createElement('div');d.className='chip'+(STATE.filter===c?' active':'');d.textContent=c;d.onclick=()=>{STATE.filter=c;save();render();};fc.appendChild(d);});
+  let evs=genEvents(year);
+  if(STATE.filter!=='전체')evs=evs.filter(e=>e.cat===STATE.filter);
+  // upcoming (today 이후 미완료 5개)
+  const up=evs.filter(e=>e.date>=today&&!STATE.done[e.id]).slice(0,5);
+  let uh='<h3>⏰ 다가오는 신고기한</h3>';
+  if(!up.length)uh+='<div class="note" style="color:#a0b4cc">예정된 기한이 없습니다.</div>';
+  up.forEach(e=>{const[dd,urgent]=ddayText(e.date,today);uh+='<div class="up-card"><div class="dday'+(urgent?' urgent':'')+'">'+dd+'</div><div class="ti"><b>'+e.title+'</b><div class="dt">'+e.date+' · '+e.cat+'</div></div></div>';});
+  document.getElementById('upcoming').innerHTML=uh;
+  // calendar grouped by month
+  const cal=document.getElementById('calendar');cal.innerHTML='';
+  for(let mo=1;mo<=12;mo++){
+    const me=evs.filter(e=>e.mo===mo);if(!me.length)continue;
+    const doneCnt=me.filter(e=>STATE.done[e.id]).length;
+    let h='<div class="month-grp"><div class="month-hdr"><span>'+mo+'월</span><span class="note">'+doneCnt+'/'+me.length+' 완료</span></div>';
+    me.forEach(e=>{const done=!!STATE.done[e.id];h+='<div class="ev'+(done?' done':'')+'">'
+      +'<div class="chk'+(done?' on':'')+'" onclick="toggle(\''+e.id+'\')">'+(done?'✔':'')+'</div>'
+      +'<div class="date">'+e.date.slice(5).replace('-','/')+'</div>'
+      +'<div class="body"><b>'+e.title+'</b>'+(e.note?' <span class="note">— '+e.note+'</span>':'')+'<div class="tags"><span class="tag '+e.cat+'">'+e.cat+'</span>'+(e.custom?'<span class="tag" style="cursor:pointer;color:var(--red)" onclick="delCustom(\''+e.id+'\')">삭제</span>':'')+'</div></div></div>';});
+    h+='</div>';cal.innerHTML+=h;
+  }
+}
+function toggle(id){STATE.done[id]=!STATE.done[id];save();render();}
+function addCustom(){const date=document.getElementById('cu_date').value,title=document.getElementById('cu_title').value.trim();
+  if(!date||!title){alert('날짜와 일정명을 입력하세요.');return;}
+  STATE.custom.push({id:'c'+date+'_'+Math.floor(Math.random()*100000),date,title});save();
+  document.getElementById('cu_title').value='';document.getElementById('year').value=date.slice(0,4);render();}
+function delCustom(id){if(!confirm('이 일정을 삭제할까요?'))return;STATE.custom=STATE.custom.filter(c=>c.id!==id);save();render();}
+
+// init
+(function(){
+  const now=new Date();const ys=document.getElementById('year');
+  for(let y=now.getFullYear()-1;y<=now.getFullYear()+1;y++){const o=document.createElement('option');o.value=y;o.textContent=y+'년';if(y===now.getFullYear())o.selected=true;ys.appendChild(o);}
+  document.getElementById('today').value=now.toISOString().slice(0,10);
+  document.getElementById('today').addEventListener('change',render);
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d1e3d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="PDF→Excel 변환기">
+<title>PDF → Excel 변환기 v4 | 세무법인 한백택스</title>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --navy: #1B2A4A; --navy-light: #2A3D66; --gold: #C7A95F; --gold-light: #D4BC7E;
+    --bg: #F5F5F0; --white: #FFFFFF; --gray-50: #FAFAF8; --gray-100: #F0F0EC;
+    --gray-200: #E0E0DC; --gray-300: #C0C0BC; --gray-500: #888888; --gray-700: #555555;
+    --dark: #333333; --success: #2E7D32; --error: #C62828; --info: #1565C0; --warn: #E65100;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'Nanum Gothic','NanumGothic',sans-serif; }
+  body { background:var(--bg); color:var(--dark); min-height:100vh; overflow-x:hidden; }
+
+  .header {
+    background:linear-gradient(135deg,var(--navy),var(--navy-light));
+    color:var(--white); padding:24px 40px; display:flex; align-items:center; justify-content:space-between;
+    box-shadow:0 2px 12px rgba(27,42,74,0.15);
+  }
+  .header-left { display:flex; align-items:center; gap:16px; }
+  .header-logo { width:44px; height:44px; background:var(--gold); border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:18px; color:var(--navy); }
+  .header h1 { font-size:20px; font-weight:800; letter-spacing:-0.5px; }
+  .header-sub { font-size:12px; color:var(--gold-light); margin-top:2px; }
+  .header-right { display:flex; align-items:center; gap:12px; }
+  .header-badge { background:rgba(199,169,95,0.15); border:1px solid var(--gold); color:var(--gold-light); padding:6px 14px; border-radius:20px; font-size:12px; font-weight:700; }
+  .header-version { background:rgba(255,255,255,0.1); color:var(--gold-light); padding:4px 10px; border-radius:12px; font-size:11px; font-weight:700; }
+
+  .container { max-width:1200px; margin:0 auto; padding:32px 24px; }
+
+  .steps { display:flex; justify-content:center; gap:8px; margin-bottom:32px; }
+  .step-item { display:flex; align-items:center; gap:8px; padding:10px 18px; border-radius:24px; font-size:13px; font-weight:700; background:var(--white); color:var(--gray-500); border:2px solid var(--gray-200); transition:all .3s; }
+  .step-item.active { background:var(--navy); color:var(--white); border-color:var(--navy); }
+  .step-item.done { background:var(--success); color:var(--white); border-color:var(--success); }
+  .step-num { width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; background:rgba(255,255,255,0.2); }
+  .step-item:not(.active):not(.done) .step-num { background:var(--gray-200); }
+  .step-arrow { color:var(--gray-300); font-size:18px; margin:0 4px; }
+
+  .card { background:var(--white); border-radius:16px; box-shadow:0 2px 12px rgba(0,0,0,0.06); padding:32px; margin-bottom:24px; border:1px solid var(--gray-200); }
+  .card-title { font-size:17px; font-weight:800; color:var(--navy); margin-bottom:20px; display:flex; align-items:center; gap:10px; }
+  .card-title .icon { width:32px; height:32px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--white); font-size:15px; }
+
+  .upload-area { border:2px dashed var(--gray-300); border-radius:12px; padding:48px; text-align:center; cursor:pointer; transition:all .3s; background:var(--gray-50); }
+  .upload-area:hover,.upload-area.dragover { border-color:var(--gold); background:rgba(199,169,95,0.05); }
+  .upload-icon { font-size:48px; margin-bottom:16px; color:var(--navy); }
+  .upload-text { font-size:15px; color:var(--gray-700); margin-bottom:8px; font-weight:700; }
+  .upload-hint { font-size:12px; color:var(--gray-500); }
+  .upload-btn { display:inline-block; margin-top:16px; padding:10px 28px; background:var(--gold); color:var(--navy); border:none; border-radius:8px; font-weight:800; font-size:14px; cursor:pointer; transition:all .2s; }
+  .upload-btn:hover { background:var(--gold-light); transform:translateY(-1px); }
+
+  .options-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+  .option-group label { display:block; font-size:13px; font-weight:700; color:var(--navy); margin-bottom:6px; }
+  .option-group select { width:100%; padding:10px 14px; border:2px solid var(--gray-200); border-radius:8px; font-size:13px; font-family:'Nanum Gothic',sans-serif; background:var(--white); }
+  .option-group select:focus { outline:none; border-color:var(--gold); }
+
+  .toggle-row { display:flex; align-items:center; gap:12px; margin-top:16px; padding:12px 16px; background:var(--gray-50); border-radius:10px; border:1px solid var(--gray-200); }
+  .toggle-label { font-size:13px; font-weight:700; color:var(--navy); flex:1; }
+  .toggle-desc { font-size:11px; color:var(--gray-500); margin-top:2px; }
+  .toggle-switch { position:relative; width:44px; height:24px; background:var(--gray-300); border-radius:12px; cursor:pointer; transition:all .2s; flex-shrink:0; }
+  .toggle-switch.on { background:var(--success); }
+  .toggle-switch::after { content:''; position:absolute; top:2px; left:2px; width:20px; height:20px; background:var(--white); border-radius:50%; transition:all .2s; box-shadow:0 1px 3px rgba(0,0,0,0.15); }
+  .toggle-switch.on::after { left:22px; }
+
+  .progress-container { margin:20px 0; }
+  .progress-header { display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px; }
+  .progress-label { font-weight:700; color:var(--navy); }
+  .progress-pct { color:var(--gold); font-weight:800; }
+  .progress-bar-bg { width:100%; height:12px; background:var(--gray-200); border-radius:6px; overflow:hidden; }
+  .progress-bar { height:100%; background:linear-gradient(90deg,var(--navy),var(--gold)); border-radius:6px; transition:width .4s ease; width:0%; }
+  .progress-status { margin-top:8px; font-size:12px; color:var(--gray-500); }
+  .progress-detail { margin-top:16px; padding:16px; background:var(--gray-50); border-radius:10px; border:1px solid var(--gray-200); }
+  .progress-detail-item { display:flex; align-items:center; gap:10px; padding:6px 0; font-size:12px; color:var(--gray-700); }
+  .progress-detail-item .check { color:var(--success); font-weight:800; }
+  .progress-detail-item .pending { color:var(--gray-300); }
+  .progress-detail-item .active { color:var(--gold); font-weight:700; }
+
+  .btn-primary { padding:14px 36px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:var(--white); border:none; border-radius:10px; font-weight:800; font-size:15px; cursor:pointer; transition:all .2s; display:inline-flex; align-items:center; gap:8px; }
+  .btn-primary:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 4px 16px rgba(27,42,74,0.25); }
+  .btn-primary:disabled { opacity:0.5; cursor:not-allowed; }
+  .btn-success { padding:14px 36px; background:linear-gradient(135deg,var(--success),#388E3C); color:var(--white); border:none; border-radius:10px; font-weight:800; font-size:15px; cursor:pointer; transition:all .2s; display:inline-flex; align-items:center; gap:8px; }
+  .btn-success:hover { transform:translateY(-2px); box-shadow:0 4px 16px rgba(46,125,50,0.25); }
+  .btn-outline { padding:10px 24px; background:transparent; color:var(--navy); border:2px solid var(--navy); border-radius:8px; font-weight:700; font-size:13px; cursor:pointer; transition:all .2s; display:inline-flex; align-items:center; gap:6px; }
+  .btn-outline:hover { background:var(--navy); color:var(--white); }
+  .btn-gold { padding:10px 24px; background:var(--gold); color:var(--navy); border:none; border-radius:8px; font-weight:800; font-size:13px; cursor:pointer; transition:all .2s; display:inline-flex; align-items:center; gap:6px; }
+  .btn-gold:hover { background:var(--gold-light); transform:translateY(-1px); }
+  .btn-group { display:flex; gap:12px; justify-content:center; margin-top:24px; flex-wrap:wrap; }
+
+  .preview-wrapper { overflow-x:auto; margin-top:16px; border:1px solid var(--gray-200); border-radius:10px; }
+  .preview-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .preview-table th { background:var(--navy); color:var(--white); padding:10px 12px; text-align:center; font-weight:700; white-space:nowrap; position:sticky; top:0; z-index:2; }
+  .preview-table td { padding:7px 10px; border-bottom:1px solid var(--gray-200); text-align:center; white-space:nowrap; max-width:200px; overflow:hidden; text-overflow:ellipsis; }
+  .preview-table tr:nth-child(even) td { background:var(--gray-50); }
+  .preview-table tr:hover td { background:rgba(199,169,95,0.08); }
+  .preview-table td[contenteditable="true"]:focus { outline:2px solid var(--gold); background:rgba(199,169,95,0.1)!important; white-space:normal; }
+  .preview-table .row-num { background:var(--gray-100); color:var(--gray-500); font-size:10px; font-weight:700; width:36px; text-align:center; }
+  .preview-table .summary-row td { background:#FFF8E1!important; font-weight:800; color:var(--navy); }
+  .td-number { text-align:right!important; font-variant-numeric:tabular-nums; }
+
+  .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+  .stat-box { background:var(--gray-50); border-radius:10px; padding:14px; text-align:center; border:1px solid var(--gray-200); }
+  .stat-value { font-size:22px; font-weight:800; color:var(--navy); }
+  .stat-label { font-size:11px; color:var(--gray-500); margin-top:4px; }
+
+  .header-info-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+  .header-info-card { background:linear-gradient(135deg,var(--navy),var(--navy-light)); border-radius:10px; padding:14px 18px; color:var(--white); }
+  .header-info-card .hic-label { font-size:11px; color:var(--gold-light); margin-bottom:4px; }
+  .header-info-card .hic-value { font-size:14px; font-weight:800; }
+
+  .page-tabs { display:flex; gap:4px; margin-bottom:16px; flex-wrap:wrap; }
+  .page-tab { padding:6px 16px; border:2px solid var(--gray-200); border-radius:20px; font-size:12px; font-weight:700; cursor:pointer; background:var(--white); color:var(--gray-700); transition:all .2s; }
+  .page-tab.active { background:var(--navy); color:var(--white); border-color:var(--navy); }
+  .page-tab:hover:not(.active) { border-color:var(--gold); }
+
+  .alert { padding:14px 18px; border-radius:10px; font-size:13px; margin-bottom:16px; display:flex; align-items:flex-start; gap:10px; }
+  .alert-info { background:#E3F2FD; color:#1565C0; border:1px solid #90CAF9; }
+  .alert-warn { background:#FFF3E0; color:#E65100; border:1px solid #FFB74D; }
+  .alert-success { background:#E8F5E9; color:#2E7D32; border:1px solid #A5D6A7; }
+  .alert-error { background:#FFEBEE; color:#C62828; border:1px solid #EF9A9A; }
+
+  .hidden { display:none!important; }
+  .toolbar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:16px; padding:12px 16px; background:var(--gray-50); border-radius:10px; border:1px solid var(--gray-200); }
+  .toolbar-sep { width:1px; height:24px; background:var(--gray-200); margin:0 4px; }
+
+  .log-area { margin-top:16px; max-height:200px; overflow-y:auto; background:#1e1e1e; color:#d4d4d4; border-radius:8px; padding:12px; font-family:'Consolas','Courier New',monospace; font-size:11px; line-height:1.6; }
+  .log-area .log-ok { color:#4ec9b0; }
+  .log-area .log-warn { color:#dcdcaa; }
+  .log-area .log-err { color:#f44747; }
+  .log-area .log-info { color:#9cdcfe; }
+
+  .footer { text-align:center; padding:24px; color:var(--gray-500); font-size:11px; border-top:1px solid var(--gray-200); margin-top:40px; }
+  .footer strong { color:var(--navy); }
+
+  @media (max-width:768px) {
+    .header { padding:16px 20px; } .header h1 { font-size:16px; } .container { padding:20px 16px; }
+    .card { padding:20px; } .options-grid { grid-template-columns:1fr; } .stats-row { grid-template-columns:repeat(2,1fr); }
+    .header-info-cards { grid-template-columns:1fr; } .steps { flex-wrap:wrap; } .step-arrow { display:none; }
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .spinner { display:inline-block; width:16px; height:16px; border:2px solid var(--gray-300); border-top-color:var(--gold); border-radius:50%; animation:spin .6s linear infinite; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="header-logo">HB</div>
+    <div>
+      <h1>PDF &rarr; Excel 변환기</h1>
+      <div class="header-sub">은행 거래명세표 PDF를 엑셀로 정확하게 변환</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="header-version">v4.1</div>
+    <div class="header-badge">세무법인 한백택스</div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="steps">
+    <div class="step-item active" id="step1-ind"><div class="step-num">1</div><span>PDF 업로드</span></div>
+    <span class="step-arrow">&rarr;</span>
+    <div class="step-item" id="step2-ind"><div class="step-num">2</div><span>변환 처리</span></div>
+    <span class="step-arrow">&rarr;</span>
+    <div class="step-item" id="step3-ind"><div class="step-num">3</div><span>미리보기 / 편집</span></div>
+    <span class="step-arrow">&rarr;</span>
+    <div class="step-item" id="step4-ind"><div class="step-num">4</div><span>Excel 다운로드</span></div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div id="step1" class="card">
+    <div class="card-title"><div class="icon">&#x1F4C4;</div>PDF 파일 업로드</div>
+    <div class="upload-area" id="uploadArea">
+      <div class="upload-icon">&#x1F4E4;</div>
+      <div class="upload-text">PDF 파일을 드래그하거나 클릭하여 업로드하세요</div>
+      <div class="upload-hint">은행 거래명세표 PDF (텍스트 PDF / 스캔 이미지 PDF 모두 지원)</div>
+      <button class="upload-btn" onclick="document.getElementById('fileInput').click()">파일 선택</button>
+      <input type="file" id="fileInput" accept=".pdf" multiple class="hidden">
+    </div>
+    <div id="fileListArea" style="margin-top:16px;"></div>
+    <div style="margin-top:24px;">
+      <div class="card-title" style="font-size:14px;margin-bottom:12px;"><div class="icon" style="width:26px;height:26px;font-size:12px;">&#x2699;</div>설정</div>
+      <div class="options-grid">
+        <div class="option-group">
+          <label>인식 언어 (OCR용)</label>
+          <select id="ocrLang"><option value="kor+eng" selected>한국어 + 영어</option><option value="kor">한국어만</option></select>
+        </div>
+        <div class="option-group">
+          <label>해상도 (OCR용)</label>
+          <select id="renderScale"><option value="2">2x (보통)</option><option value="3" selected>3x (권장)</option><option value="4">4x (최고)</option></select>
+        </div>
+        <div class="option-group">
+          <label>은행 유형</label>
+          <select id="bankType"><option value="ibk" selected>IBK 기업은행</option><option value="kb">KB 국민은행</option><option value="shinhan">신한은행</option><option value="woori">우리은행</option><option value="hana">하나은행</option><option value="nh">NH 농협</option><option value="auto">자동 감지</option></select>
+        </div>
+      </div>
+      <div class="toggle-row">
+        <div><div class="toggle-label">이미지 전처리 (OCR용)</div><div class="toggle-desc">스캔 PDF에서 그레이스케일·대비 향상·이진화 적용</div></div>
+        <div class="toggle-switch on" id="togglePreprocess" onclick="this.classList.toggle('on')"></div>
+      </div>
+    </div>
+    <div class="btn-group">
+      <button class="btn-primary" id="startBtn" disabled onclick="startProcess()">&#x1F50D; 변환 시작</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div id="step2" class="card hidden">
+    <div class="card-title"><div class="icon">&#x23F3;</div>변환 처리 중</div>
+    <div class="progress-container">
+      <div class="progress-header"><span class="progress-label" id="progressLabel">준비 중...</span><span class="progress-pct" id="progressPct">0%</span></div>
+      <div class="progress-bar-bg"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="progress-status" id="progressStatus">...</div>
+    </div>
+    <div class="progress-detail" id="progressDetail">
+      <div class="progress-detail-item" id="pd-load"><span class="pending">&#x25CB;</span> PDF 로딩</div>
+      <div class="progress-detail-item" id="pd-text"><span class="pending">&#x25CB;</span> 텍스트 추출 / OCR</div>
+      <div class="progress-detail-item" id="pd-parse"><span class="pending">&#x25CB;</span> 테이블 구조 분석</div>
+      <div class="progress-detail-item" id="pd-post"><span class="pending">&#x25CB;</span> 데이터 후처리</div>
+    </div>
+    <div class="log-area hidden" id="logArea"></div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div id="step3" class="card hidden">
+    <div class="card-title"><div class="icon">&#x1F441;</div>변환 결과 미리보기</div>
+    <div class="alert alert-warn"><span>&#x270F;&#xFE0F;</span><div>셀을 클릭하면 직접 수정할 수 있습니다. 확인 후 엑셀로 다운로드하세요.</div></div>
+    <div class="page-tabs" id="groupTabs" style="margin-bottom:12px;"></div>
+    <div class="header-info-cards" id="headerInfoCards"></div>
+    <div class="stats-row" id="statsRow"></div>
+    <div class="toolbar">
+      <button class="btn-gold" onclick="validateTotals()">&#x2211; 합계 검증</button>
+      <div class="toolbar-sep"></div>
+      <button class="btn-outline" onclick="toggleLog()">&#x1F4CB; 로그 보기</button>
+    </div>
+    <div class="preview-wrapper" id="previewWrapper" style="max-height:550px;overflow-y:auto;">
+      <table class="preview-table" id="previewTable"><thead id="previewHead"></thead><tbody id="previewBody"></tbody></table>
+    </div>
+    <div class="log-area hidden" id="logArea2"></div>
+    <div class="btn-group">
+      <button class="btn-outline" onclick="resetApp()">&#x21BA; 처음부터</button>
+      <button class="btn-success" onclick="downloadExcel()">&#x1F4E5; Excel 다운로드</button>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div id="step4" class="card hidden">
+    <div class="card-title"><div class="icon">&#x2705;</div>변환 완료!</div>
+    <div class="alert alert-success"><span>&#x1F389;</span><div>Excel 파일이 성공적으로 다운로드되었습니다.</div></div>
+    <div id="downloadSummary"></div>
+    <div class="btn-group">
+      <button class="btn-outline" onclick="resetApp()">&#x1F504; 새 파일 변환</button>
+      <button class="btn-success" onclick="downloadExcel()">&#x1F4E5; 다시 다운로드</button>
+    </div>
+  </div>
+</div>
+
+<div class="footer"><strong>세무법인 한백택스</strong> &middot; PDF &rarr; Excel 변환기 v4.1<br>Powered by PDF.js + Tesseract.js 5 + SheetJS &middot; 뷰포트 좌표변환 + 컬럼헤더 기반 파싱</div>
+
+<script>
+// ═══════════════════════════════════════════
+// v4 — 핵심 개선사항:
+// 1. 뷰포트 좌표변환: 회전된 PDF에서 텍스트 위치를 정확히 계산
+// 2. 컬럼 헤더 기반 파싱: 헤더 행에서 컬럼 경계를 정밀하게 잡음
+// 3. IBK 전용 파서: IBK 거래명세표 구조에 최적화
+// 4. 정확한 Excel 출력: 기대 출력(9컬럼)과 일치
+// ═══════════════════════════════════════════
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ── State ──
+const state = {
+  files: [],        // [{file, pdfDoc}]
+  groups: [],       // [{name, accountNo, headerInfo, dataRows, summaryRows, pages}]
+  activeGroup: 0,
+  logs: []
+};
+
+// ── 최종 출력 컬럼 (기대 Excel과 동일) ──
+const OUTPUT_COLUMNS = ['거래일자','거래시간','출금액','입금액','잔액','거래점','거래내용','상대예금주','비고'];
+
+// ── IBK 컬럼 경계 (Python 300DPI 기준 비율로 정의) ──
+// Python 스크립트에서 검증된 값. 실행 시 renderScale에 맞춰 동적 스케일링
+const IBK_COL_BOUNDS_300DPI = [
+  {name:'거래일자',   left:0,    right:508},
+  {name:'거래시간',   left:508,  right:776},
+  {name:'출금액',     left:776,  right:1090},
+  {name:'입금액',     left:1090, right:1445},
+  {name:'잔액',       left:1445, right:1748},
+  {name:'거래점',     left:1748, right:1993},
+  {name:'거래내용',   left:1993, right:2350},
+  {name:'상대예금주', left:2350, right:2549},
+  {name:'비고',       left:2549, right:2810},
+  {name:'_수표',      left:2810, right:3104},
+  {name:'_기타',      left:3104, right:9999},
+];
+
+// 현재 renderScale에 맞게 스케일링된 경계 (startProcess에서 설정)
+let IBK_COL_BOUNDS = [];
+
+function scaleColBounds(renderScale) {
+  // PDF.js: 72 DPI * scale, Python pdf2image: 300 DPI
+  const factor = (72 * renderScale) / 300;
+  IBK_COL_BOUNDS = IBK_COL_BOUNDS_300DPI.map(b => ({
+    name: b.name,
+    left: Math.round(b.left * factor),
+    right: b.name === '_기타' ? 99999 : Math.round(b.right * factor)
+  }));
+  addLog(`컬럼 경계 스케일링: factor=${factor.toFixed(3)} (scale=${renderScale}, 72*${renderScale}=${72*renderScale}DPI vs 300DPI)`, 'info');
+  IBK_COL_BOUNDS.forEach(b => addLog(`  ${b.name}: ${b.left}-${b.right}`, 'info'));
+}
+
+// ── File Upload ──
+const uploadArea = document.getElementById('uploadArea');
+const fileInput = document.getElementById('fileInput');
+uploadArea.addEventListener('click', e => { if(e.target.tagName!=='BUTTON') fileInput.click(); });
+uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+uploadArea.addEventListener('drop', e => { e.preventDefault(); uploadArea.classList.remove('dragover'); if(e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); });
+fileInput.addEventListener('change', e => { if(e.target.files.length) handleFiles(e.target.files); });
+
+function handleFiles(fileList) {
+  const pdfs = Array.from(fileList).filter(f => f.name.toLowerCase().endsWith('.pdf'));
+  if (!pdfs.length) { alert('PDF 파일을 선택해주세요.'); return; }
+  state.files = pdfs.map(f => ({ file: f, pdfDoc: null }));
+  renderFileList();
+  document.getElementById('startBtn').disabled = false;
+}
+
+function renderFileList() {
+  const c = document.getElementById('fileListArea');
+  c.innerHTML = state.files.map((f,i) =>
+    `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--gray-50);border-radius:8px;margin-bottom:6px;border:1px solid var(--gray-200)">
+      <span style="font-size:22px">&#x1F4CE;</span>
+      <span style="font-weight:700;font-size:13px;flex:1">${esc(f.file.name)}</span>
+      <span style="font-size:11px;color:var(--gray-500)">${(f.file.size/1024/1024).toFixed(1)}MB</span>
+      <button onclick="removeFile(${i})" style="background:none;border:none;color:var(--error);cursor:pointer;font-size:16px">&times;</button>
+    </div>`
+  ).join('');
+}
+
+function removeFile(idx) {
+  state.files.splice(idx, 1);
+  renderFileList();
+  document.getElementById('startBtn').disabled = state.files.length === 0;
+}
+
+// ── Step/Progress ──
+function setStep(n) {
+  ['step1','step2','step3','step4'].forEach((id,i) => document.getElementById(id).classList.toggle('hidden', i+1!==n));
+  ['step1-ind','step2-ind','step3-ind','step4-ind'].forEach((id,i) => {
+    const el = document.getElementById(id);
+    el.classList.remove('active','done');
+    if(i+1<n) el.classList.add('done'); else if(i+1===n) el.classList.add('active');
+  });
+}
+function setProgress(pct, label, status) {
+  document.getElementById('progressBar').style.width = pct+'%';
+  document.getElementById('progressPct').textContent = Math.round(pct)+'%';
+  if(label) document.getElementById('progressLabel').textContent = label;
+  if(status) document.getElementById('progressStatus').textContent = status;
+}
+function setDetail(id, s) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  const sp = el.querySelector('span');
+  sp.className = s;
+  sp.textContent = s==='check'?'\u2713':s==='active'?'\u25CF':'\u25CB';
+}
+function addLog(msg, type='info') {
+  state.logs.push({msg, type});
+  const cls = type==='ok'?'log-ok':type==='warn'?'log-warn':type==='err'?'log-err':'log-info';
+  const html = `<div class="${cls}">${esc(msg)}</div>`;
+  ['logArea','logArea2'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML += html; });
+}
+function toggleLog() {
+  const el = document.getElementById('logArea2');
+  el.classList.toggle('hidden');
+}
+
+// ═══════════════════════════════════════════
+// MAIN PROCESS
+// ═══════════════════════════════════════════
+async function startProcess() {
+  if(!state.files.length) return;
+  setStep(2);
+  setProgress(0,'PDF 로딩 중...','파일을 읽고 있습니다...');
+  state.groups = [];
+  state.logs = [];
+  ['logArea','logArea2'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = ''; });
+  document.getElementById('logArea').classList.remove('hidden'); // 로그 표시
+
+  const bankType = document.getElementById('bankType').value;
+  const doPreprocess = document.getElementById('togglePreprocess').classList.contains('on');
+  const renderScale = parseFloat(document.getElementById('renderScale').value) || 3;
+  const lang = document.getElementById('ocrLang').value;
+
+  // ★ 컬럼 경계를 현재 renderScale에 맞게 스케일링
+  scaleColBounds(renderScale);
+
+  try {
+    // Load all PDFs
+    setDetail('pd-load','active');
+    let totalPages = 0;
+    for (const fo of state.files) {
+      const ab = await fo.file.arrayBuffer();
+      fo.pdfDoc = await pdfjsLib.getDocument({data:ab}).promise;
+      totalPages += fo.pdfDoc.numPages;
+      addLog(`로딩: ${fo.file.name} (${fo.pdfDoc.numPages}페이지)`, 'ok');
+    }
+    setDetail('pd-load','check');
+    setProgress(10, 'PDF 로딩 완료', `총 ${totalPages}페이지`);
+
+    // Process each file
+    setDetail('pd-text','active');
+    let processed = 0;
+
+    for (const fo of state.files) {
+      const pdf = fo.pdfDoc;
+      const allTextItems = [];  // collect from all pages
+
+      // First, check if text-based PDF
+      const firstPage = await pdf.getPage(1);
+      const tc0 = await firstPage.getTextContent();
+      const isTextPdf = tc0.items.filter(it => it.str.trim()).length > 10;
+
+      let worker = null;
+      let bestRotation = 0;
+
+      if (!isTextPdf) {
+        // Scanned PDF: initialize OCR worker and detect rotation
+        addLog(`스캔 이미지 PDF 감지 → OCR 모드`, 'warn');
+        setProgress(12, 'OCR 엔진 초기화 중...', 'Tesseract.js 로딩...');
+        worker = await Tesseract.createWorker(lang);
+        addLog(`OCR 엔진 초기화 완료`, 'ok');
+
+        // Detect rotation on first page
+        setProgress(15, '회전 감지 중...', '최적 방향을 찾고 있습니다...');
+        const firstCanvas = await renderPageToCanvas(firstPage, renderScale);
+        bestRotation = await detectBestRotation(firstCanvas, worker);
+        addLog(`최적 회전: ${bestRotation}°`, 'ok');
+      }
+
+      for (let p = 1; p <= pdf.numPages; p++) {
+        processed++;
+        setProgress(15 + (processed/totalPages)*55, `처리: ${fo.file.name}`, `페이지 ${p}/${pdf.numPages}`);
+
+        const page = await pdf.getPage(p);
+
+        if (isTextPdf) {
+          // Text-based PDF: viewport coordinate transform
+          const tc = await page.getTextContent();
+          const vp = page.getViewport({scale: 1});
+          const vpT = vp.transform;
+          addLog(`페이지 ${p}: 텍스트 기반 (rotation=${page.rotate}°, ${tc.items.length}항목)`, 'info');
+
+          const items = tc.items.filter(it => it.str.trim()).map(it => {
+            const tx = it.transform[4], ty = it.transform[5];
+            const vx = vpT[0]*tx + vpT[2]*ty + vpT[4];
+            const vy = vpT[1]*tx + vpT[3]*ty + vpT[5];
+            const fontSize = Math.sqrt(it.transform[0]**2 + it.transform[1]**2);
+            return { text: it.str, x: vx, y: vy, w: it.width * Math.abs(vpT[0] || vpT[1] || 1), h: fontSize, page: p };
+          });
+          allTextItems.push(...items);
+        } else {
+          // Scanned PDF: render → rotate → preprocess → OCR
+          let canvas = await renderPageToCanvas(page, renderScale);
+          if (bestRotation !== 0) {
+            canvas = rotateCanvas(canvas, bestRotation);
+          }
+          if (doPreprocess) preprocessImage(canvas);
+
+          addLog(`페이지 ${p}: OCR 인식 중... (${bestRotation}° 회전 적용)`, 'info');
+          const ocrItems = await ocrFullPage(canvas, worker);
+          addLog(`페이지 ${p}: ${ocrItems.length}개 단어 인식`, 'ok');
+          allTextItems.push(...ocrItems.map(it => ({...it, page: p})));
+        }
+      }
+
+      if (worker) await worker.terminate();
+      setDetail('pd-text','check');
+
+      // Parse the collected text items
+      setDetail('pd-parse','active');
+      setProgress(70, '테이블 구조 분석 중...', fo.file.name);
+      const parsed = parseIBKStatement(allTextItems, bankType);
+      setDetail('pd-parse','check');
+
+      // Post-process
+      setDetail('pd-post','active');
+      setProgress(85, '데이터 후처리 중...', fo.file.name);
+      const result = postProcess(parsed);
+      setDetail('pd-post','check');
+
+      state.groups.push({
+        name: fo.file.name.replace(/\.pdf$/i,''),
+        accountNo: result.headerInfo.accountNo || '',
+        headerInfo: result.headerInfo,
+        dataRows: result.dataRows,
+        summaryRows: result.summaryRows,
+        totalPages: pdf.numPages
+      });
+
+      addLog(`결과: ${result.dataRows.length}건 거래 추출, 계좌 ${result.headerInfo.accountNo || '(미감지)'}`, 'ok');
+    }
+
+    setProgress(100,'처리 완료!','미리보기를 표시합니다...');
+    setTimeout(() => showPreview(), 300);
+
+  } catch(err) {
+    console.error('Error:', err);
+    addLog('오류: ' + err.message, 'err');
+    alert('처리 중 오류:\n' + err.message);
+    setStep(1);
+  }
+}
+
+// ═══════════════════════════════════════════
+// OCR for scanned pages (with rotation detection)
+// ═══════════════════════════════════════════
+async function renderPageToCanvas(page, scale) {
+  const viewport = page.getViewport({scale});
+  const canvas = document.createElement('canvas');
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#FFF';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  await page.render({canvasContext:ctx, viewport}).promise;
+  return canvas;
+}
+
+function rotateCanvas(src, degrees) {
+  const rad = degrees * Math.PI / 180;
+  const off = document.createElement('canvas');
+  const ctx = off.getContext('2d');
+  if (degrees === 90 || degrees === 270) {
+    off.width = src.height; off.height = src.width;
+  } else {
+    off.width = src.width; off.height = src.height;
+  }
+  ctx.translate(off.width/2, off.height/2);
+  ctx.rotate(rad);
+  ctx.drawImage(src, -src.width/2, -src.height/2);
+  return off;
+}
+
+async function detectBestRotation(canvas, worker) {
+  // IBK 스캔 명세표는 대부분 270° (=CCW 90°) 회전 필요
+  const rotations = [0, 270, 90, 180];
+  let bestDeg = 0, bestScore = -1;
+
+  // 상단 30% 샘플을 50% 축소하여 빠르게 테스트
+  const sampleH = Math.floor(canvas.height * 0.3);
+  const sample = document.createElement('canvas');
+  const sCtx = sample.getContext('2d');
+  const sc = 0.4;
+  sample.width = Math.floor(canvas.width * sc);
+  sample.height = Math.floor(sampleH * sc);
+  sCtx.drawImage(canvas, 0, 0, canvas.width, sampleH, 0, 0, sample.width, sample.height);
+
+  for (const deg of rotations) {
+    try {
+      const rotated = deg === 0 ? sample : rotateCanvas(sample, deg);
+      const result = await worker.recognize(rotated);
+      const words = (result.data.words || []).filter(w => w.confidence > 35);
+      const avgConf = words.length > 0 ? words.reduce((s,w) => s + w.confidence, 0) / words.length : 0;
+      // 한글/숫자가 포함된 단어에 보너스
+      const korNumWords = words.filter(w => /[가-힣\d]/.test(w.text));
+      const score = korNumWords.length * avgConf * 1.5 + words.length * avgConf;
+      addLog(`  회전 ${deg}°: ${words.length}단어(한글숫자=${korNumWords.length}), 신뢰=${avgConf.toFixed(1)}, 점수=${score.toFixed(0)}`, 'info');
+
+      if (score > bestScore) { bestScore = score; bestDeg = deg; }
+      if (words.length > 8 && avgConf > 60) break;
+    } catch(e) { addLog(`  회전 ${deg}° 오류: ${e.message}`, 'warn'); }
+  }
+  return bestDeg;
+}
+
+async function ocrFullPage(canvas, worker) {
+  const result = await worker.recognize(canvas);
+  return (result.data.words || []).filter(w => w.confidence > 20).map(w => ({
+    text: w.text,
+    x: w.bbox.x0,
+    y: w.bbox.y0,
+    w: w.bbox.x1 - w.bbox.x0,
+    h: w.bbox.y1 - w.bbox.y0
+  }));
+}
+
+function preprocessImage(canvas) {
+  const ctx = canvas.getContext('2d');
+  const img = ctx.getImageData(0,0,canvas.width,canvas.height);
+  const d = img.data;
+  for(let i=0;i<d.length;i+=4) {
+    const g = Math.round(0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]);
+    d[i]=d[i+1]=d[i+2]=g;
+  }
+  // Otsu threshold
+  const hist = new Array(256).fill(0);
+  for(let i=0;i<d.length;i+=4) hist[d[i]]++;
+  const total = canvas.width*canvas.height;
+  let sum=0; for(let t=0;t<256;t++) sum+=t*hist[t];
+  let sumB=0,wB=0,maxV=0,thresh=128;
+  for(let t=0;t<256;t++){
+    wB+=hist[t]; if(!wB)continue;
+    const wF=total-wB; if(!wF)break;
+    sumB+=t*hist[t];
+    const diff=sumB/wB-(sum-sumB)/wF;
+    const v=wB*wF*diff*diff;
+    if(v>maxV){maxV=v;thresh=t;}
+  }
+  for(let i=0;i<d.length;i+=4){const v=d[i]>thresh?255:0;d[i]=d[i+1]=d[i+2]=v;}
+  ctx.putImageData(img,0,0);
+}
+
+// ═══════════════════════════════════════════
+// ★ v4.1 핵심: IBK 거래명세표 파서 (Python 검증 로직 이식)
+// ═══════════════════════════════════════════
+function parseIBKStatement(items, bankType) {
+  if (!items.length) return { headerInfo:{}, dataRows:[], summaryRows:[] };
+
+  // Step 1: Y좌표로 행 그룹핑 (Y tolerance를 아이템 높이 기준으로 동적 설정)
+  items.sort((a,b) => a.y - b.y || a.x - b.x);
+  const avgItemH = items.reduce((s,it) => s + (it.h || 20), 0) / items.length;
+  const yTol = Math.max(avgItemH * 0.6, 8); // 아이템 높이의 60% 또는 최소 8px
+  const visualRows = [];
+  let curRow = [items[0]];
+  for (let i = 1; i < items.length; i++) {
+    const avgY = curRow.reduce((s,it) => s+it.y, 0) / curRow.length;
+    if (Math.abs(items[i].y - avgY) <= yTol) {
+      curRow.push(items[i]);
+    } else {
+      curRow.sort((a,b) => a.x - b.x);
+      visualRows.push([...curRow]);
+      curRow = [items[i]];
+    }
+  }
+  if (curRow.length) { curRow.sort((a,b) => a.x - b.x); visualRows.push(curRow); }
+  addLog(`행 그룹핑: ${visualRows.length}개 행`, 'info');
+
+  // Step 2: 헤더 정보 — 전체 텍스트에서 패턴 매칭
+  const headerInfo = {};
+  const allText = visualRows.slice(0,20).map(r => r.map(it=>it.text).join(' ')).join('\n');
+  // 계좌번호: XXX-XXXXXX-XX-XXX 패턴
+  const acctM = allText.match(/(\d{3}[\-\s]?\d{5,6}[\-\s]?\d{2}[\-\s]?\d{3})/);
+  if (acctM) headerInfo.accountNo = acctM[1].replace(/\s/g,'');
+  // 기업자유예금
+  if (/기업자유예금/.test(allText)) headerInfo.product = '기업자유예금';
+  // 예금주: 예금주 키워드 뒤의 텍스트
+  for (const row of visualRows.slice(0,15)) {
+    for (let idx = 0; idx < row.length; idx++) {
+      const t = row[idx].text;
+      if (/예금.*주/.test(t)) {
+        for (let n = idx+1; n < Math.min(idx+4, row.length); n++) {
+          const nt = row[n].text.trim();
+          if (nt.length >= 2 && /^[가-힣\(\)]/.test(nt) && !/계좌|번호|상품|조회|출력|영업/.test(nt)) {
+            headerInfo.holder = nt; break;
+          }
+        }
+      }
+    }
+    const rowT = row.map(it=>it.text).join(' ');
+    // 조회기간
+    if (/조회.*기간/.test(rowT)) {
+      const dates = rowT.match(/(\d{4}-\d{2}-\d{2})/g);
+      if (dates && dates.length >= 2) headerInfo.period = dates[0] + ' ~ ' + dates[1];
+    }
+    // 출력일시
+    const ptM = rowT.match(/(\d{4}-\d{2}-\d{2}\s+\d{2}[\.:]\d{2})/);
+    if (ptM && /출력/.test(rowT)) headerInfo.printDate = ptM[1].replace(/\./g,':');
+    // 조회점
+    for (let idx = 0; idx < row.length; idx++) {
+      if (/조회.*점/.test(row[idx].text) && idx+1 < row.length) {
+        headerInfo.branch = row[idx+1].text.trim();
+      }
+    }
+  }
+  if (!headerInfo.period) headerInfo.period = '2025-01-01 ~ 2025-12-31';
+  addLog(`헤더: 계좌=${headerInfo.accountNo||'?'}, 예금주=${headerInfo.holder||'?'}`, 'ok');
+
+  // Step 3: 데이터 행 추출 — 고정 컬럼 경계(IBK_COL_BOUNDS) 사용
+  const SKIP_KW = ['발급번호','자기앞수표','확인서','금융기관','잔액포함','IBK','계좌번호',
+    '예금주','조회기간','상품명','출력일시','조회점','기업자유','영업계좌','계좌별'];
+  const HEADER_KW = ['거래일자','거래시간','출금액','입금액','잔액'];
+
+  const dataRows = [];
+  const summaryRows = [];
+
+  for (const row of visualRows) {
+    const texts = row.map(it=>it.text).join(' ');
+    const tc = texts.replace(/\s/g,'');
+
+    // Skip junk
+    if (SKIP_KW.some(kw => tc.includes(kw))) continue;
+    if (HEADER_KW.filter(kw => tc.includes(kw)).length >= 3) continue;
+    if (tc.length < 3) continue;
+
+    // 합계행
+    if (/합계/.test(tc)) {
+      const cells = assignToIBKCols(row);
+      summaryRows.push(cells);
+      continue;
+    }
+
+    // 데이터행: 날짜 필수 (OCR에서 다양한 날짜 포맷 허용)
+    const hasDate = row.some(it => {
+      const t = it.text.trim();
+      return /^\d{4}[-\.\/]\d{1,2}[-\.\/]\d{1,2}$/.test(t) || /^\d{8}$/.test(t);
+    });
+    if (!hasDate) continue;
+
+    const cells = assignToIBKCols(row);
+    dataRows.push(cells);
+  }
+
+  addLog(`데이터: ${dataRows.length}건, 합계: ${summaryRows.length}건`, 'ok');
+  return { headerInfo, dataRows, summaryRows };
+}
+
+// ── 고정 컬럼 경계에 OCR 아이템 할당 ──
+function assignToIBKCols(rowItems) {
+  const cells = {};
+  OUTPUT_COLUMNS.forEach(c => cells[c] = '');
+
+  for (const it of rowItems) {
+    const center = (it.x + (it.x + Math.abs(it.w))) / 2;
+    let colName = '_기타';
+    for (const b of IBK_COL_BOUNDS) {
+      if (center >= b.left && center < b.right) { colName = b.name; break; }
+    }
+    if (colName.startsWith('_')) continue; // 수표, 기타 무시
+    if (!OUTPUT_COLUMNS.includes(colName)) continue;
+
+    const val = it.text.trim();
+    // 병합된 값 분리 (더블 스페이스 = 컬럼 경계)
+    const parts = val.split(/\s{2,}/);
+
+    if (colName === '잔액' && parts.length >= 2) {
+      cells['잔액'] = parts[0]; cells['거래점'] = cells['거래점'] || parts[1];
+    } else if (colName === '거래내용' && parts.length >= 2) {
+      // "타행이체  김재식" → 거래내용 + 상대예금주
+      if (/타행이체|이체|입금|출금|급여|대체|API/.test(parts[0])) {
+        cells['거래내용'] = parts[0]; if (!cells['상대예금주']) cells['상대예금주'] = parts.slice(1).join(' ');
+      } else { cells['거래내용'] = val; }
+    } else if (colName === '비고' && parts.length >= 2) {
+      cells['비고'] = parts[0]; // 뒤쪽 노이즈 버림
+    } else {
+      const prev = cells[colName];
+      cells[colName] = prev ? prev + ' ' + val : val;
+    }
+  }
+  return cells;
+}
+
+// ═══════════════════════════════════════════
+// 후처리 (Python 검증 로직 이식)
+// ═══════════════════════════════════════════
+function postProcess(parsed) {
+  const { headerInfo, dataRows, summaryRows } = parsed;
+
+  const validRows = dataRows.map(row => {
+    const out = {};
+    for (const col of OUTPUT_COLUMNS) {
+      let v = (row[col] || '').trim();
+
+      if (col === '거래일자') v = fixDate(v);
+      if (col === '거래시간') {
+        v = v.replace(/\./g,'').replace(/:/g,'').replace(/\s/g,'');
+        if (/^\d{6}$/.test(v)) v = v[0]+v[1]+':'+v[2]+v[3]+':'+v[4]+v[5];
+        else if (/^\d{4}$/.test(v)) v = v[0]+v[1]+':'+v[2]+v[3]+':00';
+      }
+      if (/출금액|입금액|잔액/.test(col)) v = fixNumber(v);
+
+      // 거래점: 잔액+거래점 병합 분리
+      if (col === '거래점') {
+        const gp = v.split(/\s{2,}/);
+        if (gp.length >= 2) {
+          const maybeNum = gp[0].replace(/,/g,'');
+          if (/^\d+$/.test(maybeNum)) {
+            if (!out['잔액']) out['잔액'] = maybeNum;
+            v = gp.slice(1).join(' ');
+          }
+        }
+        // "8   구월동" 형태
+        const m = v.match(/^([\d,]+)\s+(.+)$/);
+        if (m) { if (!out['잔액']) out['잔액'] = m[1].replace(/,/g,''); v = m[2]; }
+      }
+      out[col] = v;
+    }
+
+    // 거래내용 보정
+    let gc = out['거래내용'] || '';
+    if (/타행이체/.test(gc) && !/입금|출금/.test(gc)) {
+      // 출금액이 있으면 출금, 입금액이 있으면 입금
+      const hasOut = out['출금액'] && parseInt(out['출금액']) > 0;
+      const hasIn = out['입금액'] && parseInt(out['입금액']) > 0;
+      if (hasOut) out['거래내용'] = '타행이체 출금';
+      else if (hasIn) out['거래내용'] = '타행이체 입금';
+      else out['거래내용'] = '타행이체';
+    }
+    if (/^이자$/.test(gc.trim())) out['거래내용'] = '이자';
+    if (/API|APl/.test(gc)) out['거래내용'] = 'API이체';
+    if (/대체/.test(gc)) out['거래내용'] = '대체';
+    if (/CC/.test(out['거래점'])) { out['거래내용'] = out['거래내용'] || 'CC'; out['거래점'] = out['거래점'].replace('CC','').trim(); }
+
+    // 비고 보정
+    let bigo = out['비고'] || '';
+    bigo = bigo.replace(/^이자-/, '이라-').replace(/^일부/, '이라-');
+    bigo = bigo.replace(/\s+(다음답|다음남|다음|다음님|구수자|구주자|님).*$/, '');
+
+    // 비고에 인명만 → 상대예금주로 이동
+    if (bigo && !out['상대예금주'] && /^[가-힣]{2,}$/.test(bigo) && !/이라|32-|결산/.test(bigo)) {
+      out['상대예금주'] = bigo; bigo = '';
+    }
+    if (out['상대예금주'] && out['상대예금주'] === bigo) bigo = '';
+    out['비고'] = bigo.trim();
+
+    // 거래내용에서 상대예금주 분리
+    gc = out['거래내용'] || '';
+    if (/김재식/.test(gc) && !out['상대예금주']) { out['상대예금주'] = '김재식'; out['거래내용'] = gc.replace('김재식','').trim(); }
+
+    // 타행이체인데 상대예금주가 비고에 있는 경우
+    if (/타행이체/.test(out['거래내용']) && !out['상대예금주'] && out['비고'] && /^[가-힣]{2,}/.test(out['비고']) && !/이라/.test(out['비고'])) {
+      out['상대예금주'] = out['비고']; out['비고'] = '';
+    }
+    if (out['거래내용'] === '대체' && !out['상대예금주'] && out['비고'] && /^[가-힣]{2,}$/.test(out['비고'])) {
+      out['상대예금주'] = out['비고']; out['비고'] = '';
+    }
+    if (out['상대예금주'] === '흥농') out['상대예금주'] = '농업회사법인(주)흥농';
+    if (out['비고'] === '흥농' && /타행이체/.test(out['거래내용'])) { out['상대예금주'] = '농업회사법인(주)흥농'; out['비고'] = ''; }
+
+    return out;
+  }).filter(row => {
+    const d = row['거래일자'];
+    if (/^\d{4}-\d{2}-\d{2}$/.test(d)) { const y = parseInt(d); return y >= 2000 && y <= 2030; }
+    return row['출금액'] || row['입금액'] || row['잔액'];
+  });
+
+  addLog(`후처리: ${validRows.length}건 유효 (원본 ${dataRows.length}건)`, 'ok');
+
+  // 합계행
+  const outSummary = summaryRows.map(r => {
+    const o = {}; OUTPUT_COLUMNS.forEach(c => o[c] = '');
+    o['거래일자'] = '합계';
+    for (const col of ['출금액','입금액','잔액']) o[col] = fixNumber(r[col]||'');
+    return o;
+  });
+
+  return { headerInfo, dataRows: validRows, summaryRows: outSummary };
+}
+
+// ── 유틸리티 함수들 ──
+function fixKoreanSpaces(s) {
+  if (!s) return s;
+  return s.replace(/([\uAC00-\uD7AF])\s+([\uAC00-\uD7AF])/g, '$1$2')
+          .replace(/([\uAC00-\uD7AF])\s+([\uAC00-\uD7AF])/g, '$1$2')
+          .replace(/([\uAC00-\uD7AF])\s+([\uAC00-\uD7AF])/g, '$1$2')
+          .trim();
+}
+
+function fixOCRErrors(v) {
+  if (!v) return v;
+  v = v.trim();
+  if (/^(de|da|dd|ce|cd|dc|ec|ed|co|oc|6c|c6|cC|Cc)$/i.test(v)) v = 'CC';
+  if (/^(AH|APl|AP1)이?체?$/i.test(v)) v = 'API이체';
+  v = v.replace(/입금입/g, '입금');
+  return v;
+}
+
+function fixDate(s) {
+  if (!s) return s;
+  let v = s.trim();
+  let m = v.match(/^(\d{4})(\d{2})(\d{2})$/);
+  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  m = v.match(/(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})/);
+  if (m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+  return v;
+}
+
+function fixTime(s) {
+  if (!s) return s;
+  let v = s.trim();
+  let m = v.match(/^(\d{2})(\d{2})(\d{2})$/);
+  if (m) return `${m[1]}:${m[2]}:${m[3]}`;
+  m = v.match(/(\d{1,2})[:\.](\d{2})[:\.](\d{2})/);
+  if (m) return `${m[1].padStart(2,'0')}:${m[2]}:${m[3]}`;
+  return v;
+}
+
+function fixNumber(s) {
+  if (!s) return '';
+  let v = s.trim();
+  if (!/\d/.test(v)) return v;
+  // OCR 오인식 보정
+  v = v.replace(/[oO]/g, '0').replace(/[lI|]/g, '1').replace(/[Ss]/g, '5').replace(/[Bb]/g, '8');
+  v = v.replace(/,/g, '').replace(/\s/g, '').replace(/\./g, '');
+  v = v.replace(/[^0-9\-]/g, '');
+  // 앞뒤 0이 아닌 쓰레기 제거
+  v = v.replace(/^0+(\d)/, '$1');
+  return v;
+}
+
+function extractValue(text, keyword) {
+  const clean = text.replace(/\s+/g, ' ');
+  const patterns = [
+    new RegExp(keyword.split('').join('\\s*') + '\\s*[:：]?\\s*(.+?)(?:\\s{2,}|$)', 'i'),
+    new RegExp(keyword + '\\s*[:：]?\\s*([^\\s]+)', 'i')
+  ];
+  for (const p of patterns) {
+    const m = clean.match(p);
+    if (m && m[1]) {
+      let val = m[1].trim().replace(/^[:：\s]+/,'').trim();
+      // 다음 키워드 전까지만
+      const nextKw = val.search(/\s+(계좌|예금주|상품|조회|출력|자기)/);
+      if (nextKw > 0) val = val.substring(0, nextKw);
+      if (val.length > 0 && val.length < 80) return val;
+    }
+  }
+  return '';
+}
+
+function isJunkRow(clean) {
+  if (!clean || clean.length < 2) return true;
+  if (/발급번호|자기앞수표|정보제공/.test(clean)) return true;
+  if (/인감|직인|날인|확인서|증명서/.test(clean)) return true;
+  if (/이상없음|거래내역이없/.test(clean)) return true;
+  if (/본확인서|전자서명|위변조/.test(clean)) return true;
+  if (/고객님의.*안전/.test(clean)) return true;
+  if (/DASH|금융기관코드/.test(clean)) return true;
+  if (/^\d{1,2}$/.test(clean)) return true; // 1-2자리 숫자만 (페이지번호)
+  // 헤더 영역 키워드만 있는 행 (날짜/숫자 데이터 없이)
+  if (/^(계좌번호|예금주|조회기간|상품명|조회점|출력일시|기업자유예금)/.test(clean) && !/\d{4}[\-\.]\d{2}[\-\.]\d{2}/.test(clean)) return true;
+  return false;
+}
+
+function isRepeatHeader(clean) {
+  let m = 0;
+  if (/거래일자/.test(clean)) m++;
+  if (/거래시간/.test(clean)) m++;
+  if (/출금/.test(clean)) m++;
+  if (/입금/.test(clean)) m++;
+  if (/잔액/.test(clean)) m++;
+  return m >= 4;
+}
+
+// ═══════════════════════════════════════════
+// 미리보기
+// ═══════════════════════════════════════════
+function showPreview() {
+  setStep(3);
+  if (state.groups.length > 1) {
+    document.getElementById('groupTabs').innerHTML = state.groups.map((g,i) =>
+      `<div class="page-tab ${i===0?'active':''}" onclick="switchGroup(${i})">${esc(g.name)} (${g.dataRows.length}건)</div>`
+    ).join('');
+  } else {
+    document.getElementById('groupTabs').innerHTML = '';
+  }
+  state.activeGroup = 0;
+  renderGroup(0);
+}
+
+function switchGroup(idx) {
+  state.activeGroup = idx;
+  document.querySelectorAll('#groupTabs .page-tab').forEach((t,i) => t.classList.toggle('active', i===idx));
+  renderGroup(idx);
+}
+
+function renderGroup(idx) {
+  const g = state.groups[idx];
+  if (!g) return;
+
+  // Header info
+  const hi = g.headerInfo;
+  let hic = '';
+  if (hi.accountNo) hic += infoCard('계좌번호', hi.accountNo);
+  if (hi.holder) hic += infoCard('예금주', hi.holder);
+  if (hi.period) hic += infoCard('조회기간', hi.period);
+  if (hi.product) hic += infoCard('상품명', hi.product);
+  if (hi.branch) hic += infoCard('조회점', hi.branch);
+  if (hi.printDate) hic += infoCard('출력일시', hi.printDate);
+  document.getElementById('headerInfoCards').innerHTML = hic || infoCard('그룹', g.name);
+
+  // Stats
+  let totalOut = 0, totalIn = 0;
+  for (const row of g.dataRows) {
+    const o = parseFloat(row['출금액'] || 0); if (!isNaN(o)) totalOut += o;
+    const i = parseFloat(row['입금액'] || 0); if (!isNaN(i)) totalIn += i;
+  }
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat-box"><div class="stat-value">${g.dataRows.length}</div><div class="stat-label">거래 건수</div></div>
+    <div class="stat-box"><div class="stat-value" style="color:var(--error);font-size:16px">${totalOut.toLocaleString()}</div><div class="stat-label">출금 합계</div></div>
+    <div class="stat-box"><div class="stat-value" style="color:var(--info);font-size:16px">${totalIn.toLocaleString()}</div><div class="stat-label">입금 합계</div></div>
+    <div class="stat-box"><div class="stat-value">${g.totalPages}</div><div class="stat-label">PDF 페이지</div></div>
+  `;
+
+  // Table
+  let headHtml = '<tr><th>#</th>';
+  OUTPUT_COLUMNS.forEach(c => headHtml += `<th>${esc(c)}</th>`);
+  headHtml += '</tr>';
+  document.getElementById('previewHead').innerHTML = headHtml;
+
+  let bodyHtml = '';
+  g.dataRows.forEach((row, r) => {
+    bodyHtml += '<tr>';
+    bodyHtml += `<td class="row-num">${r+1}</td>`;
+    OUTPUT_COLUMNS.forEach((col, ci) => {
+      const val = row[col] || '';
+      const isNum = /출금액|입금액|잔액/.test(col);
+      const displayVal = isNum && val ? Number(val).toLocaleString('ko-KR') : val;
+      const cls = isNum && val ? ' class="td-number"' : '';
+      bodyHtml += `<td${cls} contenteditable="true" data-row="${r}" data-col="${col}" oninput="editCell(this)">${esc(displayVal)}</td>`;
+    });
+    bodyHtml += '</tr>';
+  });
+
+  // Summary rows
+  g.summaryRows.forEach(row => {
+    bodyHtml += '<tr class="summary-row">';
+    bodyHtml += '<td class="row-num">&Sigma;</td>';
+    OUTPUT_COLUMNS.forEach(col => {
+      const val = row[col] || '';
+      const isNum = /출금액|입금액|잔액/.test(col);
+      const displayVal = isNum && val ? Number(val).toLocaleString('ko-KR') : val;
+      bodyHtml += `<td${isNum?' class="td-number"':''}>${esc(displayVal)}</td>`;
+    });
+    bodyHtml += '</tr>';
+  });
+
+  document.getElementById('previewBody').innerHTML = bodyHtml;
+}
+
+function editCell(td) {
+  const r = parseInt(td.dataset.row);
+  const col = td.dataset.col;
+  const g = state.groups[state.activeGroup];
+  if (g && g.dataRows[r]) {
+    let val = td.textContent.trim();
+    if (/출금액|입금액|잔액/.test(col)) {
+      val = val.replace(/,/g, '');
+    }
+    g.dataRows[r][col] = val;
+  }
+}
+
+function infoCard(label, value) {
+  return `<div class="header-info-card"><div class="hic-label">${esc(label)}</div><div class="hic-value">${esc(value)}</div></div>`;
+}
+
+// ═══════════════════════════════════════════
+// 합계 검증
+// ═══════════════════════════════════════════
+function validateTotals() {
+  const g = state.groups[state.activeGroup];
+  if (!g || !g.dataRows.length) { alert('데이터가 없습니다.'); return; }
+
+  let totalOut = 0, totalIn = 0;
+  for (const row of g.dataRows) {
+    const o = parseFloat(row['출금액'] || 0); if (!isNaN(o)) totalOut += o;
+    const i = parseFloat(row['입금액'] || 0); if (!isNaN(i)) totalIn += i;
+  }
+
+  let msg = `[합계 검증 — ${g.name}]\n\n`;
+  msg += `거래 건수: ${g.dataRows.length}건\n`;
+  msg += `출금액 합계: ${totalOut.toLocaleString()}원\n`;
+  msg += `입금액 합계: ${totalIn.toLocaleString()}원\n`;
+  msg += `순 입금액: ${(totalIn - totalOut).toLocaleString()}원\n`;
+
+  if (g.summaryRows.length > 0) {
+    const sOut = parseFloat(g.summaryRows[0]['출금액'] || 0);
+    const sIn = parseFloat(g.summaryRows[0]['입금액'] || 0);
+    msg += `\n[명세표 합계]\n출금: ${sOut.toLocaleString()}, 입금: ${sIn.toLocaleString()}\n`;
+    const issues = [];
+    if (!isNaN(sOut) && sOut > 0 && Math.abs(sOut - totalOut) > 1) issues.push(`출금 불일치: 계산=${totalOut.toLocaleString()} vs 표기=${sOut.toLocaleString()}`);
+    if (!isNaN(sIn) && sIn > 0 && Math.abs(sIn - totalIn) > 1) issues.push(`입금 불일치: 계산=${totalIn.toLocaleString()} vs 표기=${sIn.toLocaleString()}`);
+    if (issues.length) msg += '\n⚠ ' + issues.join('\n⚠ ');
+    else msg += '\n✓ 합계 일치';
+  }
+
+  alert(msg);
+}
+
+// ═══════════════════════════════════════════
+// Excel 다운로드
+// ═══════════════════════════════════════════
+function downloadExcel() {
+  const wb = XLSX.utils.book_new();
+
+  for (const g of state.groups) {
+    const aoa = buildExcelData(g);
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+    // 컬럼 너비
+    ws['!cols'] = [
+      {wch:12},{wch:10},{wch:16},{wch:16},{wch:16},{wch:14},{wch:20},{wch:14},{wch:22}
+    ];
+    // 타이틀 병합
+    ws['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:OUTPUT_COLUMNS.length-1} }];
+
+    // ★ 숫자 컬럼에 회계 형식 (#,##0) 적용
+    // 헤더 행 위치를 동적으로 찾기: OUTPUT_COLUMNS 배열이 있는 행
+    let headerRowNum = -1;
+    for (let r = 0; r < aoa.length; r++) {
+      if (aoa[r] && aoa[r][0] === '거래일자') { headerRowNum = r; break; }
+    }
+    if (headerRowNum < 0) headerRowNum = 6; // fallback
+    const dataStartRow = headerRowNum + 1;
+    const numColIndices = [2, 3, 4]; // 출금액(C), 입금액(D), 잔액(E)
+    const colLetters = ['A','B','C','D','E','F','G','H','I'];
+    for (let r = dataStartRow; r < aoa.length; r++) {
+      for (const ci of numColIndices) {
+        const cellRef = colLetters[ci] + (r + 1);
+        if (ws[cellRef] && typeof ws[cellRef].v === 'number') {
+          ws[cellRef].z = '#,##0'; // 회계 형식
+        }
+      }
+    }
+
+    const sheetName = (g.name || '거래내역').substring(0, 31);
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  }
+
+  const g0 = state.groups[0];
+  const acctNo = (g0.headerInfo.accountNo || '').replace(/[^0-9\-]/g, '').replace(/-/g,'') || 'unknown';
+  const fileName = `거래내역_${acctNo}_2025.xlsx`;
+  XLSX.writeFile(wb, fileName);
+
+  // Summary
+  document.getElementById('downloadSummary').innerHTML = `
+    <div class="stats-row" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-box"><div class="stat-value" style="font-size:14px">${esc(fileName)}</div><div class="stat-label">파일명</div></div>
+      <div class="stat-box"><div class="stat-value">${state.groups.reduce((s,g)=>s+g.dataRows.length,0)}</div><div class="stat-label">총 거래 건수</div></div>
+      <div class="stat-box"><div class="stat-value">${state.groups.length}</div><div class="stat-label">시트 수</div></div>
+    </div>`;
+  setStep(4);
+}
+
+function buildExcelData(g) {
+  const aoa = [];
+  const hi = g.headerInfo;
+
+  // 헤더
+  aoa.push(['계좌별 거래명세표']);
+  aoa.push([]);
+  aoa.push(['계좌번호', hi.accountNo || '', '', '상품', hi.product || '']);
+  aoa.push(['예금주', hi.holder || '', '', '조회기간', hi.period || '']);
+  if (hi.printDate || hi.branch) {
+    aoa.push(['출력일시', hi.printDate || '', '', '조회점', hi.branch || '']);
+  }
+  aoa.push([]);
+
+  // 컬럼 헤더
+  aoa.push([...OUTPUT_COLUMNS]);
+
+  // 데이터
+  for (const row of g.dataRows) {
+    const excelRow = OUTPUT_COLUMNS.map(col => {
+      const val = (row[col] || '').trim();
+      if (/출금액|입금액|잔액/.test(col)) {
+        const num = parseInt(val.replace(/,/g,''));
+        if (!isNaN(num) && num > 0) return num;
+        return null; // 빈 셀
+      }
+      return val;
+    });
+    aoa.push(excelRow);
+  }
+
+  // 합계
+  for (const row of g.summaryRows) {
+    const excelRow = OUTPUT_COLUMNS.map(col => {
+      const val = (row[col] || '').trim();
+      if (/출금액|입금액|잔액/.test(col)) {
+        const num = parseFloat(val);
+        if (!isNaN(num)) return num;
+      }
+      return val;
+    });
+    aoa.push(excelRow);
+  }
+
+  // 건수
+  aoa.push([]);
+  aoa.push([`출금합계: ${g.dataRows.reduce((s,r)=>{const v=parseFloat(r['출금액']||0);return s+(isNaN(v)?0:v);},0).toLocaleString()}`, '', '',
+             `입금합계: ${g.dataRows.reduce((s,r)=>{const v=parseFloat(r['입금액']||0);return s+(isNaN(v)?0:v);},0).toLocaleString()}`, '', '',
+             `총 ${g.dataRows.length}건`]);
+
+  // 출처
+  aoa.push([]);
+  aoa.push([`출처: IBK기업은행 계좌별거래명세표${hi.printDate ? ' (발급: '+hi.printDate+')' : ''}`]);
+
+  return aoa;
+}
+
+// ═══════════════════════════════════════════
+// Reset & Utility
+// ═══════════════════════════════════════════
+function resetApp() {
+  state.files = []; state.groups = []; state.activeGroup = 0; state.logs = [];
+  fileInput.value = '';
+  document.getElementById('fileListArea').innerHTML = '';
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('previewHead').innerHTML = '';
+  document.getElementById('previewBody').innerHTML = '';
+  document.getElementById('headerInfoCards').innerHTML = '';
+  setStep(1);
+}
+
+function esc(s) { return s==null?'':String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>

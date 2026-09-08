@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏢 건물 기준시가 계산기 v3 | 한백택스</title>
+<meta name="description" content="2026년 국세청 고시 제2025-39호 정식 6요소 산식 · 구조 11종·용도 61종·위치 45구간·잔가율표·개별특성 37항목 완전 반영">
+<meta name="theme-color" content="#1B3A5C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="건물기준시가">
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Nanum Gothic',sans-serif}
+:root{--navy:#1B3A5C;--blue:#2E6DA4;--gold:#C8963E;--bg:#f0f2f5;--gray:#718096;--light:#EDF2F7;--input-bg:#FFF8E1;--auto-bg:#FDF2E9;--border:#CBD5E0;--green:#D1FAE5;--green-txt:#065F46;--red:#C53030;--apply:#E8F4FD;--chg:#FEF3C7;--chg-txt:#92400E}
+body{background:var(--bg);color:#2D3748;min-height:100vh;font-size:15px;padding-bottom:40px}
+.top-bar{background:var(--navy);color:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.top-bar h1{font-size:22px}.top-bar .sub{font-size:13px;color:#a0b4cc;margin-top:3px}
+.brand-bar{background:var(--navy);color:var(--gold);text-align:center;padding:7px;font-size:13.5px;font-weight:700;border-bottom:3px solid var(--gold)}
+.standalone-back{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;margin:14px 24px 0}
+.wrap{max-width:920px;margin:0 auto;padding:18px}
+.calc-title{background:var(--navy);color:#fff;padding:18px 24px;border-radius:14px 14px 0 0;text-align:center}
+.calc-title h2{font-size:23px;margin-bottom:4px}.calc-title .sub{font-size:13px;color:#a0b4cc}
+.calc-body{background:#fff;border:1px solid #dde;border-radius:0 0 14px 14px;overflow:hidden;margin-bottom:22px}
+.section-hdr{background:var(--blue);color:#fff;padding:12px 22px;font-size:15px;font-weight:800;display:flex;align-items:center;gap:9px}
+.section-hdr .num{background:rgba(255,255,255,0.25);width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.section-hdr .tag{margin-left:auto;font-size:11px;background:var(--gold);padding:3px 9px;border-radius:11px;font-weight:800}
+.section-body{padding:14px 22px 18px}
+.row{display:flex;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.lbl{width:240px;flex-shrink:0;background:var(--light);padding:11px 14px;font-size:13.5px;font-weight:700;border:1px solid var(--border);border-right:none}
+.input-cell{flex:1;min-width:130px}
+.input-cell input,.input-cell select{width:100%;padding:11px 14px;font-size:15px;color:var(--blue);font-weight:700;background:var(--input-bg);border:1px solid var(--border);outline:none;font-family:inherit;text-align:right}
+.input-cell select{text-align:left}
+.input-cell input:focus,.input-cell select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(46,109,164,0.2)}
+.auto-cell{flex:1;background:var(--auto-bg);border:1px solid var(--border);padding:11px 14px;font-size:14px;font-weight:700;color:var(--gold);min-width:110px;text-align:right}
+.note{font-size:12px;color:var(--gray);padding-left:9px;flex-basis:100%;margin-top:2px}
+.note.inline{flex-basis:auto;margin-top:0}
+.apply-row .lbl{background:var(--apply);color:var(--blue);font-weight:800}
+.apply-row .input-cell input{background:var(--apply);border:2px solid var(--blue);color:var(--navy);font-weight:800}
+.sub-tot .lbl{background:var(--navy);color:#fff;font-weight:800}.sub-tot .auto-cell{background:var(--navy);color:var(--gold);font-weight:800;font-size:15px}
+.result-box{background:var(--auto-bg);padding:26px;text-align:center;border-top:3px double var(--gold)}
+.result-box .label{font-size:18px;font-weight:700;color:var(--navy)}
+.result-box .value{font-size:34px;font-weight:800;color:var(--gold);margin-top:6px}
+.result-box .detail{font-size:13px;color:var(--gray);margin-top:8px;line-height:1.7}
+.formula{background:#f8fafc;padding:14px 22px;font-size:13px;color:var(--gray);line-height:1.9;border-top:1px dashed var(--border)}
+.formula b{color:var(--navy)}
+.disclaimer{font-size:12px;color:var(--gray);padding:16px 22px;line-height:1.7;background:#fff;border-top:1px solid var(--border)}.disclaimer b{color:var(--navy)}
+.tools{padding:14px 22px;display:flex;gap:8px;flex-wrap:wrap}
+.btn{background:var(--blue);color:#fff;border:none;padding:10px 18px;border-radius:8px;font-weight:800;cursor:pointer;font-family:inherit;font-size:14px}
+.btn.gray{background:#94A3B8}.btn.gold{background:var(--gold)}
+.seg{display:flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;width:100%}
+.seg button{flex:1;border:none;padding:11px 8px;background:#fff;font-family:inherit;font-weight:800;font-size:14px;color:var(--gray);cursor:pointer}
+.seg button.on{background:var(--navy);color:#fff}
+.hl{background:var(--chg);color:var(--chg-txt);font-weight:800;padding:1px 5px;border-radius:4px;font-size:11px}
+.adj-grid .row{margin-bottom:6px}
+.adj-grid .lbl{width:210px;font-size:12.5px}
+.calc-step{background:#fff;padding:4px 22px 14px;font-size:13.5px}
+.calc-step table{width:100%;border-collapse:collapse}
+.calc-step td{padding:7px 6px;border-bottom:1px solid #eef}
+.calc-step td:last-child{text-align:right;font-weight:700;color:var(--navy)}
+.calc-step tr.op td:first-child{color:var(--gray)}
+.hidden{display:none!important}
+.changelog{background:#FFFBEB;border:1px solid var(--gold);border-radius:10px;padding:14px 18px;margin:0 22px 14px;font-size:12.5px;line-height:1.8;color:var(--chg-txt)}
+.changelog b{color:var(--navy)}
+@media(max-width:700px){.wrap{padding:10px 6px}.top-bar h1{font-size:18px}.lbl{width:100%;border-right:1px solid var(--border)}.adj-grid .lbl{width:100%}.result-box .value{font-size:25px}}
+@media print{.top-bar,.brand-bar,.standalone-back,.tools,.btn{display:none!important}.calc-body{border:none}}
+</style>
+</head>
+<body>
+<div class="top-bar"><div><h1>세무법인 한백택스</h1><div class="sub">대표세무사 차재영 | 서울특별시 중구 동호로 315, 2층</div></div><div style="color:var(--gold);font-weight:800;font-size:12px">건물 기준시가 v3</div></div>
+<div class="brand-bar">HANBAEK TAX — 건물 기준시가 계산기 · 2026년 국세청 고시 제2025-39호 정식 반영</div>
+<a class="standalone-back" href="한백택스_세무계산_포털.html">← 전체 세무계산 포털</a>
+
+<div class="wrap">
+  <div class="calc-title"><h2>🏢 건물 기준시가 계산기 v3</h2><div class="sub">신축가격기준액 × 구조 × 용도 × 위치 × 경과연수별잔가율 × 개별특성 조정률</div></div>
+
+  <div class="calc-body">
+
+  <div class="changelog">
+    <b>📌 2026.1.1. 시행 (국세청 고시 제2025-39호)</b> — ㎡당 신축가격기준액 <b>860,000원</b>(동결) ·
+    구조 11종 / 용도 61종 / 위치 45구간 / 4대그룹 잔가율표 / 개별특성 37항목 완전 반영.<br>
+    <b>2026년 변경:</b> 목구조 <span class="hl">120→115</span> · 학교·교육원·직업훈련소 <span class="hl">100→102</span> · 노인주거복지·경로당 <span class="hl">83→85</span> · 위치지수 100만~200만원/㎡ 구간 <span class="hl">하향</span>.
+  </div>
+
+    <!-- 0. 세목 -->
+    <div class="section-hdr"><div class="num">0</div>세목 선택 <span class="tag">개별특성·리모델링 적용여부 결정</span></div>
+    <div class="section-body">
+      <div class="row"><div class="lbl">세목</div><div class="input-cell"><div class="seg" id="taxSeg">
+        <button data-tax="transfer" class="on" onclick="setTax('transfer')">양도소득세</button>
+        <button data-tax="inherit" onclick="setTax('inherit')">상속·증여세</button>
+      </div></div></div>
+      <div class="note inline" id="taxNote">양도세: 개별건물 조정률·리모델링 할증률 <b>미적용</b> (소득세법 §99①1나목)</div>
+    </div>
+
+    <!-- 1. 신축가격기준액 -->
+    <div class="section-hdr"><div class="num">1</div>건물신축가격기준액 (원/㎡)</div>
+    <div class="section-body">
+      <div class="row"><div class="lbl">평가(양도·상속·증여)연도</div><div class="input-cell"><select id="eval_yr" onchange="onYear()"></select></div><div class="note inline">기준시가 시행연도</div></div>
+      <div class="row apply-row"><div class="lbl">→ 적용 신축가격기준액</div><div class="input-cell"><input type="number" id="base" value="860000" step="10000" oninput="calc()"></div><div class="note inline">연도 선택 시 자동 · 직접수정 가능</div></div>
+    </div>
+
+    <!-- 2. 구조지수 -->
+    <div class="section-hdr"><div class="num">2</div>구조지수 (構造指數)</div>
+    <div class="section-body">
+      <div class="row"><div class="lbl">건물 구조 선택</div><div class="input-cell"><select id="struct_sel" onchange="applyStruct()"></select></div></div>
+      <div class="row apply-row"><div class="lbl">→ 적용 구조지수</div><div class="input-cell"><input type="number" id="struct" value="1.00" step="0.01" oninput="calc()"></div><div class="note inline">지수÷100 · 직접수정 가능</div></div>
+      <div class="row"><div class="lbl">→ 내용연수 그룹</div><div class="auto-cell" id="grp_auto">Ⅰ그룹 (50년)</div></div>
+    </div>
+
+    <!-- 3. 용도지수 -->
+    <div class="section-hdr"><div class="num">3</div>용도지수 (用途指數)</div>
+    <div class="section-body">
+      <div class="row"><div class="lbl">건물 용도 선택 (건축법 별표1)</div><div class="input-cell"><select id="usage_sel" onchange="applyUsage()"></select></div></div>
+      <div class="row apply-row"><div class="lbl">→ 적용 용도지수</div><div class="input-cell"><input type="number" id="usage" value="1.00" step="0.01" oninput="calc()"></div><div class="note inline">지수÷100 · 직접수정 가능</div></div>
+    </div>
+
+    <!-- 4. 위치지수 -->
+    <div class="section-hdr"><div class="num">4</div>위치지수 (개별공시지가 기준)</div>
+    <div class="section-body">
+      <div class="row"><div class="lbl">부속토지 ㎡당 개별공시지가</div><div class="input-cell"><input type="number" id="land" value="0" step="10000" oninput="autoLocation()"></div><div class="note inline">양도·상속·증여일 당시 공시가</div></div>
+      <div class="row"><div class="lbl">→ 산출 위치지수 (45구간)</div><div class="auto-cell" id="loc_auto">—</div></div>
+      <div class="row apply-row"><div class="lbl">→ 적용 위치지수</div><div class="input-cell"><input type="number" id="loc" value="1.00" step="0.01" oninput="calc()"></div><div class="note inline">지수÷100 · 직접수정 가능 (산정곤란 시 100)</div></div>
+    </div>
+
+    <!-- 5. 잔가율 -->
+    <div class="section-hdr"><div class="num">5</div>경과연수별 잔가율 (정액법)</div>
+    <div class="section-body">
+      <div class="row"><div class="lbl">신축연도 (사용검사일 기준)</div><div class="input-cell"><input type="number" id="built_yr" value="2010" oninput="calc()"></div><div class="note inline">증축=증축연도 · 전부개축=개축연도</div></div>
+      <div class="row"><div class="lbl">내용연수 / 연상각률</div><div class="auto-cell" id="life_auto">50년 / 0.018</div></div>
+      <div class="row"><div class="lbl">경과연수</div><div class="auto-cell" id="passed">0년</div></div>
+      <div class="row" id="remodelToggleRow"><div class="lbl">리모델링(대수선) 할증</div><div class="input-cell" style="text-align:left;font-weight:700;color:var(--navy)"><label style="cursor:pointer"><input type="checkbox" id="remodel_on" onchange="calc()" style="width:auto;transform:scale(1.3);margin-right:8px"> 적용 (상속·증여만)</label></div></div>
+      <div class="row hidden" id="remodelRow"><div class="lbl">대수선시점 경과연수 (n̄)</div><div class="input-cell"><input type="number" id="remodel_n" value="0" oninput="calc()"></div><div class="note inline">할증률 = 연상각률 × n̄ × 0.3</div></div>
+      <div class="row sub-tot"><div class="lbl">→ 경과연수별 잔가율</div><div class="auto-cell" id="remain">100.0%</div></div>
+    </div>
+
+    <!-- 6. 개별특성 조정률 -->
+    <div class="section-hdr"><div class="num">6</div>개별건물 특성 조정률 (37항목) <span class="tag" id="adjTag">상속·증여세만</span></div>
+    <div class="section-body adj-grid" id="adjBody">
+      <div class="note" id="adjOffNote" style="color:var(--red);font-weight:700;margin-bottom:4px">⚠️ 양도소득세는 개별건물 조정률을 적용하지 않습니다. (조정률 = 1.00 고정)</div>
+      <div id="adjControls">
+      <div class="row"><div class="lbl">Ⅰ. 지붕재료 (구조&lt;100시)</div><div class="input-cell"><select id="adj1" onchange="calc()"></select></div></div>
+      <div class="row"><div class="lbl">Ⅱ. 규모(층수·연면적·인텔리전트)</div><div class="input-cell"><select id="adj2" onchange="calc()"></select></div><div class="note inline">가장 높은 지수 1개만</div></div>
+      <div class="row"><div class="lbl">Ⅲ. 단독·공동주택 규모</div><div class="input-cell"><select id="adj3" onchange="calc()"></select></div></div>
+      <div class="row"><div class="lbl">Ⅳ. 상가·지하층·부속</div><div class="input-cell"><select id="adj4" onchange="calc()"></select></div><div class="note inline">가장 낮은 지수 1개만</div></div>
+      <div class="row"><div class="lbl">Ⅴ. 일부 개축</div><div class="input-cell"><select id="adj5" onchange="calc()"></select></div></div>
+      <div class="row"><div class="lbl">Ⅵ. 무벽건물</div><div class="input-cell"><select id="adj6" onchange="calc()"></select></div></div>
+      <div class="row"><div class="lbl">Ⅶ. 안전진단·철거·훼손</div><div class="input-cell"><select id="adj7" onchange="calc()"></select></div></div>
+      <div class="row sub-tot"><div class="lbl">→ 개별특성 조정률</div><div class="auto-cell" id="adj_total">1.00</div><div class="note inline">각 구분 지수의 곱</div></div>
+      </div>
+    </div>
+
+    <!-- 7. 면적 -->
+    <div class="section-hdr"><div class="num">7</div>평가대상 건물 면적</div>
+    <div class="section-body">
+      <div class="row"><div class="lbl">연면적 (㎡)</div><div class="input-cell"><input type="number" id="area" value="500" step="0.01" oninput="calc()"></div><div class="note inline">집합건물=전유+공용면적</div></div>
+    </div>
+
+    <!-- 산출 -->
+    <div class="section-hdr"><div class="num">8</div>산출 내역</div>
+    <div class="calc-step">
+      <table>
+        <tr class="op"><td>건물신축가격기준액</td><td id="r_base">860,000 원/㎡</td></tr>
+        <tr class="op"><td>× 구조지수</td><td id="r_struct">1.00</td></tr>
+        <tr class="op"><td>× 용도지수</td><td id="r_usage">1.00</td></tr>
+        <tr class="op"><td>× 위치지수</td><td id="r_loc">1.00</td></tr>
+        <tr class="op"><td>× 경과연수별잔가율</td><td id="r_remain">100.0%</td></tr>
+        <tr class="op" id="r_adj_row"><td>× 개별특성 조정률</td><td id="r_adj">1.00</td></tr>
+        <tr><td>= ㎡당 금액 (절사 전)</td><td id="r_raw">0 원</td></tr>
+        <tr class="sub-tot" style="background:var(--navy)"><td style="color:#fff">㎡당 금액 (1,000원 절사)</td><td id="r_persqm" style="color:var(--gold)">0 원</td></tr>
+      </table>
+    </div>
+    <div class="result-box"><div class="label">건물 기준시가</div><div class="value" id="r_total">0 원</div><div class="detail" id="r_detail">㎡당 0원 × 500㎡</div></div>
+
+    <div class="formula">
+      <b>산식 (국세청 고시 제2025-39호)</b> : 건물 기준시가 = <b>㎡당 금액 × 건물 연면적</b><br>
+      ㎡당 금액 = 신축가격기준액 × 구조지수 × 용도지수 × 위치지수 × 경과연수별잔가율 × <span id="f_adj">개별특성조정률</span> <span style="color:var(--gray)">— 1,000원 미만 절사 후 면적 곱셈</span><br>
+      경과연수별잔가율 = 1 − 연상각률 × 경과연수 (최저 0.1) <span style="color:var(--gray)">／ 그룹별 연상각률: Ⅰ 0.018·Ⅱ 0.0225·Ⅲ 0.03·Ⅳ 0.045 · 2025년 신축=경과 1년</span><br>
+      <span id="f_remodel" class="hidden">리모델링 할증률 = 연상각률 × 대수선시점 경과연수 × 0.3 (상속·증여세에만 가산)</span>
+    </div>
+    <div class="tools">
+      <button class="btn gold" onclick="window.print()">🖨 인쇄 / PDF</button>
+      <button class="btn" onclick="copyResult()">📋 계산서 복사</button>
+      <button class="btn gray" onclick="resetAll()">↺ 초기화</button>
+    </div>
+    <div class="disclaimer">
+      ⚠️ 본 계산기는 <b>국세청 고시 제2025-39호(2026.1.1. 시행) 「2026년 건물 기준시가 계산방법 해설」</b>의 구조지수(11종)·용도지수(61종)·위치지수(45구간)·경과연수별잔가율표·개별건물 조정률(37항목)을 정식 반영했습니다. 적용시점: 2026.1.1. 이후 양도/상속개시/증여분.<br>
+      • <a href="https://hometax.go.kr/" target="_blank" style="color:var(--blue);font-weight:700">홈택스 ▸ 조회/발급 ▸ 기준시가 조회 ▸ 건물기준시가(양도) 자동계산</a> (권위 있는 자동산출 검증용)<br>
+      • <a href="https://www.law.go.kr/" target="_blank" style="color:var(--blue);font-weight:700">국가법령정보센터 ▸ 국세청 「건물 기준시가 계산방법 고시」 별표</a><br>
+      ※ 근거: 소득세법 §99①1나목·시행령 §164⑤(양도), 상증법 §61①2호·시행령 §51(상속·증여).<br>
+      ※ <b>개별·공동주택, 오피스텔·상업용건물</b>(국세청 일괄고시 지정분)은 토지·건물 일괄 고시가액을 적용하며 본 산식 대상이 아닙니다. <b>기계식주차전용빌딩</b>은 별도 산식(6,000,000원 × 잔가율(30년) × 주차대수)을 적용합니다.
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== 데이터 (국세청 고시 제2025-39호) ===== */
+// 연도별 ㎡당 신축가격기준액
+const BASE_BY_YEAR={2026:860000,2025:860000,2024:830000,2023:820000,2022:800000,2021:770000,2020:760000,2019:740000,2018:730000,2017:720000,2016:710000,2015:700000,2014:680000,2013:670000,2012:660000,2011:640000,2010:630000,2009:620000};
+
+// 구조지수 [명칭, 지수, 그룹(1~4)]  · 그룹: Ⅰ50년 Ⅱ40년 Ⅲ30년 Ⅳ20년
+const STRUCTS=[
+ ['통나무조',135,1],['목구조 (한옥 포함)',115,1],['철골(철골철근)콘크리트조 SRC',110,1],
+ ['철근콘크리트조',100,1],['석조',100,1],['프리캐스트콘크리트조(PC)',100,1],['라멘조',100,1],
+ ['목조',100,2],['ALC조',100,2],['스틸하우스조',100,2],
+ ['연와조',95,2],['철골조',95,2],['보강콘크리트조',95,2],['보강블록조',95,2],
+ ['시멘트벽돌조',90,2],['와이어패널조',90,2],
+ ['황토조',90,3],['시멘트블록조',90,3],
+ ['철골조 중 조립식패널(EPS)',85,3],['조립식패널조',80,3],['경량철골조',79,3],
+ ['석회 및 흙벽돌조',60,3],['돌담 및 토담조',60,3],
+ ['철파이프조',59,4],['컨테이너건물',59,4]
+];
+const GRP_RATE={1:0.018,2:0.0225,3:0.03,4:0.045};
+const GRP_LIFE={1:50,2:40,3:30,4:20};
+const GRP_ROMAN={1:'Ⅰ',2:'Ⅱ',3:'Ⅲ',4:'Ⅳ'};
+
+// 용도지수 [그룹라벨, [[명칭,지수],...]]
+const USAGES=[
+ ['주거시설',[['아파트',110],['단독주택·다가구·연립·다세대·기숙사·도시형생활주택 등',100]]],
+ ['숙박시설',[['관광호텔(5·4성급)',140],['일반호텔·관광호텔(3성↓)·콘도·펜션·생활숙박시설',130],['외국인관광 도시민박·한옥체험',120],['여관(모텔)',112],['다중생활시설(2종근생 제외)',105],['여인숙',100]]],
+ ['판매시설',[['백화점',135],['대형마트·쇼핑센터·복합몰(3천㎡↑)·기타 대규모점포',125],['일반상점(1천~3천㎡)·기타 판매영업시설',95],['도매시장·전통시장·공판장·경매장',85]]],
+ ['운수시설',[['여객터미널·철도·공항·항만',120]]],
+ ['위락시설',[['무도장',140],['유흥주점·카지노',130],['테마파크 시설',120],['단란주점(풍속영업 제외)',115],['무도학원',90]]],
+ ['문화 및 집회시설',[['집회장(장외발매소 등)',130],['예식장·공연장·공회당',115],['동·식물원·수족관·전시장',110],['관람장·체육관(1천㎡↑)',105]]],
+ ['종교시설',[['교회·성당·사찰·기도원 등 종교집회장',100]]],
+ ['운동시설',[['골프장·스키장·수영장·볼링장·종합체육시설업',125],['기타 체육시설',105]]],
+ ['의료시설',[['종합병원',125],['일반·치과·한방·정신·요양·격리병원',110]]],
+ ['업무시설',[['오피스텔(주거·사무용)',135],['사무소·금융업소·출판사·신문사 등',115]]],
+ ['방송통신시설',[['방송국·촬영소·전신전화국·통신용시설',110]]],
+ ['관광휴게시설',[['야외음악당·관망탑·휴게소·공원부수시설',110]]],
+ ['교육연구시설',[['학원·교습소(2종근생 제외)',107],['학교·교육원·직업훈련소·연구소·도서관 ★2026변경(100→102)',102]]],
+ ['노유자시설',[['아동관련시설·노인복지시설·기타 사회복지시설',109],['고아원·노인주거복지(양로원)·경로당 등 ★2026변경(83→85)',85]]],
+ ['수련시설',[['청소년수련관·유스호스텔·수련원·야영장',110]]],
+ ['근린생활시설(목욕장 등)',[['목욕장(3천㎡↑)',130],['목욕장(1천~3천㎡)',115],['목욕장(1천㎡↓)',110],['풍속영업시설(단란·게임·노래연습장 등)',105],['제1·2종 근린생활시설 일반',95]]],
+ ['묘지관련시설',[['화장시설·봉안당·묘지부수건축물',130],['동물화장·건조장·납골시설',105]]],
+ ['장례식장',[['장례식장(종합병원 부속 포함)',115],['동물 전용 장례식장',105]]],
+ ['공장',[['지식산업센터(아파트형공장)',115],['냉동공장·반도체·평면디스플레이 공장',100],['기타 일반공장',78]]],
+ ['발전시설',[['원자력 발전시설',300],['발전소(1종근생 제외)',90]]],
+ ['창고시설',[['냉동·냉장창고',105],['일반창고·물류터미널·집배송',75]]],
+ ['위험물저장·처리시설',[['주유소·LPG충전소·위험물제조저장취급소 등',90]]],
+ ['자원순환관련시설',[['하수처리시설·고물상·폐기물재활용·처분시설',80]]],
+ ['자동차관련시설',[['자동차매매장·운전(정비)학원',75],['세차장·폐차장·정비공장·차고·주기장',67],['주차장(자주식 주차전용빌딩 포함)',60]]],
+ ['동·식물관련시설',[['가축운동시설·인공수정센터·검역소·경주마사',70],['축사·도축장·작물재배사 등',55],['온실·기타 식물관련시설',50]]],
+ ['기계식주차전용빌딩',[['기계식주차전용빌딩 (별도산식)',60]]],
+ ['분류곤란 특수용도',[['어느 용도로도 분류 곤란',100]]]
+];
+
+// 위치지수 45구간 [하한(원), 지수]
+const LOC=[[0,78],[20000,83],[30000,85],[50000,86],[70000,87],[100000,88],[130000,89],[150000,90],[180000,91],[200000,92],[300000,93],[350000,94],[500000,97],[650000,100],[800000,102],[1000000,104],[1200000,106],[1600000,108],[2000000,114],[2500000,116],[3000000,118],[3500000,120],[4000000,122],[4500000,124],[5000000,126],[5500000,128],[6000000,130],[7000000,132],[8000000,134],[9000000,137],[10000000,140],[15000000,143],[20000000,146],[25000000,149],[30000000,152],[35000000,155],[40000000,158],[45000000,161],[50000000,164],[55000000,167],[60000000,170],[65000000,173],[70000000,176],[75000000,179],[80000000,182]];
+
+// 개별특성 조정률 옵션 [라벨, 배율]
+const ADJ={
+ a1:[['기본 (슬래브·기와 등) 100',1.00],['패널·유리·슬레이트 80',0.80],['함석·천막·초가 등 60',0.60]],
+ a2:[['해당없음 (1.00)',1.00],
+     ['층수 5층이하 90',0.90],['층수 6~10층 100',1.00],['층수 11~15층 110',1.10],['층수 16~20층 120',1.20],['층수 21층이상 130',1.30],
+     ['연면적 1천㎡미만 90',0.90],['연면적 1천~5천㎡ 100',1.00],['연면적 5천~1만㎡ 110',1.10],['연면적 1만~5만㎡ 120',1.20],['연면적 5만㎡이상 130',1.30],
+     ['인텔리전트 3·4등급 110',1.10],['인텔리전트 1·2등급 120',1.20]],
+ a3:[['해당없음 (1.00)',1.00],['단독 264~331㎡ 120',1.20],['단독 331㎡이상 140',1.40],['공동(전유) 149~215㎡ 120',1.20],['공동(전유) 215㎡이상 140',1.40]],
+ a4:[['해당없음 (1.00)',1.00],['상가 1층 120',1.20],['상가 2층 105',1.05],['5층↓건물 지하1층 80',0.80],['5층↓건물 지하2층↓ 70',0.70],['부속주차장·기계실 등 60',0.60],['주택간이부속건물 60',0.60]],
+ a5:[['해당없음 (1.00)',1.00],['1회 개축 110',1.10],['2회이상 개축 120',1.20]],
+ a6:[['해당없음 (1.00)',1.00],['무벽 1/4초과~2/4미만 80',0.80],['무벽 2/4~3/4미만 70',0.70],['무벽 3/4이상 60',0.60]],
+ a7:[['해당없음 (1.00)',1.00],['안전진단 B급 90',0.90],['안전진단 C급 80',0.80],['안전진단 D급 60',0.60],['안전진단 E급 30',0.30],['철거대상-사용중 30',0.30],['철거대상-미사용 0',0.00]]
+};
+
+let TAX='transfer';
+const fmt=n=>{if(n==null||isNaN(n))return'0';return Math.round(n).toLocaleString('ko-KR');};
+const v=id=>{const el=document.getElementById(id);return el?parseFloat(String(el.value).replace(/,/g,''))||0:0;};
+
+/* ===== 초기화: 드롭다운 빌드 ===== */
+(function init(){
+  // 연도
+  const ey=document.getElementById('eval_yr');
+  for(let y=2026;y>=2009;y--){const o=document.createElement('option');o.value=y;o.textContent=y+'년 (㎡당 '+BASE_BY_YEAR[y].toLocaleString()+'원)';ey.appendChild(o);}
+  ey.value=2026;
+  // 구조
+  const ss=document.getElementById('struct_sel');let lastG=0;let og;
+  STRUCTS.forEach(s=>{
+    if(s[2]!==lastG){lastG=s[2];og=document.createElement('optgroup');og.label='── '+GRP_ROMAN[s[2]]+'그룹 (내용연수 '+GRP_LIFE[s[2]]+'년) ──';ss.appendChild(og);}
+    const o=document.createElement('option');o.textContent=s[0]+' ('+s[1]+')';o.dataset.i=(s[1]/100).toFixed(2);o.dataset.g=s[2];og.appendChild(o);
+  });
+  ss.value=ss.options[3].value; // 철근콘크리트조
+  // 용도
+  const us=document.getElementById('usage_sel');
+  USAGES.forEach(g=>{const grp=document.createElement('optgroup');grp.label='── '+g[0]+' ──';g[1].forEach(u=>{const o=document.createElement('option');o.textContent=u[0]+' ('+u[1]+')';o.dataset.i=(u[1]/100).toFixed(2);grp.appendChild(o);});us.appendChild(grp);});
+  us.value=us.options[1].value; // 단독주택 100
+  // 개별특성
+  ['a1','a2','a3','a4','a5','a6','a7'].forEach((k,i)=>{const sel=document.getElementById('adj'+(i+1));ADJ[k].forEach((opt,j)=>{const o=document.createElement('option');o.textContent=opt[0];o.dataset.m=opt[1];o.value=j;sel.appendChild(o);});});
+  applyStruct();applyUsage();onYear();
+})();
+
+function onYear(){const y=v('eval_yr');if(BASE_BY_YEAR[y])document.getElementById('base').value=BASE_BY_YEAR[y];calc();}
+function setTax(t){TAX=t;document.querySelectorAll('#taxSeg button').forEach(b=>b.classList.toggle('on',b.dataset.tax===t));
+  const inh=(t==='inherit');
+  document.getElementById('taxNote').innerHTML=inh
+    ?'상속·증여세: 개별건물 조정률(37항목)·리모델링 할증률 <b>적용</b> (상증법 §61①2호)'
+    :'양도세: 개별건물 조정률·리모델링 할증률 <b>미적용</b> (소득세법 §99①1나목)';
+  document.getElementById('adjControls').classList.toggle('hidden',!inh);
+  document.getElementById('adjOffNote').classList.toggle('hidden',inh);
+  document.getElementById('remodelToggleRow').classList.toggle('hidden',!inh);
+  document.getElementById('r_adj_row').classList.toggle('hidden',!inh);
+  document.getElementById('f_adj').textContent=inh?'개별특성조정률':'1 (양도세 미적용)';
+  calc();
+}
+function applyStruct(){
+  const o=document.getElementById('struct_sel').selectedOptions[0];
+  document.getElementById('struct').value=o.dataset.i;
+  const g=+o.dataset.g;
+  document.getElementById('grp_auto').textContent=GRP_ROMAN[g]+'그룹 ('+GRP_LIFE[g]+'년)';
+  document.getElementById('life_auto').textContent=GRP_LIFE[g]+'년 / '+GRP_RATE[g];
+  document.getElementById('struct_sel').dataset.g=g;
+  calc();
+}
+function applyUsage(){document.getElementById('usage').value=document.getElementById('usage_sel').selectedOptions[0].dataset.i;calc();}
+function autoLocation(){
+  const p=v('land');if(p<=0){document.getElementById('loc_auto').textContent='—';return;}
+  let idx=78;for(let i=0;i<LOC.length;i++){if(p>=LOC[i][0])idx=LOC[i][1];}
+  document.getElementById('loc_auto').textContent=idx+'  (×'+(idx/100).toFixed(2)+')';
+  document.getElementById('loc').value=(idx/100).toFixed(2);
+  calc();
+}
+function adjMult(){
+  let m=1;['adj1','adj2','adj3','adj4','adj5','adj6','adj7'].forEach(id=>{const o=document.getElementById(id).selectedOptions[0];if(o)m*=parseFloat(o.dataset.m);});
+  return m;
+}
+function calc(){
+  const g=+(document.getElementById('struct_sel').dataset.g||1);
+  const rate=GRP_RATE[g];
+  const base=v('base'),struct=v('struct'),usage=v('usage'),loc=v('loc');
+  let passed=v('eval_yr')-v('built_yr');if(passed<0)passed=0;
+  let remain=1-rate*passed;if(remain<0.1)remain=0.1;
+  // 리모델링 할증 (상속·증여만)
+  const inh=(TAX==='inherit');
+  const remOn=inh&&document.getElementById('remodel_on').checked;
+  document.getElementById('remodelRow').classList.toggle('hidden',!remOn);
+  document.getElementById('f_remodel').classList.toggle('hidden',!remOn);
+  if(remOn){const nbar=v('remodel_n');const add=rate*nbar*0.3;remain+=add;if(remain>1)remain=1;}
+  // 개별특성 조정률
+  const adj=inh?adjMult():1;
+  document.getElementById('passed').textContent=passed+'년';
+  document.getElementById('remain').textContent=(remain*100).toFixed(1)+'%'+(remOn?' (할증포함)':'');
+  document.getElementById('adj_total').textContent=adj.toFixed(4).replace(/0+$/,'').replace(/\.$/,'')||'1';
+  // ㎡당 금액
+  let raw=base*struct*usage*loc*remain*adj;
+  let perSqm=Math.floor(raw/1000)*1000;
+  const area=v('area');const total=perSqm*area;
+  document.getElementById('r_base').textContent=fmt(base)+' 원/㎡';
+  document.getElementById('r_struct').textContent='× '+struct.toFixed(2);
+  document.getElementById('r_usage').textContent='× '+usage.toFixed(2);
+  document.getElementById('r_loc').textContent='× '+loc.toFixed(2);
+  document.getElementById('r_remain').textContent='× '+(remain*100).toFixed(1)+'%';
+  document.getElementById('r_adj').textContent='× '+adj.toFixed(4).replace(/0+$/,'').replace(/\.$/,'');
+  document.getElementById('r_raw').textContent=fmt(raw)+' 원';
+  document.getElementById('r_persqm').textContent=fmt(perSqm)+' 원';
+  document.getElementById('r_total').textContent=fmt(total)+' 원';
+  document.getElementById('r_detail').textContent='㎡당 '+fmt(perSqm)+'원 × '+fmt(area)+'㎡  (신축 '+v('built_yr')+'년·경과 '+passed+'년·잔가율 '+(remain*100).toFixed(1)+'%)';
+}
+function resetAll(){location.reload();}
+function copyResult(){
+  const g=+(document.getElementById('struct_sel').dataset.g||1);
+  const t=`====== 한백택스 건물 기준시가 계산서 (v3) ======
+세목            : ${TAX==='inherit'?'상속·증여세 (상증법 §61①2호)':'양도소득세 (소득세법 §99①1나목)'}
+시행 고시        : 국세청 고시 제2025-39호 (2026.1.1. 시행)
+
+[입력]
+ 구조           : ${document.getElementById('struct_sel').selectedOptions[0].textContent}  → ${GRP_ROMAN[g]}그룹(${GRP_LIFE[g]}년)
+ 용도           : ${document.getElementById('usage_sel').selectedOptions[0].textContent}
+ ㎡당 공시지가  : ${fmt(v('land'))} 원
+ 신축연도       : ${v('built_yr')}년 (경과 ${document.getElementById('passed').textContent})
+ 연면적         : ${fmt(v('area'))} ㎡
+
+[적용지수]
+ 신축가격기준액 : ${document.getElementById('r_base').textContent}
+ 구조지수       : ${document.getElementById('r_struct').textContent}
+ 용도지수       : ${document.getElementById('r_usage').textContent}
+ 위치지수       : ${document.getElementById('r_loc').textContent}
+ 경과연수별잔가율: ${document.getElementById('r_remain').textContent}
+ 개별특성 조정률: ${TAX==='inherit'?document.getElementById('r_adj').textContent:'미적용(양도세)'}
+
+[산출]
+ ㎡당 금액(절사전) : ${document.getElementById('r_raw').textContent}
+ ㎡당 금액(1천원절사): ${document.getElementById('r_persqm').textContent}
+ ★ 건물 기준시가  : ${document.getElementById('r_total').textContent}
+================================================`;
+  navigator.clipboard.writeText(t).then(()=>alert('계산서가 복사되었습니다.')).catch(()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();alert('계산서가 복사되었습니다.');});
+}
+setTax('transfer');
+calc();
+</script>
+</body>
+</html>

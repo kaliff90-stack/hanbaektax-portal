@@ -1,0 +1,3210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📋 프리미엄 연말정산 & 추가상여 시뮬레이터 | 세무법인 한백택스</title>
+  <meta name="description" content="2025-2026년 귀속 최신 세법 및 개정 보험요율 완벽 반영, 추가상여 세 부담 분석 및 최적 공제 시나리오 진단 프로그램">
+  <meta name="theme-color" content="#0F172A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="한백 연말정산">
+  <!-- Google Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+
+  <style>
+    /* --- CSS 디자인 시스템 & 토큰 --- */
+    :root {
+      --navy-950: #0A0F1D;
+      --navy-900: #0F172A;
+      --navy-800: #1E293B;
+      --navy-700: #334155;
+      --navy-600: #475569;
+      --gold-600: #B5842E;
+      --gold-500: #C8963E;
+      --gold-400: #E5B25D;
+      --gold-100: #FEF9EC;
+      --emerald-500: #10B981;
+      --emerald-600: #059669;
+      --rose-500: #EF4444;
+      --rose-600: #DC2626;
+      --blue-500: #3B82F6;
+      --blue-600: #2563EB;
+      
+      --bg-dark: var(--navy-950);
+      --bg-light: #F8FAFC;
+      --card-dark: rgba(30, 41, 59, 0.7);
+      --card-light: rgba(255, 255, 255, 0.85);
+      
+      --text-dark: #F8FAFC;
+      --text-light: #0F172A;
+      --border-dark: rgba(255, 255, 255, 0.08);
+      --border-light: rgba(15, 23, 42, 0.08);
+      
+      --font-outfit: 'Outfit', 'Inter', 'Noto Sans KR', sans-serif;
+      --font-noto: 'Noto Sans KR', 'Inter', sans-serif;
+      
+      --glass-blur: blur(16px);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* 기본 리셋 & 공통 스타일 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: var(--font-noto);
+    }
+
+    body {
+      background-color: #090D1A;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(27, 58, 92, 0.3) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(200, 150, 62, 0.15) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(15, 23, 42, 0.9) 0px, transparent 80%);
+      background-attachment: fixed;
+      color: #E2E8F0;
+      min-height: 100vh;
+      font-size: 16px;
+      line-height: 1.6;
+      padding-bottom: 80px;
+      overflow-x: hidden;
+    }
+
+    /* 스크롤바 커스텀 */
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--navy-950);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--navy-700);
+      border-radius: 6px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--gold-500);
+    }
+
+    /* --- 헤더 및 레이아웃 --- */
+    .top-bar {
+      backdrop-filter: var(--glass-blur);
+      background: rgba(10, 15, 29, 0.8);
+      border-bottom: 1px solid var(--border-dark);
+      padding: 16px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, var(--gold-400), var(--gold-600));
+      color: var(--navy-950);
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-family: var(--font-outfit);
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(200, 150, 62, 0.4);
+    }
+
+    .logo-text h1 {
+      font-size: 20px;
+      font-weight: 800;
+      color: #FFFFFF;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-text .sub {
+      font-size: 12px;
+      color: #94A3B8;
+      margin-top: 1px;
+    }
+
+    .top-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .ver-badge {
+      background: rgba(200, 150, 62, 0.15);
+      border: 1px solid rgba(200, 150, 62, 0.3);
+      color: var(--gold-400);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-outfit);
+    }
+
+    /* 포털 링크 버튼 */
+    .portal-back-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #E2E8F0;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+    .portal-back-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--gold-500);
+      color: var(--gold-400);
+    }
+
+    /* 대형 히어로 배너 */
+    .hero-banner {
+      max-width: 1400px;
+      margin: 32px auto 0;
+      padding: 0 40px;
+      text-align: center;
+    }
+
+    .hero-banner h2 {
+      font-size: 32px;
+      font-weight: 900;
+      color: #FFFFFF;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, #FFFFFF 50%, var(--gold-400) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-banner p {
+      font-size: 15px;
+      color: #94A3B8;
+      margin-top: 8px;
+    }
+
+    /* --- 탭 메뉴 인터페이스 --- */
+    .tab-container {
+      max-width: 1400px;
+      margin: 24px auto;
+      padding: 0 40px;
+    }
+
+    .tab-bar {
+      display: flex;
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px solid var(--border-dark);
+      padding: 6px;
+      border-radius: 16px;
+      backdrop-filter: var(--glass-blur);
+      gap: 4px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #94A3B8;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+
+    .tab-btn:hover {
+      color: #FFFFFF;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--navy-800), rgba(30, 41, 59, 0.8));
+      color: var(--gold-400);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(200, 150, 62, 0.2);
+    }
+
+    .tab-btn.active .material-icons-round {
+      color: var(--gold-400);
+    }
+
+    /* --- 메인 시뮬레이션 그리드 레이아웃 --- */
+    .app-layout {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 40px;
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    /* 탭 콘텐츠 컨테이너 */
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.4s ease forwards;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 좌측 입력 폼 패널 */
+    .input-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* 카드 컴포넌트 */
+    .card {
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border-dark);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transition: var(--transition);
+    }
+
+    .card:hover {
+      border-color: rgba(200, 150, 62, 0.15);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+    }
+
+    .card-header {
+      background: rgba(30, 41, 59, 0.3);
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-dark);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+
+    .card-header h3 {
+      font-size: 17px;
+      font-weight: 800;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-header h3 .material-icons-round {
+      color: var(--gold-500);
+      font-size: 22px;
+    }
+
+    .card-body {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* --- 프리셋 빠른 설정 바 --- */
+    .preset-container {
+      background: rgba(200, 150, 62, 0.05);
+      border: 1px dashed rgba(200, 150, 62, 0.2);
+      border-radius: 14px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .preset-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--gold-400);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .preset-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .preset-btn {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #E2E8F0;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .preset-btn:hover {
+      background: var(--gold-500);
+      color: var(--navy-950);
+      border-color: var(--gold-400);
+      transform: translateY(-1px);
+    }
+
+    /* --- 폼 제어 및 그리드 행 --- */
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .col-6 {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+    }
+
+    .input-lbl {
+      font-size: 13px;
+      font-weight: 700;
+      color: #94A3B8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .input-lbl .info-tooltip-trigger {
+      font-size: 16px;
+      color: #64748B;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .input-lbl .info-tooltip-trigger:hover {
+      color: var(--gold-400);
+    }
+
+    .input-field-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+
+    .input-field-wrapper input, .input-field-wrapper select {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border-dark);
+      color: #FFFFFF;
+      padding: 12px 42px 12px 16px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      outline: none;
+      transition: var(--transition);
+      font-family: var(--font-outfit), var(--font-noto);
+    }
+
+    .input-field-wrapper input[type="text"], .input-field-wrapper input[type="number"] {
+      text-align: right;
+    }
+
+    .input-field-wrapper select {
+      appearance: none;
+      -webkit-appearance: none;
+      padding-right: 32px;
+      text-align: left;
+    }
+
+    .input-field-wrapper .select-arrow {
+      position: absolute;
+      right: 12px;
+      color: #64748B;
+      pointer-events: none;
+    }
+
+    .input-field-wrapper input:focus, .input-field-wrapper select:focus {
+      border-color: var(--gold-500);
+      box-shadow: 0 0 0 3px rgba(200, 150, 62, 0.25);
+      background: rgba(30, 41, 59, 0.8);
+    }
+
+    /* 포커스/입력 상태 피드백 효과 */
+    .input-field-wrapper input.active-input {
+      border-color: var(--gold-400);
+      background: rgba(200, 150, 62, 0.05);
+    }
+
+    .field-unit {
+      position: absolute;
+      right: 16px;
+      font-size: 13px;
+      color: #64748B;
+      font-weight: 700;
+      pointer-events: none;
+    }
+
+    /* 토글 스위치 및 라벨 */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.02);
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border-dark);
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--navy-800);
+      transition: .4s;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #94A3B8;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: rgba(200, 150, 62, 0.2);
+      border-color: var(--gold-500);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(24px);
+      background-color: var(--gold-400);
+    }
+
+    /* 플로팅 툴팁 */
+    .floating-tooltip {
+      position: absolute;
+      bottom: 110%;
+      left: 0;
+      width: 280px;
+      background: var(--navy-900);
+      border: 1px solid var(--border-dark);
+      border-color: var(--gold-500);
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 12px;
+      color: #94A3B8;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      z-index: 50;
+      display: none;
+      line-height: 1.5;
+    }
+
+    .floating-tooltip b {
+      color: #FFFFFF;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .col-6:hover .floating-tooltip {
+      /* JS로 트리거하여 툴팁 제어 */
+    }
+
+    /* 자동계산 배지 */
+    .auto-badge {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--emerald-500);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-left: 6px;
+      font-family: var(--font-noto);
+    }
+
+    /* --- 근로소득 비과세 항목 명세 --- */
+    .ntc-sec {
+      font-size: 12px; font-weight: 800; color: var(--gold-400);
+      display: flex; align-items: center; gap: 8px;
+      margin: 16px 0 8px; letter-spacing: .3px;
+    }
+    .ntc-sec:first-child { margin-top: 4px; }
+    .ntc-tag {
+      font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 10px;
+    }
+    .ntc-tag.rep { background: rgba(59,130,246,.18); color: #93C5FD; border: 1px solid rgba(59,130,246,.35); }
+    .ntc-tag.non { background: rgba(148,163,184,.15); color: #CBD5E1; border: 1px solid rgba(148,163,184,.3); }
+    .ntc-item {
+      display: grid; grid-template-columns: 50px 1fr 150px; gap: 10px; align-items: center;
+      padding: 8px 10px; border: 1px solid var(--border-dark); border-radius: 10px;
+      background: rgba(15,23,42,.4); margin-bottom: 6px;
+    }
+    .ntc-item .code {
+      font-family: var(--font-outfit); font-weight: 800; font-size: 12px; color: #93C5FD;
+      text-align: center; background: rgba(59,130,246,.12); border-radius: 6px; padding: 4px 0;
+    }
+    .ntc-item .nm { font-size: 12.5px; font-weight: 700; color: var(--text-dark); line-height: 1.35; }
+    .ntc-item .nm small { display: block; color: #64748B; font-weight: 600; font-size: 10.5px; margin-top: 1px; }
+    .ntc-input-wrap { position: relative; }
+    .ntc-input-wrap input {
+      width: 100%; background: rgba(15,23,42,.6); border: 1px solid var(--border-dark);
+      border-radius: 8px; padding: 8px 30px 8px 10px; color: var(--gold-400);
+      font-weight: 700; font-size: 13px; text-align: right; font-family: var(--font-noto); outline: none;
+    }
+    .ntc-input-wrap input:focus { border-color: var(--gold-500); background: rgba(15,23,42,.85); }
+    .ntc-input-wrap .u { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; color: #64748B; pointer-events: none; }
+    .ntc-cap { font-size: 10px; color: #64748B; font-weight: 600; margin-top: 3px; text-align: right; }
+    .ntc-cap.over { color: var(--rose-500); font-weight: 800; }
+    .ntc-summary {
+      display: flex; gap: 12px; flex-wrap: wrap; margin-top: 14px;
+      padding: 14px; border-radius: 12px;
+      background: linear-gradient(135deg, rgba(15,23,42,.7), rgba(27,38,59,.5));
+      border: 1px solid rgba(200,150,62,.25);
+    }
+    .ntc-summary .box { flex: 1; min-width: 120px; }
+    .ntc-summary .box .k { font-size: 11px; color: #94A3B8; font-weight: 700; }
+    .ntc-summary .box .v { font-size: 17px; color: var(--text-dark); font-weight: 800; margin-top: 3px; }
+    .ntc-summary .box .v.gold { color: var(--gold-400); }
+    .ntc-summary .box .v.emerald { color: var(--emerald-500); }
+
+    /* --- 우측 대시보드 리포트 패널 (Sticky) --- */
+    .dashboard-panel {
+      position: sticky;
+      top: 116px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      z-index: 10;
+    }
+
+    /* 메인 결과 환급액 디스플레이 */
+    .result-display-card {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(27, 38, 59, 0.6));
+      border: 1px solid rgba(200, 150, 62, 0.25);
+      border-radius: 24px;
+      padding: 32px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 환급/추가납부 상태에 따른 그라데이션 장식 */
+    .result-display-card::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.05) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+      animation: rotateGrad 20s linear infinite;
+    }
+
+    .result-display-card.refund::after {
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 60%);
+    }
+
+    .result-display-card.surcharge::after {
+      background: radial-gradient(circle, rgba(239, 68, 68, 0.08) 0%, transparent 60%);
+    }
+
+    @keyframes rotateGrad {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .result-lbl {
+      font-size: 15px;
+      font-weight: 700;
+      color: #94A3B8;
+      letter-spacing: 0.5px;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .result-value {
+      font-family: var(--font-outfit), var(--font-noto);
+      font-size: 44px;
+      font-weight: 900;
+      margin: 12px 0;
+      position: relative;
+      z-index: 1;
+      letter-spacing: -0.5px;
+      transition: var(--transition);
+    }
+
+    /* 상태별 텍스트 색상 */
+    .result-display-card.refund .result-value {
+      color: var(--emerald-500);
+      text-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+    }
+
+    .result-display-card.surcharge .result-value {
+      color: var(--rose-500);
+      text-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+    }
+
+    .result-display-card.zero .result-value {
+      color: var(--gold-400);
+    }
+
+    .result-desc {
+      font-size: 14px;
+      color: #64748B;
+      position: relative;
+      z-index: 1;
+      line-height: 1.5;
+    }
+
+    /* 실시간 계산 점멸 효과 */
+    @keyframes pulseFlash {
+      0% { transform: scale(1); }
+      30% { transform: scale(1.02); filter: brightness(1.1); }
+      100% { transform: scale(1); }
+    }
+    .flash-pulse {
+      animation: pulseFlash 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    /* 대시보드 도넛 차트 섹션 */
+    .chart-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.01);
+      border-radius: 16px;
+      border: 1px solid var(--border-dark);
+    }
+
+    .svg-donut-wrapper {
+      position: relative;
+      width: 140px;
+      height: 140px;
+    }
+
+    .svg-donut-wrapper svg {
+      transform: rotate(-90deg);
+    }
+
+    .svg-donut-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .svg-donut-center .lbl {
+      font-size: 10px;
+      color: #64748B;
+      font-weight: 700;
+    }
+
+    .svg-donut-center .val {
+      font-family: var(--font-outfit);
+      font-size: 18px;
+      font-weight: 800;
+      color: #FFFFFF;
+    }
+
+    .chart-legends {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+
+    .legend-lbl {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #94A3B8;
+      font-weight: 600;
+    }
+
+    .legend-color {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+    }
+
+    .legend-val {
+      font-family: var(--font-outfit);
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+
+    /* 과세표준 누진 구간 가로 바 */
+    .bracket-tracker {
+      background: rgba(15, 23, 42, 0.3);
+      border: 1px solid var(--border-dark);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .bracket-lbl {
+      font-size: 13px;
+      font-weight: 700;
+      color: #94A3B8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .bracket-lbl span b {
+      color: var(--gold-400);
+    }
+
+    .progress-track {
+      background: var(--navy-950);
+      height: 10px;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-bar {
+      background: linear-gradient(90deg, var(--gold-500), var(--gold-400));
+      height: 100%;
+      border-radius: 10px;
+      width: 0%; /* 실시간 연동 */
+      transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .bracket-limits {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #64748B;
+      margin-top: 8px;
+      font-family: var(--font-outfit);
+      font-weight: 600;
+    }
+
+    /* 대시보드 세부 테이블 */
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .summary-table tr {
+      border-bottom: 1px solid var(--border-dark);
+    }
+
+    .summary-table tr:last-child {
+      border-bottom: none;
+    }
+
+    .summary-table td {
+      padding: 10px 0;
+      vertical-align: middle;
+    }
+
+    .summary-table .lbl {
+      color: #94A3B8;
+      font-weight: 600;
+      text-align: left;
+    }
+
+    .summary-table .val {
+      font-family: var(--font-outfit), var(--font-noto);
+      font-weight: 700;
+      color: #FFFFFF;
+      text-align: right;
+    }
+
+    .summary-table tr.highlight-row {
+      border-bottom: 2px double var(--gold-500);
+    }
+
+    .summary-table tr.highlight-row td {
+      color: var(--gold-400);
+      font-size: 14px;
+      font-weight: 800;
+      padding: 12px 0;
+    }
+
+    /* --- 탭 2: 추가상여 세금 진단 뷰 전용 --- */
+    .bonus-matrix-container {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .side-by-side-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .comparison-gauge-panel {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--border-dark);
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .marginal-rate-display {
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(200, 150, 62, 0.05) 0%, rgba(200, 150, 62, 0.15) 100%);
+      border: 3px solid var(--gold-500);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 25px rgba(200, 150, 62, 0.2);
+      margin-bottom: 16px;
+    }
+
+    .marginal-rate-display .pct {
+      font-family: var(--font-outfit);
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--gold-400);
+      line-height: 1;
+    }
+
+    .marginal-rate-display .lbl {
+      font-size: 11px;
+      color: #94A3B8;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .gauge-info-box h4 {
+      font-size: 16px;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin-bottom: 6px;
+    }
+
+    .gauge-info-box p {
+      font-size: 13px;
+      color: #94A3B8;
+      line-height: 1.5;
+    }
+
+    /* 비교 명세 상세 테이블 */
+    .compare-detail-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .compare-detail-table th {
+      background: rgba(30, 41, 59, 0.4);
+      padding: 10px 12px;
+      color: #E2E8F0;
+      font-weight: 700;
+      font-size: 12px;
+      border-bottom: 1px solid var(--border-dark);
+      text-align: right;
+    }
+
+    .compare-detail-table th:first-child {
+      text-align: left;
+    }
+
+    .compare-detail-table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border-dark);
+      text-align: right;
+      font-family: var(--font-outfit), var(--font-noto);
+    }
+
+    .compare-detail-table td:first-child {
+      text-align: left;
+      font-weight: 600;
+      color: #94A3B8;
+    }
+
+    .compare-detail-table tr:hover td {
+      background: rgba(255, 255, 255, 0.01);
+    }
+
+    .compare-detail-table tr.bold-row td {
+      font-weight: 800;
+      color: #FFFFFF;
+      font-size: 14px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .compare-detail-table .diff-col {
+      color: var(--gold-400);
+      font-weight: 700;
+    }
+
+    .compare-detail-table .diff-col.plus {
+      color: var(--rose-500);
+    }
+
+    .compare-detail-table .diff-col.minus {
+      color: var(--emerald-500);
+    }
+
+    /* --- 탭 3: Scenario A vs B 분석기 전용 --- */
+    .scenario-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .scenario-card {
+      border: 1px solid var(--border-dark);
+      border-radius: 20px;
+      padding: 24px;
+      background: rgba(15, 23, 42, 0.4);
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition);
+    }
+
+    .scenario-card.active-choice {
+      border-color: var(--gold-500);
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.5), rgba(200, 150, 62, 0.03));
+      box-shadow: 0 10px 30px rgba(200, 150, 62, 0.08);
+    }
+
+    .scenario-badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 4px 10px;
+      font-size: 11px;
+      border-radius: 20px;
+      font-weight: 800;
+    }
+
+    .scenario-card:first-child .scenario-badge {
+      background: rgba(255, 255, 255, 0.08);
+      color: #94A3B8;
+    }
+
+    .scenario-card:last-child .scenario-badge {
+      background: rgba(200, 150, 62, 0.15);
+      color: var(--gold-400);
+      border: 1px solid rgba(200, 150, 62, 0.25);
+    }
+
+    .scenario-card h4 {
+      font-size: 18px;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .scenario-card .sub {
+      font-size: 13px;
+      color: #64748B;
+      margin-bottom: 20px;
+    }
+
+    .scenario-card .refund-val {
+      font-family: var(--font-outfit);
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--emerald-500);
+      border-top: 1px dashed var(--border-dark);
+      padding-top: 16px;
+      margin-top: 16px;
+    }
+
+    /* AI 추천 배너 컴포넌트 */
+    .ai-recom-banner {
+      background: linear-gradient(95deg, rgba(200, 150, 62, 0.12) 0%, rgba(10, 25, 47, 0.9) 100%);
+      border: 1px solid rgba(200, 150, 62, 0.35);
+      border-radius: 18px;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .ai-recom-icon {
+      background: linear-gradient(135deg, var(--gold-400), var(--gold-600));
+      color: var(--navy-950);
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px rgba(200, 150, 62, 0.4);
+      flex-shrink: 0;
+    }
+
+    .ai-recom-text h4 {
+      font-size: 16px;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin-bottom: 3px;
+    }
+
+    .ai-recom-text p {
+      font-size: 13px;
+      color: #94A3B8;
+      line-height: 1.5;
+    }
+
+    /* --- 탭 4: 공식 인쇄 진단 리포트 --- */
+    .report-paper {
+      background: #FFFFFF;
+      color: #1E293B;
+      border-radius: 20px;
+      padding: 48px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35);
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+      font-family: var(--font-noto);
+    }
+
+    .report-paper::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, var(--navy-900), var(--gold-500));
+    }
+
+    .report-header {
+      text-align: center;
+      margin-bottom: 40px;
+      position: relative;
+    }
+
+    .report-header .title {
+      font-size: 28px;
+      font-weight: 900;
+      color: #0F172A;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .report-header .subtitle {
+      font-size: 13px;
+      color: #64748B;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .report-logo {
+      position: absolute;
+      top: 0;
+      left: 0;
+      font-family: var(--font-outfit);
+      font-weight: 900;
+      font-size: 24px;
+      color: var(--navy-900);
+      border-bottom: 2px solid var(--gold-500);
+      padding-bottom: 2px;
+    }
+
+    .report-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 32px;
+      font-size: 13px;
+    }
+
+    .report-info-col {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .report-info-item {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .report-info-item .lbl {
+      color: #64748B;
+      font-weight: 700;
+    }
+
+    .report-info-item .val {
+      color: #0F172A;
+      font-weight: 700;
+    }
+
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-bottom: 40px;
+    }
+
+    .report-table th {
+      background: #0F172A;
+      color: #FFFFFF;
+      padding: 10px 14px;
+      font-weight: 700;
+      border: 1px solid #0F172A;
+    }
+
+    .report-table td {
+      padding: 10px 14px;
+      border: 1px solid #E2E8F0;
+      text-align: right;
+    }
+
+    .report-table td:first-child {
+      text-align: left;
+      font-weight: 700;
+      background: #F8FAFC;
+      color: #334155;
+    }
+
+    .report-table tr.total-row td {
+      background: #F1F5F9;
+      font-weight: 800;
+      font-size: 14px;
+      color: #0F172A;
+      border-top: 2px solid #0F172A;
+    }
+
+    .report-table tr.result-row td {
+      background: #FEF9EC;
+      font-weight: 900;
+      font-size: 16px;
+      color: var(--gold-600);
+      border: 2px solid var(--gold-500);
+      padding: 16px;
+    }
+
+    .report-footer {
+      text-align: center;
+      margin-top: 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .report-seal-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .report-seal-text {
+      font-size: 18px;
+      font-weight: 900;
+      color: #0F172A;
+      letter-spacing: 0.5px;
+    }
+
+    .report-seal-red {
+      position: absolute;
+      top: -12px;
+      right: -52px;
+      width: 52px;
+      height: 52px;
+      border: 2px solid #E11D48;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 900;
+      color: #E11D48;
+      transform: rotate(15deg);
+      opacity: 0.85;
+      letter-spacing: -0.5px;
+      padding: 4px;
+      line-height: 1.2;
+    }
+
+    .report-disclaimer {
+      font-size: 11px;
+      color: #94A3B8;
+      line-height: 1.6;
+      border-top: 1px dashed #E2E8F0;
+      padding-top: 16px;
+      width: 100%;
+    }
+
+    /* 리포트 액션 버튼 바 */
+    .report-actions {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 32px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold-400), var(--gold-600));
+      border: none;
+      color: var(--navy-950);
+      padding: 12px 28px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 20px rgba(200, 150, 62, 0.3);
+      transition: var(--transition);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 25px rgba(200, 150, 62, 0.45);
+    }
+
+    .btn-secondary {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #FFFFFF;
+      padding: 12px 28px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* --- PC/모바일 최적화 미디어 쿼리 --- */
+    @media (max-width: 1100px) {
+      .app-layout {
+        grid-template-columns: 1fr;
+      }
+      
+      .dashboard-panel {
+        position: static;
+        margin-top: 16px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding-bottom: 100px;
+      }
+
+      .top-bar {
+        padding: 12px 20px;
+      }
+
+      .hero-banner {
+        padding: 0 20px;
+        margin-top: 24px;
+      }
+
+      .hero-banner h2 {
+        font-size: 24px;
+      }
+
+      .tab-container {
+        padding: 0 20px;
+      }
+
+      .tab-bar {
+        flex-direction: row;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding: 4px;
+      }
+
+      .tab-btn {
+        padding: 10px 14px;
+        font-size: 13px;
+      }
+
+      .app-layout {
+        padding: 0 20px;
+        gap: 20px;
+      }
+
+      .side-by-side-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .scenario-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .report-paper {
+        padding: 24px 16px;
+      }
+
+      .row {
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .col-6 {
+        width: 100%;
+      }
+    }
+
+    /* --- 인쇄 전용 CSS 미디어 쿼리 --- */
+    @media print {
+      body {
+        background: #FFFFFF !important;
+        color: #000000 !important;
+        padding: 0 !important;
+      }
+
+      .top-bar, .tab-container, .hero-banner, .input-panel, .dashboard-panel, .report-actions, footer {
+        display: none !important;
+      }
+
+      .tab-content {
+        display: none !important;
+      }
+
+      #tab-content-report {
+        display: block !important;
+        opacity: 1 !important;
+        transform: none !important;
+      }
+
+      .report-paper {
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        border-radius: 0 !important;
+      }
+
+      .report-paper::before {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+<a class="standalone-back" id="backPortal" href="한백택스_세무계산_포털.html" style="display:inline-flex;align-items:center;gap:8px;background:#C8963E;color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;margin:12px 16px 0;font-family:'Nanum Gothic',sans-serif">← 전체 세무계산 포털</a><script>if(window.self!==window.top){var _bp=document.getElementById('backPortal');if(_bp)_bp.style.display='none'}</script>
+
+  <!-- 상단 탑 헤더 바 -->
+  <div class="top-bar">
+    <div class="logo-container">
+      <div class="logo-badge">HB</div>
+      <div class="logo-text">
+        <h1>세무법인 한백택스</h1>
+        <div class="sub">대표세무사 차재영 | 서울특별시 중구 동호로 315, 2층</div>
+      </div>
+    </div>
+    <div class="top-right">
+      <div class="ver-badge">
+        <span class="material-icons-round" style="font-size: 16px">verified</span>
+        <span>연말정산 포털 v3</span>
+      </div>
+      <a class="portal-back-btn" href="한백택스_세무계산_포털.html">
+        <span class="material-icons-round">arrow_back</span>
+        <span>전체 세금포털</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- 대형 타이틀 -->
+  <div class="hero-banner">
+    <h2>근로소득 연말정산 & 추가상여 시뮬레이터</h2>
+    <p>2025~2026 귀속 최신 개정세법 세율 완벽 연동 · 절세 분석 솔루션</p>
+  </div>
+
+  <!-- 탭 내비게이션 바 -->
+  <div class="tab-container">
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="yearend" onclick="switchTab('yearend')">
+        <span class="material-icons-round">calculate</span>
+        <span>종합 연말정산</span>
+      </button>
+      <button class="tab-btn" data-tab="bonus" onclick="switchTab('bonus')">
+        <span class="material-icons-round">bolt</span>
+        <span>추가상여 세금진단</span>
+      </button>
+      <button class="tab-btn" data-tab="scenario" onclick="switchTab('scenario')">
+        <span class="material-icons-round">compare_arrows</span>
+        <span>공제 시나리오 비교</span>
+      </button>
+      <button class="tab-btn" data-tab="report" onclick="switchTab('report')">
+        <span class="material-icons-round">description</span>
+        <span>정밀 진단리포트</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 메인 애플리케이션 레이아웃 그리드 -->
+  <div class="app-layout">
+    
+    <!-- 좌측 입력 패널 -->
+    <div class="input-panel">
+      
+      <!-- 1. 귀속 및 연봉 빠른 설정 프리셋 -->
+      <div class="card">
+        <div class="card-header">
+          <h3>
+            <span class="material-icons-round">offline_bolt</span>
+            <span>간편 프리셋 및 귀속연도</span>
+          </h3>
+        </div>
+        <div class="card-body">
+          <div class="preset-container">
+            <div class="preset-label">
+              <span class="material-icons-round" style="font-size:18px">psychology</span>
+              <span>원클릭 직급별 연봉 대입:</span>
+            </div>
+            <div class="preset-buttons">
+              <button class="preset-btn" onclick="applyPreset(35000000)">대리급(3.5천)</button>
+              <button class="preset-btn" onclick="applyPreset(60000000)">과장급(6.0천)</button>
+              <button class="preset-btn" onclick="applyPreset(90000000)">차장급(9.0천)</button>
+              <button class="preset-btn" onclick="applyPreset(120000000)">부장급(1.2억)</button>
+              <button class="preset-btn" onclick="applyPreset(180000000)">임원급(1.8억)</button>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-6">
+              <label class="input-lbl">귀속연도 선택</label>
+              <div class="input-field-wrapper">
+                <select id="calc_year" onchange="runCalculationEngine()">
+                  <option value="2026" selected>2026년 귀속 (국민연금 9.5% · 건보 7.19%)</option>
+                  <option value="2025">2025년 귀속 (국민연금 9.0% · 건보 7.09%)</option>
+                </select>
+                <span class="material-icons-round select-arrow">expand_more</span>
+              </div>
+            </div>
+            <div class="col-6">
+              <label class="input-lbl">총급여액 (연간)</label>
+              <div class="input-field-wrapper">
+                <input type="text" id="ye_salary" value="60,000,000" oninput="runCalculationEngine()">
+                <span class="field-unit">원</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 근로소득 비과세 항목 명세 카드 -->
+      <div class="card">
+        <div class="card-header" onclick="toggleCardBody('card-nontax')">
+          <h3>
+            <span class="material-icons-round">savings</span>
+            <span>근로소득 비과세 항목 명세 (소득세법 §12)</span>
+          </h3>
+          <span class="material-icons-round card-toggle-icon">expand_more</span>
+        </div>
+        <div class="card-body" id="card-nontax" style="display:none;">
+          <div class="toggle-row">
+            <div style="display:flex; flex-direction:column; gap:2px;">
+              <span style="font-size:14px; font-weight:700; color:#FFFFFF;">비과세 합계를 총급여액에서 차감</span>
+              <span style="font-size:11px; color:#64748B;">ON: 위 '총급여액'을 <b>비과세 포함 총지급액(세전 연봉)</b>으로 간주 → 과세대상 총급여 = 총지급액 − 비과세 합계</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="ye_nontax_deduct" onchange="runCalculationEngine()">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div id="nontax-list"></div>
+          <div class="ntc-summary">
+            <div class="box"><div class="k">세전 총지급액(연)</div><div class="v" id="ntc-sum-gross">0 원</div></div>
+            <div class="box"><div class="k">비과세 기재(○)</div><div class="v" id="ntc-sum-rep">0 원</div></div>
+            <div class="box"><div class="k">비과세 비기재(×)</div><div class="v" id="ntc-sum-non">0 원</div></div>
+            <div class="box"><div class="k">비과세 합계</div><div class="v gold" id="ntc-sum-all">0 원</div></div>
+            <div class="box"><div class="k">과세대상 총급여</div><div class="v emerald" id="ntc-sum-taxable">0 원</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 탭 1: 종합 연말정산 공제 입력 뷰 -->
+      <div id="tab-content-yearend" class="tab-content active">
+        <div style="display:flex; flex-direction:column; gap:24px;">
+          
+          <!-- 인적공제 카드 -->
+          <div class="card">
+            <div class="card-header" onclick="toggleCardBody('card-personal')">
+              <h3>
+                <span class="material-icons-round">groups</span>
+                <span>부양가족 및 인적공제</span>
+              </h3>
+              <span class="material-icons-round card-toggle-icon">expand_less</span>
+            </div>
+            <div class="card-body" id="card-personal">
+              <div class="row">
+                <div class="col-6">
+                  <label class="input-lbl">
+                    <span>본인 및 부양가족 수</span>
+                    <span class="material-icons-round info-tooltip-trigger" onclick="showTooltip('tt-personal')">info</span>
+                  </label>
+                  <div class="input-field-wrapper">
+                    <input type="number" id="ye_personal_count" value="1" min="1" max="20" oninput="runCalculationEngine()">
+                    <span class="field-unit">명</span>
+                  </div>
+                  <div class="floating-tooltip" id="tt-personal">
+                    <b>기본 인적공제</b>
+                    소득자 본인 및 생계를 같이하는 부양가족 1인당 연 150만 원 공제 (가족 합산 소득금액 100만 원 이하 요건)
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="input-lbl">만 9세 이상 공제대상 자녀수</label>
+                  <div class="input-field-wrapper">
+                    <input type="number" id="ye_child_count" value="0" min="0" max="10" oninput="runCalculationEngine()">
+                    <span class="field-unit">명</span>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-6">
+                  <label class="input-lbl">경로우대 대상자 수 (만 70세 이상)</label>
+                  <div class="input-field-wrapper">
+                    <input type="number" id="ye_senior_count" value="0" min="0" max="10" oninput="runCalculationEngine()">
+                    <span class="field-unit">명</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="input-lbl">장애인 공제 대상자 수</label>
+                  <div class="input-field-wrapper">
+                    <input type="number" id="ye_disabled_count" value="0" min="0" max="10" oninput="runCalculationEngine()">
+                    <span class="field-unit">명</span>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-6">
+                  <label class="input-lbl">출산·입양 자녀 순위</label>
+                  <div class="input-field-wrapper">
+                    <select id="ye_birth_order" onchange="runCalculationEngine()">
+                      <option value="0">해당 없음</option>
+                      <option value="1">첫째 출산/입양 (30만 원)</option>
+                      <option value="2">둘째 출산/입양 (50만 원)</option>
+                      <option value="3">셋째 이상 출산/입양 (70만 원)</option>
+                    </select>
+                    <span class="material-icons-round select-arrow">expand_more</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="input-lbl">한부모 공제 여부</label>
+                  <div class="input-field-wrapper">
+                    <select id="ye_single_parent" onchange="runCalculationEngine()">
+                      <option value="0">해당 없음</option>
+                      <option value="1">한부모 가정 공제 적용 (100만 원)</option>
+                    </select>
+                    <span class="material-icons-round select-arrow">expand_more</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4대보험 입력 카드 -->
+          <div class="card">
+            <div class="card-header" onclick="toggleCardBody('card-insurance')">
+              <h3>
+                <span class="material-icons-round">medical_services</span>
+                <span>4대보험 및 연금보험료 공제</span>
+              </h3>
+              <span class="material-icons-round card-toggle-icon">expand_less</span>
+            </div>
+            <div class="card-body" id="card-insurance">
+              <div class="toggle-row">
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                  <span style="font-size:14px; font-weight:700; color:#FFFFFF;">4대보험 자동 계산 활성화</span>
+                  <span style="font-size:11px; color:#64748B;">선택 귀속연도 개정 요율로 정밀 자동 추정합니다</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="auto_ins_toggle" checked onchange="toggleAutoIns()">
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="row">
+                <div class="col-6">
+                  <label class="input-lbl">
+                    <span>국민연금보험료 (연간)</span>
+                    <span class="auto-badge" id="np-auto-badge">자동</span>
+                  </label>
+                  <div class="input-field-wrapper">
+                    <input type="text" id="ye_np" value="2,850,000" oninput="runCalculationEngine()">
+                    <span class="field-unit">원</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="input-lbl">
+                    <span>건강보험료 (장기요양 포함)</span>
+                    <span class="auto-badge" id="hi-auto-badge">자동</span>
+                  </label>
+                  <div class="input-field-wrapper">
+                    <input type="text" id="ye_hi" value="2,440,000" oninput="runCalculationEngine()">
+                    <span class="field-unit">원</span>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-6">
+                  <label class="input-lbl">
+                    <span>고용보험료 (연간)</span>
+                    <span class="auto-badge" id="ei-auto-badge">자동</span>
+                  </label>
+                  <div class="input-field-wrapper">
+                    <input type="text" id="ye_ei" value="540,000" oninput="runCalculationEngine()">
+                    <span class="field-unit">원</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <!-- 빈 셀 유지 -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 소득공제 (주택자금, 신용카드 등) -->
+          <div class="card">
+            <div class="card-header" onclick="toggleCardBody('card-deductions')">
+              <h3>
+                <span class="material-icons-round">payment</span>
+                <span>주택자금 및 신용카드 소득공제</span>
+              </h3>
+              <span class="material-icons-round card-toggle-icon">expand_less</span>
+            </div>
+            <div class="card-body" id="card-deductions">
+              <div class="row">
+                <div class="col-6">
+                  <label class="input-lbl">
+                    <span>신용카드 연간 사용액</span>
+                    <span class="material-icons-round info-tooltip-trigger" onclick="showTooltip('tt-card')">info</span>
+                  </label>
+                  <div class="input-field-wrapper">
+                    <input type="text" id="ye_card_credit" value="15,000,000" oninput="runCalculationEngine()">
+                    <span class="field-unit">원</span>
+                  </div>
+                  <div class="floating-tooltip" id="tt-card">
+                    <b>신용카드 등 소득공제</b>
+                    총급여액의 25% 초과분에 대해 신용카드 15%, 체크/현금영수증 30%, 도서/공연/미술관 30%(총급여 7천만 이하), 대중교통 및 전통시장 40% 공제 적용
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="input-lbl">체크카드 · 현금영수증 사용액</label>
+                  <div class="input-field-wrapper">
+                    <input type="text" id="ye_card_debit" value="10,000,000" oninput="runCalculationEngine()">
+                    <span class="field-unit">원</span>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-6">
+                  <label class="input-lbl">전통시장 · 대중교통 사용액</label>
+                  <div class="input-field-wrapper">
+                    <input type="text" id="ye_card_market" value="2,000,000" oninput="runCalculationEngine()">
+                    <span class="field-unit">원</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="input-lbl">주택 청약 · 마련저축 (연 납입액)</label>
+                  <div class="input-field-wrapper">
+                    <input type="text" id="ye_housing_savings" value="0" oninput="runCalculationEngine()">
+                    <span class="field-unit">원</span>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-6">
+                  <label class="input-lbl">주택 전세자금 대출 원리금 상환액</label>
+                  <div class="input-field-wrapper">
+                    <input type="text" id="ye_housing_loan" value="0" oninput="runCalculationEngine()">
+                    <span class="field-unit">원</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="input-lbl">장기 주택 담보대출 이자 상환액</label>
+                  <div class="input-field-wrapper">
+                    <input type="text" id="ye_housing_mortgage" value="0" oninput="runCalculationEngine()">
+                    <span class="field-unit">원</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 세액공제 카드 (의료비, 교육비, 기부금 등) -->
+          <div class="card">
+            <div class="card-header" onclick="toggleCardBody('card-credits')">
+              <h3>
+                <span class="material-icons-round">local_offer</span>
+                <span>의료비·교육비·기부금 및 세액공제</span>
+              </h3>
+              <span class="material-icons-round card-toggle-icon">expand_less</span>
+            </div>
+            <div class="card-body" id="card-credits">
+              <div class="row">
+                <div class="col-6">
+                  <label class="input-lbl">보장성 보험료 (연 납입액, 한도 100만)</label>
+                  <div class="input-field-wrapper">
+                    <input type="text" id="ye_ins_credit" value="1,000,000" oninput="runCalculationEngine()">
+                    <span class="field-unit">원</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="input-lbl">
+                    <span>연금저축 · 퇴직연금(IRP) 납입액</span>
+                    <span class="material-icons-round info-tooltip-trigger" onclick="showTooltip('tt-pension')">info</span>
+                  </label>
+                  <div class="input-field-wrapper">
+                    <input type="text" id="ye_pension_savings" value="3,000,000" oninput="runCalculationEngine()">
+                    <span class="field-unit">원</span>
+                  </div>
+                  <div class="floating-tooltip" id="tt-pension">
+                    <b>연금저축 및 퇴직연금(IRP) 공제</b>
+                    합산 납입액 연 900만 원 한도로 12%(총급여 5.5천 초과) 또는 15%(총급여 5.5천 이하) 세액공제 혜택 부여
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-6">
+                  <label class="input-lbl">의료비 연간 총액 (본인+부양가족)</label>
+                  <div class="input-field-wrapper">
+                    <input type="text" id="ye_med_credit" value="0" oninput="runCalculationEngine()">
+                    <span class="field-unit">원</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="input-lbl">교육비 납입액 (본인/대학생/초중고)</label>
+                  <div class="input-field-wrapper">
+                    <input type="text" id="ye_edu_credit" value="0" oninput="runCalculationEngine()">
+                    <span class="field-unit">원</span>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-6">
+                  <label class="input-lbl">기부금 납입액 (종교/지정/법정 등)</label>
+                  <div class="input-field-wrapper">
+                    <input type="text" id="ye_donate_credit" value="0" oninput="runCalculationEngine()">
+                    <span class="field-unit">원</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="input-lbl">월세 주택 연간 납입금액 (한도 1,000만)</label>
+                  <div class="input-field-wrapper">
+                    <input type="text" id="ye_rent_payment" value="0" oninput="runCalculationEngine()">
+                    <span class="field-unit">원</span>
+                  </div>
+                </div>
+              </div>
+              <div class="row" style="border-top:1px dashed var(--border-dark); padding-top:20px; margin-top:8px;">
+                <div class="col-6">
+                  <label class="input-lbl">기납부한 소득세 (연간 원천징수 총액)</label>
+                  <div class="input-field-wrapper">
+                    <input type="text" id="ye_prepaid" value="1,954,200" oninput="runCalculationEngine()">
+                    <span class="field-unit">원</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <!-- 비워둠 -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 탭 2: 추가상여 세금진단 뷰 -->
+      <div id="tab-content-bonus" class="tab-content">
+        <div class="bonus-matrix-container">
+          
+          <div class="card">
+            <div class="card-header">
+              <h3>
+                <span class="material-icons-round">savings</span>
+                <span>추가 상여금 수령 시 시뮬레이션 설정</span>
+              </h3>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-6">
+                  <label class="input-lbl" style="color:var(--gold-400);">추가로 수령할 상여금 입력</label>
+                  <div class="input-field-wrapper">
+                    <input type="text" id="bonus_amount" value="50,000,000" oninput="runCalculationEngine()" style="border-color:var(--gold-500); background:rgba(200,150,62,0.05); font-size:18px;">
+                    <span class="field-unit" style="color:var(--gold-400);">원</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <!-- 안내 텍스트 -->
+                  <div style="background:rgba(255,255,255,0.02); border-radius:12px; padding:12px 16px; font-size:12px; color:#94A3B8; border:1px solid var(--border-dark);">
+                    <b style="color:#FFFFFF; margin-bottom:2px; display:block;">💡 한계세율(Marginal Rate) 이란?</b>
+                    추가 소득이 발생했을 때 적용되는 최상위 한도 소득세율 구간을 의미하며, 추가 상여금의 실질적인 세금 부담 강도를 직접 반영합니다.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="side-by-side-grid">
+            
+            <!-- 한계세율 다이얼 게이지 카드 -->
+            <div class="comparison-gauge-panel">
+              <div class="marginal-rate-display">
+                <div class="pct" id="gauge-marginal-rate">26.4%</div>
+                <div class="lbl">한계세율 (지방세 포함)</div>
+              </div>
+              <div class="gauge-info-box">
+                <h4>상여금 실수령액 요약</h4>
+                <p id="gauge-net-take-home">추가 상여 5,000만 원 중 실제로 귀하의 계좌에 입금될 순 수령액은 약 36,800,000원(73.6%)으로 예상됩니다.</p>
+              </div>
+            </div>
+
+            <!-- 현행 vs 상여반영 상세 대비 카드 -->
+            <div class="card">
+              <div class="card-header">
+                <h3>
+                  <span class="material-icons-round">show_chart</span>
+                  <span>세금 및 4대보험 증가 명세</span>
+                </h3>
+              </div>
+              <div class="card-body" style="padding: 16px;">
+                <table class="compare-detail-table">
+                  <thead>
+                    <tr>
+                      <th>항목</th>
+                      <th>현행 세액</th>
+                      <th>상여 반영 후</th>
+                      <th>추가 부담액</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>총급여액</td>
+                      <td id="comp-salary-curr">60,000,000</td>
+                      <td id="comp-salary-post">110,000,000</td>
+                      <td class="diff-col plus" id="comp-salary-diff">+50,000,000</td>
+                    </tr>
+                    <tr>
+                      <td>소득공제계</td>
+                      <td id="comp-ded-curr">9,000,000</td>
+                      <td id="comp-ded-post">9,000,000</td>
+                      <td id="comp-ded-diff">0</td>
+                    </tr>
+                    <tr>
+                      <td>과세표준</td>
+                      <td id="comp-base-curr">27,000,000</td>
+                      <td id="comp-base-post">77,000,000</td>
+                      <td class="diff-col plus" id="comp-base-diff">+50,000,000</td>
+                    </tr>
+                    <tr>
+                      <td>산출세액</td>
+                      <td id="comp-calc-curr">2,790,000</td>
+                      <td id="comp-calc-post">12,720,000</td>
+                      <td class="diff-col plus" id="comp-calc-diff">+9,930,000</td>
+                    </tr>
+                    <tr class="bold-row">
+                      <td>결정소득세</td>
+                      <td id="comp-tax-curr">924,437</td>
+                      <td id="comp-tax-post">12,220,000</td>
+                      <td class="diff-col plus" id="comp-tax-diff">+11,295,563</td>
+                    </tr>
+                    <tr>
+                      <td>지방소득세</td>
+                      <td id="comp-local-curr">92,443</td>
+                      <td id="comp-local-post">1,222,000</td>
+                      <td class="diff-col plus" id="comp-local-diff">+1,129,557</td>
+                    </tr>
+                    <tr class="bold-row" style="border-top:2px double var(--gold-500);">
+                      <td>합계 납부액</td>
+                      <td id="comp-total-curr">1,016,880</td>
+                      <td id="comp-total-post">13,442,000</td>
+                      <td class="diff-col plus" id="comp-total-diff">+12,425,120</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 탭 3: Scenario A vs B 분석기 뷰 -->
+      <div id="tab-content-scenario" class="tab-content">
+        <div style="display:flex; flex-direction:column; gap:24px;">
+          
+          <!-- AI 추천 패너 -->
+          <div class="ai-recom-banner">
+            <div class="ai-recom-icon">
+              <span class="material-icons-round">emoji_objects</span>
+            </div>
+            <div class="ai-recom-text">
+              <h4>한백택스 절세 매칭 추천</h4>
+              <p id="ai-recom-message">데이터 입력이 처리 중입니다...</p>
+            </div>
+          </div>
+
+          <div class="scenario-grid">
+            
+            <!-- 시나리오 A: 표준세액공제 -->
+            <div class="scenario-card" id="scen-card-a">
+              <div class="scenario-badge">기본형</div>
+              <h4>Scenario A</h4>
+              <div class="sub">표준세액공제 13만 원만 적용 (건강보험/기부금 등 모든 특별공제 제외)</div>
+              
+              <table class="summary-table">
+                <tr>
+                  <td class="lbl">허용되는 공제</td>
+                  <td class="val">인적공제, 국민연금, 신용카드</td>
+                </tr>
+                <tr>
+                  <td class="lbl">배제되는 특별공제</td>
+                  <td class="val">건강/고용보험, 의료비, 교육비, 월세 등</td>
+                </tr>
+                <tr>
+                  <td class="lbl">표준세액공제 혜택</td>
+                  <td class="val">130,000 원</td>
+                </tr>
+              </table>
+
+              <div class="refund-val">
+                <span style="font-size:12px; color:#94A3B8; font-weight:700; display:block;">정산 결과 (환급/추가)</span>
+                <span id="scen-result-a">0 원</span>
+              </div>
+            </div>
+
+            <!-- 시나리오 B: 실제 보험료 공제 -->
+            <div class="scenario-card" id="scen-card-b">
+              <div class="scenario-badge">추천 특별형</div>
+              <h4>Scenario B</h4>
+              <div class="sub">실제 납부한 보험료 소득공제 및 보장성/의료/교육/월세 등 특별 세액공제 적용</div>
+              
+              <table class="summary-table">
+                <tr>
+                  <td class="lbl">실제 건강·고용보험 공제</td>
+                  <td class="val" id="scen-ins-ded-b">2,980,000 원</td>
+                </tr>
+                <tr>
+                  <td class="lbl">보장성 보험료 세액공제</td>
+                  <td class="val" id="scen-ins-credit-b">120,000 원</td>
+                </tr>
+                <tr>
+                  <td class="lbl">의료비/교육비/기부금 세액공제</td>
+                  <td class="val" id="scen-other-credit-b">0 원</td>
+                </tr>
+              </table>
+
+              <div class="refund-val">
+                <span style="font-size:12px; color:#94A3B8; font-weight:700; display:block;">정산 결과 (환급/추가)</span>
+                <span id="scen-result-b">0 원</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 탭 4: 정밀 진단 리포트 (인쇄 가능) -->
+      <div id="tab-content-report" class="tab-content">
+        <div class="report-paper">
+          <div class="report-logo">한백택스</div>
+          <div class="report-header">
+            <div class="title">세무 진단 리포트</div>
+            <div class="subtitle">earned income tax audit & settlement report</div>
+            <div style="font-size:12px; color:#64748B; margin-top:12px;">귀하의 입력 데이터를 기반으로 산출된 한백택스 전문가 공인 정밀 연말정산 리포트입니다.</div>
+          </div>
+
+          <div class="report-info-grid">
+            <div class="report-info-col">
+              <div class="report-info-item">
+                <span class="lbl">소득자 성명:</span>
+                <span class="val">홍길동 (귀하)</span>
+              </div>
+              <div class="report-info-item">
+                <span class="lbl">귀속 연도:</span>
+                <span class="val" id="rep-year">2026년</span>
+              </div>
+              <div class="report-info-item">
+                <span class="lbl">연간 총급여액:</span>
+                <span class="val" id="rep-salary">60,000,000 원</span>
+              </div>
+            </div>
+            <div class="report-info-col">
+              <div class="report-info-item">
+                <span class="lbl">적용 세무대리:</span>
+                <span class="val">세무법인 한백택스</span>
+              </div>
+              <div class="report-info-item">
+                <span class="lbl">리포트 발행일:</span>
+                <span class="val" id="rep-date">2026. 05. 21.</span>
+              </div>
+              <div class="report-info-item">
+                <span class="lbl">선택 공제 유형:</span>
+                <span class="val" id="rep-choice">Scenario B (실제공제 유리)</span>
+              </div>
+            </div>
+          </div>
+
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th style="width:40%; text-align:left;">정산 항목</th>
+                <th style="text-align:right;">세무 금액 (원)</th>
+                <th style="text-align:left;">상세 명세 및 비고</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>01. 총급여액</td>
+                <td id="rep-row-salary">60,000,000</td>
+                <td style="text-align:left;" id="rep-row-salary-desc">연봉 총액 및 비과세 반영</td>
+              </tr>
+              <tr>
+                <td>02. (-) 근로소득공제</td>
+                <td id="rep-row-earned-ded">12,750,000</td>
+                <td style="text-align:left;">소득세법 제47조 기본식 적용</td>
+              </tr>
+              <tr>
+                <td>03. 근로소득금액</td>
+                <td id="rep-row-earned-income" style="font-weight:700;">47,250,000</td>
+                <td style="text-align:left;">총급여 - 근로소득공제</td>
+              </tr>
+              <tr>
+                <td>04. (-) 소득공제 합계</td>
+                <td id="rep-row-ded-total">9,000,000</td>
+                <td style="text-align:left;" id="rep-row-ded-desc">인적공제 + 4대보험 + 기타</td>
+              </tr>
+              <tr style="font-weight:700;">
+                <td>05. ★ 과세표준</td>
+                <td id="rep-row-tax-base" style="font-size:14px; font-weight:800; color:#000;">27,000,000</td>
+                <td style="text-align:left;">소득세 과세 대상 표준금액</td>
+              </tr>
+              <tr>
+                <td>06. 산출세액</td>
+                <td id="rep-row-calc-tax">2,790,000</td>
+                <td style="text-align:left;" id="rep-row-rate-desc">기본세율 (15% 구간)</td>
+              </tr>
+              <tr>
+                <td>07. (-) 세액공제 합계</td>
+                <td id="rep-row-credit-total">1,865,563</td>
+                <td style="text-align:left;" id="rep-row-credit-desc">근로세액공제 + 자녀 + 특별세액</td>
+              </tr>
+              <tr class="total-row">
+                <td>08. ★★ 결정세액 (소득세)</td>
+                <td id="rep-row-final-tax">924,437</td>
+                <td style="text-align:left;">종합소득 결정소득세액</td>
+              </tr>
+              <tr>
+                <td>09. 기납부세액 (원천징수 소득세)</td>
+                <td id="rep-row-prepaid">1,954,200</td>
+                <td style="text-align:left;">원천징수 의무자 납부실적</td>
+              </tr>
+              <tr class="result-row">
+                <td style="font-size:15px;" id="rep-row-result-lbl">환급받을 총세액 (지방소득세 포함)</td>
+                <td id="rep-row-result-val">1,132,739</td>
+                <td style="text-align:left; font-size:12px;" id="rep-row-result-desc">소득세 1,029,763원 + 지방세 102,976원 환급 예정</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="report-footer">
+            <div class="report-seal-wrapper">
+              <div class="report-seal-text">세무법인 한백택스 대표세무사 차재영</div>
+              <div class="report-seal-red">차재영<br>인</div>
+            </div>
+            <div class="report-disclaimer">
+              본 시뮬레이션 진단 리포트는 사용자가 입력한 공제 내역을 기준으로 관계 세법에 따라 산출된 정보성 참고 자료입니다. 실제 국세청 신고 결과 및 연말정산 원천징수영수증과는 개별 제출 자료의 진위 여부 및 개별 상황(중소기업 감면 등)에 따라 다소 오차가 발생할 수 있습니다.
+            </div>
+          </div>
+        </div>
+
+        <div class="report-actions">
+          <button class="btn-primary" onclick="window.print()">
+            <span class="material-icons-round">print</span>
+            <span>리포트 인쇄 / PDF 저장</span>
+          </button>
+          <button class="btn-secondary" onclick="switchTab('yearend')">
+            <span class="material-icons-round">edit</span>
+            <span>데이터 수정하기</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 우측 실시간 진단 대시보드 (PC 스티키 구동) -->
+    <div class="dashboard-panel" id="dashboard-sticky-panel">
+      
+      <!-- 실시간 정산 환급액 카드 -->
+      <div class="result-display-card refund" id="main-result-card">
+        <div class="result-lbl" id="main-result-lbl">
+          <span class="material-icons-round" style="color:inherit">monetization_on</span>
+          <span>실시간 예상 환급액</span>
+        </div>
+        <div class="result-value" id="main-result-val">1,132,739 원</div>
+        <div class="result-desc" id="main-result-desc">소득세 1,029,763원 + 지방소득세 102,976원 환급 예정</div>
+      </div>
+
+      <!-- 실시간 세액 비주얼 도넛 차트 -->
+      <div class="card" id="pc-chart-card">
+        <div class="card-header">
+          <h3>
+            <span class="material-icons-round">donut_large</span>
+            <span>실시간 소득 소모 비중</span>
+          </h3>
+        </div>
+        <div class="card-body">
+          <div class="chart-container">
+            <div class="svg-donut-wrapper">
+              <svg width="140" height="140" viewBox="0 0 140 140">
+                <circle cx="70" cy="70" r="54" fill="transparent" stroke="rgba(255,255,255,0.03)" stroke-width="16" />
+                <circle id="chart-slice-net" cx="70" cy="70" r="54" fill="transparent" stroke="var(--emerald-500)" stroke-width="16" stroke-dasharray="339.29" stroke-dashoffset="0" stroke-linecap="round" />
+                <circle id="chart-slice-ins" cx="70" cy="70" r="54" fill="transparent" stroke="var(--blue-500)" stroke-width="16" stroke-dasharray="339.29" stroke-dashoffset="339.29" stroke-linecap="round" />
+                <circle id="chart-slice-tax" cx="70" cy="70" r="54" fill="transparent" stroke="var(--gold-500)" stroke-width="16" stroke-dasharray="339.29" stroke-dashoffset="339.29" stroke-linecap="round" />
+              </svg>
+              <div class="svg-donut-center">
+                <div class="lbl">실수령비율</div>
+                <div class="val" id="chart-center-pct">82.4%</div>
+              </div>
+            </div>
+            <div class="chart-legends">
+              <div class="legend-item">
+                <div class="legend-lbl">
+                  <div class="legend-color" style="background:var(--emerald-500)"></div>
+                  <span>실수령액</span>
+                </div>
+                <div class="legend-val" id="chart-legend-net">82.4%</div>
+              </div>
+              <div class="legend-item">
+                <div class="legend-lbl">
+                  <div class="legend-color" style="background:var(--blue-500)"></div>
+                  <span>4대보험</span>
+                </div>
+                <div class="legend-val" id="chart-legend-ins">9.7%</div>
+              </div>
+              <div class="legend-item">
+                <div class="legend-lbl">
+                  <div class="legend-color" style="background:var(--gold-500)"></div>
+                  <span>결정소득세</span>
+                </div>
+                <div class="legend-val" id="chart-legend-tax">7.9%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 과세표준 구간 트래커 -->
+      <div class="bracket-tracker" id="pc-bracket-card">
+        <div class="bracket-lbl">
+          <span>과세표준 세율구간: <b id="pc-bracket-rate">15% 구간</b></span>
+          <span id="pc-bracket-text">다음 구간까지 2,300만 원 남음</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-bar" id="pc-bracket-bar" style="width: 48%;"></div>
+        </div>
+        <div class="bracket-limits">
+          <span>1,400만</span>
+          <span>5,000만</span>
+          <span>8,800만</span>
+        </div>
+      </div>
+
+      <!-- 정산 요약 리포트 내역 -->
+      <div class="card" id="pc-summary-card">
+        <div class="card-header">
+          <h3>
+            <span class="material-icons-round">list_alt</span>
+            <span>중간 정산 요약 내역</span>
+          </h3>
+        </div>
+        <div class="card-body">
+          <table class="summary-table">
+            <tr>
+              <td class="lbl">근로소득금액</td>
+              <td class="val" id="side-earned-income">47,250,000 원</td>
+            </tr>
+            <tr>
+              <td class="lbl">소득공제 총합계</td>
+              <td class="val" id="side-ded-total">9,000,000 원</td>
+            </tr>
+            <tr>
+              <td class="lbl">세율 기준 과세표준</td>
+              <td class="val" id="side-tax-base" style="color:#FFFFFF;">27,000,000 원</td>
+            </tr>
+            <tr>
+              <td class="lbl">산출세액</td>
+              <td class="val" id="side-calc-tax">2,790,000 원</td>
+            </tr>
+            <tr>
+              <td class="lbl">세액공제/감면 합계</td>
+              <td class="val" id="side-credit-total">1,865,563 원</td>
+            </tr>
+            <tr class="highlight-row">
+              <td class="lbl">결정세액 (지방세 포함)</td>
+              <td class="val" id="side-final-tax">1,016,880 원</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    /* ==========================================================================
+       1. 세법 데이터베이스 & 상수 정의 (2025 ~ 2026 귀속)
+       ========================================================================== */
+    const TAX_BRACKETS = [
+      { limit: 14000000, rate: 0.06, cumul: 0 },
+      { limit: 50000000, rate: 0.15, cumul: 840000 },
+      { limit: 88000000, rate: 0.24, cumul: 6240000 },
+      { limit: 150000000, rate: 0.35, cumul: 15360000 },
+      { limit: 300000000, rate: 0.38, cumul: 37060000 },
+      { limit: 500000000, rate: 0.40, cumul: 94060000 },
+      { limit: 1000000000, rate: 0.42, cumul: 174060000 },
+      { limit: Infinity, rate: 0.45, cumul: 384060000 }
+    ];
+
+    const INS_RATES = {
+      "2026": { np: 0.0475, hi: 0.03595, ltc: 0.1314, ei: 0.009, np_limit_max: 6590000 * 12, np_limit_min: 410000 * 12 },
+      "2025": { np: 0.0450, hi: 0.03545, ltc: 0.1295, ei: 0.009, np_limit_max: 6370000 * 12, np_limit_min: 400000 * 12 }
+    };
+
+    /* ==========================================================================
+       2. 금액 포맷팅 및 이벤트 리스너 처리
+       ========================================================================== */
+    // 숫자 포맷팅: 천단위 콤마
+    function fmtComma(val) {
+      if (val === undefined || val === null || isNaN(val)) return '0';
+      const isNeg = val < 0;
+      const absVal = Math.abs(Math.round(val));
+      const str = absVal.toLocaleString('ko-KR');
+      return isNeg ? '-' + str : str;
+    }
+
+    // 콤마 제거
+    function stripComma(str) {
+      return String(str).replace(/,/g, '');
+    }
+
+    // 엘리먼트 값 취득 유틸
+    function getVal(id) {
+      const el = document.getElementById(id);
+      if (!el) return 0;
+      return parseFloat(stripComma(el.value)) || 0;
+    }
+
+    // 엘리먼트 텍스트 세팅 유틸 (실시간 변경 피드백 애니메이션 탑재)
+    function setTxt(id, val, isCurrency = true) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      
+      const newText = isCurrency ? fmtComma(val) : val;
+      const hasChanged = el.textContent !== newText;
+      el.textContent = newText;
+      
+      // 값이 변했을 경우 실시간 마이크로 점멸 애니메이션 추가
+      if (hasChanged && _calcInitialized) {
+        el.classList.remove('active-txt');
+        void el.offsetWidth; // 리플로우 트리거
+        el.classList.add('active-txt');
+      }
+    }
+
+    // 카드 접기/열기 토글
+    function toggleCardBody(bodyId) {
+      const body = document.getElementById(bodyId);
+      if (!body) return;
+      const header = body.previousElementSibling;
+      const toggleIcon = header.querySelector('.card-toggle-icon');
+      
+      if (body.style.display === "none") {
+        body.style.display = "flex";
+        toggleIcon.textContent = "expand_less";
+      } else {
+        body.style.display = "none";
+        toggleIcon.textContent = "expand_more";
+      }
+    }
+
+    // 툴팁 활성화/비활성화 플로팅 제어
+    function showTooltip(id) {
+      const tt = document.getElementById(id);
+      if (!tt) return;
+      if (tt.style.display === "block") {
+        tt.style.display = "none";
+      } else {
+        // 모든 툴팁 일시 숨김
+        document.querySelectorAll('.floating-tooltip').forEach(el => el.style.display = 'none');
+        tt.style.display = "block";
+      }
+      // 문서 클릭 시 툴팁 닫힘
+      setTimeout(() => {
+        document.addEventListener('click', function closeTT(e) {
+          if (!e.target.classList.contains('info-tooltip-trigger')) {
+            tt.style.display = "none";
+            document.removeEventListener('click', closeTT);
+          }
+        });
+      }, 50);
+    }
+
+    /* ==========================================================================
+       3. 4대보험 및 세법 상세 계산 공식 구현
+       ========================================================================== */
+    // 근로소득공제 공식
+    function calcEarnedIncomeDeduction(salary) {
+      if (salary <= 5000000) return salary * 0.7;
+      if (salary <= 15000000) return 3500000 + (salary - 5000000) * 0.4;
+      if (salary <= 45000000) return 7500000 + (salary - 15000000) * 0.15;
+      if (salary <= 100000000) return 12000000 + (salary - 45000000) * 0.05;
+      return Math.min(14750000 + (salary - 100000000) * 0.02, 20000000); // 2천만 한도
+    }
+
+    // 종합소득세 기본 산출세액 공식
+    function calcIncomeTax(base) {
+      if (base <= 0) return 0;
+      for (let i = 0; i < TAX_BRACKETS.length; i++) {
+        const prevLimit = i === 0 ? 0 : TAX_BRACKETS[i - 1].limit;
+        if (base <= TAX_BRACKETS[i].limit) {
+          return TAX_BRACKETS[i].cumul + (base - prevLimit) * TAX_BRACKETS[i].rate;
+        }
+      }
+      return 0;
+    }
+
+    // 근로소득 세액공제 공식 (법정 공제 및 한도 차감식 정밀 적용)
+    function calcEarnedIncomeTaxCredit(calcTax, salary) {
+      let creditVal = 0;
+      if (calcTax <= 1300000) {
+        creditVal = calcTax * 0.55;
+      } else {
+        creditVal = 715000 + (calcTax - 1300000) * 0.3;
+      }
+
+      // 한도액 계산 (총급여에 따른 슬라이딩 한도액 축소 공식)
+      let limit = 740000;
+      if (salary <= 33000000) {
+        limit = 740000;
+      } else if (salary <= 70000000) {
+        limit = Math.max(660000, 740000 - (salary - 33000000) * 0.008);
+      } else if (salary <= 120000000) {
+        limit = Math.max(500000, 660000 - (salary - 70000000) * 0.5); // 정상 세법 공식 (* 0.5)
+      } else {
+        limit = Math.max(200000, 500000 - (salary - 120000000) * 0.5);
+      }
+      
+      return Math.min(creditVal, limit);
+    }
+
+    // 자녀 세액공제 공식
+    function calcChildTaxCredit(childCount, year) {
+      if (childCount <= 0) return 0;
+      if (year >= 2025) {
+        if (childCount === 1) return 250000;
+        if (childCount === 2) return 550000;
+        return 550000 + (childCount - 2) * 400000;
+      } else { // 2024년 이전
+        if (childCount === 1) return 150000;
+        if (childCount === 2) return 350000;
+        return 350000 + (childCount - 2) * 300000;
+      }
+    }
+
+    // 신용카드 소득공제 공식
+    function calcCreditCardDeduction(salary, credit, debit, market) {
+      const threshold = salary * 0.25; // 25% 문턱값
+      const totalSpend = credit + debit + market;
+      if (totalSpend <= threshold) return 0;
+
+      // 25% 초과 지출액 구하고 각 매체 비율별로 차감 적용
+      // 공제율: 신용카드 15%, 체크/현금영수증 30%, 전통시장/대중교통 40%
+      let excess = totalSpend - threshold;
+      let dedAmount = 0;
+
+      // 전통시장/대중교통 차감
+      let marketPortion = Math.min(market, excess);
+      dedAmount += marketPortion * 0.40;
+      excess -= marketPortion;
+
+      // 체크/현금 차감
+      if (excess > 0) {
+        let debitPortion = Math.min(debit, excess);
+        dedAmount += debitPortion * 0.30;
+        excess -= debitPortion;
+      }
+
+      // 신용카드 차감
+      if (excess > 0) {
+        let creditPortion = Math.min(credit, excess);
+        dedAmount += creditPortion * 0.15;
+      }
+
+      // 소득구간에 따른 공제한도액 적용
+      let limit = 3000000;
+      if (salary <= 70000000) {
+        limit = 3000000;
+      } else if (salary <= 120000000) {
+        limit = 2500000;
+      } else {
+        limit = 2000000;
+      }
+
+      return Math.min(dedAmount, limit);
+    }
+
+    /* ==========================================================================
+       4. 핵심 계산 시뮬레이션 엔진 (Core Engine)
+       ========================================================================== */
+    let _calcInitialized = false;
+
+    // 자동 4대보험 입력 핸들링
+    function toggleAutoIns() {
+      const isAuto = document.getElementById('auto_ins_toggle').checked;
+      const fields = ['ye_np', 'ye_hi', 'ye_ei'];
+      
+      fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.disabled = isAuto;
+          if (isAuto) {
+            el.classList.remove('manual-input');
+            document.getElementById(id + '-auto-badge').style.display = 'inline-block';
+          } else {
+            el.classList.add('manual-input');
+            document.getElementById(id + '-auto-badge').style.display = 'none';
+          }
+        }
+      });
+      runCalculationEngine();
+    }
+
+    // 메인 계산 루틴
+    // ===== 근로소득 비과세 항목 (소득세법 §12 / 근로소득 원천징수영수증 비과세코드 전체) =====
+    //   rep:true = 지급명세서 기재(○), false = 비기재(×). cap = 법정 한도(원), per:'m'=월한도·'y'=연한도·null=한도없음.
+    //   ※ 이 계산기는 '연간' 입력이므로 월한도 항목은 연환산(월 한도×12)으로 적용.
+    const NT_ITEMS = [
+      // ── 지급명세서 기재 대상 (○) ──
+      {code:'G01',rep:true ,per:null,cap:null   ,name:'비과세 학자금(업무관련 교육·훈련)',law:'§12 3아·령§11'},
+      {code:'H01',rep:true ,per:null,cap:null   ,name:'법령·조례 위원 등이 받는 수당',law:'령§12 1'},
+      {code:'H05',rep:true ,per:null,cap:null   ,name:'경호수당·승선수당·항공수당 등',law:'령§12 9~11'},
+      {code:'H06',rep:true ,per:'m' ,cap:200000 ,name:'연구보조비(유아·초·중등 교원)',law:'령§12 12가 · 월 20만'},
+      {code:'H07',rep:true ,per:'m' ,cap:200000 ,name:'연구보조비(고등교육법 교원)',law:'령§12 12가 · 월 20만'},
+      {code:'H08',rep:true ,per:'m' ,cap:200000 ,name:'연구보조비(특별법 교육기관)',law:'령§12 12가 · 월 20만'},
+      {code:'H09',rep:true ,per:'m' ,cap:200000 ,name:'연구보조비(§12 12나)',law:'령§12 12나 · 월 20만'},
+      {code:'H10',rep:true ,per:'m' ,cap:200000 ,name:'연구보조비(중소·벤처기업부설연구소 등)',law:'령§12 12다 · 월 20만'},
+      {code:'H14',rep:true ,per:null,cap:null   ,name:'보육교사 근무환경개선비',law:'령§12 13가'},
+      {code:'H15',rep:true ,per:null,cap:null   ,name:'사립유치원 수석교사·교사 인건비',law:'령§12 13나'},
+      {code:'H11',rep:true ,per:'m' ,cap:200000 ,name:'취재수당(기자)',law:'령§12 14 · 월 20만'},
+      {code:'H12',rep:true ,per:'m' ,cap:200000 ,name:'벽지수당',law:'령§12 15 · 월 20만'},
+      {code:'H13',rep:true ,per:null,cap:null   ,name:'천재·지변 등 재해로 받는 급여',law:'령§12 16'},
+      {code:'H16',rep:true ,per:'m' ,cap:200000 ,name:'지방이전기관 종사자 이주수당',law:'령§12 17 · 월 20만'},
+      {code:'H17',rep:true ,per:null,cap:null   ,name:'종교인 종교활동비',law:'령§12 18'},
+      {code:'I01',rep:true ,per:null,cap:null   ,name:'외국정부·국제기관 근무자 비과세',law:'§12 3차'},
+      {code:'K01',rep:true ,per:null,cap:null   ,name:'작전임무 외국주둔 군인 등 급여',law:'§12 3파'},
+      {code:'M01',rep:true ,per:'m' ,cap:1000000,name:'국외근로소득(일반)',law:'§12 3거·령§16①1 · 월 100만'},
+      {code:'M04',rep:true ,per:'m' ,cap:5000000,name:'국외근로(외항선·원양어선·해외건설)',law:'령§16①1 · 월 500만(지급명세서 코드 M04)'},
+      {code:'M03',rep:true ,per:null,cap:null   ,name:'국외근로(공무원 등 §16①2)',law:'령§16①2'},
+      {code:'O01',rep:true ,per:'y' ,cap:2400000,name:'생산직 등 연장·야간·휴일근로수당',law:'§12 3더·령§17 · 연 240만(월정액급여 260만↓·직전총급여 3,700만↓, 개정 반영)'},
+      {code:'Q03',rep:true ,per:null,cap:null   ,name:'출산지원금(1회차) — 출생 2년내',law:'§12 3머1) · 전액 비과세, 최대 2회(2024 신설)'},
+      {code:'Q04',rep:true ,per:null,cap:null   ,name:'출산지원금(2회차) — 출생 2년내',law:'§12 3머1) · 전액 비과세, 2회차'},
+      {code:'Q02',rep:true ,per:'m' ,cap:200000 ,name:'6세 이하 자녀 보육수당',law:'§12 3머2) · 자녀1명당 월 20만(2024~)'},
+      {code:'R10',rep:true ,per:null,cap:null   ,name:'교육기본법 §28 장학금',law:'§12 3서'},
+      {code:'R11',rep:true ,per:'y' ,cap:7000000,name:'직무발명보상금',law:'§12 3어·령§17의3 · 연 700만(2024~)'},
+      {code:'W01',rep:true ,per:null,cap:null   ,name:'임원 등 할인금액(자사·계열사 재화·용역)',law:'§12 3처 · MAX(시가20%·연240만) 한도(2025 신설)'},
+      {code:'Y22',rep:true ,per:null,cap:null   ,name:'전공의 수련보조수당',law:'령§12 13다'},
+      {code:'NTR',rep:true ,per:null,cap:null   ,name:'기타 비과세(기재 대상) 직접입력',law:'해당 코드 · 지급명세서 기재'},
+      // ── 지급명세서 비기재 대상 (×) ──
+      {code:'A01',rep:false,per:null,cap:null   ,name:'복무 중인 병(兵)이 받는 급여',law:'§12 3가'},
+      {code:'B01',rep:false,per:null,cap:null   ,name:'법률에 따라 동원 직장에서 받는 급여',law:'§12 3나'},
+      {code:'C01',rep:false,per:null,cap:null   ,name:'산재보험법 요양급여 등',law:'§12 3다'},
+      {code:'D01',rep:false,per:null,cap:null   ,name:'근로기준법 등 요양보상금 등',law:'§12 3라'},
+      {code:'E01',rep:false,per:null,cap:null   ,name:'육아휴직급여·출산전후휴가급여(고용보험)',law:'§12 3마'},
+      {code:'E02',rep:false,per:null,cap:null   ,name:'육아휴직수당 등(국가공무원법 등)',law:'§12 3마'},
+      {code:'E10',rep:false,per:null,cap:null   ,name:'국민연금 반환일시금(사망)·사망일시금',law:'§12 3바'},
+      {code:'F01',rep:false,per:null,cap:null   ,name:'공무원연금법 등 요양비 등',law:'§12 3사'},
+      {code:'H02',rep:false,per:null,cap:null   ,name:'일직료·숙직료·여비 등 실비변상',law:'령§12 2~3'},
+      {code:'H03',rep:false,per:'m' ,cap:200000 ,name:'자가운전보조금(본인차량 업무사용)',law:'령§12 3 · 월 20만'},
+      {code:'H04',rep:false,per:null,cap:null   ,name:'제복·제모·작업복(법령에 따른 착용)',law:'령§12 4·8'},
+      {code:'J01',rep:false,per:null,cap:null   ,name:'국가유공자 보훈급여금·학습보조비',law:'§12 3카'},
+      {code:'J10',rep:false,per:null,cap:null   ,name:'전직대통령 예우법에 따른 연금',law:'§12 3타'},
+      {code:'L01',rep:false,per:null,cap:null   ,name:'종군 군인 전사 시 해당 과세기간 급여',law:'§12 3하'},
+      {code:'N01',rep:false,per:null,cap:null   ,name:'사용자 부담 4대보험료(건강·고용·국민연금 등)',law:'§12 3너'},
+      {code:'P01',rep:true ,per:'m' ,cap:200000 ,name:'식대(현금 식사대)',law:'§12 3러·령§17의2 · 월 20만 · 지급명세서 기재 ⑱-40(2023.2.28 개정 작성대상)'},
+      {code:'P02',rep:false,per:null,cap:null   ,name:'현물 급식(사내급식 등)',law:'§12 3러'},
+      {code:'R01',rep:false,per:null,cap:null   ,name:'국군포로가 지급받는 보수 등',law:'§12 3버'},
+      {code:'NTN',rep:false,per:null,cap:null   ,name:'기타 비과세(비기재 대상) 직접입력',law:'전액 비과세 · 지급명세서 작성 제외'}
+    ];
+    // 연환산 한도(이 계산기는 연간 입력): 월한도×12, 연한도 그대로, null=무제한
+    function ntAnnualCap(it){ if(it.cap==null) return null; return it.per==='m' ? it.cap*12 : it.cap; }
+    function ntCapText(it){
+      const ac = ntAnnualCap(it);
+      if(ac==null) return '한도 없음(실비·전액)';
+      return it.per==='m' ? ('연 한도 '+fmtComma(ac)+' (월 '+fmtComma(it.cap)+')') : ('연 한도 '+fmtComma(ac));
+    }
+    // 비과세 항목 입력 리스트 렌더링
+    function renderNonTaxList(){
+      const box = document.getElementById('nontax-list');
+      if(!box) return;
+      const row = it => `
+        <div class="ntc-item">
+          <div class="code">${it.code}</div>
+          <div class="nm">${it.name}<small>${it.law}</small></div>
+          <div>
+            <div class="ntc-input-wrap"><input type="text" id="nt_${it.code}" placeholder="0" oninput="runCalculationEngine()"><span class="u">원</span></div>
+            <div class="ntc-cap" id="ntcap_${it.code}">${ntCapText(it)}</div>
+          </div>
+        </div>`;
+      const sec = (title,tag,cls,list) => `<div class="ntc-sec"><span class="ntc-tag ${cls}">${tag}</span>${title}</div>` + list.map(row).join('');
+      box.innerHTML =
+        sec('지급명세서 기재 대상 — 원천징수영수증에 코드별 기재','지급명세서 기재 ○','rep',NT_ITEMS.filter(i=>i.rep)) +
+        sec('지급명세서 비기재 대상 — 작성 제외(전액 비과세·실비변상)','지급명세서 비기재 ×','non',NT_ITEMS.filter(i=>!i.rep));
+    }
+    // 비과세 합계 산출(연간) + 항목별 한도초과 표시
+    function computeNonTaxable(){
+      let rep=0, non=0;
+      NT_ITEMS.forEach(it=>{
+        const el = document.getElementById('nt_'+it.code);
+        if(!el) return;
+        const raw = parseFloat(stripComma(el.value)) || 0;
+        const ac = ntAnnualCap(it);
+        const amt = (ac==null) ? Math.max(raw,0) : Math.min(Math.max(raw,0), ac);
+        const capEl = document.getElementById('ntcap_'+it.code);
+        if(capEl){
+          const over = ac!=null && raw>ac;
+          capEl.className = 'ntc-cap' + (over?' over':'');
+          capEl.innerHTML = ntCapText(it) + (over ? ('<br>→ 적용 '+fmtComma(amt)) : '');
+        }
+        if(it.rep) rep+=amt; else non+=amt;
+      });
+      return {rep, non, all:rep+non};
+    }
+    function updateNonTaxSummary(gross, nt, taxable, deduct){
+      const put=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=fmtComma(v)+' 원';};
+      put('ntc-sum-gross', deduct?gross:gross+nt.all); // 세전 총지급액(차감모드 OFF면 입력 총급여+비과세)
+      put('ntc-sum-rep', nt.rep);
+      put('ntc-sum-non', nt.non);
+      put('ntc-sum-all', nt.all);
+      put('ntc-sum-taxable', taxable);
+    }
+
+    function runCalculationEngine() {
+      const year = document.getElementById('calc_year').value;
+      const grossInput = getVal('ye_salary');
+      // 비과세 항목 합계 산출 및 과세대상 총급여 도출
+      const nt = computeNonTaxable();
+      const deductNT = document.getElementById('ye_nontax_deduct') && document.getElementById('ye_nontax_deduct').checked;
+      const salary = deductNT ? Math.max(grossInput - nt.all, 0) : grossInput;
+      updateNonTaxSummary(grossInput, nt, salary, deductNT);
+
+      // 1. 4대보험 요율 자동계산 적용
+      const isAutoIns = document.getElementById('auto_ins_toggle').checked;
+      const rates = INS_RATES[year];
+      let np = 0, hi = 0, ei = 0;
+
+      if (isAutoIns) {
+        // 국민연금 상하한선 적용
+        const npSalaryBase = Math.min(Math.max(salary, rates.np_limit_min), rates.np_limit_max);
+        np = Math.floor((npSalaryBase * rates.np) / 10) * 10;
+        
+        // 건강보험 (장기요양 포함)
+        const hiBase = salary * rates.hi;
+        const ltcBase = hiBase * rates.ltc;
+        hi = Math.floor((hiBase + ltcBase) / 10) * 10;
+
+        // 고용보험
+        ei = Math.floor((salary * rates.ei) / 10) * 10;
+
+        // 필드 세팅
+        document.getElementById('ye_np').value = fmtComma(np);
+        document.getElementById('ye_hi').value = fmtComma(hi);
+        document.getElementById('ye_ei').value = fmtComma(ei);
+      } else {
+        np = getVal('ye_np');
+        hi = getVal('ye_hi');
+        ei = getVal('ye_ei');
+      }
+
+      // 추가상여 탭 수령액 입력
+      const bonus = getVal('bonus_amount');
+
+      // 두 시나리오 비교 실행
+      const resultsCurr = runTaxSimulationSingle(salary, np, hi, ei, false); // 현행 (Scenario B)
+      const resultsPost = runTaxSimulationSingle(salary + bonus, np, hi, ei, false); // 상여 반영 후 (Scenario B)
+
+      // Scenario A vs B 결과 산출
+      const resultsScenA = runTaxSimulationSingle(salary, np, hi, ei, true); // Scenario A (표준공제 13만원)
+      const resultsScenB = resultsCurr; // Scenario B (실제 보험료 특별공제)
+
+      // 화면 업데이트
+      updateUIRender(salary, bonus, resultsCurr, resultsPost, resultsScenA, resultsScenB);
+
+      _calcInitialized = true;
+    }
+
+    // 단일 소득 상황 세액 계산 내부 함수
+    function runTaxSimulationSingle(salary, np, hi, ei, useStandardCredit = false) {
+      // 1. 근로소득공제
+      const earnedDed = calcEarnedIncomeDeduction(salary);
+      const earnedIncome = Math.max(salary - earnedDed, 0);
+
+      // 2. 소득공제 산출
+      // 기본 본인 및 부양가족 인원수 추출
+      const personalCount = getVal('ye_personal_count');
+      const seniorCount = getVal('ye_senior_count');
+      const disabledCount = getVal('ye_disabled_count');
+      const singleParent = getVal('ye_single_parent');
+      
+      const personalDed = personalCount * 1500000;
+      const seniorDed = seniorCount * 1000000;
+      const disabledDed = disabledCount * 2000000;
+      const singleParentDed = singleParent === 1 ? 1000000 : 0;
+      
+      const totalPersonalDeduction = personalDed + seniorDed + disabledDed + singleParentDed;
+
+      // 주택자금 소득공제 취득
+      const housingSavings = getVal('ye_housing_savings');
+      const housingLoan = getVal('ye_housing_loan');
+      const housingMortgage = getVal('ye_housing_mortgage');
+      // 청약저축 40% + 임차차입 40% (두 항목 합산 한도 400만 원 적용)
+      const housingBaseDed = Math.min((housingSavings * 0.4) + (housingLoan * 0.4), 4000000);
+      const totalHousingDeduction = housingBaseDed + housingMortgage; // 모기지이자 가산
+
+      // 신용카드 소득공제 취득
+      const cardCredit = getVal('ye_card_credit');
+      const cardDebit = getVal('ye_card_debit');
+      const cardMarket = getVal('ye_card_market');
+      const totalCardDeduction = calcCreditCardDeduction(salary, cardCredit, cardDebit, cardMarket);
+
+      // 공제 합산 흐름
+      let totalIncomeDeductions = totalPersonalDeduction + np + totalCardDeduction;
+
+      // 시나리오 A vs B 분기처리
+      // 특별소득공제(건강/고용보험, 주택자금)는 Scenario B(실제공제) 시에만 허용
+      if (!useStandardCredit) {
+        totalIncomeDeductions += (hi + ei + totalHousingDeduction);
+      }
+
+      // 공제 적용 후 과세표준 도출
+      const taxBase = Math.max(earnedIncome - totalIncomeDeductions, 0);
+
+      // 3. 산출세액 도출
+      const calcTax = calcIncomeTax(taxBase);
+
+      // 4. 세액공제 계산
+      const earnedTaxCredit = calcEarnedIncomeTaxCredit(calcTax, salary);
+      
+      const childCount = getVal('ye_child_count');
+      const childCredit = calcChildTaxCredit(childCount, document.getElementById('calc_year').value);
+      
+      const birthOrder = parseInt(document.getElementById('ye_birth_order').value);
+      const birthCredit = birthOrder === 1 ? 300000 : birthOrder === 2 ? 500000 : birthOrder === 3 ? 700000 : 0;
+
+      // 연금계좌 세액공제
+      const pensionSavings = getVal('ye_pension_savings');
+      const pensionCreditRate = salary <= 55000000 ? 0.15 : 0.12;
+      const pensionTaxCredit = Math.min(pensionSavings, 9000000) * pensionCreditRate;
+
+      // 특별세액공제 취득 (Scenario B 시에만 허용)
+      let specialTaxCredit = 0;
+      let insuranceCredit = 0;
+      let medicalCredit = 0;
+      let educationCredit = 0;
+      let donationCredit = 0;
+      let rentCredit = 0;
+
+      if (!useStandardCredit) {
+        // 보장성보험료 공제 (한도 100만 원의 12%)
+        const insPremium = getVal('ye_ins_credit');
+        insuranceCredit = Math.min(insPremium, 1000000) * 0.12;
+
+        // 월세액 세액공제
+        const rentPayment = getVal('ye_rent_payment');
+        const rentRate = salary <= 55000000 ? 0.17 : 0.15;
+        rentCredit = Math.min(rentPayment, 10000000) * rentRate;
+
+        // 의료비 세액공제 (총급여 3% 초과분의 15%, 소득세법 §59의4②)
+        const medExpense = getVal('ye_med_credit');
+        const medThreshold = salary * 0.03;
+        medicalCredit = Math.max(medExpense - medThreshold, 0) * 0.15;
+
+        // 교육비 세액공제 (15%, 소득세법 §59의4③)
+        const eduExpense = getVal('ye_edu_credit');
+        educationCredit = eduExpense * 0.15;
+
+        // 기부금 세액공제 (1천만 이하 15%, 초과분 30%, 소득세법 §59의4④)
+        const donateAmount = getVal('ye_donate_credit');
+        donationCredit = Math.min(donateAmount, 10000000) * 0.15 + Math.max(donateAmount - 10000000, 0) * 0.30;
+
+        // 기타 특별공제계
+        specialTaxCredit = insuranceCredit + rentCredit + medicalCredit + educationCredit + donationCredit;
+      }
+
+      // 최종 세액공제 총합산 및 결정세액 도출
+      let totalTaxCredits = earnedTaxCredit + childCredit + birthCredit + pensionTaxCredit + specialTaxCredit;
+
+      // 표준세액공제(13만 원) 적용 시
+      if (useStandardCredit) {
+        totalTaxCredits += 130000;
+      }
+
+      const finalTax = Math.max(Math.round(calcTax) - totalTaxCredits, 0);
+      const finalLocalTax = Math.round(finalTax * 0.1);
+
+      return {
+        earnedDed,
+        earnedIncome,
+        personalDed: totalPersonalDeduction,
+        insDeductions: np + (useStandardCredit ? 0 : (hi + ei)),
+        housingDed: useStandardCredit ? 0 : totalHousingDeduction,
+        cardDed: totalCardDeduction,
+        dedTotal: totalIncomeDeductions,
+        taxBase,
+        calcTax,
+        earnedCredit: earnedTaxCredit,
+        childCredit,
+        birthCredit,
+        pensionCredit: pensionTaxCredit,
+        insuranceCredit,
+        rentCredit,
+        creditTotal: totalTaxCredits,
+        finalTax,
+        finalLocalTax,
+        totalFinalTax: finalTax + finalLocalTax
+      };
+    }
+
+    /* ==========================================================================
+       5. UI 렌더링 업데이트 및 비주얼 라이징
+       ========================================================================== */
+    function updateUIRender(salary, bonus, curr, post, scenA, scenB) {
+      // 1. 우측 대시보드 및 결과 요약 업데이트
+      const prepaidTax = getVal('ye_prepaid');
+      const prepaidLocal = Math.round(prepaidTax * 0.1);
+      const prepaidTotal = prepaidTax + prepaidLocal;
+
+      // 결정된 시나리오 선택 (Scenario A vs B 비교 분석에 따름)
+      const isScenarioBAdvantg = scenB.totalFinalTax <= scenA.totalFinalTax;
+      const optimal = isScenarioBAdvantg ? scenB : scenA;
+
+      const diffFromPrepaid = optimal.totalFinalTax - prepaidTotal;
+      const resultCard = document.getElementById('main-result-card');
+
+      // 환급 / 추가납부 분기UI 렌더
+      if (diffFromPrepaid < 0) {
+        resultCard.className = "result-display-card refund";
+        document.getElementById('main-result-lbl').innerHTML = '<span class="material-icons-round">monetization_on</span> 실시간 예상 환급액';
+        setTxt('main-result-val', fmtComma(Math.abs(diffFromPrepaid)) + " 원", false);
+        setTxt('main-result-desc', `소득세 ${fmtComma(Math.abs(optimal.finalTax - prepaidTax))}원 + 지방소득세 ${fmtComma(Math.abs(optimal.finalLocalTax - prepaidLocal))}원 환급 예정`);
+      } else if (diffFromPrepaid > 0) {
+        resultCard.className = "result-display-card surcharge";
+        document.getElementById('main-result-lbl').innerHTML = '<span class="material-icons-round">warning</span> 실시간 추가 납부액';
+        setTxt('main-result-val', fmtComma(diffFromPrepaid) + " 원", false);
+        setTxt('main-result-desc', `소득세 ${fmtComma(optimal.finalTax - prepaidTax)}원 + 지방소득세 ${fmtComma(optimal.finalLocalTax - prepaidLocal)}원 추가납부 요망`);
+      } else {
+        resultCard.className = "result-display-card zero";
+        document.getElementById('main-result-lbl').innerHTML = '<span class="material-icons-round">check_circle</span> 실시간 차감액 0원';
+        setTxt('main-result-val', "0 원", false);
+        setTxt('main-result-desc', "납부 또는 환급 세액이 존재하지 않습니다.");
+      }
+
+      // 우측 요약 테이블 값 주입
+      setTxt('side-earned-income', optimal.earnedIncome);
+      setTxt('side-ded-total', optimal.dedTotal);
+      setTxt('side-tax-base', optimal.taxBase);
+      setTxt('side-calc-tax', optimal.calcTax);
+      setTxt('side-credit-total', optimal.creditTotal);
+      setTxt('side-final-tax', optimal.totalFinalTax);
+
+      // 2. SVG 도넛 차트 비중 렌더링
+      const insCost = getVal('ye_np') + getVal('ye_hi') + getVal('ye_ei');
+      const taxCost = optimal.totalFinalTax;
+      const takeHome = Math.max(salary - insCost - taxCost, 0);
+      const totalRatioBase = salary || 1;
+
+      const pctNet = (takeHome / totalRatioBase) * 100;
+      const pctIns = (insCost / totalRatioBase) * 100;
+      const pctTax = (taxCost / totalRatioBase) * 100;
+
+      document.getElementById('chart-center-pct').textContent = pctNet.toFixed(1) + "%";
+      document.getElementById('chart-legend-net').textContent = pctNet.toFixed(1) + "%";
+      document.getElementById('chart-legend-ins').textContent = pctIns.toFixed(1) + "%";
+      document.getElementById('chart-legend-tax').textContent = pctTax.toFixed(1) + "%";
+
+      // SVG 원형 대시보드 휠 속성 조정
+      const strokeLimit = 339.29; // 2 * PI * r (r=54)
+      const offsetNet = strokeLimit * (1 - pctNet / 100);
+      const offsetIns = strokeLimit * (1 - (pctNet + pctIns) / 100);
+      const offsetTax = strokeLimit * (1 - (pctNet + pctIns + pctTax) / 100);
+
+      document.getElementById('chart-slice-net').setAttribute('stroke-dashoffset', offsetNet);
+      document.getElementById('chart-slice-ins').setAttribute('stroke-dashoffset', offsetIns);
+      document.getElementById('chart-slice-tax').setAttribute('stroke-dashoffset', offsetTax);
+
+      // 3. 과세표준 누진구간 트래커 게이지 업데이트
+      let currentRate = "6%";
+      let remainingToNext = 0;
+      let nextLimit = 14000000;
+      let barWidth = 0;
+
+      if (optimal.taxBase <= 14000000) {
+        currentRate = "6%";
+        nextLimit = 14000000;
+        remainingToNext = 14000000 - optimal.taxBase;
+        barWidth = (optimal.taxBase / 14000000) * 100;
+      } else if (optimal.taxBase <= 50000000) {
+        currentRate = "15%";
+        nextLimit = 50000000;
+        remainingToNext = 50000000 - optimal.taxBase;
+        barWidth = ((optimal.taxBase - 14000000) / 36000000) * 100;
+      } else if (optimal.taxBase <= 88000000) {
+        currentRate = "24%";
+        nextLimit = 88000000;
+        remainingToNext = 88000000 - optimal.taxBase;
+        barWidth = ((optimal.taxBase - 50000000) / 38000000) * 100;
+      } else {
+        currentRate = "35% 이상";
+        nextLimit = 150000000;
+        remainingToNext = Math.max(150000000 - optimal.taxBase, 0);
+        barWidth = Math.min(((optimal.taxBase - 88000000) / 62000000) * 100, 100);
+      }
+
+      document.getElementById('pc-bracket-rate').textContent = currentRate + " 구간";
+      document.getElementById('pc-bracket-bar').style.width = barWidth + "%";
+      document.getElementById('pc-bracket-text').innerHTML = remainingToNext > 0 ? 
+        `다음 구간까지 <b>${fmtComma(remainingToNext)}원</b> 남음` : `최상위 세율 구간 도달`;
+
+      // 4. 탭 2: 추가상여 진단 세부내역 렌더
+      setTxt('comp-salary-curr', salary);
+      setTxt('comp-salary-post', salary + bonus);
+      setTxt('comp-salary-diff', bonus);
+
+      setTxt('comp-ded-curr', curr.dedTotal);
+      setTxt('comp-ded-post', post.dedTotal);
+      setTxt('comp-ded-diff', post.dedTotal - curr.dedTotal);
+
+      setTxt('comp-base-curr', curr.taxBase);
+      setTxt('comp-base-post', post.taxBase);
+      setTxt('comp-base-diff', post.taxBase - curr.taxBase);
+
+      setTxt('comp-calc-curr', curr.calcTax);
+      setTxt('comp-calc-post', post.calcTax);
+      setTxt('comp-calc-diff', post.calcTax - curr.calcTax);
+
+      setTxt('comp-tax-curr', curr.finalTax);
+      setTxt('comp-tax-post', post.finalTax);
+      setTxt('comp-tax-diff', post.finalTax - curr.finalTax);
+
+      setTxt('comp-local-curr', curr.finalLocalTax);
+      setTxt('comp-local-post', post.finalLocalTax);
+      setTxt('comp-local-diff', post.finalLocalTax - curr.finalLocalTax);
+
+      setTxt('comp-total-curr', curr.totalFinalTax);
+      setTxt('comp-total-post', post.totalFinalTax);
+      setTxt('comp-total-diff', post.totalFinalTax - curr.totalFinalTax);
+
+      // 한계세율 다이얼 및 상여 실수령 설명 렌더링
+      const additionalTax = post.totalFinalTax - curr.totalFinalTax;
+      const marginalRatePct = bonus > 0 ? (additionalTax / bonus) * 100 : 0;
+      document.getElementById('gauge-marginal-rate').textContent = marginalRatePct.toFixed(1) + "%";
+
+      const postTakeHomeRatio = 100 - marginalRatePct;
+      const postNetReceived = bonus - additionalTax;
+      document.getElementById('gauge-net-take-home').innerHTML = `추가 상여 <b>${fmtComma(bonus)}원</b> 중 소득세 및 지방소득세로 <b>${fmtComma(additionalTax)}원(${marginalRatePct.toFixed(1)}%)</b>이 공제되며, 귀하의 실질 실수령액은 <b>${fmtComma(postNetReceived)}원(${postTakeHomeRatio.toFixed(1)}%)</b>으로 산정됩니다.`;
+
+      // 5. 탭 3: Scenario A vs B 카드 데이터 렌더
+      setTxt('scen-ins-ded-b', curr.insDeductions);
+      setTxt('scen-ins-credit-b', curr.insuranceCredit);
+      setTxt('scen-other-credit-b', curr.creditTotal - curr.earnedCredit - curr.insuranceCredit);
+
+      const aDiff = scenA.totalFinalTax - prepaidTotal;
+      const bDiff = scenB.totalFinalTax - prepaidTotal;
+
+      document.getElementById('scen-result-a').textContent = aDiff < 0 ? fmtComma(Math.abs(aDiff)) + " 원 환급" : fmtComma(aDiff) + " 원 추가납부";
+      document.getElementById('scen-result-b').textContent = bDiff < 0 ? fmtComma(Math.abs(bDiff)) + " 원 환급" : fmtComma(bDiff) + " 원 추가납부";
+
+      // 시나리오 선택 활성화 카드 하이라이트
+      const cardA = document.getElementById('scen-card-a');
+      const cardB = document.getElementById('scen-card-b');
+      if (isScenarioBAdvantg) {
+        cardB.className = "scenario-card active-choice";
+        cardA.className = "scenario-card";
+      } else {
+        cardA.className = "scenario-card active-choice";
+        cardB.className = "scenario-card";
+      }
+
+      // AI 추천 설명 갱신
+      const saveAmount = Math.abs(scenA.totalFinalTax - scenB.totalFinalTax);
+      const bestName = isScenarioBAdvantg ? "Scenario B (실제 보험료공제 특화)" : "Scenario A (표준세액공제 13만원)";
+      const tipText = saveAmount > 0 ? 
+        `귀하의 금융 거래 및 공제 내역을 계산한 결과, <b>${bestName}</b>를 선택하시는 것이 <b>${fmtComma(saveAmount)}원</b>만큼 세금을 더 아끼실 수 있어 매우 강력하게 추천드립니다.` :
+        `두 시나리오의 예상 결과액이 동일합니다. 서류 제출이 번거로우실 경우 표준세액공제(Scenario A)를 편하게 선택하시는 것을 제안드립니다.`;
+      
+      document.getElementById('ai-recom-message').innerHTML = tipText;
+
+      // 6. 탭 4: 정밀 진단 리포트 테이블 매핑
+      document.getElementById('rep-year').textContent = document.getElementById('calc_year').value + "년 귀속";
+      document.getElementById('rep-salary').textContent = fmtComma(salary) + " 원";
+      document.getElementById('rep-choice').textContent = isScenarioBAdvantg ? "Scenario B (실제 보험료 특별공제 유형 유리)" : "Scenario A (표준세액공제 13만원 적용 유리)";
+      
+      document.getElementById('rep-row-salary').textContent = fmtComma(salary);
+      document.getElementById('rep-row-earned-ded').textContent = fmtComma(optimal.earnedDed);
+      document.getElementById('rep-row-earned-income').textContent = fmtComma(optimal.earnedIncome);
+      document.getElementById('rep-row-ded-total').textContent = fmtComma(optimal.dedTotal);
+      document.getElementById('rep-row-tax-base').textContent = fmtComma(optimal.taxBase);
+      document.getElementById('rep-row-calc-tax').textContent = fmtComma(optimal.calcTax);
+      document.getElementById('rep-row-credit-total').textContent = fmtComma(optimal.creditTotal);
+      document.getElementById('rep-row-final-tax').textContent = fmtComma(optimal.finalTax);
+      document.getElementById('rep-row-prepaid').textContent = fmtComma(prepaidTax);
+
+      // 리포트 최종 결과 바텀
+      const repDiff = optimal.totalFinalTax - prepaidTotal;
+      if (repDiff < 0) {
+        document.getElementById('rep-row-result-lbl').textContent = "차감징수 환급받을 세액 (지방소득세 포함)";
+        document.getElementById('rep-row-result-val').textContent = fmtComma(Math.abs(repDiff)) + " 원";
+        document.getElementById('rep-row-result-val').style.color = "var(--emerald-600)";
+        document.getElementById('rep-row-result-desc').innerHTML = `소득세 <b>${fmtComma(Math.abs(optimal.finalTax - prepaidTax))}원</b> 및 지방소득세 <b>${fmtComma(Math.abs(optimal.finalLocalTax - prepaidLocal))}원</b>이 안전하게 <b>환급</b>될 것으로 확인됩니다.`;
+      } else {
+        document.getElementById('rep-row-result-lbl').textContent = "차감징수 추가 납부할 세액 (지방소득세 포함)";
+        document.getElementById('rep-row-result-val').textContent = fmtComma(repDiff) + " 원";
+        document.getElementById('rep-row-result-val').style.color = "var(--rose-600)";
+        document.getElementById('rep-row-result-desc').innerHTML = `소득세 <b>${fmtComma(optimal.finalTax - prepaidTax)}원</b> 및 지방소득세 <b>${fmtComma(optimal.finalLocalTax - prepaidLocal)}원</b>의 <b>추가 납부</b> 의무가 도출되었습니다.`;
+      }
+
+      // 우측 점멸 효과
+      if (_calcInitialized) {
+        resultCard.classList.remove('flash-pulse');
+        void resultCard.offsetWidth; // 리플로우 트리거
+        resultCard.classList.add('flash-pulse');
+      }
+    }
+
+    // 직급별 프리셋 적용 기능
+    function applyPreset(salaryVal) {
+      document.getElementById('ye_salary').value = fmtComma(salaryVal);
+      
+      // 현실적인 통계 평균 공제 데이터 주입
+      if (salaryVal <= 35000000) {
+        document.getElementById('ye_personal_count').value = 1;
+        document.getElementById('ye_child_count').value = 0;
+        document.getElementById('ye_card_credit').value = fmtComma(8000000);
+        document.getElementById('ye_card_debit').value = fmtComma(4000000);
+        document.getElementById('ye_card_market').value = fmtComma(1000000);
+        document.getElementById('ye_ins_credit').value = fmtComma(300000);
+        document.getElementById('ye_pension_savings').value = fmtComma(1000000);
+        document.getElementById('ye_prepaid').value = fmtComma(600000);
+      } else if (salaryVal <= 60000000) {
+        document.getElementById('ye_personal_count').value = 1;
+        document.getElementById('ye_child_count').value = 0;
+        document.getElementById('ye_card_credit').value = fmtComma(15000000);
+        document.getElementById('ye_card_debit').value = fmtComma(10000000);
+        document.getElementById('ye_card_market').value = fmtComma(2000000);
+        document.getElementById('ye_ins_credit').value = fmtComma(1000000);
+        document.getElementById('ye_pension_savings').value = fmtComma(3000000);
+        document.getElementById('ye_prepaid').value = fmtComma(1954200);
+      } else if (salaryVal <= 90000000) {
+        document.getElementById('ye_personal_count').value = 2;
+        document.getElementById('ye_child_count').value = 1;
+        document.getElementById('ye_card_credit').value = fmtComma(24000000);
+        document.getElementById('ye_card_debit').value = fmtComma(15000000);
+        document.getElementById('ye_card_market').value = fmtComma(3000000);
+        document.getElementById('ye_ins_credit').value = fmtComma(1000000);
+        document.getElementById('ye_pension_savings').value = fmtComma(6000000);
+        document.getElementById('ye_prepaid').value = fmtComma(4500000);
+      } else { // 고연봉 임원급
+        document.getElementById('ye_personal_count').value = 4;
+        document.getElementById('ye_child_count').value = 2;
+        document.getElementById('ye_card_credit').value = fmtComma(35000000);
+        document.getElementById('ye_card_debit').value = fmtComma(20000000);
+        document.getElementById('ye_card_market').value = fmtComma(4000000);
+        document.getElementById('ye_ins_credit').value = fmtComma(1000000);
+        document.getElementById('ye_pension_savings').value = fmtComma(9000000);
+        document.getElementById('ye_prepaid').value = fmtComma(12000000);
+      }
+
+      runCalculationEngine();
+    }
+
+    /* ==========================================================================
+       6. 내비게이션 탭 제어 및 PWA 초기화
+       ========================================================================== */
+    function switchTab(tabId) {
+      // 모든 탭 버튼 비활성화
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      // 모든 탭 콘텐츠 숨김
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+      // 선택한 탭 활성화
+      const activeBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const activeContent = document.getElementById(`tab-content-${tabId}`);
+      if (activeContent) activeContent.classList.add('active');
+
+      // 우측 진단 판넬 동적 조정
+      // 리포트 탭이나 추가상여 탭일 때의 우측 레이아웃 변경 여부 제어
+      const stickyPanel = document.getElementById('dashboard-sticky-panel');
+      if (tabId === 'report') {
+        stickyPanel.style.display = "none";
+        document.querySelector('.app-layout').style.gridTemplateColumns = "1fr";
+      } else {
+        stickyPanel.style.display = "flex";
+        document.querySelector('.app-layout').style.gridTemplateColumns = "1.2fr 0.8fr";
+      }
+      
+      window.scrollTo(0,0);
+    }
+
+    // 금액 필드 콤마 처리 자동 바인딩
+    function initNumericInputs() {
+      // 연금저축, 카드, 의료비, 월세 등 금액 입력 대상
+      const ids = [
+        'ye_salary', 'ye_card_credit', 'ye_card_debit', 'ye_card_market', 
+        'ye_housing_savings', 'ye_housing_loan', 'ye_housing_mortgage', 
+        'ye_ins_credit', 'ye_pension_savings', 'ye_med_credit', 'ye_edu_credit', 
+        'ye_donate_credit', 'ye_rent_payment', 'ye_prepaid', 'bonus_amount'
+      ];
+      // 비과세 항목 입력칸도 콤마 포맷 대상에 포함
+      if (typeof NT_ITEMS !== 'undefined') NT_ITEMS.forEach(it => ids.push('nt_' + it.code));
+
+      ids.forEach(id => {
+        const inp = document.getElementById(id);
+        if (!inp) return;
+
+        // 초기 포맷팅 적용
+        inp.value = fmtComma(stripComma(inp.value));
+
+        inp.addEventListener('focus', () => {
+          inp.value = stripComma(inp.value);
+          inp.select();
+        });
+
+        inp.addEventListener('blur', () => {
+          inp.value = fmtComma(stripComma(inp.value));
+        });
+
+        inp.addEventListener('input', () => {
+          // 숫자 이외의 문자 정제
+          inp.value = inp.value.replace(/[^0-9\-]/g, '');
+          
+          // 포커싱 타이핑 느낌 효과
+          inp.classList.add('active-input');
+          setTimeout(() => inp.classList.remove('active-input'), 500);
+
+          runCalculationEngine();
+        });
+      });
+    }
+
+    // 웹페이지 기동 시 자동 실행
+    window.addEventListener('DOMContentLoaded', () => {
+      renderNonTaxList();  // 비과세 항목 입력칸 생성(초기화 전에 먼저 렌더)
+      initNumericInputs();
+      toggleAutoIns(); // 4대보험 초기화 및 연동 계산 작동
+      
+      // 오늘의 날짜 리포트에 동기화
+      const today = new Date();
+      const yr = today.getFullYear();
+      const mt = String(today.getMonth() + 1).padStart(2, '0');
+      const dy = String(today.getDate()).padStart(2, '0');
+      document.getElementById('rep-date').textContent = `${yr}. ${mt}. ${dy}.`;
+    });
+  </script>
+</body>
+</html>

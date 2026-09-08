@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d1e3d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="증여세 시뮬레이션">
+<title>2026년 증여세 시뮬레이션 (혼인·출산공제 포함)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap');
+  *{font-family:'Nanum Gothic',sans-serif}
+  html,body{max-width:100%;overflow-x:hidden}
+  .gradient-header{background:linear-gradient(135deg,#4a1942 0%,#6b2fa0 50%,#8b5cf6 100%)}
+  .card{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+  .input-field{transition:all .2s;border:1.5px solid #d1d5db}
+  .input-field:focus{border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.15);outline:none}
+  .btn-calc{background:linear-gradient(135deg,#4a1942,#8b5cf6);transition:all .3s}
+  .btn-calc:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(74,25,66,.4)}
+  .btn-reset{background:#6b7280;transition:all .3s}
+  .btn-reset:hover{background:#4b5563}
+  .tax-highlight{background:linear-gradient(135deg,#4a1942,#6b2fa0);color:#fff}
+  .detail-row:nth-child(even){background:#f9fafb}
+  .tooltip{position:relative;cursor:help}
+  .tooltip .tt{visibility:hidden;background:#333;color:#fff;padding:8px 12px;border-radius:6px;position:absolute;z-index:10;bottom:125%;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:12px;max-width:300px;white-space:normal}
+  .tooltip:hover .tt{visibility:visible}
+  .info-badge{background:#ede9fe;color:#5b21b6;font-size:11px;padding:2px 8px;border-radius:9999px}
+  .marriage-badge{background:#fce7f3;color:#9d174d;font-size:11px;padding:2px 8px;border-radius:9999px}
+  .compare-better{background:#ecfdf5;border:2px solid #10b981}
+  .compare-worse{background:#fef2f2;border:2px solid #ef4444}
+  input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  input[type=number]{-moz-appearance:textfield}
+  .section-title{border-left:4px solid #7c3aed;padding-left:12px}
+  .scenario-card{border:2px solid transparent;transition:all .3s;cursor:pointer}
+  .scenario-card:hover{border-color:#7c3aed;transform:translateY(-2px);box-shadow:0 4px 15px rgba(0,0,0,.1)}
+  .scenario-active{border-color:#7c3aed;background:#faf5ff}
+  @media print{body{background:#fff!important}.no-print{display:none!important}.card{box-shadow:none;border:1px solid #ddd}}
+</style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<!-- Header -->
+<div class="gradient-header text-white py-6 shadow-lg no-print">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-extrabold tracking-tight">증여세 시뮬레이션</h1>
+        <p class="text-purple-200 text-sm mt-1">2026년 귀속 · 혼인·출산 증여재산공제 포함</p>
+      </div>
+      <div class="text-right">
+        <div class="text-xs text-purple-200">상속세 및 증여세법</div>
+        <div class="text-sm font-bold">2026.03 기준</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 py-6">
+
+  <!-- 시나리오 퀵선택 -->
+  <div class="mb-6 no-print">
+    <h2 class="text-sm font-bold text-gray-500 mb-3">📌 빠른 시나리오 선택</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="scenario-card card p-3 text-center" onclick="applyScenario('parentChild')">
+        <div class="text-2xl mb-1">👨‍👩‍👧</div>
+        <div class="text-xs font-bold">부모→자녀 (성인)</div>
+        <div class="text-xs text-gray-400">공제 5천만원</div>
+      </div>
+      <div class="scenario-card card p-3 text-center" onclick="applyScenario('marriage')">
+        <div class="text-2xl mb-1">💒</div>
+        <div class="text-xs font-bold">혼인 증여</div>
+        <div class="text-xs text-gray-400">공제 1억5천만원</div>
+      </div>
+      <div class="scenario-card card p-3 text-center" onclick="applyScenario('spouse')">
+        <div class="text-2xl mb-1">💑</div>
+        <div class="text-xs font-bold">배우자 증여</div>
+        <div class="text-xs text-gray-400">공제 6억원</div>
+      </div>
+      <div class="scenario-card card p-3 text-center" onclick="applyScenario('minor')">
+        <div class="text-2xl mb-1">👶</div>
+        <div class="text-xs font-bold">미성년 자녀</div>
+        <div class="text-xs text-gray-400">공제 2천만원</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- LEFT: Input -->
+    <div class="lg:col-span-2 space-y-5">
+
+      <!-- 증여 기본정보 -->
+      <div class="card p-6">
+        <h2 class="text-lg font-extrabold text-gray-800 mb-4 section-title">증여 기본정보</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-bold text-gray-600 mb-1">증여재산가액</label>
+            <div class="relative">
+              <input type="text" id="giftValue" class="input-field w-full px-4 py-2.5 rounded-lg text-right pr-10" placeholder="0" oninput="formatNumber(this)">
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">원</span>
+            </div>
+            <div class="text-xs text-gray-400 mt-1">시가 또는 보충적 평가액 기준</div>
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-600 mb-1">증여일자</label>
+            <input type="date" id="giftDate" class="input-field w-full px-4 py-2.5 rounded-lg" value="2026-03-21">
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-600 mb-1">증여자와의 관계</label>
+            <select id="relationship" class="input-field w-full px-4 py-2.5 rounded-lg" onchange="updateRelationship()">
+              <option value="spouse">배우자</option>
+              <option value="linealParent" selected>직계존속 (부모·조부모 등)</option>
+              <option value="linealChild">직계비속 (자녀·손자녀 등)</option>
+              <option value="otherRelative">기타 친족 (6촌 이내 혈족, 4촌 이내 인척)</option>
+              <option value="other">기타 (타인)</option>
+            </select>
+          </div>
+          <div id="minorGroup">
+            <label class="block text-sm font-bold text-gray-600 mb-1">수증자 연령</label>
+            <select id="isMinor" class="input-field w-full px-4 py-2.5 rounded-lg" onchange="updateDeduction()">
+              <option value="adult">성인 (만 19세 이상)</option>
+              <option value="minor">미성년자 (만 19세 미만)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 혼인·출산 증여재산공제 -->
+      <div class="card p-6 border-2 border-pink-200" id="marriageSection">
+        <h2 class="text-lg font-extrabold text-gray-800 mb-2 section-title flex items-center gap-2">
+          혼인·출산 증여재산공제
+          <span class="marriage-badge">2024.1.1~ 시행</span>
+        </h2>
+        <p class="text-xs text-gray-500 mb-4">직계존속으로부터 증여받는 경우, 혼인신고일 전후 2년 또는 출산일로부터 2년 이내 추가 1억원 공제</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-bold text-gray-600 mb-1">혼인·출산 공제 적용</label>
+            <select id="marriageDeduction" class="input-field w-full px-4 py-2.5 rounded-lg" onchange="updateMarriage()">
+              <option value="none">적용 안함</option>
+              <option value="marriage">혼인 공제 (혼인신고 전후 2년)</option>
+              <option value="childbirth">출산 공제 (출산일부터 2년)</option>
+              <option value="both">혼인 + 출산 (한도 1억원)</option>
+            </select>
+          </div>
+          <div id="marriageDateGroup" style="display:none">
+            <label class="block text-sm font-bold text-gray-600 mb-1" id="marriageDateLabel">혼인신고일</label>
+            <input type="date" id="marriageDate" class="input-field w-full px-4 py-2.5 rounded-lg" value="2026-03-01">
+          </div>
+        </div>
+
+        <div id="marriageInfo" class="hidden mt-3 p-3 bg-pink-50 rounded-lg text-xs text-pink-800 space-y-1">
+          <div>💒 <b>혼인 증여재산공제 요건:</b></div>
+          <div>• 직계존속(부모·조부모)으로부터의 증여만 해당</div>
+          <div>• 혼인신고일 이전 2년 ~ 이후 2년 이내 증여</div>
+          <div>• 수증자 1인당 1억원 한도 (부부 합산 아님)</div>
+          <div>• 기존 직계존속 공제 5,000만원과 별도로 추가 적용</div>
+          <div>• 혼인·출산 합산 1억원 한도</div>
+        </div>
+      </div>
+
+      <!-- 기증여 합산 (10년 내) -->
+      <div class="card p-6">
+        <h2 class="text-lg font-extrabold text-gray-800 mb-4 section-title flex items-center gap-2">
+          10년 내 사전증여 합산
+          <span class="info-badge">선택사항</span>
+        </h2>
+        <p class="text-xs text-gray-500 mb-4">동일인으로부터 10년 이내 기증여받은 재산이 있으면 합산 과세됩니다.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-bold text-gray-600 mb-1 tooltip">
+              10년 내 기증여재산가액
+              <span class="tt">동일인(직계존속은 그 배우자 포함)으로부터 10년 내 증여받은 누적 금액</span>
+            </label>
+            <div class="relative">
+              <input type="text" id="priorGift" class="input-field w-full px-4 py-2.5 rounded-lg text-right pr-10" placeholder="0" oninput="formatNumber(this)">
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">원</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-600 mb-1 tooltip">
+              기납부 증여세액
+              <span class="tt">이전 증여에서 이미 납부한 증여세 합계</span>
+            </label>
+            <div class="relative">
+              <input type="text" id="priorTax" class="input-field w-full px-4 py-2.5 rounded-lg text-right pr-10" placeholder="0" oninput="formatNumber(this)">
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">원</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 채무·부담 -->
+      <div class="card p-6">
+        <h2 class="text-lg font-extrabold text-gray-800 mb-4 section-title flex items-center gap-2">
+          채무·부담액 차감
+          <span class="info-badge">선택사항</span>
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-bold text-gray-600 mb-1 tooltip">
+              증여재산에 담보된 채무
+              <span class="tt">수증자가 인수하는 채무 (부담부증여 시)</span>
+            </label>
+            <div class="relative">
+              <input type="text" id="debt" class="input-field w-full px-4 py-2.5 rounded-lg text-right pr-10" placeholder="0" oninput="formatNumber(this)">
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">원</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-600 mb-1">비과세 증여재산</label>
+            <div class="relative">
+              <input type="text" id="nonTaxable" class="input-field w-full px-4 py-2.5 rounded-lg text-right pr-10" placeholder="0" oninput="formatNumber(this)">
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">원</span>
+            </div>
+          </div>
+        </div>
+        <div class="mt-2 text-xs text-gray-400">※ 부담부증여 시 채무인수액에 대해서는 증여자에게 양도소득세가 과세될 수 있습니다.</div>
+      </div>
+
+      <!-- 세대생략 -->
+      <div class="card p-6" id="generationSkipSection">
+        <h2 class="text-lg font-extrabold text-gray-800 mb-4 section-title">세대생략 할증</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-bold text-gray-600 mb-1 tooltip">
+              세대생략 증여 여부
+              <span class="tt">조부모→손자녀 등 세대를 건너뛴 증여 시 30%(미성년+20억↑ 40%) 할증</span>
+            </label>
+            <select id="generationSkip" class="input-field w-full px-4 py-2.5 rounded-lg">
+              <option value="no">해당 없음</option>
+              <option value="yes30">세대생략 (+30% 할증)</option>
+              <option value="yes40">세대생략 + 미성년 20억 초과 (+40% 할증)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex gap-3 no-print">
+        <button onclick="calculate()" class="btn-calc flex-1 text-white font-extrabold py-3.5 rounded-xl text-lg shadow-lg">
+          🧮 증여세 계산
+        </button>
+        <button onclick="resetAll()" class="btn-reset text-white font-bold py-3.5 px-6 rounded-xl">
+          초기화
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT: Results -->
+    <div class="space-y-5" id="resultArea">
+
+      <!-- 핵심 결과 -->
+      <div class="card overflow-hidden" id="mainResult" style="display:none">
+        <div class="tax-highlight p-5 text-center">
+          <div class="text-sm opacity-80 mb-1">납부할 증여세</div>
+          <div class="text-3xl font-extrabold" id="totalTaxDisplay">0원</div>
+          <div class="text-xs opacity-60 mt-1" id="effectiveRateDisplay"></div>
+        </div>
+        <div class="p-5 space-y-3">
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500">증여세 산출세액</span>
+            <span class="font-bold" id="calcTaxDisplay">0원</span>
+          </div>
+          <div class="flex justify-between text-sm" id="genSkipRow" style="display:none">
+            <span class="text-gray-500">세대생략 할증세액</span>
+            <span class="font-bold text-red-500" id="genSkipTaxDisplay">0원</span>
+          </div>
+          <div class="flex justify-between text-sm" id="priorTaxRow" style="display:none">
+            <span class="text-gray-500">기납부세액 공제</span>
+            <span class="font-bold text-blue-500" id="priorTaxDisplay">0원</span>
+          </div>
+          <div class="flex justify-between text-sm" id="selfReportRow" style="display:none">
+            <span class="text-gray-500 tooltip">신고세액공제 (3%)
+              <span class="tt">법정신고기한 내 자진신고 시 3% 공제</span>
+            </span>
+            <span class="font-bold text-green-600" id="selfReportDisplay">0원</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 혼인공제 비교 -->
+      <div class="card p-5" id="compareResult" style="display:none">
+        <h3 class="font-extrabold text-gray-800 mb-3">💒 혼인·출산공제 적용 비교</h3>
+        <div class="grid grid-cols-2 gap-3" id="compareBody"></div>
+        <div class="mt-3 p-3 bg-purple-50 rounded-lg text-center" id="compareSaving"></div>
+      </div>
+
+      <!-- 계산 상세 -->
+      <div class="card p-5" id="detailResult" style="display:none">
+        <h3 class="font-extrabold text-gray-800 mb-3">📋 계산 상세</h3>
+        <div class="space-y-1.5 text-sm" id="detailBody"></div>
+      </div>
+
+      <!-- 공제 내역 -->
+      <div class="card p-5" id="deductionResult" style="display:none">
+        <h3 class="font-extrabold text-gray-800 mb-3">🎁 증여재산공제 내역</h3>
+        <div class="space-y-2 text-sm" id="deductionBody"></div>
+      </div>
+
+      <!-- 유의사항 -->
+      <div class="card p-5" id="notesResult" style="display:none">
+        <h3 class="font-extrabold text-gray-800 mb-3">⚠️ 유의사항</h3>
+        <div id="notesBody" class="text-xs text-gray-600 space-y-1"></div>
+      </div>
+
+      <!-- 인쇄 -->
+      <button onclick="window.print()" class="no-print w-full bg-gray-200 text-gray-700 font-bold py-2.5 rounded-lg hover:bg-gray-300 transition text-sm" id="printBtn" style="display:none">
+        🖨️ 인쇄하기
+      </button>
+    </div>
+  </div>
+
+  <!-- 세율표 + 공제표 -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+
+    <!-- 세율표 -->
+    <div class="card p-6">
+      <h2 class="text-lg font-extrabold text-gray-800 mb-4">📊 2026년 증여세 세율</h2>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-gray-50">
+            <th class="text-left p-2.5 font-bold text-gray-600">과세표준 구간</th>
+            <th class="text-center p-2.5 font-bold text-gray-600">세율</th>
+            <th class="text-center p-2.5 font-bold text-gray-600">누진공제</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="detail-row"><td class="p-2.5">1억원 이하</td><td class="text-center font-bold">10%</td><td class="text-center">-</td></tr>
+          <tr class="detail-row"><td class="p-2.5">1억 ~ 5억원</td><td class="text-center font-bold">20%</td><td class="text-center">1,000만원</td></tr>
+          <tr class="detail-row"><td class="p-2.5">5억 ~ 10억원</td><td class="text-center font-bold">30%</td><td class="text-center">6,000만원</td></tr>
+          <tr class="detail-row"><td class="p-2.5">10억 ~ 30억원</td><td class="text-center font-bold">40%</td><td class="text-center">1억 6,000만원</td></tr>
+          <tr class="detail-row"><td class="p-2.5">30억원 초과</td><td class="text-center font-bold">50%</td><td class="text-center">4억 6,000만원</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 공제표 -->
+    <div class="card p-6">
+      <h2 class="text-lg font-extrabold text-gray-800 mb-4">🎁 증여재산공제 한도 (10년 합산)</h2>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-gray-50">
+            <th class="text-left p-2.5 font-bold text-gray-600">증여자</th>
+            <th class="text-center p-2.5 font-bold text-gray-600">공제한도</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="detail-row"><td class="p-2.5">배우자</td><td class="text-center font-bold text-purple-700">6억원</td></tr>
+          <tr class="detail-row"><td class="p-2.5">직계존속 → 성인</td><td class="text-center font-bold text-purple-700">5,000만원</td></tr>
+          <tr class="detail-row"><td class="p-2.5">직계존속 → 미성년자</td><td class="text-center font-bold text-purple-700">2,000만원</td></tr>
+          <tr class="detail-row"><td class="p-2.5">직계비속</td><td class="text-center font-bold text-purple-700">5,000만원</td></tr>
+          <tr class="detail-row"><td class="p-2.5">기타 친족</td><td class="text-center font-bold text-purple-700">1,000만원</td></tr>
+        </tbody>
+      </table>
+      <div class="mt-3 p-3 bg-pink-50 rounded-lg text-xs text-pink-800">
+        <div class="font-bold mb-1">💒 혼인·출산 증여재산공제 (2024.1.1 시행)</div>
+        <div>• 직계존속 증여 + 혼인신고 전후 2년 또는 출산 후 2년 내</div>
+        <div>• 추가 <b>1억원</b> 공제 → 성인 최대 <b>1억 5,000만원</b></div>
+        <div>• 혼인+출산 합산 1억원 한도, 수증자 1인당 기준</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 다회 증여 시뮬레이션 -->
+  <div class="card p-6 mt-6">
+    <h2 class="text-lg font-extrabold text-gray-800 mb-4 section-title flex items-center gap-2">
+      📈 다회분할 증여 시뮬레이션
+      <span class="info-badge">참고</span>
+    </h2>
+    <p class="text-xs text-gray-500 mb-4">혼인·출산 공제를 활용하여 증여하는 경우 절세 전략 비교</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-sm font-bold text-gray-600 mb-1">총 증여 예정금액</label>
+        <div class="relative">
+          <input type="text" id="simTotal" class="input-field w-full px-4 py-2.5 rounded-lg text-right pr-10" placeholder="300,000,000" oninput="formatNumber(this)">
+          <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">원</span>
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-bold text-gray-600 mb-1">증여 대상</label>
+        <select id="simTarget" class="input-field w-full px-4 py-2.5 rounded-lg">
+          <option value="adultChild">성인 자녀 (혼인 예정)</option>
+          <option value="adultChildNone">성인 자녀 (혼인 미예정)</option>
+          <option value="minorChild">미성년 자녀</option>
+          <option value="spouse">배우자</option>
+        </select>
+      </div>
+      <div class="flex items-end">
+        <button onclick="runSimulation()" class="w-full bg-purple-100 text-purple-800 font-bold py-2.5 rounded-lg hover:bg-purple-200 transition text-sm">
+          비교 분석
+        </button>
+      </div>
+    </div>
+    <div id="simResult" class="mt-4 hidden"></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="text-center text-xs text-gray-400 mt-6 pb-6">
+    <p>본 시뮬레이션은 참고용이며, 실제 세액은 개별 상황에 따라 달라질 수 있습니다.</p>
+    <p class="mt-1">2026년 3월 기준 상속세 및 증여세법 반영 | 세무법인 한백택스</p>
+  </div>
+</div>
+
+<script>
+// ============================================
+// 유틸리티
+// ============================================
+function formatNumber(el){
+  let v=el.value.replace(/[^0-9]/g,'');
+  el.value=v?Number(v).toLocaleString('ko-KR'):'';
+}
+function parseNum(id){
+  const el=document.getElementById(id);
+  return el?Number(el.value.replace(/[^0-9]/g,''))||0:0;
+}
+function won(n){
+  if(n<0) return '-'+Math.abs(n).toLocaleString('ko-KR')+'원';
+  return n.toLocaleString('ko-KR')+'원';
+}
+function wonShort(n){
+  const a=Math.abs(n);
+  const s=n<0?'-':'';
+  if(a>=100000000) return s+(a/100000000).toFixed(1).replace(/\.0$/,'')+'억원';
+  if(a>=10000) return s+Math.round(a/10000).toLocaleString()+'만원';
+  return won(n);
+}
+
+// ============================================
+// 관계별 공제액
+// ============================================
+function getBaseDeduction(rel, isMinor){
+  switch(rel){
+    case 'spouse': return 600000000;
+    case 'linealParent': return isMinor==='minor'?20000000:50000000;
+    case 'linealChild': return 50000000;
+    case 'otherRelative': return 10000000;
+    default: return 0;
+  }
+}
+
+function getMarriageDeduction(){
+  const rel=document.getElementById('relationship').value;
+  const md=document.getElementById('marriageDeduction').value;
+  if(rel!=='linealParent') return 0;
+  if(md==='none') return 0;
+  return 100000000; // 1억원 한도
+}
+
+// ============================================
+// UI 업데이트
+// ============================================
+function updateRelationship(){
+  const rel=document.getElementById('relationship').value;
+  document.getElementById('minorGroup').style.display=(rel==='linealParent')?'':'none';
+  document.getElementById('marriageSection').style.display=(rel==='linealParent')?'':'none';
+  document.getElementById('generationSkipSection').style.display=(rel==='linealParent'||rel==='linealChild')?'':'none';
+  if(rel!=='linealParent'){
+    document.getElementById('marriageDeduction').value='none';
+    document.getElementById('isMinor').value='adult';
+    updateMarriage();
+  }
+}
+
+function updateMarriage(){
+  const md=document.getElementById('marriageDeduction').value;
+  const show=md!=='none';
+  document.getElementById('marriageDateGroup').style.display=show?'':'none';
+  document.getElementById('marriageInfo').classList.toggle('hidden',!show);
+  if(md==='marriage') document.getElementById('marriageDateLabel').textContent='혼인신고일';
+  else if(md==='childbirth') document.getElementById('marriageDateLabel').textContent='출산일';
+  else if(md==='both') document.getElementById('marriageDateLabel').textContent='혼인신고일 (또는 출산일)';
+}
+
+function updateDeduction(){
+  // 미성년자 선택 시 혼인공제 비활성화
+  const isMinor=document.getElementById('isMinor').value;
+  if(isMinor==='minor'){
+    document.getElementById('marriageDeduction').value='none';
+    updateMarriage();
+  }
+}
+
+// ============================================
+// 시나리오 적용
+// ============================================
+function applyScenario(type){
+  document.querySelectorAll('.scenario-card').forEach(c=>c.classList.remove('scenario-active'));
+  event.currentTarget.classList.add('scenario-active');
+
+  switch(type){
+    case 'parentChild':
+      document.getElementById('relationship').value='linealParent';
+      document.getElementById('isMinor').value='adult';
+      document.getElementById('marriageDeduction').value='none';
+      break;
+    case 'marriage':
+      document.getElementById('relationship').value='linealParent';
+      document.getElementById('isMinor').value='adult';
+      document.getElementById('marriageDeduction').value='marriage';
+      break;
+    case 'spouse':
+      document.getElementById('relationship').value='spouse';
+      document.getElementById('marriageDeduction').value='none';
+      break;
+    case 'minor':
+      document.getElementById('relationship').value='linealParent';
+      document.getElementById('isMinor').value='minor';
+      document.getElementById('marriageDeduction').value='none';
+      break;
+  }
+  updateRelationship();
+  updateMarriage();
+}
+
+// ============================================
+// 세율표 (상속세및증여세법)
+// ============================================
+const GIFT_BRACKETS=[
+  {limit:100000000,  rate:0.10, deduction:0},
+  {limit:500000000,  rate:0.20, deduction:10000000},
+  {limit:1000000000, rate:0.30, deduction:60000000},
+  {limit:3000000000, rate:0.40, deduction:160000000},
+  {limit:Infinity,   rate:0.50, deduction:460000000}
+];
+
+function calcGiftTax(taxBase){
+  if(taxBase<=0) return {tax:0,rate:0,bracket:null};
+  for(const b of GIFT_BRACKETS){
+    if(taxBase<=b.limit) return {tax:Math.floor(taxBase*b.rate-b.deduction),rate:b.rate*100,bracket:b};
+  }
+  const last=GIFT_BRACKETS[GIFT_BRACKETS.length-1];
+  return {tax:Math.floor(taxBase*last.rate-last.deduction),rate:last.rate*100,bracket:last};
+}
+
+// ============================================
+// 메인 계산
+// ============================================
+function calculate(){
+  const giftValue=parseNum('giftValue');
+  const debt=parseNum('debt');
+  const nonTaxable=parseNum('nonTaxable');
+  const priorGift=parseNum('priorGift');
+  const priorTax=parseNum('priorTax');
+  const rel=document.getElementById('relationship').value;
+  const isMinor=document.getElementById('isMinor')?.value||'adult';
+  const genSkip=document.getElementById('generationSkip')?.value||'no';
+
+  if(!giftValue){alert('증여재산가액을 입력해주세요.');return;}
+
+  // 1. 증여세 과세가액
+  const taxableValue=Math.max(giftValue-debt-nonTaxable,0);
+
+  // 2. 증여재산 합산 (10년)
+  const totalValue=taxableValue+priorGift;
+
+  // 3. 증여재산공제
+  const baseDeduction=getBaseDeduction(rel,isMinor);
+  const marriageDed=getMarriageDeduction();
+  const totalDeduction=baseDeduction+marriageDed;
+  // 공제는 10년 합산 기준이므로, 사전증여 시 이미 공제 적용된 것으로 봄
+  // 실무: 합산과세가액 - 공제 = 과세표준
+  const usedDeduction=Math.min(totalDeduction, totalValue);
+
+  // 4. 과세표준
+  const taxBase=Math.max(totalValue-usedDeduction,0);
+
+  // 5. 산출세액
+  const taxCalc=calcGiftTax(taxBase);
+  let calculatedTax=taxCalc.tax;
+
+  // 6. 세대생략 할증
+  let genSkipTax=0;
+  if(genSkip==='yes30') genSkipTax=Math.floor(calculatedTax*0.3);
+  else if(genSkip==='yes40') genSkipTax=Math.floor(calculatedTax*0.4);
+
+  const totalCalcTax=calculatedTax+genSkipTax;
+
+  // 7. 기납부세액 공제
+  const afterPrior=Math.max(totalCalcTax-priorTax,0);
+
+  // 8. 신고세액공제 3%
+  const selfReport=Math.floor(afterPrior*0.03);
+  const finalTax=Math.max(afterPrior-selfReport,0);
+
+  // ============================================
+  // 혼인공제 미적용 시 비교 계산
+  // ============================================
+  let noMarriageTax=0;
+  let savingAmount=0;
+  const showCompare=marriageDed>0;
+  if(showCompare){
+    const noMBase=Math.max(totalValue-baseDeduction,0);
+    const noMCalc=calcGiftTax(noMBase);
+    let noMTotalCalc=noMCalc.tax;
+    if(genSkip==='yes30') noMTotalCalc+=Math.floor(noMCalc.tax*0.3);
+    else if(genSkip==='yes40') noMTotalCalc+=Math.floor(noMCalc.tax*0.4);
+    const noMAfterPrior=Math.max(noMTotalCalc-priorTax,0);
+    const noMSelfReport=Math.floor(noMAfterPrior*0.03);
+    noMarriageTax=Math.max(noMAfterPrior-noMSelfReport,0);
+    savingAmount=noMarriageTax-finalTax;
+  }
+
+  // ============================================
+  // 결과 표시
+  // ============================================
+  ['mainResult','detailResult','deductionResult','notesResult'].forEach(id=>
+    document.getElementById(id).style.display='');
+  document.getElementById('printBtn').style.display='';
+
+  document.getElementById('totalTaxDisplay').textContent=won(finalTax);
+  document.getElementById('calcTaxDisplay').textContent=won(calculatedTax);
+
+  const effRate=giftValue>0?((finalTax/giftValue)*100).toFixed(1):'0';
+  document.getElementById('effectiveRateDisplay').textContent=
+    `실효세율: ${effRate}% · 신고세액공제(3%) 반영`;
+
+  if(genSkipTax>0){
+    document.getElementById('genSkipRow').style.display='';
+    document.getElementById('genSkipTaxDisplay').textContent='+'+won(genSkipTax);
+  }else document.getElementById('genSkipRow').style.display='none';
+
+  if(priorTax>0){
+    document.getElementById('priorTaxRow').style.display='';
+    document.getElementById('priorTaxDisplay').textContent='-'+won(priorTax);
+  }else document.getElementById('priorTaxRow').style.display='none';
+
+  if(selfReport>0){
+    document.getElementById('selfReportRow').style.display='';
+    document.getElementById('selfReportDisplay').textContent='-'+won(selfReport);
+  }else document.getElementById('selfReportRow').style.display='none';
+
+  // 혼인공제 비교
+  if(showCompare){
+    document.getElementById('compareResult').style.display='';
+    document.getElementById('compareBody').innerHTML=`
+      <div class="p-3 rounded-lg compare-worse text-center">
+        <div class="text-xs text-gray-500 mb-1">혼인공제 미적용</div>
+        <div class="font-extrabold text-red-600 text-lg">${won(noMarriageTax)}</div>
+        <div class="text-xs text-gray-400 mt-1">공제: ${wonShort(baseDeduction)}</div>
+      </div>
+      <div class="p-3 rounded-lg compare-better text-center">
+        <div class="text-xs text-gray-500 mb-1">혼인공제 적용 ✓</div>
+        <div class="font-extrabold text-green-600 text-lg">${won(finalTax)}</div>
+        <div class="text-xs text-gray-400 mt-1">공제: ${wonShort(totalDeduction)}</div>
+      </div>`;
+    document.getElementById('compareSaving').innerHTML=
+      `<div class="font-extrabold text-purple-800">💒 혼인공제로 <span class="text-xl">${won(savingAmount)}</span> 절세</div>`;
+  }else{
+    document.getElementById('compareResult').style.display='none';
+  }
+
+  // 계산 상세
+  let d='';
+  const addR=(l,v,bold,cls)=>{
+    const b=bold?'font-bold':'';
+    d+=`<div class="flex justify-between py-1.5 px-2 detail-row rounded ${cls||''}"><span class="${b} text-gray-600">${l}</span><span class="${b}">${v}</span></div>`;
+  };
+
+  addR('증여재산가액',won(giftValue));
+  if(debt>0) addR('채무인수액(부담부증여)','(-) '+won(debt));
+  if(nonTaxable>0) addR('비과세 증여재산','(-) '+won(nonTaxable));
+  addR('증여세 과세가액',won(taxableValue),true);
+  if(priorGift>0) addR('10년 내 기증여재산 합산','(+) '+won(priorGift));
+  if(priorGift>0) addR('합산 과세가액',won(totalValue),true,'bg-purple-50');
+
+  addR('증여재산공제','(-) '+won(baseDeduction));
+  if(marriageDed>0) addR('혼인·출산 증여재산공제','(-) '+won(marriageDed)+'','false','bg-pink-50');
+  addR('과세표준',won(taxBase),true,'bg-purple-50');
+
+  addR(`산출세액 (세율 ${taxCalc.rate}%)`,won(calculatedTax),true);
+  if(genSkipTax>0) addR('세대생략 할증세액','(+) '+won(genSkipTax));
+  if(priorTax>0) addR('기납부세액 공제','(-) '+won(priorTax));
+  addR('신고세액공제 (3%)','(-) '+won(selfReport));
+  addR('자진납부할 세액',won(finalTax),true,'bg-purple-100');
+
+  document.getElementById('detailBody').innerHTML=d;
+
+  // 공제 내역
+  const relNames={spouse:'배우자',linealParent:'직계존속',linealChild:'직계비속',otherRelative:'기타 친족',other:'기타(타인)'};
+  let ded='';
+  ded+=`<div class="p-3 bg-gray-50 rounded-lg">`;
+  ded+=`<div class="flex justify-between"><span>증여자: <b>${relNames[rel]}</b></span><span class="font-bold">${won(baseDeduction)}</span></div>`;
+  if(rel==='linealParent'&&isMinor==='minor') ded+=`<div class="text-xs text-gray-400 mt-1">미성년자 기준 (만 19세 미만)</div>`;
+  ded+=`</div>`;
+
+  if(marriageDed>0){
+    const mdType=document.getElementById('marriageDeduction').value;
+    const mdLabel=mdType==='marriage'?'혼인':mdType==='childbirth'?'출산':'혼인+출산';
+    ded+=`<div class="p-3 bg-pink-50 rounded-lg border border-pink-200">`;
+    ded+=`<div class="flex justify-between"><span>💒 ${mdLabel} 증여재산공제</span><span class="font-bold text-pink-700">${won(marriageDed)}</span></div>`;
+    ded+=`<div class="text-xs text-pink-600 mt-1">직계존속 공제와 별도 추가 적용</div>`;
+    ded+=`</div>`;
+  }
+
+  ded+=`<div class="p-3 bg-purple-50 rounded-lg">`;
+  ded+=`<div class="flex justify-between"><span class="font-bold">공제 합계</span><span class="font-extrabold text-purple-700">${won(totalDeduction)}</span></div>`;
+  ded+=`<div class="text-xs text-gray-400 mt-1">10년간 동일인(직계존속은 배우자 포함) 합산 기준</div>`;
+  ded+=`</div>`;
+
+  document.getElementById('deductionBody').innerHTML=ded;
+
+  // 유의사항
+  let notes='';
+  notes+=`<div>• 증여세 신고기한: 증여받은 날이 속하는 달의 말일부터 3개월 이내</div>`;
+  notes+=`<div>• 자진신고 시 납부세액의 3% 신고세액공제 적용</div>`;
+  notes+=`<div>• 동일인(직계존속은 그 배우자 포함)으로부터 10년 내 증여재산 합산 과세</div>`;
+  if(marriageDed>0){
+    notes+=`<div>• 혼인증여공제: 혼인신고일 전 2년 ~ 후 2년 이내 증여분에 적용</div>`;
+    notes+=`<div>• 출산증여공제: 자녀 출생일부터 2년 이내 증여분에 적용</div>`;
+    notes+=`<div>• 혼인+출산 합산 1억원 한도, 수증자 1인 기준</div>`;
+    notes+=`<div>• 혼인공제 적용 후 이혼 시 추가 공제분에 대해 증여세 추징 가능</div>`;
+  }
+  if(debt>0){
+    notes+=`<div>• 부담부증여: 채무인수액에 대해 증여자에게 양도소득세 과세 가능</div>`;
+  }
+  if(genSkip!=='no'){
+    notes+=`<div>• 세대생략 할증: 수증자가 증여자의 자녀가 아닌 직계비속인 경우 30%(미성년+20억↑ 40%) 할증</div>`;
+  }
+  notes+=`<div class="mt-2 text-gray-400">※ 본 계산은 참고용이며, 정확한 세액은 세무전문가와 상담하시기 바랍니다.</div>`;
+  document.getElementById('notesBody').innerHTML=notes;
+
+  document.getElementById('mainResult').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ============================================
+// 다회분할 시뮬레이션
+// ============================================
+function runSimulation(){
+  const total=parseNum('simTotal');
+  const target=document.getElementById('simTarget').value;
+  if(!total){alert('총 증여 예정금액을 입력해주세요.');return;}
+
+  let results=[];
+
+  // 시나리오1: 일시 증여
+  const oneTimeCalc=(amt,ded)=>{
+    const base=Math.max(amt-ded,0);
+    const t=calcGiftTax(base);
+    return Math.max(Math.floor((t.tax)*0.97),0);
+  };
+
+  // 시나리오2: 부모 양쪽에서 분산
+  // 시나리오3: 혼인공제 활용
+
+  if(target==='adultChild'){
+    const ded1=50000000;
+    const ded2=150000000; // 혼인공제 포함
+    const ded3=50000000;  // 부 from 모 별도
+
+    // A: 일시 증여 (아버지만)
+    const taxA=oneTimeCalc(total,ded1);
+
+    // B: 혼인공제 활용 (아버지)
+    const taxB=oneTimeCalc(total,ded2);
+
+    // C: 부+모 분산 + 혼인공제
+    const half=Math.floor(total/2);
+    const taxC1=oneTimeCalc(half,ded2); // 부 (혼인공제)
+    const taxC2=oneTimeCalc(total-half,ded1); // 모 (일반)
+    const taxC=taxC1+taxC2;
+
+    // D: 부+모 분산 + 양쪽 혼인공제
+    const taxD1=oneTimeCalc(half,ded2);
+    const taxD2=oneTimeCalc(total-half,ded2);
+    const taxD=taxD1+taxD2;
+
+    results=[
+      {label:'A. 부(모) 일시증여',desc:`공제 5천만원`,tax:taxA,ded:ded1},
+      {label:'B. 부(모) + 혼인공제',desc:`공제 1.5억원`,tax:taxB,ded:ded2},
+      {label:'C. 부+모 분산 + 부 혼인공제',desc:`부 1.5억 + 모 5천만 공제`,tax:taxC,ded:ded2+ded1},
+      {label:'D. 부+모 분산 + 양쪽 혼인공제',desc:`부·모 각 1.5억 공제`,tax:taxD,ded:ded2*2}
+    ];
+  } else if(target==='adultChildNone'){
+    const ded=50000000;
+    const taxA=oneTimeCalc(total,ded);
+    const half=Math.floor(total/2);
+    const taxB=oneTimeCalc(half,ded)+oneTimeCalc(total-half,ded);
+
+    results=[
+      {label:'A. 부(모) 일시증여',desc:`공제 5천만원`,tax:taxA,ded:ded},
+      {label:'B. 부+모 분산증여',desc:`각 5천만원 공제`,tax:taxB,ded:ded*2}
+    ];
+  } else if(target==='minorChild'){
+    const ded=20000000;
+    const taxA=oneTimeCalc(total,ded);
+    const half=Math.floor(total/2);
+    const taxB=oneTimeCalc(half,ded)+oneTimeCalc(total-half,ded);
+
+    results=[
+      {label:'A. 부(모) 일시증여',desc:`공제 2천만원`,tax:taxA,ded:ded},
+      {label:'B. 부+모 분산증여',desc:`각 2천만원 공제`,tax:taxB,ded:ded*2}
+    ];
+  } else {
+    const ded=600000000;
+    const taxA=oneTimeCalc(total,ded);
+    results=[
+      {label:'A. 배우자 증여',desc:`공제 6억원`,tax:taxA,ded:ded}
+    ];
+  }
+
+  // 최소 세액 찾기
+  const minTax=Math.min(...results.map(r=>r.tax));
+
+  let html=`<div class="grid grid-cols-1 md:grid-cols-${Math.min(results.length,4)} gap-3">`;
+  results.forEach(r=>{
+    const isBest=r.tax===minTax && results.length>1;
+    html+=`<div class="p-4 rounded-lg ${isBest?'bg-green-50 border-2 border-green-400':'bg-gray-50 border border-gray-200'}">`;
+    if(isBest) html+=`<div class="text-xs font-bold text-green-600 mb-1">✅ 최적</div>`;
+    html+=`<div class="font-bold text-sm text-gray-800">${r.label}</div>`;
+    html+=`<div class="text-xs text-gray-500 mt-1">${r.desc}</div>`;
+    html+=`<div class="font-extrabold text-lg mt-2 ${isBest?'text-green-700':'text-gray-800'}">${won(r.tax)}</div>`;
+    html+=`<div class="text-xs text-gray-400">신고세액공제 3% 반영</div>`;
+    html+=`</div>`;
+  });
+  html+=`</div>`;
+
+  if(results.length>1){
+    const maxTax=Math.max(...results.map(r=>r.tax));
+    const saving=maxTax-minTax;
+    if(saving>0){
+      html+=`<div class="mt-3 p-3 bg-purple-50 rounded-lg text-center">`;
+      html+=`<span class="font-extrabold text-purple-800">최대 절세 금액: <span class="text-xl">${won(saving)}</span></span>`;
+      html+=`</div>`;
+    }
+  }
+
+  html+=`<div class="mt-2 text-xs text-gray-400">※ 10년 내 사전증여 없는 것으로 가정. 실제는 개별 상황에 따라 다름.</div>`;
+
+  const simEl=document.getElementById('simResult');
+  simEl.innerHTML=html;
+  simEl.classList.remove('hidden');
+}
+
+// ============================================
+// 초기화
+// ============================================
+function resetAll(){
+  ['giftValue','priorGift','priorTax','debt','nonTaxable'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  document.getElementById('giftDate').value='2026-03-21';
+  document.getElementById('relationship').value='linealParent';
+  document.getElementById('isMinor').value='adult';
+  document.getElementById('marriageDeduction').value='none';
+  document.getElementById('generationSkip').value='no';
+
+  ['mainResult','detailResult','deductionResult','notesResult','compareResult','printBtn'].forEach(id=>
+    document.getElementById(id).style.display='none');
+  document.getElementById('simResult').classList.add('hidden');
+  document.querySelectorAll('.scenario-card').forEach(c=>c.classList.remove('scenario-active'));
+
+  updateRelationship();
+  updateMarriage();
+}
+
+// 초기 설정
+updateRelationship();
+updateMarriage();
+</script>
+</body>
+</html>

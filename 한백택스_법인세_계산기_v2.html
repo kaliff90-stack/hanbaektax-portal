@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏢 법인세 계산기 v2 | 한백택스</title>
+<meta name="description" content="세무조정→과세표준→누진세율 4단계 자동계산 · 지방소득세 포함 · 오류검증">
+<meta name="theme-color" content="#1B3A5C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="법인세v2">
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Nanum Gothic',sans-serif}
+:root{--navy:#1B3A5C;--blue:#2E6DA4;--gold:#C8963E;--bg:#f0f2f5;--gray:#718096;--light:#EDF2F7;--input-bg:#FFF8E1;--auto-bg:#FDF2E9;--border:#CBD5E0;--red:#C53030;--red-bg:#FEE2E2;--green:#2F855A}
+body{background:var(--bg);color:#2D3748;min-height:100vh;font-size:16px;padding-bottom:40px}
+.top-bar{background:var(--navy);color:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.top-bar h1{font-size:23px}.top-bar .sub{font-size:13px;color:#a0b4cc;margin-top:3px}
+.brand-bar{background:var(--navy);color:var(--gold);text-align:center;padding:7px;font-size:14px;font-weight:700;border-bottom:3px solid var(--gold);display:flex;align-items:center;justify-content:center;gap:10px}
+.version-badge{background:var(--gold);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:10px;letter-spacing:0.5px}
+.standalone-back{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;margin:14px 24px 0}
+.toolbar{display:flex;gap:8px;margin:14px 24px 0;flex-wrap:wrap}
+.toolbar .standalone-back{margin:0}
+.btn-print{display:inline-flex;align-items:center;gap:6px;background:#fff;color:var(--navy);padding:8px 14px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;border:2px solid var(--border);cursor:pointer;transition:all 0.2s}
+.btn-print:hover{background:var(--light);border-color:var(--blue)}
+.wrap{max-width:940px;margin:0 auto;padding:22px}
+.calc-title{background:var(--navy);color:#fff;padding:20px 26px;border-radius:14px 14px 0 0;text-align:center}
+.calc-title h2{font-size:24px;margin-bottom:4px}.calc-title .sub{font-size:14px;color:#a0b4cc}
+.calc-body{background:#fff;border:1px solid #dde;border-radius:0 0 14px 14px;overflow:hidden;margin-bottom:24px}
+.section-hdr{background:var(--blue);color:#fff;padding:13px 26px;font-size:16px;font-weight:700;display:flex;align-items:center;gap:10px}
+.section-hdr .num{background:rgba(255,255,255,0.25);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px}
+.section-hdr.plus{background:#2F855A}.section-hdr.minus{background:#8B5E3C}
+.section-body{padding:14px 26px 18px}
+.row{display:flex;align-items:center;margin-bottom:7px;flex-wrap:wrap}
+.lbl{width:250px;flex-shrink:0;background:var(--light);padding:11px 14px;font-size:14px;font-weight:700;border:1px solid var(--border);border-right:none}
+.input-cell{flex:1;min-width:130px;position:relative}
+.input-cell input{width:100%;padding:11px 14px;font-size:16px;color:var(--blue);font-weight:700;background:var(--input-bg);border:1px solid var(--border);outline:none;font-family:inherit;text-align:right;transition:border-color 0.2s,box-shadow 0.2s}
+.input-cell input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(46,109,164,0.2)}
+.input-cell input.input-error{border-color:var(--red)!important;box-shadow:0 0 0 3px rgba(197,48,48,0.15)!important;background:#FFF5F5}
+.input-cell .comma-display{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--gray);pointer-events:none;font-weight:700;opacity:0;transition:opacity 0.2s}
+.input-cell input:not(:focus)+.comma-display{opacity:1}
+.auto-cell{flex:1;background:var(--auto-bg);border:1px solid var(--border);padding:11px 14px;font-size:15px;font-weight:700;color:var(--gold);min-width:110px;text-align:right;transition:background 0.3s,transform 0.15s}
+.note{font-size:12px;color:var(--gray);padding-left:10px}
+.sub-tot .lbl{background:var(--navy);color:#fff;font-weight:800}
+.sub-tot .auto-cell{background:var(--navy);color:var(--gold);font-weight:800;font-size:16px}
+.result-box{background:var(--auto-bg);padding:26px;text-align:center;border-top:3px double var(--gold);transition:transform 0.3s,box-shadow 0.3s}
+.result-box .label{font-size:19px;font-weight:700;color:var(--navy)}
+.result-box .value{font-size:36px;font-weight:800;color:var(--gold);margin-top:6px;transition:transform 0.2s,color 0.2s}
+.result-box .detail{font-size:14px;color:var(--gray);margin-top:8px;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
+th{background:var(--navy);color:#fff;padding:9px;border:1px solid #2a4a6a}
+td{padding:8px;border:1px solid var(--border);text-align:right}td.c{text-align:center}
+.disclaimer{font-size:13px;color:var(--gray);padding:18px 26px;line-height:1.7;background:#f8fafc;border-top:1px dashed var(--border)}
+.disclaimer b{color:var(--navy)}
+
+/* Verification Box */
+.verify-box{margin:0 26px 20px;padding:20px;border-radius:12px;border:2px solid var(--border);background:#f8fafc}
+.verify-box h4{color:var(--navy);font-size:16px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.verify-row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;border-bottom:1px dotted var(--border)}
+.verify-row:last-child{border-bottom:none}
+.verify-row .vr-label{color:var(--gray);flex:1}
+.verify-row .vr-value{font-weight:700;color:var(--navy);text-align:right;min-width:140px}
+.verify-ok{color:#2F855A;font-weight:800;font-size:15px;margin-top:10px;display:flex;align-items:center;gap:6px}
+.verify-fail{color:var(--red);font-weight:800;font-size:15px;margin-top:10px}
+.warn-box{background:var(--red-bg);border:1px solid #FCA5A5;color:#991B1B;padding:10px 16px;border-radius:8px;font-size:13px;margin:8px 0;display:none}
+.warn-box.show{display:block}
+
+/* Animations */
+@keyframes cellFlash{0%{background:var(--auto-bg)}30%{background:#FFF3CD;transform:scale(1.01)}100%{background:var(--auto-bg);transform:scale(1)}}
+@keyframes resultPulse{0%{transform:scale(1)}25%{transform:scale(1.015);box-shadow:0 0 20px rgba(200,150,62,0.35)}100%{transform:scale(1)}}
+@keyframes valuePop{0%{transform:scale(1)}30%{transform:scale(1.08);color:#E8A317}100%{transform:scale(1);color:var(--gold)}}
+.flash-auto{animation:cellFlash 0.5s ease}
+.pulse-result{animation:resultPulse 0.5s ease}
+.pop-value{animation:valuePop 0.45s ease}
+
+/* Print */
+@media print{
+  .top-bar,.brand-bar,.toolbar,.btn-print,.standalone-back{display:none!important}
+  .wrap{padding:0;max-width:100%}
+  body{background:#fff;padding:0}
+  .calc-body{border:1px solid #999}
+  .verify-box{break-inside:avoid}
+  .result-box{break-inside:avoid}
+}
+@media(max-width:700px){.lbl{width:100%;border-right:1px solid var(--border)}.wrap{padding:12px 8px}.top-bar h1{font-size:18px}.note{display:none}.result-box .value{font-size:24px}.toolbar{margin:10px 12px 0}.verify-box{margin:0 12px 16px;padding:14px}.verify-row{flex-direction:column;gap:2px}.verify-row .vr-value{text-align:left}}
+</style>
+</head>
+<body>
+<div class="top-bar"><div><h1>세무법인 한백택스</h1><div class="sub">대표세무사 차재영 | 서울특별시 중구 동호로 315, 2층</div></div><div style="color:var(--gold);font-weight:800;font-size:12px">법인세 계산기</div></div>
+<div class="brand-bar">HANBAEK TAX — 법인세 계산기 (각 사업연도 소득 · 4단계 누진세율) <span class="version-badge">v2</span></div>
+<div class="toolbar">
+  <a class="standalone-back" href="한백택스_세무계산_포털.html">← 전체 세무계산 포털</a>
+  <button class="btn-print" onclick="window.print()">🖨 인쇄</button>
+</div>
+
+<div class="wrap">
+  <div class="calc-title"><h2>🏢 법인세 계산기</h2><div class="sub">세무조정 → 과세표준 → 산출세액 → 차감납부세액</div></div>
+  <div class="calc-body">
+    <div class="section-hdr"><div class="num">1</div>각 사업연도 소득금액</div>
+    <div class="section-body">
+      <div class="row"><div class="lbl">결산서상 당기순이익</div><div class="input-cell"><input type="number" id="net" value="300000000" oninput="calc()" onfocus="hideComma(this)" onblur="showComma(this)"><span class="comma-display" id="cd_net"></span></div></div>
+      <div class="row"><div class="lbl">(+) 익금산입·손금불산입</div><div class="input-cell"><input type="number" id="add" value="0" oninput="calc()" onfocus="hideComma(this)" onblur="showComma(this)"><span class="comma-display" id="cd_add"></span></div><div class="note">가산조정</div></div>
+      <div class="row"><div class="lbl">(−) 손금산입·익금불산입</div><div class="input-cell"><input type="number" id="sub" value="0" oninput="calc()" onfocus="hideComma(this)" onblur="showComma(this)"><span class="comma-display" id="cd_sub"></span></div><div class="note">차감조정</div></div>
+      <div class="row sub-tot"><div class="lbl">각 사업연도 소득금액</div><div class="auto-cell" id="r_income">0</div></div>
+    </div>
+
+    <div class="section-hdr minus"><div class="num">2</div>과세표준</div>
+    <div class="section-body">
+      <div class="row"><div class="lbl">(−) 이월결손금</div><div class="input-cell"><input type="number" id="loss" value="0" oninput="calc()" onfocus="hideComma(this)" onblur="showComma(this)"><span class="comma-display" id="cd_loss"></span></div><div class="note">최대 15년·각 80% 한도</div></div>
+      <div id="warn_loss" class="warn-box">이월결손금이 소득금액의 80%를 초과합니다 (일반법인 한도 주의)</div>
+      <div class="row"><div class="lbl">(−) 비과세소득</div><div class="input-cell"><input type="number" id="nontax" value="0" oninput="calc()" onfocus="hideComma(this)" onblur="showComma(this)"><span class="comma-display" id="cd_nontax"></span></div></div>
+      <div class="row"><div class="lbl">(−) 소득공제</div><div class="input-cell"><input type="number" id="deduct" value="0" oninput="calc()" onfocus="hideComma(this)" onblur="showComma(this)"><span class="comma-display" id="cd_deduct"></span></div></div>
+      <div class="row sub-tot"><div class="lbl">과세표준</div><div class="auto-cell" id="r_base">0</div></div>
+      <div id="warn_base" class="warn-box">과세표준이 음수(0원 이하)입니다 — 결손금 이월 대상</div>
+    </div>
+
+    <div class="section-hdr"><div class="num">3</div>산출세액 (누진세율)</div>
+    <div class="section-body">
+      <div class="row sub-tot"><div class="lbl">산출세액</div><div class="auto-cell" id="r_calc">0</div></div>
+      <div class="note" style="padding:6px 0" id="r_bracket"></div>
+      <div class="row"><div class="lbl">(−) 세액공제·감면</div><div class="input-cell"><input type="number" id="credit" value="0" oninput="calc()" onfocus="hideComma(this)" onblur="showComma(this)"><span class="comma-display" id="cd_credit"></span></div><div class="note">통합투자·고용 등</div></div>
+      <div class="row"><div class="lbl">(+) 가산세</div><div class="input-cell"><input type="number" id="penalty" value="0" oninput="calc()" onfocus="hideComma(this)" onblur="showComma(this)"><span class="comma-display" id="cd_penalty"></span></div></div>
+      <div class="row"><div class="lbl">(−) 기납부세액</div><div class="input-cell"><input type="number" id="prepaid" value="0" oninput="calc()" onfocus="hideComma(this)" onblur="showComma(this)"><span class="comma-display" id="cd_prepaid"></span></div><div class="note">중간예납·원천납부 등</div></div>
+      <div id="warn_large" class="warn-box">1조원을 초과하는 입력값이 있습니다 — 입력 내용을 확인해주세요</div>
+    </div>
+    <div class="result-box" id="result_primary"><div class="label">차감 납부할 법인세</div><div class="value" id="r_final">0 원</div><div class="detail" id="r_detail"></div></div>
+    <div class="result-box" style="background:#fff;border-top:1px dashed var(--border);padding:18px"><div class="label" style="font-size:16px">지방소득세(법인세분, 10%)</div><div class="value" id="r_local" style="font-size:26px;color:var(--navy)">0 원</div><div class="detail">산출세액 기준 별도 신고·납부 (총부담 <span id="r_grand">0</span>원)</div></div>
+
+    <!-- Verification Box -->
+    <div class="verify-box" id="verify_box">
+      <h4>🔍 계산 검증</h4>
+      <div id="verify_content"></div>
+      <div id="verify_result"></div>
+      <div id="verify_warnings"></div>
+    </div>
+
+    <div class="section-hdr"><div class="num">4</div>법인세 세율표 (2026 사업연도~)</div>
+    <div class="section-body">
+      <table><thead><tr><th>과세표준</th><th>세율</th><th>누진공제</th></tr></thead><tbody>
+        <tr><td class="c">2억원 이하</td><td class="c">10%</td><td>-</td></tr>
+        <tr><td class="c">2억 ~ 200억원</td><td class="c">20%</td><td>2,000만원</td></tr>
+        <tr><td class="c">200억 ~ 3,000억원</td><td class="c">22%</td><td>4억 2,000만원</td></tr>
+        <tr><td class="c">3,000억원 초과</td><td class="c">25%</td><td>94억 2,000만원</td></tr>
+      </tbody></table>
+    </div>
+    <div class="disclaimer">※ 일반 영리법인 기준 4단계 누진세율입니다. <b>2025년 개정으로 2026년 개시 사업연도부터 세율이 10·20·22·25%로 환원</b>되었습니다(법인세법 §55, 시행 2026-01-02 / 법제처 확인). <b>이월결손금</b>은 중소기업 외 일반법인은 각 사업연도 소득의 80% 한도로 공제됩니다. 최저한세·토지등양도소득 법인세·조특법상 감면 한도 등 세부 항목은 미반영이니 담당 세무사와 확인하세요.</div>
+  </div>
+</div>
+
+<script>
+const TRILLION = 1000000000000; // 1조원
+const fmt = n => {
+  if (n == null || isNaN(n)) return '0';
+  const neg = n < 0;
+  const a = Math.abs(Math.round(n)).toLocaleString('ko-KR');
+  return neg ? '-' + a : a;
+};
+const v = id => {
+  const raw = document.getElementById(id).value;
+  const num = parseFloat(String(raw).replace(/,/g, ''));
+  return isNaN(num) ? 0 : num;
+};
+
+// Comma display for inputs
+function updateCommaDisplay(id) {
+  const el = document.getElementById('cd_' + id);
+  if (!el) return;
+  const val = v(id);
+  if (val === 0 || document.getElementById(id) === document.activeElement) {
+    el.style.opacity = '0';
+  } else {
+    el.textContent = fmt(val) + '원';
+    el.style.opacity = '1';
+  }
+}
+function hideComma(input) {
+  const cd = input.nextElementSibling;
+  if (cd && cd.classList.contains('comma-display')) cd.style.opacity = '0';
+}
+function showComma(input) {
+  const id = input.id;
+  updateCommaDisplay(id);
+}
+const inputIds = ['net', 'add', 'sub', 'loss', 'nontax', 'deduct', 'credit', 'penalty', 'prepaid'];
+
+// Input validation
+function validateInputs() {
+  let hasLarge = false;
+  inputIds.forEach(id => {
+    const el = document.getElementById(id);
+    const val = v(id);
+    const isNeg = val < 0;
+    const isLarge = Math.abs(val) > TRILLION;
+    if (isNeg || isLarge) {
+      el.classList.add('input-error');
+    } else {
+      el.classList.remove('input-error');
+    }
+    if (isLarge) hasLarge = true;
+  });
+  return hasLarge;
+}
+
+// Animation helpers
+function flashAutoCell(id) {
+  const el = document.getElementById(id);
+  el.classList.remove('flash-auto');
+  void el.offsetWidth; // reflow
+  el.classList.add('flash-auto');
+}
+function pulseResult() {
+  const el = document.getElementById('result_primary');
+  el.classList.remove('pulse-result');
+  void el.offsetWidth;
+  el.classList.add('pulse-result');
+}
+function popValue() {
+  const el = document.getElementById('r_final');
+  el.classList.remove('pop-value');
+  void el.offsetWidth;
+  el.classList.add('pop-value');
+}
+
+// Tax calculation (EXACT same logic as original)
+function corpTax(b) {
+  if (b <= 0) return [0, '-'];
+  if (b <= 200000000) return [b * 0.10, '2억 이하 10%'];
+  if (b <= 20000000000) return [b * 0.20 - 20000000, '2억~200억 20%'];
+  if (b <= 300000000000) return [b * 0.22 - 420000000, '200억~3,000억 22%'];
+  return [b * 0.25 - 9420000000, '3,000억 초과 25%'];
+}
+
+// Step-by-step progressive tax breakdown
+function corpTaxBreakdown(b) {
+  const steps = [];
+  if (b <= 0) return { steps: steps, total: 0 };
+
+  // Bracket 1: 0 ~ 2억
+  const b1 = Math.min(b, 200000000);
+  const t1 = b1 * 0.10;
+  steps.push({ range: '0 ~ 2억', amount: b1, rate: 0.10, ratePct: '10%', tax: t1 });
+
+  if (b > 200000000) {
+    // Bracket 2: 2억 ~ 200억
+    const b2 = Math.min(b, 20000000000) - 200000000;
+    const t2 = b2 * 0.20;
+    steps.push({ range: '2억 ~ 200억', amount: b2, rate: 0.20, ratePct: '20%', tax: t2 });
+  }
+  if (b > 20000000000) {
+    // Bracket 3: 200억 ~ 3,000억
+    const b3 = Math.min(b, 300000000000) - 20000000000;
+    const t3 = b3 * 0.22;
+    steps.push({ range: '200억 ~ 3,000억', amount: b3, rate: 0.22, ratePct: '22%', tax: t3 });
+  }
+  if (b > 300000000000) {
+    // Bracket 4: 3,000억 초과
+    const b4 = b - 300000000000;
+    const t4 = b4 * 0.25;
+    steps.push({ range: '3,000억 초과', amount: b4, rate: 0.25, ratePct: '25%', tax: t4 });
+  }
+
+  const total = steps.reduce((s, st) => s + st.tax, 0);
+  return { steps: steps, total: total };
+}
+
+// Build verification section
+function buildVerification(base, calcTax, income) {
+  const container = document.getElementById('verify_content');
+  const resultEl = document.getElementById('verify_result');
+  const warnEl = document.getElementById('verify_warnings');
+  let html = '';
+  let warnHtml = '';
+
+  if (base <= 0) {
+    html = '<div class="verify-row"><span class="vr-label">과세표준이 0원 이하이므로 산출세액 없음</span><span class="vr-value">0원</span></div>';
+    resultEl.innerHTML = '<div class="verify-ok">✓ 검증 완료 — 세액 0원 확인</div>';
+  } else {
+    const breakdown = corpTaxBreakdown(base);
+    breakdown.steps.forEach(st => {
+      html += '<div class="verify-row">' +
+        '<span class="vr-label">' + st.range + ': ' + fmt(st.amount) + '원 x ' + st.ratePct + '</span>' +
+        '<span class="vr-value">' + fmt(st.tax) + '원</span>' +
+        '</div>';
+    });
+    html += '<div class="verify-row" style="border-top:2px solid var(--border);padding-top:8px;font-weight:800">' +
+      '<span class="vr-label">누진계산 합계</span>' +
+      '<span class="vr-value">' + fmt(breakdown.total) + '원</span>' +
+      '</div>';
+    html += '<div class="verify-row" style="color:var(--blue)">' +
+      '<span class="vr-label">누진공제 방식 산출세액</span>' +
+      '<span class="vr-value">' + fmt(calcTax) + '원</span>' +
+      '</div>';
+
+    // Compare: allow rounding tolerance of 1원
+    const diff = Math.abs(Math.round(breakdown.total) - Math.round(calcTax));
+    if (diff <= 1) {
+      resultEl.innerHTML = '<div class="verify-ok">✓ 검증 완료 — 누진계산과 누진공제 방식 일치</div>';
+    } else {
+      resultEl.innerHTML = '<div class="verify-fail">⚠ 검증 실패 — 차이: ' + fmt(diff) + '원 (누진계산 합계와 불일치)</div>';
+    }
+  }
+
+  // Warnings
+  const lossVal = v('loss');
+  const limit80 = income * 0.8;
+  if (income > 0 && lossVal > limit80) {
+    warnHtml += '<div style="color:#991B1B;font-size:13px;margin-top:6px">⚠ 이월결손금(' + fmt(lossVal) + '원)이 소득금액의 80%(' + fmt(limit80) + '원)를 초과합니다. 일반법인 공제한도를 확인하세요.</div>';
+  }
+  if (base < 0 || (income - lossVal - v('nontax') - v('deduct')) < 0) {
+    warnHtml += '<div style="color:#991B1B;font-size:13px;margin-top:6px">⚠ 공제 전 과세표준이 음수입니다 — 0원으로 처리되었습니다.</div>';
+  }
+
+  container.innerHTML = html;
+  warnEl.innerHTML = warnHtml;
+}
+
+function calc() {
+  // Validate inputs
+  const hasLarge = validateInputs();
+  const warnLarge = document.getElementById('warn_large');
+  if (hasLarge) { warnLarge.classList.add('show'); } else { warnLarge.classList.remove('show'); }
+
+  // Step 1: income
+  const income = v('net') + v('add') - v('sub');
+  document.getElementById('r_income').textContent = fmt(income);
+  flashAutoCell('r_income');
+
+  // Step 2: tax base
+  const lossVal = v('loss');
+  const limit80 = income > 0 ? income * 0.8 : 0;
+  const warnLoss = document.getElementById('warn_loss');
+  const warnBase = document.getElementById('warn_base');
+
+  if (income > 0 && lossVal > limit80) {
+    warnLoss.classList.add('show');
+  } else {
+    warnLoss.classList.remove('show');
+  }
+
+  const rawBase = income - lossVal - v('nontax') - v('deduct');
+  const base = Math.max(0, rawBase);
+  document.getElementById('r_base').textContent = fmt(base);
+  flashAutoCell('r_base');
+
+  if (rawBase < 0) {
+    warnBase.classList.add('show');
+  } else {
+    warnBase.classList.remove('show');
+  }
+
+  // Step 3: tax calculation (EXACT same as original)
+  const [calcTax, bracket] = corpTax(base);
+  document.getElementById('r_calc').textContent = fmt(calcTax);
+  document.getElementById('r_bracket').textContent = '적용구간: ' + bracket;
+  flashAutoCell('r_calc');
+
+  const final = calcTax - v('credit') + v('penalty') - v('prepaid');
+  document.getElementById('r_final').textContent = fmt(final) + ' 원';
+  document.getElementById('r_detail').textContent = '산출세액 ' + fmt(calcTax) + (v('credit') ? ' − 공제 ' + fmt(v('credit')) : '') + (v('prepaid') ? ' − 기납부 ' + fmt(v('prepaid')) : '') + (final < 0 ? ' → 환급' : '');
+
+  const local = Math.max(0, calcTax - v('credit')) * 0.1;
+  document.getElementById('r_local').textContent = fmt(local) + ' 원';
+  document.getElementById('r_grand').textContent = fmt(Math.max(0, final) + local);
+
+  // Animations
+  pulseResult();
+  popValue();
+
+  // Update comma displays
+  inputIds.forEach(id => updateCommaDisplay(id));
+
+  // Build verification
+  buildVerification(base, calcTax, income);
+}
+
+// Initial calculation
+calc();
+</script>
+<script>if(window.self!==window.top){var _ifs=document.createElement('style');_ifs.textContent='.top-bar,.brand-bar,.standalone-back{display:none!important}body{padding-bottom:14px}';document.head.appendChild(_ifs);}</script>
+</body>
+</html>

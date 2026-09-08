@@ -1,0 +1,73 @@
+{
+  "name": "세무법인 한백택스 · 세무 도구 모음",
+  "short_name": "한백택스",
+  "description": "세무법인 한백택스 세무 계산기·시뮬레이터 모음 — 양도·증여·상속·종합소득세·연말정산·4대보험·업종코드 검색",
+  "start_url": "./index.html",
+  "scope": "./",
+  "id": "/hanbaektax-tools/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "portrait-primary",
+  "background_color": "#1B3A5C",
+  "theme_color": "#1B3A5C",
+  "lang": "ko",
+  "dir": "ltr",
+  "categories": ["finance", "business", "productivity", "utilities"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "업종코드 빠른검색",
+      "short_name": "업종코드",
+      "description": "자연어·초성으로 업종코드와 경비율을 찾습니다",
+      "url": "./업종코드_빠른검색_v5_모바일.html",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "급여 실수령액",
+      "short_name": "실수령액",
+      "description": "세후 월급을 계산합니다",
+      "url": "./한백택스_급여실수령액_계산기.html",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "양도소득세 계산기",
+      "short_name": "양도세",
+      "description": "양도차익과 세액을 계산합니다",
+      "url": "./2026_양도소득세_계산기.html",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "세금신고기한 캘린더",
+      "short_name": "신고기한",
+      "description": "신고 마감일을 확인합니다",
+      "url": "./한백택스_세금신고기한_캘린더.html",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}

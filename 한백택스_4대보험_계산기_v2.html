@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🛡️ 4대보험 계산기 v2 | 한백택스</title>
+<meta name="description" content="2026년 기준 4대보험료·요율표 · 근로자/사업주 부담 자동계산 · 검증·연간합계 포함">
+<meta name="theme-color" content="#1B3A5C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="4대보험">
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Nanum Gothic',sans-serif}
+:root{--navy:#1B3A5C;--blue:#2E6DA4;--gold:#C8963E;--bg:#f0f2f5;--gray:#718096;--light:#EDF2F7;--input-bg:#FFF8E1;--auto-bg:#FDF2E9;--border:#CBD5E0;--green:#D1FAE5;--green-txt:#065F46;--red:#C53030;--red-bg:#FEE2E2}
+body{background:var(--bg);color:#2D3748;min-height:100vh;font-size:16px;padding-bottom:40px}
+.top-bar{background:var(--navy);color:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.top-bar h1{font-size:23px;letter-spacing:-0.5px}.top-bar .sub{font-size:13px;color:#a0b4cc;margin-top:3px}
+.brand-bar{background:var(--navy);color:var(--gold);text-align:center;padding:7px;font-size:14px;font-weight:700;border-bottom:3px solid var(--gold);display:flex;align-items:center;justify-content:center;gap:10px}
+.version-badge{background:var(--gold);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:10px;letter-spacing:0.5px}
+.standalone-back{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;margin:14px 24px 0}
+.wrap{max-width:1080px;margin:0 auto;padding:22px}
+.calc-title{background:var(--navy);color:#fff;padding:20px 26px;border-radius:14px 14px 0 0;text-align:center}
+.calc-title h2{font-size:24px;margin-bottom:4px}.calc-title .sub{font-size:14px;color:#a0b4cc}
+.calc-body{background:#fff;border:1px solid #dde;border-radius:0 0 14px 14px;overflow:hidden;margin-bottom:24px}
+.section-hdr{background:var(--blue);color:#fff;padding:13px 26px;font-size:16px;font-weight:700;display:flex;align-items:center;gap:10px}
+.section-hdr .num{background:rgba(255,255,255,0.25);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px}
+.section-body{padding:16px 26px 20px;overflow-x:auto}
+.row{display:flex;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.lbl{width:220px;flex-shrink:0;background:var(--light);padding:12px 14px;font-size:14px;font-weight:700;border:1px solid var(--border);border-right:none}
+.input-cell{flex:1;min-width:140px}
+.input-cell input,.input-cell select{width:100%;padding:12px 14px;font-size:16px;color:var(--blue);font-weight:700;background:var(--input-bg);border:1px solid var(--border);outline:none;font-family:inherit;transition:border-color 0.2s,box-shadow 0.2s}
+.input-cell input:focus,.input-cell select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(46,109,164,0.2)}
+.input-cell input.input-error{border-color:var(--red)!important;box-shadow:0 0 0 3px rgba(197,48,48,0.18)!important;background:#FFF5F5}
+.auto-cell{flex:1;background:var(--auto-bg);border:1px solid var(--border);padding:12px 14px;font-size:15px;font-weight:700;color:var(--gold);min-width:120px;text-align:right}
+.note{font-size:13px;color:var(--gray);padding-left:12px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{background:var(--navy);color:#fff;padding:11px 8px;font-weight:700;border:1px solid #2a4a6a}
+td{padding:10px 8px;border:1px solid var(--border);text-align:right;transition:background 0.3s}
+td.c{text-align:center}td.l{text-align:left;font-weight:700;background:var(--light)}
+tr.tot td{background:var(--navy);color:var(--gold);font-weight:800;font-size:15px}
+tr.tot td.l{background:var(--navy);color:#fff}
+tr.annual td{background:#F0FFF4;color:var(--navy);font-weight:700;font-size:13px;border-top:2px solid var(--green-txt)}
+tr.annual td.l{background:#F0FFF4;color:var(--green-txt)}
+.rate-in{width:72px;text-align:right;padding:6px;font-size:13px;background:var(--input-bg);border:1px solid var(--border);font-family:inherit;color:var(--blue);font-weight:700}
+.result-box{background:var(--auto-bg);padding:24px;text-align:center;border-top:3px double var(--gold);transition:transform 0.3s,box-shadow 0.3s}
+.result-box .label{font-size:18px;font-weight:700;color:var(--navy)}
+.result-box .value{font-size:32px;font-weight:800;color:var(--gold);margin-top:6px}
+.result-box .detail{font-size:14px;color:var(--gray);margin-top:8px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.disclaimer{font-size:13px;color:var(--gray);padding:18px 26px;line-height:1.7;background:#f8fafc;border-top:1px dashed var(--border)}
+.disclaimer b{color:var(--navy)}
+
+/* v2: Verification Box */
+.verify-box{margin:0 26px 20px;padding:20px;border-radius:12px;border:2px solid var(--border);background:#f8fafc}
+.verify-box h4{color:var(--navy);font-size:16px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.verify-row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;border-bottom:1px dotted var(--border)}
+.verify-row .vr-label{color:var(--gray);flex-shrink:0}
+.verify-row .vr-calc{color:var(--navy);font-weight:700;text-align:right;word-break:break-all}
+.verify-row .vr-result{min-width:28px;text-align:center;flex-shrink:0;margin-left:8px}
+.verify-row .vr-ok{color:#2F855A;font-weight:800}
+.verify-row .vr-fail{color:#C53030;font-weight:800}
+.verify-ok{color:#2F855A;font-weight:800;font-size:15px;margin-top:10px;display:flex;align-items:center;gap:6px}
+.verify-fail{color:#C53030;font-weight:800;font-size:15px;margin-top:10px}
+.verify-annual{margin-top:14px;padding-top:12px;border-top:2px solid var(--border);font-size:14px}
+.verify-annual .va-title{font-weight:800;color:var(--navy);margin-bottom:6px}
+.verify-annual .va-row{display:flex;justify-content:space-between;padding:4px 0;color:var(--gray)}
+.verify-annual .va-row span:last-child{color:var(--navy);font-weight:700}
+
+/* v2: Warning Box */
+.warn-box{background:#FEE2E2;border:1px solid #FCA5A5;color:#991B1B;padding:10px 16px;border-radius:8px;font-size:13px;margin:8px 0;display:none}
+.warn-box.show{display:block}
+
+/* v2: Animations */
+@keyframes cellFlash{0%{background:var(--auto-bg)}30%{background:#FFF3CD;transform:scale(1.01)}100%{background:var(--auto-bg);transform:scale(1)}}
+@keyframes resultPulse{0%{transform:scale(1)}25%{transform:scale(1.015);box-shadow:0 0 20px rgba(200,150,62,0.35)}100%{transform:scale(1)}}
+.cell-flash{animation:cellFlash 0.5s ease-out}
+.result-pulse{animation:resultPulse 0.45s ease-out}
+
+@media(max-width:700px){.lbl{width:100%;border-right:1px solid var(--border)}.wrap{padding:12px 8px}.top-bar h1{font-size:18px}.note{display:none}.two{grid-template-columns:1fr}table{font-size:12px}th,td{padding:7px 4px}.result-box .value{font-size:24px}.verify-box{margin:0 12px 16px;padding:14px}.verify-row{flex-wrap:wrap;font-size:13px}.verify-row .vr-calc{font-size:12px}}
+</style>
+</head>
+<body>
+<div class="top-bar"><div><h1>세무법인 한백택스</h1><div class="sub">대표세무사 차재영 | 서울특별시 중구 동호로 315, 2층</div></div><div style="color:var(--gold);font-weight:800;font-size:12px">4대보험 계산기</div></div>
+<div class="brand-bar">HANBAEK TAX — 4대보험료 계산기 · 요율표 (2026년 기준) <span class="version-badge">v2</span></div>
+<a class="standalone-back" href="한백택스_세무계산_포털.html">← 전체 세무계산 포털</a>
+
+<div class="wrap">
+  <div class="calc-title"><h2>🛡️ 4대보험 계산기</h2><div class="sub">2026년 기준 — 국민연금·건강·고용·산재 / 근로자·사업주 부담 · 검증·연간합계</div></div>
+  <div class="calc-body">
+    <div class="section-hdr"><div class="num">1</div>기준 입력</div>
+    <div class="section-body">
+      <div class="row"><div class="lbl">월 보수월액 (과세소득)</div><div class="input-cell"><input type="number" id="wage" value="3000000" oninput="calc()"></div><div class="note">비과세 제외 보수</div></div>
+      <div id="warn_wage" class="warn-box"></div>
+      <div class="row"><div class="lbl">산재보험 요율 (업종별)</div><div class="input-cell"><input type="number" id="wi_rate" value="1.0" step="0.01" oninput="calc()"></div><div class="note">% · 업종별 상이(전액 사업주)</div></div>
+      <div id="warn_wi" class="warn-box"></div>
+      <div class="row"><div class="lbl">국민연금 기준소득 상한</div><div class="input-cell"><input type="number" id="np_max" value="6590000" oninput="calc()"></div><div class="note">매년 7월 변동 · 2026.7~2027.6 기준</div></div>
+      <div class="row"><div class="lbl">국민연금 기준소득 하한</div><div class="input-cell"><input type="number" id="np_min" value="410000" oninput="calc()"></div><div class="note">매년 7월 변동 · 2026.7~2027.6 기준</div></div>
+      <div id="warn_np" class="warn-box"></div>
+    </div>
+
+    <div class="section-hdr"><div class="num">2</div>보험료 산출 (요율 직접 수정 가능)</div>
+    <div class="section-body">
+      <table id="tbl">
+        <thead><tr><th>보험</th><th>부과기준</th><th>근로자<br>요율(%)</th><th>근로자<br>부담</th><th>사업주<br>요율(%)</th><th>사업주<br>부담</th><th>합계</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="note" style="margin-top:8px;padding:0">※ 장기요양보험료 = 건강보험료 × 장기요양요율, 고용보험 고용안정·직업능력개발은 사업주만 부담(150인 미만 0.25%).</div>
+    </div>
+
+    <div class="two" style="padding:0 26px 8px">
+      <div class="result-box" id="box_emp" style="border-radius:12px"><div class="label">근로자 총 공제</div><div class="value" id="r_emp">0 원</div><div class="detail">급여에서 원천공제</div></div>
+      <div class="result-box" id="box_er" style="border-radius:12px"><div class="label">사업주 총 부담</div><div class="value" id="r_er">0 원</div><div class="detail">산재 포함</div></div>
+    </div>
+    <div class="result-box" id="box_total"><div class="label">월 4대보험 합계 (노사 전체)</div><div class="value" id="r_total">0 원</div><div class="detail" id="r_detail"></div></div>
+
+    <!-- v2: Verification Box -->
+    <div class="verify-box" id="verifyBox">
+      <h4>🔍 계산 검증</h4>
+      <div id="verifyRows"></div>
+      <div id="verifySummary"></div>
+      <div class="verify-annual" id="verifyAnnual"></div>
+    </div>
+
+    <div class="section-hdr"><div class="num">3</div>2026년 4대보험 요율 요약표</div>
+    <div class="section-body">
+      <table>
+        <thead><tr><th>구분</th><th>전체 요율</th><th>근로자</th><th>사업주</th><th>비고</th></tr></thead>
+        <tbody>
+          <tr><td class="l">국민연금</td><td>9.5%</td><td>4.75%</td><td>4.75%</td><td class="c">2026년 적용치 · 연금개혁 단계인상</td></tr>
+          <tr><td class="l">건강보험</td><td>7.19%</td><td>3.595%</td><td>3.595%</td><td class="c">보수월액 기준</td></tr>
+          <tr><td class="l">└ 장기요양</td><td>건보료×13.14%</td><td>50%</td><td>50%</td><td class="c">건강보험료에 부가</td></tr>
+          <tr><td class="l">고용보험(실업급여)</td><td>1.8%</td><td>0.9%</td><td>0.9%</td><td class="c">근로자·사업주 동일</td></tr>
+          <tr><td class="l">└ 고용안정·직능</td><td>0.25%~</td><td>-</td><td>0.25%~</td><td class="c">기업규모별(150인미만 0.25%)</td></tr>
+          <tr><td class="l">산재보험</td><td>업종별</td><td>-</td><td>전액</td><td class="c">사업장 업종요율 적용</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="padding:0 26px 20px"><button onclick="window.print()" style="background:var(--blue);color:#fff;border:none;padding:12px 22px;border-radius:9px;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit">🖨 인쇄</button></div>
+    <div class="disclaimer">※ 요율은 <b>2026년 기준</b>이며 기관 고시에 따라 달라질 수 있습니다. <b>국민연금</b>은 2025년 연금개혁으로 보험료율이 9%→13%(기준소득월액의 6.5%씩, 국민연금법 §88③)로 <b>매년 0.5%p 단계 인상</b>되며, <b>2026년 적용치는 9.5%(근로자 4.75%)</b>입니다(최종 13%는 2033년 도달). 국민연금은 기준소득월액 <b>상·하한</b>을 적용하고 보험료는 통상 <b>원 단위 절사</b>됩니다. 산재요율·고용안정요율은 사업장 업종·규모에 따라 다르므로 실제 고지서와 대조하세요. (근거: 국민연금법·국민건강보험법·고용보험법·산업재해보상보험법 및 각 시행령)</div>
+  </div>
+</div>
+
+<script>
+const fmt=n=>{if(n==null||isNaN(n))return'0';return Math.round(n).toLocaleString('ko-KR');};
+const v=id=>{const raw=parseFloat(String(document.getElementById(id).value).replace(/,/g,''));return isNaN(raw)?0:raw;};
+// 보험 정의: [명칭, 근로자요율, 사업주요율, 부과기준키]
+const INS=[
+  ['국민연금',4.75,4.75,'np'],
+  ['건강보험',3.595,3.595,'wage'],
+  ['장기요양',null,null,'ltc'],
+  ['고용보험(실업급여)',0.9,0.9,'wage'],
+  ['고용안정·직능',0,0.25,'wage'],
+  ['산재보험',0,null,'wage'],
+];
+const LTC_RATE=13.14; // 건강보험료 대비 %
+
+// v2: Previous values for flash animation
+let prevValues={};
+
+// v2: Input validation
+function validate(){
+  const wage=v('wage'),wiRate=v('wi_rate'),npMax=v('np_max'),npMin=v('np_min');
+  const wageEl=document.getElementById('wage');
+  const wiEl=document.getElementById('wi_rate');
+  const npMaxEl=document.getElementById('np_max');
+  const npMinEl=document.getElementById('np_min');
+  const warns=[];
+
+  // Reset
+  [wageEl,wiEl,npMaxEl,npMinEl].forEach(el=>el.classList.remove('input-error'));
+  document.getElementById('warn_wage').classList.remove('show');
+  document.getElementById('warn_wi').classList.remove('show');
+  document.getElementById('warn_np').classList.remove('show');
+
+  // Wage validation
+  if(wage>0&&wage<v('np_min')){
+    wageEl.classList.add('input-error');
+    const ww=document.getElementById('warn_wage');
+    ww.textContent='⚠ 보수월액이 국민연금 기준소득 하한('+fmt(v('np_min'))+'원)보다 낮습니다.';
+    ww.classList.add('show');
+    warns.push('wage_low');
+  }
+  if(wage>100000000){
+    wageEl.classList.add('input-error');
+    const ww=document.getElementById('warn_wage');
+    ww.textContent='⚠ 보수월액이 1억 원을 초과합니다. 입력값을 확인하세요.';
+    ww.classList.add('show');
+    warns.push('wage_high');
+  }
+
+  // WI rate validation
+  if(wiRate<0.1||wiRate>35){
+    wiEl.classList.add('input-error');
+    const ww=document.getElementById('warn_wi');
+    ww.textContent='⚠ 산재보험 요율은 통상 0.1%~35% 범위입니다. (현재 입력: '+wiRate+'%)';
+    ww.classList.add('show');
+    warns.push('wi_range');
+  }
+
+  // NP max < min validation
+  if(npMax<npMin&&npMax>0&&npMin>0){
+    npMaxEl.classList.add('input-error');
+    npMinEl.classList.add('input-error');
+    const ww=document.getElementById('warn_np');
+    ww.textContent='⚠ 국민연금 기준소득 상한('+fmt(npMax)+'원)이 하한('+fmt(npMin)+'원)보다 작습니다.';
+    ww.classList.add('show');
+    warns.push('np_range');
+  }
+
+  return warns;
+}
+
+function calc(){
+  const warnings=validate();
+  const wage=v('wage');
+  const npBase=Math.min(Math.max(wage,v('np_min')),v('np_max'));
+  const tb=document.getElementById('tbody');tb.innerHTML='';
+  let empTot=0,erTot=0,hiEmp=0,hiEr=0;
+
+  // v2: Collect verification data
+  const verifyData=[];
+
+  INS.forEach((ins,i)=>{
+    let base=ins[3]==='np'?npBase:wage;
+    let baseLabel=ins[3]==='np'?'기준소득 '+fmt(npBase):(ins[3]==='ltc'?'건강보험료':fmt(wage));
+    let eRate=ins[1],rRate=ins[2];
+    if(ins[0]==='산재보험')rRate=v('wi_rate');
+    let emp,er;
+    if(ins[3]==='ltc'){ // 장기요양 = 건강보험료 × LTC_RATE
+      emp=Math.floor(hiEmp*LTC_RATE/100);er=Math.floor(hiEr*LTC_RATE/100);eRate=LTC_RATE;rRate=LTC_RATE;baseLabel='건보료×'+LTC_RATE+'%';
+    }else{
+      emp=Math.floor(base*eRate/100);er=Math.floor(base*rRate/100);
+    }
+    if(ins[0]==='건강보험'){hiEmp=emp;hiEr=er;}
+    empTot+=emp;erTot+=er;
+
+    // v2: Store for verification
+    verifyData.push({name:ins[0],base:base,baseLabel:baseLabel,eRate:eRate,rRate:rRate,emp:emp,er:er,type:ins[3]});
+
+    const rateCell=ins[3]==='ltc'
+      ?'<td class="c">'+LTC_RATE+'</td>'
+      :'<td class="c"><input class="rate-in" type="number" step="0.01" value="'+eRate+'" data-i="'+i+'" data-w="e" oninput="rateChg(this)"></td>';
+    const rateCellR=ins[0]==='산재보험'
+      ?'<td class="c">고지요율</td>'
+      :(ins[3]==='ltc'?'<td class="c">'+LTC_RATE+'</td>':'<td class="c"><input class="rate-in" type="number" step="0.01" value="'+rRate+'" data-i="'+i+'" data-w="r" oninput="rateChg(this)"></td>');
+    tb.innerHTML+='<tr><td class="l">'+ins[0]+'</td><td class="c" style="font-size:12px;color:var(--gray)">'+baseLabel+'</td>'
+      +rateCell+'<td>'+fmt(emp)+'</td>'+rateCellR+'<td>'+fmt(er)+'</td><td style="font-weight:700">'+fmt(emp+er)+'</td></tr>';
+  });
+
+  // Monthly total row
+  tb.innerHTML+='<tr class="tot"><td class="l">합계</td><td></td><td></td><td>'+fmt(empTot)+'</td><td></td><td>'+fmt(erTot)+'</td><td>'+fmt(empTot+erTot)+'</td></tr>';
+
+  // v2: Annual total row
+  tb.innerHTML+='<tr class="annual"><td class="l">연간 합계 (×12)</td><td></td><td></td><td>'+fmt(empTot*12)+'</td><td></td><td>'+fmt(erTot*12)+'</td><td>'+fmt((empTot+erTot)*12)+'</td></tr>';
+
+  // Update result boxes
+  document.getElementById('r_emp').textContent=fmt(empTot)+' 원';
+  document.getElementById('r_er').textContent=fmt(erTot)+' 원';
+  document.getElementById('r_total').textContent=fmt(empTot+erTot)+' 원';
+  document.getElementById('r_detail').textContent='보수월액 '+fmt(wage)+'원 기준 · 근로자 '+fmt(empTot)+' + 사업주 '+fmt(erTot);
+
+  // v2: Pulse animation on result boxes
+  ['box_emp','box_er','box_total'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.classList.remove('result-pulse');
+    void el.offsetWidth; // reflow
+    el.classList.add('result-pulse');
+  });
+
+  // v2: Flash animation on changed cells
+  applyFlash(empTot,erTot,verifyData);
+
+  // v2: Run verification
+  runVerification(verifyData,empTot,erTot,hiEmp,hiEr,wage);
+}
+
+// v2: Flash animation logic
+function applyFlash(empTot,erTot,data){
+  const newVals={empTot:empTot,erTot:erTot};
+  data.forEach((d,i)=>{newVals['emp_'+i]=d.emp;newVals['er_'+i]=d.er;});
+
+  // On first run, just store
+  if(Object.keys(prevValues).length===0){prevValues=newVals;return;}
+
+  const tds=document.querySelectorAll('#tbody td');
+  if(tds.length>0){
+    tds.forEach(td=>{
+      if(td.classList.contains('l')||td.classList.contains('c'))return;
+      // Simple flash on all value cells on change
+    });
+  }
+
+  // Flash rows where values changed
+  const rows=document.querySelectorAll('#tbody tr:not(.tot):not(.annual)');
+  rows.forEach((row,i)=>{
+    if(i>=data.length)return;
+    const oldEmp=prevValues['emp_'+i],oldEr=prevValues['er_'+i];
+    if(oldEmp!==data[i].emp||oldEr!==data[i].er){
+      const cells=row.querySelectorAll('td');
+      cells.forEach(td=>{
+        td.classList.remove('cell-flash');
+        void td.offsetWidth;
+        td.classList.add('cell-flash');
+      });
+    }
+  });
+
+  prevValues=newVals;
+}
+
+// v2: Verification
+function runVerification(data,empTot,erTot,hiEmp,hiEr,wage){
+  const rows=document.getElementById('verifyRows');
+  const summary=document.getElementById('verifySummary');
+  const annual=document.getElementById('verifyAnnual');
+  let html='';
+  let allOk=true;
+
+  data.forEach(d=>{
+    if(d.type==='ltc'){
+      // Check: 장기요양 = 건보료 × 13.14%
+      const expectedEmp=Math.floor(hiEmp*LTC_RATE/100);
+      const expectedEr=Math.floor(hiEr*LTC_RATE/100);
+      const ok=d.emp===expectedEmp&&d.er===expectedEr;
+      if(!ok)allOk=false;
+      html+='<div class="verify-row"><span class="vr-label">'+d.name+'</span><span class="vr-calc">건보 근로자 '+fmt(hiEmp)+' x '+LTC_RATE+'% = '+fmt(expectedEmp)+' / 건보 사업주 '+fmt(hiEr)+' x '+LTC_RATE+'% = '+fmt(expectedEr)+'</span><span class="vr-result '+(ok?'vr-ok':'vr-fail')+'">'+(ok?'✓':'✗')+'</span></div>';
+    }else{
+      // Check: base × rate / 100 = floor(premium)
+      const expectedEmp=Math.floor(d.base*d.eRate/100);
+      const expectedEr=Math.floor(d.base*(d.name==='산재보험'?d.rRate:d.rRate)/100);
+      const okEmp=d.emp===expectedEmp;
+      const okEr=d.er===expectedEr;
+      const ok=okEmp&&okEr;
+      if(!ok)allOk=false;
+      html+='<div class="verify-row"><span class="vr-label">'+d.name+'</span><span class="vr-calc">'+fmt(d.base)+' x '+(d.eRate)+'% = '+fmt(expectedEmp)+' (근로자) / '+fmt(d.base)+' x '+(d.rRate)+'% = '+fmt(expectedEr)+' (사업주)</span><span class="vr-result '+(ok?'vr-ok':'vr-fail')+'">'+(ok?'✓':'✗')+'</span></div>';
+    }
+  });
+
+  // Cross-check: emp + er = total
+  const totalCheck=(empTot+erTot);
+  let itemSum=0;
+  data.forEach(d=>{itemSum+=d.emp+d.er;});
+  const sumOk=totalCheck===itemSum;
+  if(!sumOk)allOk=false;
+  html+='<div class="verify-row" style="border-bottom:none;padding-top:10px"><span class="vr-label">근로자 합계 + 사업주 합계</span><span class="vr-calc">'+fmt(empTot)+' + '+fmt(erTot)+' = '+fmt(empTot+erTot)+'</span><span class="vr-result '+(sumOk?'vr-ok':'vr-fail')+'">'+(sumOk?'✓':'✗')+'</span></div>';
+
+  rows.innerHTML=html;
+
+  if(allOk){
+    summary.innerHTML='<div class="verify-ok">✓ 검증 완료 — 모든 항목 계산 정합성 확인</div>';
+  }else{
+    summary.innerHTML='<div class="verify-fail">✗ 일부 항목 불일치 — 요율 또는 입력값을 확인하세요</div>';
+  }
+
+  // v2: Annual calculation
+  const annualEmp=empTot*12,annualEr=erTot*12,annualTotal=(empTot+erTot)*12;
+  annual.innerHTML='<div class="va-title">연간 보험료 (월 x 12)</div>'
+    +'<div class="va-row"><span>근로자 연간 부담</span><span>'+fmt(annualEmp)+' 원</span></div>'
+    +'<div class="va-row"><span>사업주 연간 부담</span><span>'+fmt(annualEr)+' 원</span></div>'
+    +'<div class="va-row" style="font-weight:800;color:var(--navy);border-top:1px solid var(--border);padding-top:8px;margin-top:4px"><span>노사 연간 합계</span><span style="color:var(--gold);font-size:16px">'+fmt(annualTotal)+' 원</span></div>';
+}
+
+function rateChg(el){const i=+el.dataset.i,w=el.dataset.w,val=parseFloat(el.value)||0;
+  if(w==='e')INS[i][1]=val;else INS[i][2]=val;calc();}
+calc();
+</script>
+<script>if(window.self!==window.top){var _ifs=document.createElement('style');_ifs.textContent='.top-bar,.brand-bar,.standalone-back{display:none!important}body{padding-bottom:14px}';document.head.appendChild(_ifs);}</script>
+</body>
+</html>

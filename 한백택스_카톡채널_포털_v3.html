@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0267FF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="한백택스">
+<title>세무법인 한백택스 - 세무서비스 간편 포털</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+--p:#0267FF;--p1:#E6F0FF;--p2:#053E8B;
+--dk:#181D27;--dk2:#2A3444;
+--g0:#F7F8FA;--g1:#F2F5F9;--g2:#E5EAF0;--g3:#C8D1DE;--g4:#8D99AB;--g5:#5C6A7E;
+--ok:#00C48C;--ok1:#E8FAF4;--wn:#FFB800;--wn1:#FFF8E1;--ng:#FF4757;--ng1:#FFEBEE;
+--ac:#FF7800;--ac1:#FFF3E0;--pr:#A855F7;--pr1:#F3E8FF;
+--rd:16px;--bg:#fff;--card:#fff;--card-border:var(--g2);--text:var(--dk);--text2:var(--g5);--text3:var(--g4);
+--shadow:0 2px 16px rgba(0,0,0,.04);--nav-bg:#fff;--hero-from:#0267FF;--hero-to:#053E8B;
+}
+[data-theme="dark"]{
+--bg:#0d1117;--card:#161b22;--card-border:#30363d;--text:#e6edf3;--text2:#8b949e;--text3:#6e7681;
+--g0:#0d1117;--g1:#161b22;--g2:#30363d;--g3:#484f58;--dk:#e6edf3;--dk2:#c9d1d9;
+--shadow:0 2px 16px rgba(0,0,0,.3);--nav-bg:#161b22;--p1:#0d2240;--ok1:#0d2d22;--wn1:#2d2200;--ng1:#2d0a0e;--ac1:#2d1a00;--pr1:#1a0d2e;
+--hero-from:#053E8B;--hero-to:#021a3d;
+}
+html{font-size:13px}
+body{font-family:'Nanum Gothic',sans-serif;background:var(--bg);color:var(--text);max-width:520px;margin:0 auto;min-height:100vh;padding-bottom:72px;overflow-x:hidden;transition:background .3s,color .3s}
+a{color:inherit;text-decoration:none}
+button,input,textarea,select{font-family:inherit;font-size:inherit;border:none;outline:none;background:none;color:inherit}
+input::placeholder,textarea::placeholder{color:var(--g4)}
+.page{display:none;animation:fadeUp .4s ease}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pop{0%{transform:scale(.9);opacity:0}60%{transform:scale(1.03)}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+@keyframes barGrow{from{width:0}to{width:var(--w)}}
+.card{background:var(--card);border:1px solid var(--card-border);border-radius:18px;box-shadow:var(--shadow);padding:18px;margin-bottom:14px;transition:background .3s,border .3s}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 20px;border-radius:12px;font-weight:800;font-size:14px;cursor:pointer;transition:all .15s;text-align:center}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--p);color:#fff}
+.btn-p:hover{background:var(--p2)}
+.btn-o{background:transparent;color:var(--p);border:1.5px solid var(--p)}
+.btn-kakao{background:#FEE500;color:#3C1E1E;font-weight:800}
+.btn-ng{background:var(--ng);color:#fff}
+.btn-ok{background:var(--ok);color:#fff}
+.btn-sm{padding:8px 14px;font-size:12px;border-radius:10px}
+.sec-title{font-size:17px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.sec-title i{color:var(--p);font-size:18px}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700}
+.badge-ok{background:var(--ok1);color:var(--ok)}
+.badge-wn{background:var(--wn1);color:var(--wn)}
+.badge-ng{background:var(--ng1);color:var(--ng)}
+.badge-p{background:var(--p1);color:var(--p)}
+.badge-pr{background:var(--pr1);color:var(--pr)}
+.tag{display:inline-block;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;background:var(--p1);color:var(--p)}
+/* Header */
+.page-header{position:sticky;top:0;z-index:100;background:var(--bg);padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--card-border);transition:background .3s}
+.page-header h1{font-size:17px;font-weight:800;flex:1}
+.page-header .back-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;font-size:16px}
+.page-header .back-btn:active{background:var(--g1)}
+/* Bottom Nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:var(--nav-bg);border-top:1px solid var(--card-border);display:flex;z-index:999;padding:6px 0 env(safe-area-inset-bottom,8px);transition:background .3s}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;cursor:pointer;color:var(--g4);font-size:10px;font-weight:700;transition:color .2s}
+.nav-item.active{color:var(--p)}
+.nav-item i{font-size:20px;transition:transform .2s}
+.nav-item.active i{transform:scale(1.1)}
+.nav-item:active{transform:scale(.95)}
+/* Kakao FAB */
+.kakao-fab{position:fixed;bottom:82px;right:max(calc((100vw - 520px)/2 + 16px),16px);width:56px;height:56px;background:#FEE500;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.18);z-index:998;cursor:pointer;transition:transform .2s}
+.kakao-fab:active{transform:scale(.92)}
+.kakao-fab svg{width:28px;height:28px}
+/* Toast */
+.toast-wrap{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:10000;width:90%;max-width:400px;pointer-events:none}
+.toast{background:var(--dk2);color:#fff;padding:12px 18px;border-radius:12px;font-size:13px;font-weight:700;text-align:center;animation:slideDown .3s ease;margin-bottom:8px;pointer-events:auto;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+/* Scroll area */
+.page-body{padding:0 16px 20px}
+/* Form controls */
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px}
+.form-input{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--g2);background:var(--g0);font-size:14px;font-weight:700;transition:border .2s;color:var(--text)}
+.form-input:focus{border-color:var(--p);background:var(--card)}
+.form-select{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--g2);background:var(--g0);font-size:14px;font-weight:700;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%238D99AB' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;color:var(--text)}
+.toggle-wrap{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--g2)}
+.toggle-label{font-size:14px;font-weight:700}
+.toggle{width:48px;height:26px;background:var(--g3);border-radius:13px;position:relative;cursor:pointer;transition:background .2s}
+.toggle.on{background:var(--p)}
+.toggle::after{content:'';position:absolute;width:22px;height:22px;background:#fff;border-radius:50%;top:2px;left:2px;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.toggle.on::after{transform:translateX(22px)}
+/* Progress bar */
+.progress-bar{height:8px;background:var(--g2);border-radius:4px;overflow:hidden;margin-top:8px}
+.progress-fill{height:100%;border-radius:4px;transition:width .6s ease}
+/* Tabs */
+.tab-row{display:flex;gap:8px;overflow-x:auto;padding:12px 0;-webkit-overflow-scrolling:touch}
+.tab-row::-webkit-scrollbar{display:none}
+.tab-btn{flex-shrink:0;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:700;background:var(--g1);color:var(--text2);cursor:pointer;transition:all .2s;border:1.5px solid transparent}
+.tab-btn.active{background:var(--p1);color:var(--p);border-color:var(--p)}
+.tab-btn:active{transform:scale(.96)}
+/* Checklist */
+.check-item{display:flex;align-items:flex-start;gap:10px;padding:12px;border-radius:12px;background:var(--g0);margin-bottom:8px;cursor:pointer;transition:background .2s}
+.check-item:active{background:var(--g1)}
+.check-item.checked{background:var(--p1)}
+.check-box{width:22px;height:22px;border-radius:7px;border:2px solid var(--g3);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;margin-top:1px}
+.check-item.checked .check-box{background:var(--p);border-color:var(--p);color:#fff}
+.check-info{flex:1}
+.check-name{font-size:13px;font-weight:700}
+.check-desc{font-size:11px;color:var(--text3);margin-top:2px}
+.check-amount{font-size:12px;font-weight:800;color:var(--p);margin-top:4px}
+/* FAQ */
+.faq-item{border-bottom:1px solid var(--g2)}
+.faq-q{padding:14px 0;display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:700}
+.faq-q i{margin-left:auto;transition:transform .3s;color:var(--g4);font-size:12px}
+.faq-q.open i{transform:rotate(180deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease;font-size:13px;color:var(--text2);line-height:1.7}
+.faq-a.open{max-height:400px;padding-bottom:14px}
+/* Timeline */
+.timeline{position:relative;padding-left:32px}
+.timeline::before{content:'';position:absolute;left:11px;top:6px;bottom:6px;width:2px;background:var(--g2)}
+.tl-item{position:relative;margin-bottom:20px}
+.tl-dot{position:absolute;left:-32px;top:2px;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;z-index:1}
+.tl-dot.done{background:var(--ok)}
+.tl-dot.current{background:var(--p);animation:pulse 1.5s infinite}
+.tl-dot.pending{background:var(--g3)}
+/* Drag zone */
+.drop-zone{border:2px dashed var(--g3);border-radius:16px;padding:32px 16px;text-align:center;color:var(--g4);transition:all .2s;cursor:pointer}
+.drop-zone.dragover{border-color:var(--p);background:var(--p1);color:var(--p)}
+/* Utility */
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}.mt-20{margin-top:20px}
+.mb-8{margin-bottom:8px}.mb-12{margin-bottom:12px}.mb-16{margin-bottom:16px}
+.text-center{text-align:center}.text-right{text-align:right}
+.flex{display:flex}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-between{justify-content:space-between}.gap-8{gap:8px}.gap-12{gap:12px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.w-full{width:100%}
+.text-p{color:var(--p)}.text-ok{color:var(--ok)}.text-ng{color:var(--ng)}.text-wn{color:var(--wn)}.text-ac{color:var(--ac)}
+.fs-10{font-size:10px}.fs-11{font-size:11px}.fs-12{font-size:12px}.fs-14{font-size:14px}.fs-17{font-size:17px}.fs-22{font-size:22px}
+.fw-700{font-weight:700}.fw-800{font-weight:800}
+.result-box{background:var(--p1);border:2px solid var(--p);border-radius:16px;padding:20px;text-align:center;margin:16px 0}
+.result-box .big-num{font-size:28px;font-weight:800;color:var(--p)}
+.result-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--g2);font-size:13px}
+.result-row:last-child{border-bottom:none}
+.result-row .label{color:var(--text2)}
+.result-row .value{font-weight:800}
+/* Hero */
+.hero{background:linear-gradient(135deg,var(--hero-from),var(--hero-to));color:#fff;padding:32px 20px 28px;border-radius:0 0 28px 28px;margin-bottom:20px;text-align:center}
+.hero .sub{font-size:12px;font-weight:700;opacity:.8;letter-spacing:3px;margin-bottom:6px}
+.hero h2{font-size:24px;font-weight:800;margin-bottom:6px}
+.hero .desc{font-size:13px;opacity:.85;margin-bottom:18px}
+.hero .btns{display:flex;gap:10px;justify-content:center}
+.hero .btns .btn{flex:1;max-width:160px}
+/* Quick menu */
+.qm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.qm-item{display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 8px;border-radius:16px;background:var(--card);border:1px solid var(--card-border);cursor:pointer;transition:all .15s}
+.qm-item:active{transform:scale(.96);background:var(--p1)}
+.qm-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.qm-item span{font-size:12px;font-weight:700;text-align:center}
+/* Review card */
+.review-scroll{display:flex;gap:12px;overflow-x:auto;padding:4px 0 12px;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory}
+.review-scroll::-webkit-scrollbar{display:none}
+.review-card{flex-shrink:0;width:260px;scroll-snap-align:start}
+.review-card .stars{color:var(--wn);font-size:12px;margin-bottom:6px}
+.review-card .text{font-size:13px;line-height:1.6;color:var(--text2);margin-bottom:8px}
+.review-card .author{font-size:11px;color:var(--g4);font-weight:700}
+/* Calendar mini */
+.cal-month{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:11px}
+.cal-head{font-weight:700;color:var(--g4);padding:4px 0}
+.cal-day{padding:6px 2px;border-radius:8px;position:relative;cursor:default}
+.cal-day.today{background:var(--p1);color:var(--p);font-weight:800}
+.cal-day.deadline::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--ng)}
+.cal-day.empty{visibility:hidden}
+/* D-Day */
+.dday-card{display:flex;align-items:center;gap:14px;padding:16px;border-radius:16px;border-left:4px solid var(--ng)}
+.dday-num{font-size:28px;font-weight:800;color:var(--ng);min-width:70px;text-align:center}
+.dday-info .name{font-size:14px;font-weight:800}
+.dday-info .date{font-size:12px;color:var(--text2)}
+/* Step guide */
+.step-card{display:flex;gap:14px;padding:16px;align-items:flex-start}
+.step-num{width:32px;height:32px;border-radius:50%;background:var(--p);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0}
+.step-content{flex:1}
+.step-content .title{font-size:14px;font-weight:800;margin-bottom:4px}
+.step-content .desc{font-size:12px;color:var(--text2);line-height:1.6}
+.step-mockup{background:var(--g1);border:1px solid var(--g2);border-radius:12px;padding:14px;margin-top:10px;position:relative;font-size:11px;color:var(--text2)}
+.step-mockup .highlight{display:inline-block;border:2px solid var(--ng);border-radius:8px;padding:4px 10px;color:var(--ng);font-weight:800;animation:pulse 1.5s infinite}
+/* Bar chart CSS */
+.bar-chart{display:flex;align-items:flex-end;gap:20px;justify-content:center;height:160px;padding:20px 0}
+.bar-col{display:flex;flex-direction:column;align-items:center;gap:6px}
+.bar{width:60px;border-radius:8px 8px 0 0;transition:height .8s ease;min-height:4px}
+.bar-label{font-size:11px;font-weight:700;color:var(--text2)}
+.bar-val{font-size:12px;font-weight:800}
+/* File list */
+.file-item{display:flex;align-items:center;gap:10px;padding:12px;border-radius:12px;background:var(--g0);margin-bottom:6px}
+.file-item .name{flex:1;font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-item .size{font-size:11px;color:var(--g4)}
+.file-item .remove{color:var(--ng);cursor:pointer;padding:4px}
+/* Refund year timeline */
+.yr-timeline{display:flex;justify-content:space-between;position:relative;padding:0 8px;margin:20px 0}
+.yr-timeline::before{content:'';position:absolute;top:15px;left:24px;right:24px;height:3px;background:var(--g2)}
+.yr-item{display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;z-index:1}
+.yr-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff}
+.yr-label{font-size:11px;font-weight:700}
+.yr-sub{font-size:10px;color:var(--text3);text-align:center}
+/* Misc */
+.divider{height:8px;background:var(--g0);margin:0 -16px}
+.section{padding:20px 0}
+.contact-btn{display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;background:var(--g0);margin-bottom:8px;cursor:pointer;transition:background .15s}
+.contact-btn:active{background:var(--g1)}
+.contact-btn i{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff}
+.contact-btn .info{flex:1}
+.contact-btn .info .lbl{font-size:12px;color:var(--text3)}
+.contact-btn .info .val{font-size:14px;font-weight:700}
+/* Contact bottom sheet */
+.sheet-ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10001;display:none;align-items:flex-end;justify-content:center}
+.sheet-ov.show{display:flex;animation:fadeIn .2s}
+.sheet{background:var(--card);width:100%;max-width:520px;border-radius:22px 22px 0 0;padding:10px 18px calc(20px + env(safe-area-inset-bottom,0px));animation:slideUp .25s ease;max-height:88vh;overflow-y:auto}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+.sheet-handle{width:40px;height:4px;border-radius:2px;background:var(--g3);margin:6px auto 14px}
+.sheet-title{font-size:16px;font-weight:800;margin-bottom:4px;text-align:center}
+.sheet-sub{font-size:12px;color:var(--text2);text-align:center;margin-bottom:14px}
+.sheet-item{display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:var(--g0);margin-bottom:8px;cursor:pointer;width:100%;text-align:left}
+.sheet-item:active{background:var(--g1)}
+.sheet-item i{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;flex-shrink:0}
+.sheet-item .si-t{font-size:14px;font-weight:800}
+.sheet-item .si-s{font-size:12px;color:var(--text2)}
+</style>
+</head>
+<body>
+
+<!-- Toast container -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- ===================== PAGE: HOME ===================== -->
+<div class="page active" id="page-home">
+<div class="hero">
+<div class="sub">HANBAEK TAX</div>
+<h2>세무서비스 간편 포털</h2>
+<p class="desc">세무법인 한백택스와 함께하는<br>스마트 세무 관리</p>
+<div class="btns">
+<button class="btn btn-kakao" onclick="shareKakao()"><i class="fa-solid fa-comment"></i> 카톡공유</button>
+<button class="btn" style="background:rgba(255,255,255,.2);color:#fff" onclick="callTel()"><i class="fa-solid fa-phone"></i> 전화문의</button>
+</div>
+</div>
+<div class="page-body">
+
+<!-- Quick Menu -->
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-grid-2"></i> 빠른 메뉴</div>
+<div class="qm-grid">
+<div class="qm-item" onclick="goPage('my');setTimeout(()=>scrollToEl('suim-guide'),300)">
+<div class="qm-icon" style="background:var(--p1);color:var(--p)"><i class="fa-solid fa-handshake"></i></div>
+<span>수임동의</span>
+</div>
+<div class="qm-item" onclick="requestService()">
+<div class="qm-icon" style="background:var(--ok1);color:var(--ok)"><i class="fa-solid fa-file-signature"></i></div>
+<span>세무대리신청</span>
+</div>
+<div class="qm-item" onclick="goPage('refund')">
+<div class="qm-icon" style="background:var(--ng1);color:var(--ng)"><i class="fa-solid fa-rotate-left"></i></div>
+<span>경정청구</span>
+</div>
+<div class="qm-item" onclick="goPage('upload')">
+<div class="qm-icon" style="background:var(--ac1);color:var(--ac)"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+<span>자료전송</span>
+</div>
+<div class="qm-item" onclick="goPage('calc')">
+<div class="qm-icon" style="background:var(--wn1);color:var(--wn)"><i class="fa-solid fa-calculator"></i></div>
+<span>세금계산기</span>
+</div>
+<div class="qm-item" onclick="goPage('my')">
+<div class="qm-icon" style="background:var(--pr1);color:var(--pr)"><i class="fa-solid fa-chart-pie"></i></div>
+<span>내세무현황</span>
+</div>
+</div>
+</div>
+
+<!-- D-Day -->
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-clock"></i> 다음 세금 마감일</div>
+<div class="card dday-card" id="ddayCard"></div>
+</div>
+
+<!-- Tax Calendar -->
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-calendar-days"></i> 2026 세금 일정</div>
+<div class="card" style="padding:14px">
+<div class="flex items-center justify-between mb-12">
+<button class="btn btn-sm btn-o" onclick="calNav(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+<span id="calTitle" class="fw-800 fs-14"></span>
+<button class="btn btn-sm btn-o" onclick="calNav(1)"><i class="fa-solid fa-chevron-right"></i></button>
+</div>
+<div class="cal-month" id="calGrid"></div>
+<div class="mt-12" id="calDeadlines" style="font-size:11px;color:var(--text2)"></div>
+</div>
+</div>
+
+<!-- Why 한백택스 -->
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-star"></i> Why 한백택스</div>
+<div class="grid-2">
+<div class="card text-center" style="padding:16px"><i class="fa-solid fa-bolt" style="font-size:28px;color:var(--p);margin-bottom:8px"></i><div class="fw-800 fs-14 mb-8">빠른 응답</div><div class="fs-11" style="color:var(--text2)">카카오톡 실시간 상담<br>평균 30분 내 답변</div></div>
+<div class="card text-center" style="padding:16px"><i class="fa-solid fa-shield-check" style="font-size:28px;color:var(--ok);margin-bottom:8px"></i><div class="fw-800 fs-14 mb-8">정확한 신고</div><div class="fs-11" style="color:var(--text2)">더블체크 시스템으로<br>오류율 0.1% 미만</div></div>
+<div class="card text-center" style="padding:16px"><i class="fa-solid fa-piggy-bank" style="font-size:28px;color:var(--ac);margin-bottom:8px"></i><div class="fw-800 fs-14 mb-8">절세 극대화</div><div class="fs-11" style="color:var(--text2)">업종별 맞춤 공제<br>평균 23% 세금 절감</div></div>
+<div class="card text-center" style="padding:16px"><i class="fa-solid fa-hand-holding-dollar" style="font-size:28px;color:var(--pr);margin-bottom:8px"></i><div class="fw-800 fs-14 mb-8">합리적 수수료</div><div class="fs-11" style="color:var(--text2)">투명한 요금 체계<br>숨은 비용 없음</div></div>
+</div>
+</div>
+
+<!-- Reviews -->
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-quote-left"></i> 고객 후기</div>
+<div class="review-scroll">
+<div class="card review-card"><div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><div class="text">카카오톡으로 편하게 상담받고, 경정청구로 2천만원 넘게 돌려받았습니다. 진짜 꼼꼼하세요!</div><div class="author">음식업 대표 김** · 2025.11</div></div>
+<div class="card review-card"><div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><div class="text">IT 스타트업인데 R&D 세액공제를 몰랐다가 한백택스 덕분에 큰 혜택 받았습니다.</div><div class="author">IT기업 대표 이** · 2025.09</div></div>
+<div class="card review-card"><div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><div class="text">다른 세무사에서 넘어왔는데 응답도 빠르고 절세 효과도 확실히 체감됩니다.</div><div class="author">제조업 대표 박** · 2026.01</div></div>
+<div class="card review-card"><div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i></div><div class="text">의료기기 투자세액공제까지 꼼꼼히 챙겨주셔서 감사합니다. 강력 추천합니다.</div><div class="author">의원 원장 최** · 2025.12</div></div>
+</div>
+</div>
+
+<!-- Tax News -->
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-newspaper"></i> 2026 세법 · 절세팁</div>
+<div class="card" style="padding:14px;border-left:4px solid var(--p)">
+<div class="tag mb-8">2026 세법개정</div>
+<div class="fw-800 fs-14 mb-8">2026년 주요 세법 개정 요약</div>
+<ul style="font-size:12px;color:var(--text2);line-height:1.8;padding-left:18px">
+<li>종합소득세 최고세율 45% 유지</li>
+<li>중소기업 특별세액감면 3년 연장</li>
+<li>고용증대 세액공제 청년 우대 확대</li>
+<li>건강보험료율 3.595% 인상 적용 (근로자 부담)</li>
+</ul>
+</div>
+<div class="grid-2 mt-12">
+<div class="card" style="padding:14px"><div class="tag mb-8" style="background:var(--ok1);color:var(--ok)">절세팁</div><div class="fw-700 fs-12">노란우산공제 가입하면 소득공제 최대 500만원</div></div>
+<div class="card" style="padding:14px"><div class="tag mb-8" style="background:var(--ac1);color:var(--ac)">절세팁</div><div class="fw-700 fs-12">사업용 신용카드 등록으로 매입세액공제 자동 반영</div></div>
+<div class="card" style="padding:14px"><div class="tag mb-8" style="background:var(--pr1);color:var(--pr)">절세팁</div><div class="fw-700 fs-12">경정청구로 5년치 환급금 돌려받기</div></div>
+</div>
+</div>
+
+<!-- FAQ -->
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-circle-question"></i> 자주 묻는 질문</div>
+<div class="card" style="padding:4px 16px" id="faqList"></div>
+</div>
+
+<!-- Contact -->
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-address-book"></i> 연락처</div>
+<div class="contact-btn" onclick="callTel()">
+<i class="fa-solid fa-phone" style="background:var(--p)"></i>
+<div class="info"><div class="lbl">전화문의</div><div class="val">02-2277-3101</div></div>
+<i class="fa-solid fa-chevron-right" style="color:var(--g4)"></i>
+</div>
+<div class="contact-btn" onclick="callMobile()">
+<i class="fa-solid fa-mobile-screen-button" style="background:var(--ok)"></i>
+<div class="info"><div class="lbl">담당자 휴대폰</div><div class="val">010-2629-7741</div></div>
+<i class="fa-solid fa-chevron-right" style="color:var(--g4)"></i>
+</div>
+<div class="contact-btn" onclick="openContact()">
+<i class="fa-solid fa-headset" style="background:var(--p)"></i>
+<div class="info"><div class="lbl">빠른 문의</div><div class="val">전화·문자·이메일 한번에</div></div>
+<i class="fa-solid fa-chevron-right" style="color:var(--g4)"></i>
+</div>
+<a class="contact-btn" href="mailto:hb090@hanbaektax.kr">
+<i class="fa-solid fa-envelope" style="background:var(--ok)"></i>
+<div class="info"><div class="lbl">이메일</div><div class="val">hb090@hanbaektax.kr</div></div>
+<i class="fa-solid fa-chevron-right" style="color:var(--g4)"></i>
+</a>
+<div class="card mt-12" style="padding:14px;font-size:12px;color:var(--text2);line-height:1.7">
+<div class="fw-800 fs-13" style="color:var(--text);margin-bottom:6px">세무법인 한백택스</div>
+대표세무사 차재영<br>
+사업자등록번호 522-85-00152<br>
+서울특별시 중구 동호로 315, 2층<br>
+(장충동2가, 신안빌딩)<br>
+Tel 02-2277-3101 / Fax 02-2277-3161<br>
+Mobile 010-2629-7741
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- ===================== PAGE: CALC ===================== -->
+<div class="page" id="page-calc">
+<div class="page-header">
+<div class="back-btn" onclick="goPage('home')"><i class="fa-solid fa-chevron-left"></i></div>
+<h1>세금 계산기</h1>
+</div>
+<div class="page-body">
+<div class="tab-row" id="calcTabs">
+<div class="tab-btn active" data-calc="income">종합소득세</div>
+<div class="tab-btn" data-calc="vat">부가가치세</div>
+<div class="tab-btn" data-calc="transfer">양도소득세</div>
+<div class="tab-btn" data-calc="gift">증여세</div>
+<div class="tab-btn" data-calc="insurance">4대보험</div>
+<div class="tab-btn" data-calc="salary">연봉실수령</div>
+</div>
+
+<!-- 종합소득세 -->
+<div class="calc-panel active" id="calc-income">
+<div class="card">
+<div class="fw-800 fs-14 mb-12"><i class="fa-solid fa-receipt text-p"></i> 종합소득세 계산</div>
+<div class="form-group"><label class="form-label">수입금액 (원)</label><input class="form-input money-input" id="inc_revenue" placeholder="0"></div>
+<div class="form-group"><label class="form-label">경비율 (%)</label><input class="form-input" id="inc_expense" type="number" placeholder="60" value="60"></div>
+<div class="form-group"><label class="form-label">인적공제 인원 (본인 포함)</label><input class="form-input" id="inc_people" type="number" placeholder="1" value="1"></div>
+<button class="btn btn-p w-full mt-8" onclick="calcIncome()"><i class="fa-solid fa-calculator"></i> 계산하기</button>
+</div>
+<div id="incomeResult"></div>
+</div>
+
+<!-- 부가가치세 -->
+<div class="calc-panel" id="calc-vat">
+<div class="card">
+<div class="fw-800 fs-14 mb-12"><i class="fa-solid fa-file-invoice-dollar text-p"></i> 부가가치세 계산</div>
+<div class="form-group"><label class="form-label">매출액 - 공급가액 (원)</label><input class="form-input money-input" id="vat_sales" placeholder="0"></div>
+<div class="form-group"><label class="form-label">매입액 - 공급가액 (원)</label><input class="form-input money-input" id="vat_purchase" placeholder="0"></div>
+<button class="btn btn-p w-full mt-8" onclick="calcVat()"><i class="fa-solid fa-calculator"></i> 계산하기</button>
+</div>
+<div id="vatResult"></div>
+</div>
+
+<!-- 양도소득세 -->
+<div class="calc-panel" id="calc-transfer">
+<div class="card">
+<div class="fw-800 fs-14 mb-12"><i class="fa-solid fa-building text-p"></i> 양도소득세 계산</div>
+<div class="form-group"><label class="form-label">취득가액 (원)</label><input class="form-input money-input" id="tf_acq" placeholder="0"></div>
+<div class="form-group"><label class="form-label">양도가액 (원)</label><input class="form-input money-input" id="tf_sell" placeholder="0"></div>
+<div class="form-group"><label class="form-label">보유기간 (년)</label><input class="form-input" id="tf_years" type="number" placeholder="5" value="5"></div>
+<div class="form-group"><label class="form-label">1세대 1주택 여부</label><select class="form-select" id="tf_one"><option value="0">아니오</option><option value="1">예 (비과세 요건 충족시)</option></select></div>
+<button class="btn btn-p w-full mt-8" onclick="calcTransfer()"><i class="fa-solid fa-calculator"></i> 계산하기</button>
+</div>
+<div id="transferResult"></div>
+</div>
+
+<!-- 증여세 -->
+<div class="calc-panel" id="calc-gift">
+<div class="card">
+<div class="fw-800 fs-14 mb-12"><i class="fa-solid fa-gift text-p"></i> 증여세 계산</div>
+<div class="form-group"><label class="form-label">증여재산 가액 (원)</label><input class="form-input money-input" id="gift_val" placeholder="0"></div>
+<div class="form-group"><label class="form-label">수증자 관계</label><select class="form-select" id="gift_rel"><option value="spouse">배우자 (공제 6억)</option><option value="child">직계비속 성인 (공제 5천만)</option><option value="minor">직계비속 미성년 (공제 2천만)</option><option value="parent">직계존속 (공제 5천만)</option><option value="other">기타 (공제 1천만)</option></select></div>
+<button class="btn btn-p w-full mt-8" onclick="calcGift()"><i class="fa-solid fa-calculator"></i> 계산하기</button>
+</div>
+<div id="giftResult"></div>
+</div>
+
+<!-- 4대보험 -->
+<div class="calc-panel" id="calc-insurance">
+<div class="card">
+<div class="fw-800 fs-14 mb-12"><i class="fa-solid fa-shield-halved text-p"></i> 4대보험 계산 (2026)</div>
+<div class="form-group"><label class="form-label">월 급여 (원)</label><input class="form-input money-input" id="ins_salary" placeholder="0"></div>
+<button class="btn btn-p w-full mt-8" onclick="calcInsurance()"><i class="fa-solid fa-calculator"></i> 계산하기</button>
+</div>
+<div id="insuranceResult"></div>
+</div>
+
+<!-- 연봉 실수령 -->
+<div class="calc-panel" id="calc-salary">
+<div class="card">
+<div class="fw-800 fs-14 mb-12"><i class="fa-solid fa-money-bill-wave text-p"></i> 연봉 실수령액 계산</div>
+<div class="form-group"><label class="form-label">연봉 (원)</label><input class="form-input money-input" id="sal_annual" placeholder="0"></div>
+<div class="form-group"><label class="form-label">부양가족 수 (본인 포함)</label><input class="form-input" id="sal_dep" type="number" placeholder="1" value="1"></div>
+<button class="btn btn-p w-full mt-8" onclick="calcSalary()"><i class="fa-solid fa-calculator"></i> 계산하기</button>
+</div>
+<div id="salaryResult"></div>
+</div>
+
+</div>
+</div>
+
+<!-- ===================== PAGE: REFUND (경정청구) ===================== -->
+<div class="page" id="page-refund">
+<div class="page-header">
+<div class="back-btn" onclick="goPage('home')"><i class="fa-solid fa-chevron-left"></i></div>
+<h1>경정청구 환급 시뮬레이션</h1>
+</div>
+<div class="page-body">
+
+<!-- 업종 선택 -->
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-store"></i> 업종 선택</div>
+<div class="grid-3" id="bizTypeGrid"></div>
+</div>
+
+<!-- 세목 선택 -->
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-file-lines"></i> 세목 선택</div>
+<div class="tab-row" id="taxTypeRow">
+<div class="tab-btn active" data-tax="income">종합소득세</div>
+<div class="tab-btn" data-tax="corp">법인세</div>
+<div class="tab-btn" data-tax="vat">부가가치세</div>
+</div>
+</div>
+
+<!-- 5개년 경정청구 기간 -->
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-timeline"></i> 5개년 경정청구 가능 기간</div>
+<div class="yr-timeline" id="yrTimeline"></div>
+<div id="yrDetails" class="mt-16"></div>
+</div>
+
+<!-- 업종별 공제 체크리스트 -->
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-list-check"></i> 업종별 공제 체크리스트</div>
+<div class="fs-12 mb-12" style="color:var(--text2)">해당되는 항목을 체크하세요. 예상 공제금액이 자동 계산됩니다.</div>
+<div id="checklistArea"></div>
+</div>
+
+<!-- 시뮬레이션 입력 -->
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-sliders"></i> 시뮬레이션 입력</div>
+<div class="card">
+<div class="form-group"><label class="form-label">연간 매출 / 수입금액 (원)</label><input class="form-input money-input" id="ref_revenue" placeholder="0"></div>
+<div class="form-group"><label class="form-label">기납부세액 (원)</label><input class="form-input money-input" id="ref_paid" placeholder="0"></div>
+<div class="form-group"><label class="form-label">경비율 (%)</label><input class="form-input" id="ref_expense" type="number" placeholder="60" value="60"></div>
+<button class="btn btn-p w-full mt-8" onclick="calcRefund()"><i class="fa-solid fa-coins"></i> 환급금 시뮬레이션</button>
+</div>
+</div>
+
+<!-- 계산 결과 -->
+<div class="section" id="refundResultArea" style="display:none">
+<div class="sec-title"><i class="fa-solid fa-chart-column"></i> 시뮬레이션 결과</div>
+<div class="result-box" id="refundBigNum"></div>
+<div class="card" id="refundDetail"></div>
+<div class="card mt-12" id="refundChart"></div>
+<div class="card mt-12" style="padding:14px;background:var(--wn1);border-color:var(--wn)">
+<div class="flex items-center gap-8 mb-8"><i class="fa-solid fa-triangle-exclamation text-wn"></i><span class="fw-800 fs-13">주의사항</span></div>
+<div class="fs-12" style="color:var(--text2);line-height:1.7">본 시뮬레이션은 단순 참고용이며, 정확한 환급 금액은 세무사의 상세 검토 후 확정됩니다. 실제 공제 적용 여부는 개별 상황에 따라 달라질 수 있습니다.</div>
+</div>
+</div>
+
+<!-- 환급 진행 타임라인 -->
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-route"></i> 환급 진행 절차</div>
+<div class="card">
+<div class="timeline">
+<div class="tl-item"><div class="tl-dot current"><i class="fa-solid fa-check" style="font-size:10px"></i></div><div class="fw-700 fs-13">무료 진단 신청</div><div class="fs-11" style="color:var(--text2)">카카오톡으로 간편 접수 · 1~2일</div></div>
+<div class="tl-item"><div class="tl-dot pending"><span>2</span></div><div class="fw-700 fs-13">공제항목 분석</div><div class="fs-11" style="color:var(--text2)">전문 세무사 검토 · 3~5일</div></div>
+<div class="tl-item"><div class="tl-dot pending"><span>3</span></div><div class="fw-700 fs-13">경정청구서 작성</div><div class="fs-11" style="color:var(--text2)">신고서 수정 작성 · 5~7일</div></div>
+<div class="tl-item"><div class="tl-dot pending"><span>4</span></div><div class="fw-700 fs-13">관할세무서 제출</div><div class="fs-11" style="color:var(--text2)">전자 제출 · 1일</div></div>
+<div class="tl-item"><div class="tl-dot pending"><span>5</span></div><div class="fw-700 fs-13">환급금 입금</div><div class="fs-11" style="color:var(--text2)">세무서 처리 후 입금 · 2~3개월</div></div>
+</div>
+</div>
+</div>
+
+<!-- 성공사례 -->
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-trophy"></i> 환급 성공 사례</div>
+<div class="grid-2">
+<div class="card" style="padding:14px;border-left:4px solid var(--ok)"><div class="badge badge-ok mb-8">음식업</div><div class="fs-12 fw-700 mb-8">음식점 A사</div><div class="fs-11" style="color:var(--text2)">5년치 의제매입세액공제 누락 발견</div><div class="fw-800 fs-17 text-ok mt-8">3,200만원</div></div>
+<div class="card" style="padding:14px;border-left:4px solid var(--p)"><div class="badge badge-p mb-8">IT/서비스</div><div class="fs-12 fw-700 mb-8">IT기업 B사</div><div class="fs-11" style="color:var(--text2)">R&D세액공제 미적용 확인</div><div class="fw-800 fs-17 text-p mt-8">8,500만원</div></div>
+<div class="card" style="padding:14px;border-left:4px solid var(--pr)"><div class="badge badge-pr mb-8">의료업</div><div class="fs-12 fw-700 mb-8">의원 C</div><div class="fs-11" style="color:var(--text2)">중소기업 감면 미적용 발견</div><div class="fw-800 fs-17 text-ac mt-8">1,800만원</div></div>
+<div class="card" style="padding:14px;border-left:4px solid var(--ac)"><div class="badge" style="background:var(--ac1);color:var(--ac)">제조업</div><div class="fs-12 fw-700 mb-8 mt-8">제조업 D사</div><div class="fs-11" style="color:var(--text2)">고용증대공제 누락 확인</div><div class="fw-800 fs-17 text-ng mt-8">5,600만원</div></div>
+</div>
+</div>
+
+<!-- CTA -->
+<div class="section text-center">
+<button class="btn btn-p w-full" style="padding:16px;font-size:16px" onclick="requestDiagnosis()">
+<i class="fa-solid fa-comment-dots"></i> 무료 경정청구 진단 신청
+</button>
+<div class="fs-11 mt-8" style="color:var(--text3)">버튼을 누르면 선택한 업종·공제항목이 담긴 상담 문자가 자동 작성됩니다<br>평일 09:00~18:00 · 토요일 09:00~13:00</div>
+</div>
+
+</div>
+</div>
+
+<!-- ===================== PAGE: UPLOAD ===================== -->
+<div class="page" id="page-upload">
+<div class="page-header">
+<div class="back-btn" onclick="goPage('home')"><i class="fa-solid fa-chevron-left"></i></div>
+<h1>자료 전송</h1>
+</div>
+<div class="page-body">
+
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-folder-open"></i> 필요 서류</div>
+<div class="grid-3">
+<div class="card text-center" style="padding:14px;cursor:pointer" onclick="document.getElementById('fileInput').click()"><i class="fa-solid fa-file-invoice" style="font-size:24px;color:var(--p)"></i><div class="fs-11 fw-700 mt-8">세금계산서</div></div>
+<div class="card text-center" style="padding:14px;cursor:pointer" onclick="document.getElementById('fileInput').click()"><i class="fa-solid fa-building-columns" style="font-size:24px;color:var(--ok)"></i><div class="fs-11 fw-700 mt-8">통장내역</div></div>
+<div class="card text-center" style="padding:14px;cursor:pointer" onclick="document.getElementById('fileInput').click()"><i class="fa-solid fa-credit-card" style="font-size:24px;color:var(--ac)"></i><div class="fs-11 fw-700 mt-8">카드매출</div></div>
+<div class="card text-center" style="padding:14px;cursor:pointer" onclick="document.getElementById('fileInput').click()"><i class="fa-solid fa-receipt" style="font-size:24px;color:var(--wn)"></i><div class="fs-11 fw-700 mt-8">영수증</div></div>
+<div class="card text-center" style="padding:14px;cursor:pointer" onclick="document.getElementById('fileInput').click()"><i class="fa-solid fa-users" style="font-size:24px;color:var(--pr)"></i><div class="fs-11 fw-700 mt-8">급여대장</div></div>
+<div class="card text-center" style="padding:14px;cursor:pointer" onclick="document.getElementById('fileInput').click()"><i class="fa-solid fa-ellipsis" style="font-size:24px;color:var(--g4)"></i><div class="fs-11 fw-700 mt-8">기타</div></div>
+</div>
+</div>
+
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-cloud-arrow-up"></i> 파일 업로드</div>
+<input type="file" id="fileInput" multiple style="display:none" onchange="handleFiles(this.files)">
+<div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+<i class="fa-solid fa-cloud-arrow-up" style="font-size:36px;margin-bottom:10px"></i>
+<div class="fw-700 fs-14">파일을 드래그하거나 클릭하세요</div>
+<div class="fs-11 mt-8">PDF, JPG, PNG, Excel 등 · 최대 10MB</div>
+</div>
+<div id="fileList" class="mt-12"></div>
+</div>
+
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-user-pen"></i> 보내는 분</div>
+<div class="card">
+<div class="form-group"><label class="form-label">성함 / 상호</label><input class="form-input" id="senderName" placeholder="예: 홍길동 / (주)한백상사"></div>
+<div class="form-group" style="margin-bottom:0"><label class="form-label">연락처</label><input class="form-input" id="senderPhone" type="tel" inputmode="tel" placeholder="예: 010-1234-5678"></div>
+</div>
+</div>
+
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-message"></i> 메모</div>
+<textarea class="form-input" id="uploadMemo" rows="4" placeholder="세무사에게 전달할 메모를 입력하세요 (귀속연도, 신고 종류 등)" style="resize:vertical"></textarea>
+</div>
+
+<button class="btn btn-p w-full" onclick="submitUpload()" style="padding:16px;font-size:15px">
+<i class="fa-solid fa-paper-plane"></i> 자료 보내기 (카톡·메일 등으로 공유)
+</button>
+<div class="fs-11 text-center mt-8" style="color:var(--text3)">버튼을 누르면 휴대폰 공유창이 열려 카카오톡·메일·드라이브 등으로<br>실제 파일을 첨부해 보낼 수 있습니다.</div>
+<div class="text-center mt-12">
+<button class="btn btn-o btn-sm" onclick="openContact()"><i class="fa-solid fa-headset"></i> 전화·문자로 문의</button>
+</div>
+
+</div>
+</div>
+
+<!-- ===================== PAGE: MY ===================== -->
+<div class="page" id="page-my">
+<div class="page-header">
+<div class="back-btn" onclick="goPage('home')"><i class="fa-solid fa-chevron-left"></i></div>
+<h1>MY 대시보드</h1>
+</div>
+<div class="page-body">
+
+<!-- Profile -->
+<div class="section">
+<div class="card flex items-center gap-12">
+<div style="width:52px;height:52px;border-radius:50%;background:var(--p1);display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-circle-user" style="font-size:28px;color:var(--p)"></i></div>
+<div class="flex-col" style="flex:1;gap:4px">
+<input class="form-input" id="userName" placeholder="이름을 입력하세요" style="padding:8px 12px;font-size:15px;font-weight:800;border:none;background:transparent" onchange="saveName()">
+<div class="fs-11" style="color:var(--text3)">세무법인 한백택스 고객</div>
+</div>
+</div>
+</div>
+
+<!-- 신고 상태 트래커 -->
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-chart-line"></i> 신고 상태</div>
+<div id="statusCards"></div>
+</div>
+
+<!-- 수임동의 가이드 -->
+<div class="section" id="suim-guide">
+<div class="sec-title"><i class="fa-solid fa-handshake"></i> 수임동의 가이드</div>
+<div class="card">
+<div class="step-card">
+<div class="step-num">1</div>
+<div class="step-content">
+<div class="title">홈택스 접속 · 로그인</div>
+<div class="desc">홈택스(hometax.go.kr) 접속 후<br>공동인증서 또는 간편인증으로 로그인</div>
+<div class="step-mockup">
+<div style="background:var(--p);color:#fff;padding:6px 10px;border-radius:6px;font-size:11px;display:inline-block;margin-bottom:8px">홈택스</div>
+<div>로그인 <span class="highlight">여기 클릭!</span></div>
+</div>
+</div>
+</div>
+<div class="step-card">
+<div class="step-num">2</div>
+<div class="step-content">
+<div class="title">My홈택스 → 세무대리/납세관리</div>
+<div class="desc">상단 메뉴에서 My홈택스 클릭 후<br>세무대리/납세관리 메뉴 선택</div>
+<div class="step-mockup">
+<div style="display:flex;gap:8px;margin-bottom:8px"><span style="padding:4px 8px;background:var(--g2);border-radius:4px;font-size:10px">My홈택스</span><span style="font-size:10px">></span><span class="highlight">세무대리/납세관리</span></div>
+<div style="font-size:10px">→ 수임동의 메뉴 선택</div>
+</div>
+</div>
+</div>
+<div class="step-card">
+<div class="step-num">3</div>
+<div class="step-content">
+<div class="title">"한백택스 (차재영)" 수임동의</div>
+<div class="desc">수임동의 목록에서 세무법인 한백택스<br>(대표세무사 차재영) 찾기 → 수임동의 클릭</div>
+<div class="step-mockup">
+<div style="border:1px solid var(--g2);border-radius:6px;padding:8px;margin-bottom:6px;font-size:10px">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<span>세무법인 한백택스 (차재영)</span>
+<span class="highlight">수임동의</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="step-card">
+<div class="step-num" style="background:var(--ok)">4</div>
+<div class="step-content">
+<div class="title">완료 확인</div>
+<div class="desc">수임동의 완료 메시지 확인 후<br>아래 버튼으로 완료 알림을 보내주세요</div>
+<div class="step-mockup" style="background:var(--ok1);border-color:var(--ok)">
+<i class="fa-solid fa-circle-check text-ok"></i> 수임동의가 완료되었습니다.
+</div>
+<button class="btn btn-ok btn-sm w-full mt-12" onclick="notifySuim()"><i class="fa-solid fa-paper-plane"></i> 수임동의 완료 알림 보내기</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- 자료 보관함 -->
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-box-archive"></i> 자료 보관함</div>
+<div id="archiveList"></div>
+</div>
+
+<!-- 설정 -->
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-gear"></i> 설정</div>
+<div class="card" style="padding:4px 16px">
+<div class="toggle-wrap">
+<div class="toggle-label"><i class="fa-solid fa-moon"></i> 다크모드</div>
+<div class="toggle" id="darkToggle" onclick="toggleDark()"></div>
+</div>
+<div class="toggle-wrap">
+<div class="toggle-label"><i class="fa-solid fa-bell"></i> 알림 설정</div>
+<div class="toggle on" id="notiToggle" onclick="toggleNoti(this)"></div>
+</div>
+<div class="toggle-wrap" style="border-bottom:none">
+<div class="toggle-label"><i class="fa-solid fa-info-circle"></i> 앱 버전</div>
+<span class="fs-12" style="color:var(--g4)">v3.1.0</span>
+</div>
+</div>
+<button class="btn btn-o w-full mt-12" onclick="clearCache()"><i class="fa-solid fa-trash-can"></i> 캐시 삭제</button>
+</div>
+
+</div>
+</div>
+
+<!-- ===================== Bottom Nav ===================== -->
+<div class="bottom-nav">
+<div class="nav-item active" data-page="home" onclick="goPage('home')"><i class="fa-solid fa-house"></i><span>홈</span></div>
+<div class="nav-item" data-page="calc" onclick="goPage('calc')"><i class="fa-solid fa-calculator"></i><span>계산기</span></div>
+<div class="nav-item" data-page="refund" onclick="goPage('refund')"><i class="fa-solid fa-coins"></i><span>환급</span></div>
+<div class="nav-item" data-page="upload" onclick="goPage('upload')"><i class="fa-solid fa-cloud-arrow-up"></i><span>자료</span></div>
+<div class="nav-item" data-page="my" onclick="goPage('my')"><i class="fa-solid fa-circle-user"></i><span>MY</span></div>
+</div>
+
+<!-- Quick contact FAB (전화 중심) -->
+<div class="kakao-fab" style="background:var(--p)" onclick="openContact()" aria-label="문의하기">
+<i class="fa-solid fa-headset" style="color:#fff;font-size:24px"></i>
+</div>
+
+<!-- Contact action sheet (전화·문자·이메일) -->
+<div class="sheet-ov" id="contactSheet" onclick="if(event.target===this)closeContact()">
+<div class="sheet">
+<div class="sheet-handle"></div>
+<div class="sheet-title">세무법인 한백택스 문의</div>
+<div class="sheet-sub" id="contactSub">평일 09:00~18:00 · 토 09:00~13:00</div>
+<a class="sheet-item" href="tel:02-2277-3101"><i class="fa-solid fa-phone" style="background:var(--p)"></i><div><div class="si-t">전화 상담</div><div class="si-s">02-2277-3101 (대표번호)</div></div></a>
+<a class="sheet-item" href="tel:010-2629-7741"><i class="fa-solid fa-mobile-screen-button" style="background:var(--ok)"></i><div><div class="si-t">담당자 휴대폰</div><div class="si-s">010-2629-7741</div></div></a>
+<button class="sheet-item" onclick="smsConsult()"><i class="fa-solid fa-comment-sms" style="background:var(--ac)"></i><div><div class="si-t">문자로 상담 신청</div><div class="si-s">상담 내용이 자동으로 작성됩니다</div></div></button>
+<a class="sheet-item" href="mailto:hb090@hanbaektax.kr"><i class="fa-solid fa-envelope" style="background:var(--pr)"></i><div><div class="si-t">이메일 문의</div><div class="si-s">hb090@hanbaektax.kr</div></div></a>
+<a class="sheet-item" href="https://map.kakao.com/?q=서울특별시 중구 동호로 315" target="_blank"><i class="fa-solid fa-location-dot" style="background:var(--ng)"></i><div><div class="si-t">사무실 위치</div><div class="si-s">서울 중구 동호로 315, 2층 (신안빌딩)</div></div></a>
+<button class="btn btn-o w-full mt-12" onclick="closeContact()">닫기</button>
+</div>
+</div>
+
+<script>
+/* ===================== GLOBAL STATE ===================== */
+const COMPANY = {
+  name:'세무법인 한백택스', eng:'HANBAEK TAX', ceo:'대표세무사 차재영',
+  bizNo:'522-85-00152', addr:'서울특별시 중구 동호로 315, 신안빌딩 2층 (장충동2가 173-1)',
+  tel:'02-2277-3101', fax:'02-2277-3161', email:'hb090@hanbaektax.kr',
+  mobile:'010-2629-7741'
+};
+let uploadedFiles = [];
+let currentCalMonth = new Date().getMonth(); // 0-based
+let currentCalYear = 2026;
+let selectedBizType = 'food';
+let selectedTaxType = 'income';
+
+/* ===================== UTILITY ===================== */
+const fmt = n => Number(n||0).toLocaleString('ko-KR');
+const fmtW = n => fmt(n) + '원';
+const parseMoney = s => parseInt(String(s).replace(/[^0-9]/g,''))||0;
+
+function toast(msg) {
+  const w = document.getElementById('toastWrap');
+  const d = document.createElement('div');
+  d.className = 'toast'; d.textContent = msg;
+  w.appendChild(d);
+  setTimeout(()=>{ d.style.opacity='0'; d.style.transition='opacity .3s'; setTimeout(()=>d.remove(),300); },2500);
+}
+
+function scrollToEl(id) {
+  const el = document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* Money input formatting */
+document.addEventListener('input', e => {
+  if(e.target.classList.contains('money-input')){
+    const v = parseMoney(e.target.value);
+    e.target.value = v ? fmt(v) : '';
+  }
+});
+
+/* ===================== NAVIGATION ===================== */
+function goPage(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    n.classList.toggle('active', n.dataset.page===id);
+  });
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ===================== DARK MODE ===================== */
+function initTheme(){
+  const t = localStorage.getItem('theme')||'light';
+  document.documentElement.dataset.theme = t;
+  if(t==='dark') document.getElementById('darkToggle').classList.add('on');
+}
+function toggleDark(){
+  const el = document.getElementById('darkToggle');
+  el.classList.toggle('on');
+  const t = el.classList.contains('on') ? 'dark' : 'light';
+  document.documentElement.dataset.theme = t;
+  localStorage.setItem('theme', t);
+  toast(t==='dark'?'다크모드 켜짐':'라이트모드 켜짐');
+}
+function toggleNoti(el){ el.classList.toggle('on'); toast(el.classList.contains('on')?'알림 켜짐':'알림 꺼짐'); }
+
+/* ===================== CONTACT (전화 중심) ===================== */
+let consultText = '';  // 문자 상담 시 자동 작성될 내용
+function openContact(text, sub){
+  consultText = text || '';
+  document.getElementById('contactSub').textContent = sub || '평일 09:00~18:00 · 토 09:00~13:00';
+  document.getElementById('contactSheet').classList.add('show');
+}
+function closeContact(){ document.getElementById('contactSheet').classList.remove('show'); }
+/* openKakao를 호출하던 모든 버튼은 전화 중심 연락 시트로 연결 */
+function openKakao(){ openContact(); }
+function callTel(){ window.location.href='tel:'+COMPANY.tel; }
+function callMobile(){ window.location.href='tel:'+COMPANY.mobile; }
+/* SMS 본문 자동작성 (iOS/Android 구분자 처리) */
+function smsTo(number, body){
+  const ua = navigator.userAgent || '';
+  const sep = /iPhone|iPad|iPod|Macintosh/i.test(ua) ? '&' : '?';
+  window.location.href = `sms:${number}${sep}body=${encodeURIComponent(body)}`;
+}
+function smsConsult(){
+  const name = (localStorage.getItem('userName')||'').trim();
+  const body = consultText
+    || `[한백택스 상담 신청]\n${name?'성함/상호: '+name+'\n':''}문의 내용: `;
+  smsTo(COMPANY.mobile, body);
+  closeContact();
+}
+function shareKakao(){
+  if(navigator.share){
+    navigator.share({title:COMPANY.name,text:'세무법인 한백택스 — 세무서비스 간편 포털',url:location.href}).catch(()=>{});
+  } else if(navigator.clipboard){
+    navigator.clipboard.writeText(location.href).then(()=>toast('링크가 복사되었습니다'));
+  } else {
+    toast('주소: '+location.href);
+  }
+}
+
+/* ===================== D-DAY ===================== */
+function initDday(){
+  const deadlines = [
+    {name:'법인세 신고·납부',date:'2026-03-31'},
+    {name:'부가가치세 1기 예정',date:'2026-04-25'},
+    {name:'종합소득세 신고·납부',date:'2026-05-31'},
+    {name:'부가가치세 1기 확정',date:'2026-07-25'},
+    {name:'법인세 중간예납',date:'2026-09-01'},
+    {name:'부가가치세 2기 예정',date:'2026-10-25'},
+    {name:'부가가치세 2기 확정',date:'2027-01-25'},
+  ];
+  const now = new Date(); now.setHours(0,0,0,0);
+  let next = null;
+  for(const d of deadlines){
+    const dt = new Date(d.date+'T00:00:00');
+    if(dt >= now){ next = {...d, dt}; break; }
+  }
+  if(!next) next = {name:deadlines[0].name, date:deadlines[0].date, dt:new Date(deadlines[0].date+'T00:00:00')};
+  const diff = Math.ceil((next.dt - now)/(1000*60*60*24));
+  const card = document.getElementById('ddayCard');
+  const color = diff<=7?'var(--ng)':diff<=30?'var(--wn)':'var(--ok)';
+  card.style.borderLeftColor = color;
+  card.innerHTML = `<div class="dday-num" style="color:${color}">D-${diff}</div><div class="dday-info"><div class="name">${next.name}</div><div class="date">${next.date.replace(/-/g,'.')} 마감</div></div>`;
+}
+
+/* ===================== CALENDAR ===================== */
+const TAX_DEADLINES = {
+  '2026-01-25':'부가세2기확정','2026-03-10':'법인세주주명부','2026-03-31':'법인세신고',
+  '2026-04-25':'부가세1기예정','2026-05-31':'종합소득세','2026-07-25':'부가세1기확정',
+  '2026-07-31':'재산세1기','2026-09-01':'법인세중간예납','2026-09-16':'재산세2기',
+  '2026-10-25':'부가세2기예정','2026-12-31':'종합부동산세'
+};
+function renderCal(){
+  const y=currentCalYear, m=currentCalMonth;
+  document.getElementById('calTitle').textContent=`${y}년 ${m+1}월`;
+  const first=new Date(y,m,1).getDay(), days=new Date(y,m+1,0).getDate();
+  const today=new Date(); const tStr=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  let html='';
+  ['일','월','화','수','목','금','토'].forEach(d=>html+=`<div class="cal-head">${d}</div>`);
+  for(let i=0;i<first;i++) html+='<div class="cal-day empty"></div>';
+  const deadlinesThisMonth=[];
+  for(let d=1;d<=days;d++){
+    const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday=ds===tStr;
+    const isDl=TAX_DEADLINES[ds];
+    if(isDl) deadlinesThisMonth.push({day:d,name:isDl});
+    html+=`<div class="cal-day${isToday?' today':''}${isDl?' deadline':''}">${d}</div>`;
+  }
+  document.getElementById('calGrid').innerHTML=html;
+  let dlHtml='';
+  deadlinesThisMonth.forEach(d=>{dlHtml+=`<div class="flex items-center gap-8 mt-8"><span style="color:var(--ng);font-weight:800">${d.day}일</span><span>${d.name}</span></div>`;});
+  document.getElementById('calDeadlines').innerHTML=dlHtml||'<div style="color:var(--g4)">이번 달 마감일 없음</div>';
+}
+function calNav(dir){
+  currentCalMonth+=dir;
+  if(currentCalMonth>11){currentCalMonth=0;currentCalYear++;}
+  if(currentCalMonth<0){currentCalMonth=11;currentCalYear--;}
+  renderCal();
+}
+
+/* ===================== FAQ ===================== */
+function initFaq(){
+  const faqs=[
+    {q:'수임동의는 어떻게 하나요?',a:'홈택스(hometax.go.kr)에 로그인 후 My홈택스 → 세무대리/납세관리 → 수임동의에서 "세무법인 한백택스(차재영)"를 검색하여 동의하시면 됩니다.'},
+    {q:'경정청구는 언제까지 가능한가요?',a:'법정 신고기한으로부터 5년 이내에 가능합니다. 예를 들어 2021년 귀속 종합소득세는 2027년 5월 31일까지 경정청구가 가능합니다.'},
+    {q:'세무대리 수수료는 얼마인가요?',a:'업종, 매출 규모, 업무 범위에 따라 달라집니다. 카카오톡으로 상담 시 맞춤 견적을 무료로 안내해 드립니다.'},
+    {q:'어떤 자료를 보내야 하나요?',a:'기본적으로 매출/매입 세금계산서, 통장내역, 카드매출 내역, 영수증, 급여대장 등이 필요하며, 업종에 따라 추가 서류가 있을 수 있습니다.'},
+    {q:'환급금 입금까지 얼마나 걸리나요?',a:'경정청구 제출 후 세무서 검토에 통상 2~3개월이 소요됩니다. 세무서 처리 현황에 따라 달라질 수 있습니다.'}
+  ];
+  const c = document.getElementById('faqList');
+  faqs.forEach((f,i)=>{
+    c.innerHTML+=`<div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span class="badge badge-p" style="margin-right:6px">Q</span>${f.q}<i class="fa-solid fa-chevron-down"></i></div><div class="faq-a">${f.a}</div></div>`;
+  });
+}
+function toggleFaq(el){
+  el.classList.toggle('open');
+  el.nextElementSibling.classList.toggle('open');
+}
+
+/* ===================== CALC: TAB SWITCH ===================== */
+document.addEventListener('click',e=>{
+  if(e.target.closest('#calcTabs .tab-btn')){
+    const btn=e.target.closest('.tab-btn');
+    document.querySelectorAll('#calcTabs .tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.calc-panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('calc-'+btn.dataset.calc).classList.add('active');
+  }
+});
+
+/* ===================== INCOME TAX RATES (2026 Korea) ===================== */
+function incomeTax(taxable){
+  if(taxable<=0) return 0;
+  const brackets=[
+    [14000000, 0.06, 0],
+    [50000000, 0.15, 1260000],
+    [88000000, 0.24, 5760000],
+    [150000000, 0.35, 15440000],
+    [300000000, 0.38, 19940000],
+    [500000000, 0.40, 25940000],
+    [1000000000, 0.42, 35940000],
+    [Infinity, 0.45, 65940000]
+  ];
+  for(const [limit, rate, deduct] of brackets){
+    if(taxable <= limit) return Math.floor(taxable * rate - deduct);
+  }
+  return 0;
+}
+
+/* CALC: 종합소득세 */
+function calcIncome(){
+  const rev=parseMoney(document.getElementById('inc_revenue').value);
+  const exp=parseFloat(document.getElementById('inc_expense').value)||0;
+  const ppl=parseInt(document.getElementById('inc_people').value)||1;
+  if(!rev){toast('수입금액을 입력하세요');return;}
+  const income=Math.floor(rev*(1-exp/100));
+  const personal=ppl*1500000;
+  const taxable=Math.max(income-personal,0);
+  const tax=incomeTax(taxable);
+  const local=Math.floor(tax*0.1);
+  const total=tax+local;
+  const effRate=rev>0?(total/rev*100).toFixed(2):0;
+  document.getElementById('incomeResult').innerHTML=`
+    <div class="result-box"><div class="fs-12 fw-700 mb-8">산출세액 (지방소득세 포함)</div><div class="big-num">${fmtW(total)}</div></div>
+    <div class="card"><div class="result-row"><span class="label">수입금액</span><span class="value">${fmtW(rev)}</span></div><div class="result-row"><span class="label">필요경비 (${exp}%)</span><span class="value">-${fmtW(Math.floor(rev*exp/100))}</span></div><div class="result-row"><span class="label">소득금액</span><span class="value">${fmtW(income)}</span></div><div class="result-row"><span class="label">인적공제 (${ppl}명)</span><span class="value">-${fmtW(personal)}</span></div><div class="result-row"><span class="label">과세표준</span><span class="value fw-800">${fmtW(taxable)}</span></div><div class="result-row"><span class="label">소득세</span><span class="value">${fmtW(tax)}</span></div><div class="result-row"><span class="label">지방소득세 (10%)</span><span class="value">${fmtW(local)}</span></div><div class="result-row"><span class="label">실효세율</span><span class="value text-p">${effRate}%</span></div></div>`;
+  toast('계산 완료');
+}
+
+/* CALC: 부가가치세 */
+function calcVat(){
+  const sales=parseMoney(document.getElementById('vat_sales').value);
+  const purchase=parseMoney(document.getElementById('vat_purchase').value);
+  if(!sales){toast('매출액을 입력하세요');return;}
+  const salesTax=Math.floor(sales*0.1);
+  const purchaseTax=Math.floor(purchase*0.1);
+  const vat=salesTax-purchaseTax;
+  const ratio=sales>0?(vat/sales*100).toFixed(2):0;
+  document.getElementById('vatResult').innerHTML=`
+    <div class="result-box"><div class="fs-12 fw-700 mb-8">${vat>=0?'납부세액':'환급세액'}</div><div class="big-num" style="color:${vat>=0?'var(--p)':'var(--ok)'}">${fmtW(Math.abs(vat))}</div></div>
+    <div class="card"><div class="result-row"><span class="label">매출세액</span><span class="value">${fmtW(salesTax)}</span></div><div class="result-row"><span class="label">매입세액</span><span class="value">-${fmtW(purchaseTax)}</span></div><div class="result-row"><span class="label">납부세액</span><span class="value fw-800">${fmtW(vat)}</span></div><div class="result-row"><span class="label">납부비율</span><span class="value text-p">${ratio}%</span></div></div>`;
+  toast('계산 완료');
+}
+
+/* CALC: 양도소득세 */
+function calcTransfer(){
+  const acq=parseMoney(document.getElementById('tf_acq').value);
+  const sell=parseMoney(document.getElementById('tf_sell').value);
+  const years=parseInt(document.getElementById('tf_years').value)||0;
+  const oneHouse=document.getElementById('tf_one').value==='1';
+  if(!sell){toast('양도가액을 입력하세요');return;}
+  const gain=sell-acq;
+  if(gain<=0){
+    document.getElementById('transferResult').innerHTML=`<div class="result-box"><div class="fs-12 fw-700 mb-8">양도차익 없음</div><div class="big-num" style="color:var(--ok)">비과세</div></div>`;
+    toast('양도차익이 없습니다'); return;
+  }
+  // 1세대1주택 2년이상 비과세 (양도가 12억 이하)
+  if(oneHouse && years>=2 && sell<=1200000000){
+    document.getElementById('transferResult').innerHTML=`<div class="result-box"><div class="fs-12 fw-700 mb-8">1세대 1주택 비과세</div><div class="big-num" style="color:var(--ok)">비과세 (0원)</div></div><div class="card"><div class="result-row"><span class="label">양도차익</span><span class="value">${fmtW(gain)}</span></div><div class="result-row"><span class="label">비과세 사유</span><span class="value text-ok">1세대 1주택 (2년이상 보유, 12억 이하)</span></div></div>`;
+    toast('비과세 대상입니다'); return;
+  }
+  // 장기보유특별공제
+  let ltRate=0;
+  if(years>=3){
+    if(oneHouse){
+      ltRate=Math.min(years*8, 80);
+    } else {
+      ltRate=Math.min((years-2)*2+6, 30); // 3년6%,4년8%,...15년30%
+      if(years>=3) ltRate = Math.min(years>=15?30:(years*2), 30);
+    }
+  }
+  const ltDeduction=Math.floor(gain*ltRate/100);
+  const basic=2500000;
+  const taxable=Math.max(gain-ltDeduction-basic, 0);
+  // 단기 중과: 1년미만 70%, 2년미만 60%
+  let tax;
+  let rateText;
+  if(years<1){ tax=Math.floor(taxable*0.7); rateText='70% (1년미만)'; }
+  else if(years<2){ tax=Math.floor(taxable*0.6); rateText='60% (2년미만)'; }
+  else { tax=incomeTax(taxable); rateText='기본세율'; }
+  const local=Math.floor(tax*0.1);
+  document.getElementById('transferResult').innerHTML=`
+    <div class="result-box"><div class="fs-12 fw-700 mb-8">산출세액 (지방소득세 포함)</div><div class="big-num">${fmtW(tax+local)}</div></div>
+    <div class="card"><div class="result-row"><span class="label">양도차익</span><span class="value">${fmtW(gain)}</span></div><div class="result-row"><span class="label">장기보유특별공제 (${ltRate}%)</span><span class="value">-${fmtW(ltDeduction)}</span></div><div class="result-row"><span class="label">기본공제</span><span class="value">-${fmtW(basic)}</span></div><div class="result-row"><span class="label">과세표준</span><span class="value fw-800">${fmtW(taxable)}</span></div><div class="result-row"><span class="label">세율</span><span class="value">${rateText}</span></div><div class="result-row"><span class="label">양도소득세</span><span class="value">${fmtW(tax)}</span></div><div class="result-row"><span class="label">지방소득세</span><span class="value">${fmtW(local)}</span></div></div>`;
+  toast('계산 완료');
+}
+
+/* CALC: 증여세 */
+function calcGift(){
+  const val=parseMoney(document.getElementById('gift_val').value);
+  const rel=document.getElementById('gift_rel').value;
+  if(!val){toast('증여재산가액을 입력하세요');return;}
+  const exemptions={spouse:600000000,child:50000000,minor:20000000,parent:50000000,other:10000000};
+  const exempt=exemptions[rel]||10000000;
+  const taxable=Math.max(val-exempt,0);
+  let tax=0;
+  const brackets=[[100000000,.10,0],[500000000,.20,10000000],[1000000000,.30,60000000],[3000000000,.40,160000000],[Infinity,.50,460000000]];
+  for(const[l,r,d]of brackets){ if(taxable<=l){tax=Math.floor(taxable*r-d);break;} }
+  const relNames={spouse:'배우자',child:'직계비속(성인)',minor:'직계비속(미성년)',parent:'직계존속',other:'기타'};
+  document.getElementById('giftResult').innerHTML=`
+    <div class="result-box"><div class="fs-12 fw-700 mb-8">증여세 산출세액</div><div class="big-num">${fmtW(tax)}</div></div>
+    <div class="card"><div class="result-row"><span class="label">증여재산가액</span><span class="value">${fmtW(val)}</span></div><div class="result-row"><span class="label">공제 (${relNames[rel]})</span><span class="value">-${fmtW(exempt)}</span></div><div class="result-row"><span class="label">과세표준</span><span class="value fw-800">${fmtW(taxable)}</span></div><div class="result-row"><span class="label">산출세액</span><span class="value text-p">${fmtW(tax)}</span></div></div>`;
+  toast('계산 완료');
+}
+
+/* CALC: 4대보험 (2026) */
+function calcInsurance(){
+  const sal=parseMoney(document.getElementById('ins_salary').value);
+  if(!sal){toast('월급여를 입력하세요');return;}
+  // 2026 rates
+  const nps=Math.floor(sal*0.0475); // 국민연금 4.75%
+  const hi=Math.floor(sal*0.03595); // 건강보험 3.595%
+  const ltc=Math.floor(hi*0.1314); // 장기요양 건강보험의 13.14%
+  const ei=Math.floor(sal*0.009); // 고용보험 0.9%
+  const empTotal=nps+hi+ltc+ei;
+  // 사업자 부담
+  const nps2=nps, hi2=hi, ltc2=ltc, ei2=Math.floor(sal*0.009); // 150인미만 0.9%
+  const bizTotal=nps2+hi2+ltc2+ei2;
+  document.getElementById('insuranceResult').innerHTML=`
+    <div class="result-box"><div class="fs-12 fw-700 mb-8">근로자 부담 합계</div><div class="big-num">${fmtW(empTotal)}</div></div>
+    <div class="card"><div class="fw-800 fs-13 mb-8">근로자 부담</div><div class="result-row"><span class="label">국민연금 (4.75%)</span><span class="value">${fmtW(nps)}</span></div><div class="result-row"><span class="label">건강보험 (3.595%)</span><span class="value">${fmtW(hi)}</span></div><div class="result-row"><span class="label">장기요양보험 (건강보험의 13.14%)</span><span class="value">${fmtW(ltc)}</span></div><div class="result-row"><span class="label">고용보험 (0.9%)</span><span class="value">${fmtW(ei)}</span></div><div class="result-row"><span class="label fw-800">합계</span><span class="value fw-800 text-p">${fmtW(empTotal)}</span></div></div>
+    <div class="card mt-12"><div class="fw-800 fs-13 mb-8">사업자 부담</div><div class="result-row"><span class="label">국민연금 (4.75%)</span><span class="value">${fmtW(nps2)}</span></div><div class="result-row"><span class="label">건강보험 (3.595%)</span><span class="value">${fmtW(hi2)}</span></div><div class="result-row"><span class="label">장기요양보험</span><span class="value">${fmtW(ltc2)}</span></div><div class="result-row"><span class="label">고용보험 (0.9%)</span><span class="value">${fmtW(ei2)}</span></div><div class="result-row"><span class="label fw-800">합계</span><span class="value fw-800 text-ac">${fmtW(bizTotal)}</span></div></div>`;
+  toast('계산 완료');
+}
+
+/* CALC: 연봉 실수령 */
+function calcSalary(){
+  const annual=parseMoney(document.getElementById('sal_annual').value);
+  const dep=parseInt(document.getElementById('sal_dep').value)||1;
+  if(!annual){toast('연봉을 입력하세요');return;}
+  const monthly=Math.floor(annual/12);
+  // 4대보험
+  const nps=Math.floor(monthly*0.0475);
+  const hi=Math.floor(monthly*0.03595);
+  const ltc=Math.floor(hi*0.1314);
+  const ei=Math.floor(monthly*0.009);
+  const insTotal=nps+hi+ltc+ei;
+  // 소득세 근사 (간이세액표 근사: 월급 기준 누진)
+  const monthlyTaxable=Math.max(monthly-insTotal-dep*1500000/12, 0);
+  const annualTaxable=monthlyTaxable*12;
+  const annualTax=incomeTax(annualTaxable);
+  const monthlyTax=Math.floor(annualTax/12);
+  const localTax=Math.floor(monthlyTax*0.1);
+  const totalDeduct=insTotal+monthlyTax+localTax;
+  const netMonthly=monthly-totalDeduct;
+  const netAnnual=netMonthly*12;
+  document.getElementById('salaryResult').innerHTML=`
+    <div class="result-box"><div class="fs-12 fw-700 mb-8">월 실수령액</div><div class="big-num">${fmtW(netMonthly)}</div></div>
+    <div class="card"><div class="result-row"><span class="label">세전 월급</span><span class="value">${fmtW(monthly)}</span></div><div class="result-row"><span class="label">국민연금</span><span class="value">-${fmtW(nps)}</span></div><div class="result-row"><span class="label">건강보험</span><span class="value">-${fmtW(hi)}</span></div><div class="result-row"><span class="label">장기요양보험</span><span class="value">-${fmtW(ltc)}</span></div><div class="result-row"><span class="label">고용보험</span><span class="value">-${fmtW(ei)}</span></div><div class="result-row"><span class="label">소득세 (근사)</span><span class="value">-${fmtW(monthlyTax)}</span></div><div class="result-row"><span class="label">지방소득세</span><span class="value">-${fmtW(localTax)}</span></div><div class="result-row"><span class="label fw-800">공제합계</span><span class="value fw-800 text-ng">-${fmtW(totalDeduct)}</span></div><div class="result-row"><span class="label fw-800">실수령액</span><span class="value fw-800 text-p">${fmtW(netMonthly)}</span></div><div class="result-row"><span class="label">연간 실수령</span><span class="value fw-800">${fmtW(netAnnual)}</span></div></div>`;
+  toast('계산 완료');
+}
+
+/* ===================== REFUND PAGE ===================== */
+const BIZ_TYPES = {
+  food:{name:'음식업',icon:'fa-utensils',color:'var(--ac)'},
+  mfg:{name:'제조업',icon:'fa-industry',color:'var(--p)'},
+  it:{name:'IT/서비스',icon:'fa-laptop-code',color:'var(--pr)'},
+  med:{name:'의료업',icon:'fa-stethoscope',color:'var(--ok)'},
+  const:{name:'건설업',icon:'fa-helmet-safety',color:'var(--wn)'},
+  etc:{name:'기타',icon:'fa-briefcase',color:'var(--g5)'}
+};
+
+const DEDUCTIONS = {
+  common:[
+    {id:'sme',name:'중소기업 특별세액감면',desc:'5~30% 감면',rate:0.1,base:'tax'},
+    {id:'hire',name:'고용증대 세액공제',desc:'1인당 700~1,100만원',amount:7000000,per:'person',defaultCount:1},
+    {id:'social',name:'사회보험료 세액공제',desc:'고용증대 연계',rate:0.05,base:'revenue'},
+    {id:'bonus',name:'경영성과급 세액공제',desc:'성과급 지급 시',rate:0.05,base:'revenue'},
+    {id:'honest',name:'성실신고확인비용 세액공제',desc:'120만원 한도',amount:600000},
+    {id:'efile',name:'전자신고 세액공제',desc:'2만원',amount:20000},
+    {id:'book',name:'기장세액공제',desc:'산출세액의 20%',rate:0.20,base:'tax'},
+    {id:'std',name:'표준세액공제',desc:'7만원',amount:70000},
+    {id:'eitc',name:'근로장려금(EITC) 대상 확인',desc:'소득요건 충족 시',amount:0},
+    {id:'child',name:'자녀세액공제',desc:'1명25·2명55만원(만8세→9세이상)',amount:250000},
+    {id:'pension',name:'연금계좌 세액공제',desc:'납입액의 12~15%',rate:0.12,base:'revenue',max:900000},
+    {id:'edu_med',name:'교육비/의료비 공제',desc:'개인사업자 해당',rate:0.02,base:'revenue'},
+    {id:'donate',name:'기부금 공제',desc:'법정·지정기부금',rate:0.01,base:'revenue'},
+    {id:'card_issue',name:'신용카드 발행세액공제',desc:'1.3%',rate:0.013,base:'revenue'}
+  ],
+  food:[
+    {id:'deemed',name:'의제매입세액공제',desc:'음식점 8/108 공제',rate:0.074,base:'revenue',highlight:true}
+  ],
+  it:[
+    {id:'rnd',name:'R&D 세액공제',desc:'연구개발비의 25%',rate:0.25,base:'revenue',mult:0.1,highlight:true},
+    {id:'venture',name:'벤처기업 감면',desc:'소득세 50% 감면 5년',rate:0.15,base:'tax'},
+    {id:'startup',name:'창업중소기업 감면',desc:'5년간 50~100% 감면',rate:0.2,base:'tax'}
+  ],
+  med:[
+    {id:'medequip',name:'의료기기 투자세액공제',desc:'투자금액의 3~10%',rate:0.03,base:'revenue'},
+    {id:'medpension',name:'의사 퇴직연금 공제',desc:'연 700만원 한도',amount:4000000}
+  ],
+  const:[
+    {id:'constretire',name:'건설근로자 퇴직공제',desc:'퇴직공제부금',rate:0.01,base:'revenue'},
+    {id:'constinsure',name:'산재보험 특례',desc:'보험료 세액공제',rate:0.005,base:'revenue'}
+  ],
+  mfg:[],
+  etc:[]
+};
+
+function initBizTypes(){
+  const g=document.getElementById('bizTypeGrid');
+  g.innerHTML='';
+  Object.entries(BIZ_TYPES).forEach(([k,v])=>{
+    g.innerHTML+=`<div class="card text-center ${k===selectedBizType?'selected':''}" style="padding:14px;cursor:pointer;${k===selectedBizType?'border-color:var(--p);background:var(--p1)':''}" data-biz="${k}" onclick="selectBiz('${k}')"><i class="fa-solid ${v.icon}" style="font-size:22px;color:${v.color};margin-bottom:6px"></i><div class="fs-12 fw-700">${v.name}</div></div>`;
+  });
+}
+
+function selectBiz(type){
+  selectedBizType=type;
+  initBizTypes();
+  renderChecklist();
+}
+
+// Tax type selection
+document.addEventListener('click',e=>{
+  if(e.target.closest('#taxTypeRow .tab-btn')){
+    const btn=e.target.closest('.tab-btn');
+    document.querySelectorAll('#taxTypeRow .tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedTaxType=btn.dataset.tax;
+  }
+});
+
+/* 5개년 경정청구 */
+function initYrTimeline(){
+  const now=new Date();
+  const years=[2021,2022,2023,2024,2025];
+  let html='';
+  let detailHtml='';
+  years.forEach(y=>{
+    const deadlineDate=new Date(y+1,4,31); // 종소세 기준 다음해 5/31
+    const expiryDate=new Date(y+6,4,31); // 5년 후
+    const daysLeft=Math.ceil((expiryDate-now)/(1000*60*60*24));
+    let color='var(--ok)';
+    if(daysLeft<=0) color='var(--g4)';
+    else if(daysLeft<=180) color='var(--ng)';
+    else if(daysLeft<=365) color='var(--wn)';
+    html+=`<div class="yr-item"><div class="yr-dot" style="background:${color}">${String(y).slice(2)}</div><div class="yr-label">${y}년</div><div class="yr-sub">${daysLeft>0?'D-'+daysLeft:'만료'}</div></div>`;
+    detailHtml+=`<div class="card" style="padding:12px;border-left:4px solid ${color};margin-bottom:8px"><div class="flex justify-between items-center"><div><div class="fw-800 fs-13">${y}년 귀속</div><div class="fs-11" style="color:var(--text2)">신고마감 ${y+1}.05.31</div></div><div class="text-right"><div class="fs-11" style="color:var(--text3)">경정청구 기한</div><div class="fw-700 fs-12">${y+6}.05.31</div><div class="badge ${daysLeft<=0?'badge-ng':daysLeft<=180?'badge-ng':daysLeft<=365?'badge-wn':'badge-ok'} mt-8">${daysLeft>0?'D-'+daysLeft+'일':'만료'}</div></div></div></div>`;
+  });
+  document.getElementById('yrTimeline').innerHTML=html;
+  document.getElementById('yrDetails').innerHTML=detailHtml;
+}
+
+/* Checklist */
+function renderChecklist(){
+  const items=[...DEDUCTIONS.common, ...(DEDUCTIONS[selectedBizType]||[])];
+  const area=document.getElementById('checklistArea');
+  area.innerHTML='';
+  items.forEach(item=>{
+    const checked=localStorage.getItem('chk_'+item.id)==='1';
+    area.innerHTML+=`<div class="check-item${checked?' checked':''}" data-id="${item.id}" onclick="toggleCheck(this,'${item.id}')"><div class="check-box">${checked?'<i class="fa-solid fa-check" style="font-size:12px"></i>':''}</div><div class="check-info"><div class="check-name">${item.highlight?'<span class="badge badge-ng" style="margin-right:4px">핵심</span>':''}${item.name}</div><div class="check-desc">${item.desc}</div></div></div>`;
+  });
+}
+
+function toggleCheck(el,id){
+  el.classList.toggle('checked');
+  const isChecked=el.classList.contains('checked');
+  localStorage.setItem('chk_'+id, isChecked?'1':'0');
+  el.querySelector('.check-box').innerHTML=isChecked?'<i class="fa-solid fa-check" style="font-size:12px"></i>':'';
+}
+
+/* Refund Simulation */
+function calcRefund(){
+  const revenue=parseMoney(document.getElementById('ref_revenue').value);
+  const paid=parseMoney(document.getElementById('ref_paid').value);
+  const expRate=parseFloat(document.getElementById('ref_expense').value)||60;
+  if(!revenue||!paid){toast('매출액과 기납부세액을 입력하세요');return;}
+
+  const items=[...DEDUCTIONS.common, ...(DEDUCTIONS[selectedBizType]||[])];
+  let totalDeduction=0;
+  const checkedItems=[];
+
+  // Calculate income and tax without deductions
+  const income=Math.floor(revenue*(1-expRate/100));
+  const taxable=Math.max(income-1500000, 0);
+  const baseTax=incomeTax(taxable);
+
+  items.forEach(item=>{
+    if(localStorage.getItem('chk_'+item.id)==='1'){
+      let amt=0;
+      if(item.amount!==undefined){
+        amt=item.amount;
+        if(item.per==='person') amt*=(item.defaultCount||1);
+      } else if(item.rate && item.base==='revenue'){
+        amt=Math.floor(revenue*item.rate*(item.mult||1));
+        if(item.max) amt=Math.min(amt, item.max);
+      } else if(item.rate && item.base==='tax'){
+        amt=Math.floor(baseTax*item.rate);
+      }
+      if(amt>0){
+        totalDeduction+=amt;
+        checkedItems.push({name:item.name, amount:amt});
+      }
+    }
+  });
+
+  const properTax=Math.max(baseTax-totalDeduction, 0);
+  const properTaxWithLocal=Math.floor(properTax*1.1);
+  const refundAmount=Math.max(paid-properTaxWithLocal, 0);
+
+  // Show results
+  document.getElementById('refundResultArea').style.display='block';
+  document.getElementById('refundBigNum').innerHTML=`<div class="fs-12 fw-700 mb-8">예상 환급 가능액</div><div class="big-num" style="color:${refundAmount>0?'var(--ok)':'var(--ng)'}">` + (refundAmount>0 ? fmtW(refundAmount) : '환급 해당 없음') + `</div>`;
+
+  let detailHtml='<div class="fw-800 fs-13 mb-12">항목별 공제금액 상세</div>';
+  checkedItems.forEach(ci=>{
+    detailHtml+=`<div class="result-row"><span class="label">${ci.name}</span><span class="value text-ok">-${fmtW(ci.amount)}</span></div>`;
+  });
+  detailHtml+=`<div class="result-row" style="border-top:2px solid var(--g2);margin-top:8px;padding-top:12px"><span class="label fw-800">공제 합계</span><span class="value fw-800 text-p">${fmtW(totalDeduction)}</span></div>`;
+  detailHtml+=`<div class="result-row"><span class="label">기납부세액</span><span class="value">${fmtW(paid)}</span></div>`;
+  detailHtml+=`<div class="result-row"><span class="label">정당세액 (추정)</span><span class="value">${fmtW(properTaxWithLocal)}</span></div>`;
+  document.getElementById('refundDetail').innerHTML=detailHtml;
+
+  // Bar chart
+  const maxVal=Math.max(paid, properTaxWithLocal, 1);
+  const paidH=Math.floor(paid/maxVal*120);
+  const properH=Math.floor(properTaxWithLocal/maxVal*120);
+  document.getElementById('refundChart').innerHTML=`<div class="fw-800 fs-13 mb-8 text-center">기납부세액 vs 정당세액 비교</div><div class="bar-chart"><div class="bar-col"><div class="bar-val">${fmtW(paid)}</div><div class="bar" style="height:${paidH}px;background:var(--g4);--w:60px;animation:barGrow .8s ease"></div><div class="bar-label">기납부세액</div></div><div class="bar-col"><div class="bar-val text-ok">${fmtW(properTaxWithLocal)}</div><div class="bar" style="height:${properH}px;background:var(--ok);--w:60px;animation:barGrow .8s ease"></div><div class="bar-label">정당세액</div></div>${refundAmount>0?`<div class="bar-col"><div class="bar-val text-p">${fmtW(refundAmount)}</div><div class="bar" style="height:${Math.floor(refundAmount/maxVal*120)}px;background:var(--p);--w:60px;animation:barGrow .8s ease"></div><div class="bar-label">환급액</div></div>`:''}</div>`;
+
+  scrollToEl('refundResultArea');
+  toast('시뮬레이션 완료');
+}
+
+/* 무료 진단 신청 — 선택 내용으로 상담 문자 자동작성 */
+function requestDiagnosis(){
+  const biz=(BIZ_TYPES[selectedBizType]||{}).name||'';
+  const taxNames={income:'종합소득세',corp:'법인세',vat:'부가가치세'};
+  const items=[...DEDUCTIONS.common, ...(DEDUCTIONS[selectedBizType]||[])];
+  const checked=items.filter(it=>localStorage.getItem('chk_'+it.id)==='1').map(it=>it.name);
+  const rev=parseMoney((document.getElementById('ref_revenue')||{}).value||'');
+  const name=(localStorage.getItem('senderName')||localStorage.getItem('userName')||'').trim();
+  const text=`[한백택스 무료 경정청구 진단 신청]\n`+
+    `${name?'성함/상호: '+name+'\n':''}`+
+    `업종: ${biz}\n`+
+    `세목: ${taxNames[selectedTaxType]||selectedTaxType}\n`+
+    (rev?`연매출(수입): ${fmtW(rev)}\n`:'')+
+    `관심 공제항목: ${checked.length?checked.join(', '):'(미선택)'}\n`+
+    `→ 경정청구 가능 여부 진단을 요청합니다.`;
+  openContact(text, '무료 진단 신청 — 문자로 보내거나 전화 주세요');
+}
+
+/* 세무대리 신청 — 문자 자동작성 */
+function requestService(){
+  const name=(localStorage.getItem('senderName')||localStorage.getItem('userName')||'').trim();
+  const text=`[한백택스 세무대리 신청]\n`+
+    `${name?'성함/상호: '+name+'\n':''}`+
+    `사업자번호: \n업종: \n신청 업무(기장/신고/상담 등): \n`+
+    `→ 세무대리 상담을 신청합니다.`;
+  openContact(text, '세무대리 신청 — 빈칸을 채워 문자로 보내주세요');
+}
+
+/* 수임동의 완료 알림 — 문자 자동작성 */
+function notifySuim(){
+  const name=(localStorage.getItem('senderName')||localStorage.getItem('userName')||'').trim();
+  const text=`[한백택스 수임동의 완료 알림]\n`+
+    `${name?'성함/상호: '+name+'\n':''}`+
+    `홈택스에서 세무법인 한백택스(차재영) 수임동의를 완료했습니다. 확인 부탁드립니다.`;
+  openContact(text, '수임동의 완료를 문자로 알려주세요');
+}
+
+/* ===================== UPLOAD ===================== */
+function initUpload(){
+  const n=document.getElementById('senderName'), p=document.getElementById('senderPhone');
+  if(n) n.value=localStorage.getItem('senderName')||localStorage.getItem('userName')||'';
+  if(p) p.value=localStorage.getItem('senderPhone')||'';
+}
+const dropZone=document.getElementById('dropZone');
+dropZone.addEventListener('dragover',e=>{e.preventDefault();dropZone.classList.add('dragover');});
+dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop',e=>{e.preventDefault();dropZone.classList.remove('dragover');handleFiles(e.dataTransfer.files);});
+
+function handleFiles(files){
+  let added=0;
+  Array.from(files).forEach(f=>{
+    if(f.size>10*1024*1024){toast(f.name+' : 10MB 초과로 제외됨');return;}
+    uploadedFiles.push({file:f, name:f.name, size:f.size, date:new Date().toLocaleDateString('ko-KR')});
+    added++;
+  });
+  renderFileList();
+  if(added) toast(added+'개 파일 추가됨');
+}
+
+function renderFileList(){
+  const c=document.getElementById('fileList');
+  if(!uploadedFiles.length){c.innerHTML='';return;}
+  c.innerHTML=uploadedFiles.map((f,i)=>`<div class="file-item"><i class="fa-solid fa-file" style="color:var(--p)"></i><div class="name">${f.name}</div><div class="size">${(f.size/1024).toFixed(0)}KB</div><div class="remove" onclick="removeFile(${i})"><i class="fa-solid fa-xmark"></i></div></div>`).join('');
+}
+
+function removeFile(i){uploadedFiles.splice(i,1);renderFileList();}
+
+function buildSubmitText(memo){
+  const name=(document.getElementById('senderName').value||'').trim();
+  const phone=(document.getElementById('senderPhone').value||'').trim();
+  const list=uploadedFiles.map(f=>'· '+f.name).join('\n');
+  return `[한백택스 자료 제출]\n`+
+    `보내는 분: ${name||'(미입력)'}\n`+
+    `연락처: ${phone||'(미입력)'}\n`+
+    `파일 ${uploadedFiles.length}건:\n${list}`+
+    (memo?`\n\n메모: ${memo}`:'')+
+    `\n\n— 세무법인 한백택스 자료 전송`;
+}
+function saveArchiveAndReset(memo){
+  const archive=JSON.parse(localStorage.getItem('archive')||'[]');
+  archive.unshift({files:uploadedFiles.map(f=>f.name),memo,date:new Date().toLocaleDateString('ko-KR'),count:uploadedFiles.length});
+  localStorage.setItem('archive',JSON.stringify(archive.slice(0,20)));
+  // 보내는 분 정보 기억
+  localStorage.setItem('senderName',document.getElementById('senderName').value||'');
+  localStorage.setItem('senderPhone',document.getElementById('senderPhone').value||'');
+  uploadedFiles=[];
+  renderFileList();
+  document.getElementById('uploadMemo').value='';
+  renderArchive();
+}
+async function submitUpload(){
+  if(!uploadedFiles.length){toast('파일을 먼저 업로드하세요');return;}
+  if(!(document.getElementById('senderName').value||'').trim()){
+    if(!confirm('보내는 분 성함이 비어 있습니다. 그래도 진행할까요?')) return;
+  }
+  const memo=(document.getElementById('uploadMemo').value||'').trim();
+  const text=buildSubmitText(memo);
+  const files=uploadedFiles.map(f=>f.file).filter(Boolean);
+
+  // 1순위: Web Share API로 실제 파일 전송 (카톡·메일·드라이브 등)
+  if(navigator.canShare && files.length && navigator.canShare({files})){
+    try{
+      await navigator.share({files, title:'한백택스 자료 제출', text});
+      saveArchiveAndReset(memo);
+      toast('공유앱으로 전송했습니다');
+      return;
+    }catch(err){
+      if(err && err.name==='AbortError') return; // 사용자가 취소
+      // 그 외 오류는 폴백으로 진행
+    }
+  }
+
+  // 2순위(폴백): 이메일 본문 자동작성 (파일은 수동 첨부 안내)
+  const isFile = location.protocol === 'file:';
+  const reason = isFile
+    ? '파일 직접 전송은 인터넷 주소(https)로 접속했을 때만 동작합니다.\n지금은 파일을 직접 저장해 여신 상태라 공유가 제한됩니다.'
+    : '이 브라우저는 파일 직접 공유를 지원하지 않습니다. (PC에서는 보통 제한됩니다)';
+  const useMail=confirm(reason+'\n\n[확인] 이메일 앱을 열어 제출내역을 보냅니다 (파일은 메일에 직접 첨부)\n[취소] 그만두기');
+  if(useMail){
+    const name=(document.getElementById('senderName').value||'').trim();
+    const subject='[한백택스] 자료 제출'+(name?(' - '+name):'');
+    const body=text+'\n\n※ 이 메일에 위 파일들을 첨부해 주세요.';
+    window.location.href=`mailto:${COMPANY.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    saveArchiveAndReset(memo);
+    toast('이메일 앱을 열었습니다 — 파일을 첨부해 보내주세요');
+  }
+}
+
+/* ===================== MY PAGE ===================== */
+function initMyPage(){
+  // Name
+  const name=localStorage.getItem('userName')||'';
+  document.getElementById('userName').value=name;
+  // Status cards
+  renderStatusCards();
+  renderArchive();
+}
+
+function saveName(){
+  localStorage.setItem('userName', document.getElementById('userName').value);
+  toast('이름이 저장되었습니다');
+}
+
+function renderStatusCards(){
+  const statuses=JSON.parse(localStorage.getItem('taxStatus')||'null') || [
+    {name:'부가가치세',type:'vat',step:1,deadline:'2026-04-25',steps:['접수','처리중','신고','완료']},
+    {name:'종합소득세',type:'income',step:0,deadline:'2026-05-31',steps:['접수','처리중','신고','완료']},
+    {name:'법인세',type:'corp',step:2,deadline:'2026-03-31',steps:['접수','처리중','신고','완료']}
+  ];
+  const now=new Date();now.setHours(0,0,0,0);
+  const c=document.getElementById('statusCards');
+  c.innerHTML=statuses.map((s,si)=>{
+    const dl=new Date(s.deadline+'T00:00:00');
+    const diff=Math.ceil((dl-now)/(1000*60*60*24));
+    const pct=Math.floor((s.step/(s.steps.length-1))*100);
+    const color=s.step>=3?'var(--ok)':diff<=7?'var(--ng)':diff<=30?'var(--wn)':'var(--p)';
+    return `<div class="card mb-12"><div class="flex justify-between items-center mb-8"><div class="fw-800 fs-14">${s.name}</div><div class="badge ${diff<=7?'badge-ng':diff<=30?'badge-wn':'badge-p'}">D-${Math.max(diff,0)}</div></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div><div class="flex justify-between mt-8">${s.steps.map((st,i)=>`<span class="fs-10 fw-700" style="color:${i<=s.step?color:'var(--g4)'}">${st}</span>`).join('')}</div><div class="flex justify-between mt-12"><span class="fs-11" style="color:var(--text3)">마감 ${s.deadline}</span><button class="btn btn-sm btn-o" onclick="advanceStatus(${si})">상태 변경 <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></button></div></div>`;
+  }).join('');
+  localStorage.setItem('taxStatus',JSON.stringify(statuses));
+}
+
+function advanceStatus(idx){
+  const statuses=JSON.parse(localStorage.getItem('taxStatus'));
+  statuses[idx].step=(statuses[idx].step+1)%4;
+  localStorage.setItem('taxStatus',JSON.stringify(statuses));
+  renderStatusCards();
+  toast('상태가 업데이트되었습니다');
+}
+
+function renderArchive(){
+  const archive=JSON.parse(localStorage.getItem('archive')||'[]');
+  const c=document.getElementById('archiveList');
+  if(!archive.length){c.innerHTML='<div class="card text-center" style="padding:24px;color:var(--g4)"><i class="fa-solid fa-box-open" style="font-size:28px;margin-bottom:8px"></i><div class="fs-13">제출 이력이 없습니다</div></div>';return;}
+  c.innerHTML=archive.map(a=>`<div class="card" style="padding:14px;margin-bottom:8px"><div class="flex justify-between items-center mb-8"><div class="fw-700 fs-13">${a.date} 제출</div><div class="badge badge-ok">${a.count}개 파일</div></div><div class="fs-12" style="color:var(--text2)">${a.files.join(', ')}</div>${a.memo?`<div class="fs-11 mt-8" style="color:var(--text3)">메모: ${a.memo}</div>`:''}</div>`).join('');
+}
+
+function clearCache(){
+  if(confirm('모든 저장 데이터를 삭제하시겠습니까?')){
+    localStorage.clear();
+    toast('캐시가 삭제되었습니다');
+    location.reload();
+  }
+}
+
+/* ===================== INIT ===================== */
+function init(){
+  initTheme();
+  initDday();
+  renderCal();
+  initFaq();
+  initBizTypes();
+  initYrTimeline();
+  renderChecklist();
+  initMyPage();
+  initUpload();
+}
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧾 부가가치세 신고서 | 한백택스</title>
+<meta name="description" content="국세청 부가가치세 신고서(별지 제21호) 실무 작성 · 의제매입 공제율·신용카드/전자세금계산서 발행공제·가산세 명세 자동계산">
+<meta name="theme-color" content="#1B3A5C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="부가세신고서">
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Nanum Gothic',sans-serif}
+:root{--navy:#1B3A5C;--blue:#2E6DA4;--gold:#C8963E;--bg:#f0f2f5;--gray:#718096;--light:#EDF2F7;--input-bg:#FFF8E1;--auto-bg:#FDF2E9;--border:#CBD5E0;--green:#D1FAE5;--green-txt:#065F46;--red:#C53030;--red-bg:#FEE2E2}
+body{background:var(--bg);color:#2D3748;min-height:100vh;font-size:15px;padding-bottom:40px}
+.top-bar{background:var(--navy);color:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.top-bar h1{font-size:22px}.top-bar .sub{font-size:13px;color:#a0b4cc;margin-top:3px}
+.brand-bar{background:var(--navy);color:var(--gold);text-align:center;padding:7px;font-size:14px;font-weight:700;border-bottom:3px solid var(--gold)}
+.standalone-back{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;margin:14px 24px 0}
+.wrap{max-width:1040px;margin:0 auto;padding:18px}
+.calc-title{background:var(--navy);color:#fff;padding:18px 24px;border-radius:14px 14px 0 0;text-align:center}
+.calc-title h2{font-size:23px;margin-bottom:4px}.calc-title .sub{font-size:13px;color:#a0b4cc}
+.calc-body{background:#fff;border:1px solid #dde;border-radius:0 0 14px 14px;overflow:hidden;margin-bottom:22px}
+.mode-bar{display:flex}.mode-btn{flex:1;padding:14px;text-align:center;font-weight:800;font-size:15px;cursor:pointer;color:var(--gray);background:var(--light);border-bottom:3px solid transparent}
+.mode-btn.active{background:#fff;color:var(--blue);border-bottom-color:var(--blue)}
+.grp-hdr{background:var(--blue);color:#fff;padding:11px 18px;font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px}
+.grp-hdr.minus{background:#8B5E3C}.grp-hdr.sum{background:var(--navy)}.grp-hdr.pen{background:#7A3B3B}.grp-hdr.info{background:#3B5A7A}
+.grp-hdr .b{background:rgba(255,255,255,.22);padding:2px 9px;border-radius:5px;font-size:13px}
+.grp-hdr .hint{margin-left:auto;font-size:12px;font-weight:400;color:#dde8f4}
+/* 신고인 기본정보 */
+.info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0}
+.info-cell{display:flex;border-bottom:1px solid var(--light);border-right:1px solid var(--light)}
+.info-cell .l{width:120px;background:var(--light);padding:10px 12px;font-weight:700;font-size:13px;color:var(--navy);flex-shrink:0;display:flex;align-items:center}
+.info-cell .i{flex:1}.info-cell input,.info-cell select{width:100%;border:none;padding:10px 12px;font-size:14px;font-weight:700;color:var(--blue);background:var(--input-bg);outline:none;font-family:inherit}
+.info-cell input:focus,.info-cell select:focus{background:#FFF9C4}
+.info-cell.full{grid-column:1/3}
+/* 신고서 표 */
+table.form{width:100%;border-collapse:collapse;font-size:14px}
+table.form th{background:var(--light);color:var(--navy);padding:8px 6px;border:1px solid var(--border);font-weight:800;font-size:13px}
+table.form td{border:1px solid var(--border);padding:0}
+.cd{display:flex;align-items:center;gap:6px;padding:7px 10px}
+.cd .no{background:var(--navy);color:#fff;font-size:11px;font-weight:800;min-width:24px;height:20px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding:0 4px}
+.cd .nm{font-weight:700;font-size:13px}.cd .nm.sub{padding-left:14px;font-weight:400;color:#4a5568;font-size:12px}
+.cd .nm.sub::before{content:"└ ";color:var(--gray)}
+td.amt{width:180px}td.rate{width:74px;text-align:center;font-size:12px;color:var(--gray);background:#fafbfc;padding:0 2px}td.tax{width:165px}
+td.amt input,td.tax input{width:100%;border:none;padding:9px 10px;font-size:14px;text-align:right;font-weight:700;color:var(--blue);background:var(--input-bg);outline:none;font-family:inherit}
+td.amt input:focus,td.tax input:focus{background:#FFF9C4;box-shadow:inset 0 0 0 2px var(--gold)}
+td.rate select{width:100%;border:none;background:#fafbfc;font-size:12px;text-align:center;color:var(--navy);font-weight:700;outline:none;font-family:inherit;padding:8px 2px;cursor:pointer}
+td.tax .auto{padding:9px 10px;text-align:right;font-weight:700;color:var(--gold);background:var(--auto-bg);font-size:14px}
+td.tax .zero{padding:9px 10px;text-align:right;color:var(--gray);background:#fafbfc;font-size:13px}
+tr.subtot td{background:#f0f4f8;font-weight:800}
+tr.subtot .cd .nm{font-weight:800;color:var(--navy)}
+tr.subtot td.tax .auto{background:#E8EEF4;color:var(--navy)}
+tr.warnrow td{background:#FEF3C7}
+.resultbar{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.rb{padding:16px;text-align:center;border-right:1px solid var(--border)}
+.rb:last-child{border-right:none}.rb .k{font-size:13px;color:var(--gray);font-weight:700}.rb .v{font-size:20px;font-weight:800;color:var(--navy);margin-top:4px}
+.result-box{background:var(--auto-bg);padding:24px;text-align:center;border-top:3px double var(--gold)}
+.result-box .label{font-size:18px;font-weight:700;color:var(--navy)}
+.result-box .value{font-size:36px;font-weight:800;color:var(--gold);margin-top:6px}
+.result-box .value.refund{color:var(--green-txt)}
+.result-box .detail{font-size:13px;color:var(--gray);margin-top:8px}
+.disclaimer{font-size:12px;color:var(--gray);padding:16px 22px;line-height:1.7;background:#f8fafc;border-top:1px dashed var(--border)}.disclaimer b{color:var(--navy)}
+.hide{display:none}
+.tools{padding:14px 22px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--blue);color:#fff;border:none;padding:10px 18px;border-radius:8px;font-weight:800;cursor:pointer;font-family:inherit;font-size:14px}
+.btn.gray{background:#94A3B8}.btn.gold{background:var(--gold)}.btn.dk{background:var(--navy)}
+.tools select{flex:1;min-width:140px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-weight:700;color:var(--navy);background:#fff}
+.note-sm{font-size:11px;color:var(--gray);padding:2px 10px 7px;line-height:1.5}
+.chk{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--navy)}
+.chk input{width:16px;height:16px}
+.valid-ok{color:var(--green-txt);font-weight:700}.valid-bad{color:var(--red);font-weight:800}
+/* 간이 */
+.srow{display:flex;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--light)}
+.srow .l{width:300px;background:var(--light);padding:11px 14px;font-weight:700;font-size:14px;border-right:1px solid var(--border)}
+.srow .i{flex:1;min-width:140px}.srow .i input,.srow .i select{width:100%;padding:11px 14px;font-size:15px;font-weight:700;color:var(--blue);background:var(--input-bg);border:none;outline:none;text-align:right;font-family:inherit}
+.srow .i select{text-align:left}.srow .a{flex:1;min-width:120px;padding:11px 14px;text-align:right;font-weight:700;color:var(--gold);background:var(--auto-bg)}
+@media(max-width:760px){
+  .wrap{padding:10px 6px}.top-bar h1{font-size:18px}
+  table.form{font-size:12px}.cd{padding:5px 6px}.cd .nm{font-size:12px}
+  td.amt{width:120px}td.tax{width:108px}td.rate{width:54px}
+  td.amt input,td.tax input,td.tax .auto,td.tax .zero{padding:8px 6px;font-size:12px}
+  .result-box .value{font-size:26px}.srow .l{width:100%}
+  .info-grid{grid-template-columns:1fr}.info-cell.full{grid-column:1}
+}
+@media print{
+  body{background:#fff;padding:0}
+  .top-bar,.standalone-back,.mode-bar,.tools,.brand-bar,.no-print{display:none!important}
+  .wrap{max-width:100%;padding:0}.calc-body{border:none;box-shadow:none}
+  .grp-hdr{color:#000;background:#eee!important;border:1px solid #000}
+  td.amt input,td.tax input{color:#000;background:#fff}
+  .calc-title{background:#fff;color:#000;border-bottom:2px solid #000}.calc-title .sub{color:#333}
+  .result-box{background:#fff}.result-box .value{color:#000}
+}
+</style>
+</head>
+<body>
+<div class="top-bar"><div><h1>세무법인 한백택스</h1><div class="sub">대표세무사 차재영 | 서울특별시 중구 동호로 315, 2층</div></div><div style="color:var(--gold);font-weight:800;font-size:12px">부가가치세 신고서</div></div>
+<div class="brand-bar">HANBAEK TAX — 부가가치세 신고서 (별지 제21호서식 / 간이 별지 제44호서식)</div>
+<a class="standalone-back" href="한백택스_세무계산_포털.html">← 전체 세무계산 포털</a>
+
+<div class="wrap">
+  <div class="calc-title"><h2>🧾 부가가치세 신고서</h2><div class="sub">신고인 정보 · 매출/매입 항목별 구분 · 의제매입·발행공제·가산세 자동계산 → 차가감 납부세액</div></div>
+  <div class="calc-body">
+
+    <!-- ===================== 신고인 기본정보 ===================== -->
+    <div class="grp-hdr info"><span class="b">신고</span>신고인 · 과세기간 기본정보<span class="hint">홈택스 전사·인쇄용</span></div>
+    <div class="info-grid">
+      <div class="info-cell"><div class="l">과세기간</div><div class="i"><select id="i_period" onchange="recalc()">
+        <option value="1예정">제1기 예정 (1.1~3.31)</option>
+        <option value="1확정" selected>제1기 확정 (1.1~6.30)</option>
+        <option value="2예정">제2기 예정 (7.1~9.30)</option>
+        <option value="2확정">제2기 확정 (7.1~12.31)</option>
+      </select></div></div>
+      <div class="info-cell"><div class="l">귀속연도</div><div class="i"><input type="number" id="i_year" placeholder="2026" oninput="recalc()"></div></div>
+      <div class="info-cell"><div class="l">신고구분</div><div class="i"><select id="i_kind" onchange="recalc()">
+        <option value="정기">정기신고</option><option value="수정">수정신고</option><option value="기한후">기한후신고</option>
+      </select></div></div>
+      <div class="info-cell"><div class="l">사업자구분</div><div class="i"><select id="i_biztype" onchange="recalc()">
+        <option value="개인">개인사업자</option><option value="법인">법인사업자</option>
+      </select></div></div>
+      <div class="info-cell"><div class="l">상호(법인명)</div><div class="i"><input type="text" id="i_name" placeholder="○○상사"></div></div>
+      <div class="info-cell"><div class="l">사업자등록번호</div><div class="i"><input type="text" id="i_bizno" placeholder="000-00-00000" inputmode="numeric"></div></div>
+      <div class="info-cell"><div class="l">성명(대표자)</div><div class="i"><input type="text" id="i_ceo" placeholder="홍길동"></div></div>
+      <div class="info-cell"><div class="l">전화번호</div><div class="i"><input type="text" id="i_tel" placeholder="02-0000-0000"></div></div>
+      <div class="info-cell full"><div class="l">사업장 소재지</div><div class="i"><input type="text" id="i_addr" placeholder="서울특별시 ○○구 ○○로 00"></div></div>
+      <div class="info-cell"><div class="l">업태</div><div class="i"><input type="text" id="i_uptae" placeholder="도소매"></div></div>
+      <div class="info-cell"><div class="l">종목</div><div class="i"><input type="text" id="i_jongmok" placeholder="전자제품"></div></div>
+    </div>
+
+    <div class="mode-bar">
+      <div class="mode-btn active" id="mb-gen" onclick="setMode('gen')">일반과세자</div>
+      <div class="mode-btn" id="mb-simp" onclick="setMode('simp')">간이과세자</div>
+    </div>
+
+    <!-- ===================== 일반과세 신고서 ===================== -->
+    <div id="genWrap">
+      <!-- 매출세액 -->
+      <div class="grp-hdr"><span class="b">①</span>과세표준 및 매출세액</div>
+      <table class="form">
+        <thead><tr><th style="text-align:left;padding-left:34px">구 분</th><th>금액(공급가액)</th><th>세율</th><th>세액</th></tr></thead>
+        <tbody>
+          <tr><td><div class="cd"><span class="no">1</span><span class="nm">과세 · 세금계산서 발급분</span></div></td>
+            <td class="amt"><input type="number" id="o1" oninput="calcGen()"></td><td class="rate">10/100</td><td class="tax"><div class="auto" id="o1t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">2</span><span class="nm sub">매입자발행 세금계산서</span></div></td>
+            <td class="amt"><input type="number" id="o2" oninput="calcGen()"></td><td class="rate">10/100</td><td class="tax"><div class="auto" id="o2t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">3</span><span class="nm">과세 · 신용카드·현금영수증 발행분</span></div></td>
+            <td class="amt"><input type="number" id="o3" oninput="calcGen()"></td><td class="rate">10/100</td><td class="tax"><div class="auto" id="o3t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">4</span><span class="nm">과세 · 기타(정규영수증 외 매출)</span></div></td>
+            <td class="amt"><input type="number" id="o4" oninput="calcGen()"></td><td class="rate">10/100</td><td class="tax"><div class="auto" id="o4t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">5</span><span class="nm">영세율 · 세금계산서 발급분</span></div></td>
+            <td class="amt"><input type="number" id="o5" oninput="calcGen()"></td><td class="rate">0/100</td><td class="tax"><div class="zero">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">6</span><span class="nm">영세율 · 기타</span></div></td>
+            <td class="amt"><input type="number" id="o6" oninput="calcGen()"></td><td class="rate">0/100</td><td class="tax"><div class="zero">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">7</span><span class="nm">예정신고 누락분</span></div></td>
+            <td class="amt"><input type="number" id="o7a" oninput="calcGen()" placeholder="금액"></td><td class="rate">·</td><td class="tax"><input type="number" id="o7t" oninput="calcGen()" placeholder="세액"></td></tr>
+          <tr><td><div class="cd"><span class="no">8</span><span class="nm">대손세액 가감 (±)</span></div></td>
+            <td class="amt" style="background:#fafbfc"></td><td class="rate">·</td><td class="tax"><input type="number" id="o8t" oninput="calcGen()" placeholder="±세액"></td></tr>
+          <tr class="subtot"><td><div class="cd"><span class="no">9</span><span class="nm">매출세액 합계</span></div></td>
+            <td class="amt"><div class="auto" id="o_base" style="background:#E8EEF4;color:var(--navy)">0</div></td><td class="rate">⑨</td><td class="tax"><div class="auto" id="o_tax">0</div></td></tr>
+        </tbody>
+      </table>
+
+      <!-- 매입세액 -->
+      <div class="grp-hdr minus"><span class="b">②</span>매입세액</div>
+      <table class="form">
+        <thead><tr><th style="text-align:left;padding-left:34px">구 분</th><th>금액(공급가액)</th><th>세율/공제율</th><th>세액</th></tr></thead>
+        <tbody>
+          <tr><td><div class="cd"><span class="no">10</span><span class="nm">세금계산서 수취 · 일반매입</span></div></td>
+            <td class="amt"><input type="number" id="p10" oninput="calcGen()"></td><td class="rate">10/100</td><td class="tax"><div class="auto" id="p10t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">11</span><span class="nm">세금계산서 수취 · 고정자산 매입</span></div></td>
+            <td class="amt"><input type="number" id="p11" oninput="calcGen()"></td><td class="rate">10/100</td><td class="tax"><div class="auto" id="p11t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">12</span><span class="nm">예정신고 누락분</span></div></td>
+            <td class="amt"><input type="number" id="p12a" oninput="calcGen()" placeholder="금액"></td><td class="rate">·</td><td class="tax"><input type="number" id="p12t" oninput="calcGen()" placeholder="세액"></td></tr>
+          <tr><td><div class="cd"><span class="no">13</span><span class="nm">매입자발행 세금계산서</span></div></td>
+            <td class="amt"><input type="number" id="p13" oninput="calcGen()"></td><td class="rate">10/100</td><td class="tax"><div class="auto" id="p13t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">14</span><span class="nm">그 밖의 공제매입세액 (명세 ↓)</span></div></td>
+            <td class="amt" style="background:#fafbfc"></td><td class="rate"></td><td class="tax"><div class="auto" id="p14t" style="background:#E8EEF4;color:var(--navy)">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">41</span><span class="nm sub">신용카드매출전표 수령 · 일반</span></div></td>
+            <td class="amt"><input type="number" id="p14cg" oninput="calcGen()"></td><td class="rate">10/100</td><td class="tax"><div class="auto" id="p14cgt">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">42</span><span class="nm sub">신용카드매출전표 수령 · 고정자산</span></div></td>
+            <td class="amt"><input type="number" id="p14cf" oninput="calcGen()"></td><td class="rate">10/100</td><td class="tax"><div class="auto" id="p14cft">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">43</span><span class="nm sub">의제매입세액 (면세농산물 등)</span></div></td>
+            <td class="amt"><input type="number" id="ui_base" oninput="calcGen()" placeholder="면세 매입액"></td>
+            <td class="rate"><select id="ui_rate" onchange="calcGen()">
+              <option value="0">공제율</option>
+              <option value="0.082568807">9/109 음식점 개인(4억↓)</option>
+              <option value="0.074074074">8/108 음식점 개인(4억↑)</option>
+              <option value="0.056603774">6/106 음식점 법인·과자점 등</option>
+              <option value="0.038461538">4/104 제조업(중소·개인)</option>
+              <option value="0.019607843">2/102 그 밖의 업종</option>
+            </select></td>
+            <td class="tax"><div class="auto" id="ui_credit">0</div></td></tr>
+          <tr><td colspan="4" class="note-sm" id="ui_note">※ 의제매입 공제한도 = 과세표준 × 한도율. 업종·매출규모·예정+확정 합산 기준. 한도율
+            <select id="ui_limrate" onchange="calcGen()" style="font-size:11px;padding:2px 4px;border:1px solid var(--border);border-radius:4px">
+              <option value="0">한도 미적용(직접관리)</option>
+              <option value="0.75">75% (음식점 개인 2억↓)</option>
+              <option value="0.70">70% (음식점 개인 2~4억)</option>
+              <option value="0.60">60% (음식점 개인 4억↑)</option>
+              <option value="0.65">65% (제조 개인 4억↓)</option>
+              <option value="0.55">55% (제조 개인 4억↑)</option>
+              <option value="0.50">50% (법인·기타)</option>
+            </select> 적용 시 자동 한도</td></tr>
+          <tr><td><div class="cd"><span class="no">44</span><span class="nm sub">재활용폐자원 등 매입세액</span></div></td>
+            <td class="amt"><input type="number" id="p_recyc_a" oninput="calcGen()" placeholder="대상금액(참고)"></td><td class="rate">·</td><td class="tax"><input type="number" id="p_recyc" oninput="calcGen()" placeholder="세액"></td></tr>
+          <tr><td><div class="cd"><span class="no">45</span><span class="nm sub">과세사업전환 매입세액</span></div></td>
+            <td class="amt" style="background:#fafbfc"></td><td class="rate">·</td><td class="tax"><input type="number" id="p_trans" oninput="calcGen()" placeholder="세액"></td></tr>
+          <tr><td><div class="cd"><span class="no">46</span><span class="nm sub">재고매입세액 (간이→일반 전환)</span></div></td>
+            <td class="amt" style="background:#fafbfc"></td><td class="rate">·</td><td class="tax"><input type="number" id="p_stock" oninput="calcGen()" placeholder="세액"></td></tr>
+          <tr><td><div class="cd"><span class="no">47</span><span class="nm sub">변제대손세액</span></div></td>
+            <td class="amt" style="background:#fafbfc"></td><td class="rate">·</td><td class="tax"><input type="number" id="p_baddebt" oninput="calcGen()" placeholder="세액"></td></tr>
+          <tr><td><div class="cd"><span class="no">48</span><span class="nm sub">외국인관광객 환급세액</span></div></td>
+            <td class="amt" style="background:#fafbfc"></td><td class="rate">·</td><td class="tax"><input type="number" id="p_tourist" oninput="calcGen()" placeholder="세액"></td></tr>
+          <tr class="subtot"><td><div class="cd"><span class="no">15</span><span class="nm">매입세액 합계</span></div></td>
+            <td class="amt"></td><td class="rate"></td><td class="tax"><div class="auto" id="p_sum">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">16</span><span class="nm">공제받지 못할 매입세액 (명세 ↓)</span></div></td>
+            <td class="amt" style="background:#fafbfc"></td><td class="rate"></td><td class="tax"><div class="auto" id="p16t" style="color:var(--red)">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">50</span><span class="nm sub">공제받지못할 매입세액</span></div></td>
+            <td class="amt"><input type="number" id="nd_amt" oninput="calcGen()" placeholder="금액"></td><td class="rate">10/100</td><td class="tax"><div class="auto" id="nd_amt_t" style="color:var(--red)">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">51</span><span class="nm sub">공통매입세액 면세사업분</span></div></td>
+            <td class="amt" style="background:#fafbfc"></td><td class="rate">·</td><td class="tax"><input type="number" id="nd_common" oninput="calcGen()" placeholder="세액"></td></tr>
+          <tr><td><div class="cd"><span class="no">52</span><span class="nm sub">대손처분받은 세액</span></div></td>
+            <td class="amt" style="background:#fafbfc"></td><td class="rate">·</td><td class="tax"><input type="number" id="nd_bad" oninput="calcGen()" placeholder="세액"></td></tr>
+          <tr class="subtot"><td><div class="cd"><span class="no">17</span><span class="nm">차감 매입세액 (15−16)</span></div></td>
+            <td class="amt"></td><td class="rate"></td><td class="tax"><div class="auto" id="p_net">0</div></td></tr>
+        </tbody>
+      </table>
+
+      <!-- 납부세액 -->
+      <div class="grp-hdr sum"><span class="b">③</span>납부(환급)세액 · 경감공제 · 기납부 · 가산세</div>
+      <div class="resultbar" style="border-bottom:1px solid var(--border)">
+        <div class="rb"><div class="k">매출세액 (⑨)</div><div class="v" id="rb_out">0</div></div>
+        <div class="rb"><div class="k">매입세액 (⑰)</div><div class="v" id="rb_in" style="color:#8B5E3C">0</div></div>
+      </div>
+      <table class="form">
+        <tbody>
+          <tr class="subtot"><td><div class="cd"><span class="no"> </span><span class="nm">납부(환급)세액 (매출⑨−매입⑰)</span></div></td><td class="amt"></td><td class="rate"></td><td class="tax"><div class="auto" id="net1">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">18</span><span class="nm">그 밖의 경감·공제세액 (명세 ↓)</span></div></td><td class="amt" style="background:#fafbfc"></td><td class="rate"></td><td class="tax"><div class="auto" id="c18" style="background:#E8EEF4;color:var(--navy)">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no"> </span><span class="nm sub">전자신고 세액공제</span></div></td><td class="amt" style="background:#fafbfc"></td><td class="rate">·</td><td class="tax"><input type="number" id="e18_efile" value="10000" oninput="calcGen()"></td></tr>
+          <tr><td><div class="cd"><span class="no"> </span><span class="nm sub">전자세금계산서 발급세액공제 (건수)</span></div></td><td class="amt"><input type="number" id="e18_einv_cnt" oninput="calcGen()" placeholder="발급 건수"></td><td class="rate">건×200</td><td class="tax"><div class="auto" id="e18_einv_credit">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no"> </span><span class="nm sub">택시운송·대리납부·현금영수증·기타</span></div></td><td class="amt" style="background:#fafbfc"></td><td class="rate">·</td><td class="tax"><input type="number" id="e18_etc" oninput="calcGen()" placeholder="세액"></td></tr>
+          <tr><td><div class="cd"><span class="no">19</span><span class="nm">신용카드매출전표 발행공제 (발행금액)</span></div></td><td class="amt"><input type="number" id="c19_amt" oninput="calcGen()" placeholder="발행·결제금액"></td><td class="rate">1.3%</td><td class="tax"><div class="auto" id="c19">0</div></td></tr>
+          <tr><td colspan="4" class="note-sm" id="c19_note">※ 개인사업자(직전 공급가액 10억↓)만 적용 · 연 1,000만원 한도(2026.12.31 일몰, 이후 1%·500만). 법인은 자동 0.</td></tr>
+          <tr><td><div class="cd"><span class="no">21</span><span class="nm">예정신고 미환급세액 (−)</span></div></td><td class="amt" style="background:#fafbfc"></td><td class="rate"></td><td class="tax"><input type="number" id="c21" value="0" oninput="calcGen()"></td></tr>
+          <tr><td><div class="cd"><span class="no">22</span><span class="nm">예정고지세액 (−)</span></div></td><td class="amt" style="background:#fafbfc"></td><td class="rate"></td><td class="tax"><input type="number" id="c22" value="0" oninput="calcGen()"></td></tr>
+          <tr><td><div class="cd"><span class="no">25</span><span class="nm">신용카드업자 대리납부 기납부 (−)</span></div></td><td class="amt" style="background:#fafbfc"></td><td class="rate"></td><td class="tax"><input type="number" id="c25" value="0" oninput="calcGen()"></td></tr>
+        </tbody>
+      </table>
+
+      <!-- 가산세 명세 -->
+      <div class="grp-hdr pen"><span class="b">26</span>가산세 명세 (자동계산)<span class="hint">해당 금액·세액만 입력</span></div>
+      <table class="form">
+        <thead><tr><th style="text-align:left;padding-left:14px">구 분</th><th>공급가액/미납세액</th><th>율</th><th>가산세액</th></tr></thead>
+        <tbody>
+          <tr><td><div class="cd"><span class="nm">사업자 미등록·허위등록</span></div></td><td class="amt"><input type="number" id="g_unreg" oninput="calcGen()" placeholder="공급가액"></td><td class="rate">1%</td><td class="tax"><div class="auto" id="g_unreg_t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="nm">세금계산서 지연발급</span></div></td><td class="amt"><input type="number" id="g_tinv_late" oninput="calcGen()" placeholder="공급가액"></td><td class="rate">1%</td><td class="tax"><div class="auto" id="g_tinv_late_t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="nm">세금계산서 미발급</span></div></td><td class="amt"><input type="number" id="g_tinv_no" oninput="calcGen()" placeholder="공급가액"></td><td class="rate">2%</td><td class="tax"><div class="auto" id="g_tinv_no_t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="nm">전자세금계산서 지연전송</span></div></td><td class="amt"><input type="number" id="g_etr_late" oninput="calcGen()" placeholder="공급가액"></td><td class="rate">0.3%</td><td class="tax"><div class="auto" id="g_etr_late_t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="nm">전자세금계산서 미전송</span></div></td><td class="amt"><input type="number" id="g_etr_no" oninput="calcGen()" placeholder="공급가액"></td><td class="rate">0.5%</td><td class="tax"><div class="auto" id="g_etr_no_t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="nm">매출처별 세금계산서합계표 불성실</span></div></td><td class="amt"><input type="number" id="g_sum" oninput="calcGen()" placeholder="공급가액"></td><td class="rate"><select id="g_sum_rate" onchange="calcGen()"><option value="0.005">0.5%(미제출·부실)</option><option value="0.003">0.3%(지연제출)</option></select></td><td class="tax"><div class="auto" id="g_sum_t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="nm">신고불성실 (무신고·과소)</span></div></td><td class="amt"><input type="number" id="g_under" oninput="calcGen()" placeholder="무신고·과소세액"></td>
+            <td class="rate"><select id="g_under_rate" onchange="calcGen()"><option value="0.10">과소 10%</option><option value="0.20">무신고 20%</option><option value="0.40">부당 40%</option></select></td>
+            <td class="tax"><div class="auto" id="g_under_t">0</div></td></tr>
+          <tr><td colspan="4" class="note-sm">└ 수정·기한후신고 감면율
+            <select id="g_under_relief" onchange="calcGen()" style="font-size:11px;padding:2px 4px;border:1px solid var(--border);border-radius:4px">
+              <option value="0">감면 없음</option>
+              <option value="0.90">90% (법정후 1개월내)</option>
+              <option value="0.75">75% (1~3개월)</option>
+              <option value="0.50">50% (3~6개월)</option>
+              <option value="0.30">30% (6개월~1년)</option>
+              <option value="0.20">20% (1년~1년6개월)</option>
+              <option value="0.10">10% (1년6개월~2년)</option>
+            </select> (기한후신고 감면율은 별도 — 1개월내 50%·3개월 30%·6개월 20%)</td></tr>
+          <tr><td><div class="cd"><span class="nm">납부지연 (미납세액×일수×0.022%)</span></div></td><td class="amt"><input type="number" id="g_unpaid" oninput="calcGen()" placeholder="미납세액"></td><td class="rate"><input type="number" id="g_days" oninput="calcGen()" placeholder="일수" style="width:100%;border:none;background:#fafbfc;text-align:center;font-size:12px;padding:8px 2px;font-weight:700;color:var(--navy);font-family:inherit"></td><td class="tax"><div class="auto" id="g_unpaid_t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="nm">영세율 과세표준 신고불성실</span></div></td><td class="amt"><input type="number" id="g_zero" oninput="calcGen()" placeholder="공급가액"></td><td class="rate">0.5%</td><td class="tax"><div class="auto" id="g_zero_t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="nm">기타 가산세 (직접입력)</span></div></td><td class="amt" style="background:#fafbfc"></td><td class="rate">·</td><td class="tax"><input type="number" id="g_etc" oninput="calcGen()" placeholder="세액"></td></tr>
+          <tr class="subtot"><td><div class="cd"><span class="no">26</span><span class="nm">가산세액 계 (+)</span></div></td><td class="amt"></td><td class="rate"></td><td class="tax"><div class="auto" id="c26">0</div></td></tr>
+        </tbody>
+      </table>
+
+      <div class="result-box"><div class="label">㉗ 차가감하여 납부할 세액 (환급받을 세액)</div><div class="value" id="g_final">0 원</div><div class="detail" id="g_detail"></div></div>
+
+      <!-- 과세표준 명세 -->
+      <div class="grp-hdr info"><span class="b">㉘</span>과세표준 명세 (업종별)<span class="hint" id="ts_valid"></span></div>
+      <table class="form">
+        <thead><tr><th>업태</th><th>종목</th><th>업종코드</th><th>금액</th></tr></thead>
+        <tbody>
+          <tr><td class="amt" style="width:auto"><input type="text" id="ts1u" placeholder="업태"></td><td class="amt" style="width:auto"><input type="text" id="ts1j" placeholder="종목"></td><td class="amt" style="width:120px"><input type="text" id="ts1c" placeholder="000000" inputmode="numeric"></td><td class="amt"><input type="number" id="ts1a" oninput="calcGen()" placeholder="금액"></td></tr>
+          <tr><td class="amt" style="width:auto"><input type="text" id="ts2u"></td><td class="amt" style="width:auto"><input type="text" id="ts2j"></td><td class="amt" style="width:120px"><input type="text" id="ts2c" inputmode="numeric"></td><td class="amt"><input type="number" id="ts2a" oninput="calcGen()"></td></tr>
+          <tr><td class="amt" style="width:auto"><input type="text" id="ts3u"></td><td class="amt" style="width:auto"><input type="text" id="ts3j"></td><td class="amt" style="width:120px"><input type="text" id="ts3c" inputmode="numeric"></td><td class="amt"><input type="number" id="ts3a" oninput="calcGen()"></td></tr>
+          <tr><td colspan="3"><div class="cd"><span class="nm sub" style="font-weight:700">수입금액 제외 (고정자산매각 등)</span></div></td><td class="amt"><input type="number" id="ts_excl" oninput="calcGen()" placeholder="금액"></td></tr>
+          <tr class="subtot"><td colspan="3"><div class="cd"><span class="nm">과세표준명세 합계</span></div></td><td class="amt"><div class="auto" id="ts_sum" style="background:#E8EEF4;color:var(--navy)">0</div></td></tr>
+          <tr><td colspan="3"><div class="cd"><span class="nm sub" style="font-weight:700">면세사업 수입금액</span></div></td><td class="amt"><input type="number" id="ts_exempt" placeholder="면세 공급가액"></td></tr>
+          <tr><td colspan="3"><div class="cd"><span class="nm sub" style="font-weight:700">계산서 발급금액 / 수취금액</span></div></td><td class="amt"><input type="number" id="ts_billiss" placeholder="발급"><input type="number" id="ts_billrcv" placeholder="수취" style="border-top:1px solid var(--border)"></td></tr>
+        </tbody>
+      </table>
+
+      <!-- 환급계좌 -->
+      <div class="grp-hdr info"><span class="b">환급</span>국세환급금 계좌신고 (환급 시)</div>
+      <div class="info-grid">
+        <div class="info-cell"><div class="l">거래은행</div><div class="i"><input type="text" id="rf_bank" placeholder="○○은행"></div></div>
+        <div class="info-cell"><div class="l">계좌번호</div><div class="i"><input type="text" id="rf_acct" placeholder="000-000000-00000" inputmode="numeric"></div></div>
+      </div>
+
+      <div class="tools no-print">
+        <button class="btn gold" onclick="window.print()">🖨 신고서 인쇄/PDF</button>
+        <button class="btn dk" onclick="exportCSV()">📥 CSV</button>
+        <button class="btn" onclick="saveCase()">💾 저장</button>
+        <button class="btn gray" onclick="resetGen()">↺ 초기화</button>
+      </div>
+      <div class="tools no-print" style="padding-top:0;align-items:center">
+        <span style="font-size:13px;font-weight:700;color:var(--gray)">저장된 신고:</span>
+        <select id="caseSel"></select>
+        <button class="btn gray" onclick="loadCase()">📂 불러오기</button>
+        <button class="btn gray" onclick="deleteCase()">🗑 삭제</button>
+      </div>
+    </div>
+
+    <!-- ===================== 간이과세 신고서 (별지 제44호) ===================== -->
+    <div id="simpWrap" class="hide">
+      <!-- ① 과세표준 및 매출세액(납부세액) -->
+      <div class="grp-hdr"><span class="b">①</span>과세표준 및 매출세액 (납부세액)<span class="hint">업종별 공급대가 입력</span></div>
+      <table class="form">
+        <thead><tr><th style="text-align:left;padding-left:34px">업종 (부가가치율)</th><th>공급대가</th><th>부가율×세율</th><th>세액</th></tr></thead>
+        <tbody>
+          <tr><td><div class="cd"><span class="no">1</span><span class="nm">소매·음식점·재생용재료수집판매</span></div></td>
+            <td class="amt"><input type="number" id="sg15" oninput="calcSimp()"></td><td class="rate">15%×10%</td><td class="tax"><div class="auto" id="sg15t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">2</span><span class="nm">제조·농임어업·소화물전문운송</span></div></td>
+            <td class="amt"><input type="number" id="sg20" oninput="calcSimp()"></td><td class="rate">20%×10%</td><td class="tax"><div class="auto" id="sg20t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">3</span><span class="nm">숙박업</span></div></td>
+            <td class="amt"><input type="number" id="sg25" oninput="calcSimp()"></td><td class="rate">25%×10%</td><td class="tax"><div class="auto" id="sg25t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">4</span><span class="nm">건설·운수창고·정보통신·그밖의서비스</span></div></td>
+            <td class="amt"><input type="number" id="sg30" oninput="calcSimp()"></td><td class="rate">30%×10%</td><td class="tax"><div class="auto" id="sg30t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">5</span><span class="nm">금융보험·전문과학·부동산임대·사업시설관리</span></div></td>
+            <td class="amt"><input type="number" id="sg40" oninput="calcSimp()"></td><td class="rate">40%×10%</td><td class="tax"><div class="auto" id="sg40t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">6</span><span class="nm">영세율 적용분</span></div></td>
+            <td class="amt"><input type="number" id="sg_zero" oninput="calcSimp()"></td><td class="rate">0%</td><td class="tax"><div class="zero">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">7</span><span class="nm">재고납부세액 (일반→간이 전환, +)</span></div></td>
+            <td class="amt" style="background:#fafbfc"></td><td class="rate">·</td><td class="tax"><input type="number" id="sg_stock" oninput="calcSimp()" placeholder="세액"></td></tr>
+          <tr class="subtot"><td><div class="cd"><span class="no">계</span><span class="nm">과세표준(공급대가) 합계 / 납부세액</span></div></td>
+            <td class="amt"><div class="auto" id="s_base" style="background:#E8EEF4;color:var(--navy)">0</div></td><td class="rate">→</td><td class="tax"><div class="auto" id="s_paytax">0</div></td></tr>
+        </tbody>
+      </table>
+
+      <!-- ② 공제세액 -->
+      <div class="grp-hdr minus"><span class="b">②</span>공제세액</div>
+      <table class="form">
+        <tbody>
+          <tr><td><div class="cd"><span class="no">8</span><span class="nm">매입세금계산서등 수취세액공제</span></div></td>
+            <td class="amt"><input type="number" id="s_buy" oninput="calcSimp()" placeholder="매입액(공급대가)"></td><td class="rate">0.5%</td><td class="tax"><div class="auto" id="s_buy_credit">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">9</span><span class="nm">매입자발행 세금계산서 세액공제</span></div></td>
+            <td class="amt" style="background:#fafbfc"></td><td class="rate">·</td><td class="tax"><input type="number" id="s_self" oninput="calcSimp()" placeholder="세액"></td></tr>
+          <tr><td><div class="cd"><span class="no">10</span><span class="nm">전자신고세액공제</span></div></td>
+            <td class="amt" style="background:#fafbfc"></td><td class="rate">·</td><td class="tax"><input type="number" id="s_e_credit" value="10000" oninput="calcSimp()"></td></tr>
+          <tr><td><div class="cd"><span class="no">11</span><span class="nm">신용카드매출전표등 발행세액공제</span></div></td>
+            <td class="amt"><input type="number" id="s_card" oninput="calcSimp()" placeholder="발행·결제금액"></td><td class="rate">1.3%</td><td class="tax"><div class="auto" id="s_card_credit">0</div></td></tr>
+          <tr><td><div class="cd"><span class="no">12</span><span class="nm">기타 공제세액</span></div></td>
+            <td class="amt" style="background:#fafbfc"></td><td class="rate">·</td><td class="tax"><input type="number" id="s_etc_credit" oninput="calcSimp()" placeholder="세액"></td></tr>
+          <tr class="subtot"><td><div class="cd"><span class="no">계</span><span class="nm">공제세액 합계 (납부세액 한도, 환급 없음)</span></div></td>
+            <td class="amt"></td><td class="rate"></td><td class="tax"><div class="auto" id="s_credit_sum">0</div></td></tr>
+        </tbody>
+      </table>
+
+      <!-- ③ 예정부과·가산세 -->
+      <div class="grp-hdr sum"><span class="b">③</span>예정부과세액 · 가산세</div>
+      <table class="form">
+        <tbody>
+          <tr><td><div class="cd"><span class="no">13</span><span class="nm">예정부과(신고)세액 (−)</span></div></td>
+            <td class="amt" style="background:#fafbfc"></td><td class="rate"></td><td class="tax"><input type="number" id="s_prepaid" value="0" oninput="calcSimp()"></td></tr>
+          <tr><td><div class="cd"><span class="nm">미등록·허위등록 (공급대가×0.5%)</span></div></td>
+            <td class="amt"><input type="number" id="sp_unreg" oninput="calcSimp()" placeholder="공급대가"></td><td class="rate">0.5%</td><td class="tax"><div class="auto" id="sp_unreg_t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="nm">세금계산서 미발급(2%)/지연(1%)</span></div></td>
+            <td class="amt"><input type="number" id="sp_tinv" oninput="calcSimp()" placeholder="공급가액"></td><td class="rate"><select id="sp_tinv_rate" onchange="calcSimp()"><option value="0.02">2% 미발급</option><option value="0.01">1% 지연</option></select></td><td class="tax"><div class="auto" id="sp_tinv_t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="nm">신고불성실 (무신고·과소)</span></div></td>
+            <td class="amt"><input type="number" id="sp_under" oninput="calcSimp()" placeholder="무신고·과소세액"></td>
+            <td class="rate"><select id="sp_under_rate" onchange="calcSimp()"><option value="0.10">과소 10%</option><option value="0.20">무신고 20%</option><option value="0.40">부당 40%</option></select></td>
+            <td class="tax"><div class="auto" id="sp_under_t">0</div></td></tr>
+          <tr><td colspan="4" class="note-sm">└ 수정·기한후 감면율
+            <select id="sp_under_relief" onchange="calcSimp()" style="font-size:11px;padding:2px 4px;border:1px solid var(--border);border-radius:4px">
+              <option value="0">감면 없음</option><option value="0.90">90% (1개월내)</option><option value="0.75">75% (1~3개월)</option><option value="0.50">50% (3~6개월)</option><option value="0.30">30% (6개월~1년)</option><option value="0.20">20% (1~1.5년)</option><option value="0.10">10% (1.5~2년)</option>
+            </select> · <b>납부면제자(공급대가 4,800만↓)는 신고불성실·허위등록·영세율불성실 가산세 미적용</b></td></tr>
+          <tr><td><div class="cd"><span class="nm">납부지연 (미납×일수×0.022%)</span></div></td>
+            <td class="amt"><input type="number" id="sp_unpaid" oninput="calcSimp()" placeholder="미납세액"></td><td class="rate"><input type="number" id="sp_days" oninput="calcSimp()" placeholder="일수" style="width:100%;border:none;background:#fafbfc;text-align:center;font-size:12px;padding:8px 2px;font-weight:700;color:var(--navy);font-family:inherit"></td><td class="tax"><div class="auto" id="sp_unpaid_t">0</div></td></tr>
+          <tr><td><div class="cd"><span class="nm">기타 가산세 (직접입력)</span></div></td>
+            <td class="amt" style="background:#fafbfc"></td><td class="rate">·</td><td class="tax"><input type="number" id="sp_etc" oninput="calcSimp()" placeholder="세액"></td></tr>
+          <tr class="subtot"><td><div class="cd"><span class="no">계</span><span class="nm">가산세 합계 (+)</span></div></td>
+            <td class="amt"></td><td class="rate"></td><td class="tax"><div class="auto" id="s_pen_sum">0</div></td></tr>
+        </tbody>
+      </table>
+
+      <div class="result-box"><div class="label">차가감 납부할 세액</div><div class="value" id="s_final">0 원</div><div class="detail" id="s_detail"></div></div>
+
+      <!-- 면세수입 -->
+      <div class="grp-hdr info"><span class="b">명세</span>면세사업 수입금액 · 계산서</div>
+      <div class="info-grid">
+        <div class="info-cell"><div class="l">면세 수입금액</div><div class="i"><input type="number" id="s_exempt_rev" placeholder="면세 공급가액"></div></div>
+        <div class="info-cell"><div class="l">계산서 발급/수취</div><div class="i"><input type="number" id="s_bill" placeholder="계산서 금액"></div></div>
+      </div>
+
+      <div class="tools no-print">
+        <button class="btn gold" onclick="window.print()">🖨 신고서 인쇄/PDF</button>
+        <button class="btn dk" onclick="exportCSV()">📥 CSV</button>
+        <button class="btn" onclick="saveCase()">💾 저장</button>
+        <button class="btn gray" onclick="resetSimp()">↺ 초기화</button>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      ※ <b>일반과세</b> 신고서(별지 제21호서식): 매출(세금계산서·신용카드/현금영수증·기타·영세율·예정누락·대손)과 매입(세금계산서 일반/고정자산·예정누락·매입자발행·그밖의공제(신용카드·의제매입·재활용·전환·재고·변제대손·관광객)·공제못할매입세액)을 구분합니다. 항목번호는 실제 신고서 코드와 동일합니다.<br>
+      ※ <b>의제매입세액</b>(2026): 음식점 개인 4억↓ <b>9/109</b>·4억↑ 8/108, 법인 6/106, 제조(중소·개인) 4/104, 그 밖 2/102. 공제한도 = 과세표준 × 한도율(업종·매출별, 예정+확정 합산). <b>신용카드 발행공제</b>: 개인(직전 공급가액 10억↓) 발행금액의 <b>1.3%</b>, 연 1,000만원 한도(2026.12.31 일몰).<br>
+      ※ <b>가산세</b>: 세금계산서 미발급 2%·지연발급 1%, 전자 미전송 0.5%·지연전송 0.3%, 무신고 20%·과소 10%·부당 40%, 납부지연 1일 0.022%, 미등록 1%, 영세율과세표준 불성실 0.5%. 수정/기한후신고 감면율 자동 반영.<br>
+      ※ <b>간이과세</b>: 납부세액 = 공급대가 × 업종별 부가가치율 × 10%, 매입세액공제 0.5%, 신용카드발행공제 1.3%. 과세기간 공급대가(연환산) <b>4,800만원 미만 납부면제</b>, 연매출 <b>1억400만원 이상</b>이면 일반과세 전환.<br>
+      근거: 부가가치세법·동법 시행령·조세특례제한법. <b>실제 신고는 반드시 홈택스 신고서로 최종 검증</b>하세요. 본 도구는 작성 보조용입니다.
+    </div>
+  </div>
+</div>
+
+<script>
+const fmt=n=>{if(n==null||isNaN(n))return'0';const neg=n<0;const a=Math.abs(Math.round(n)).toLocaleString('ko-KR');return neg?'-'+a:a;};
+const v=id=>{const el=document.getElementById(id);return el?parseFloat(String(el.value).replace(/,/g,''))||0:0;};
+const val=id=>{const el=document.getElementById(id);return el?el.value:'';};
+const setT=(id,n)=>{const el=document.getElementById(id);if(el)el.textContent=fmt(n);};
+const isCorp=()=>val('i_biztype')==='법인';
+
+function setMode(m){
+  document.getElementById('mb-gen').classList.toggle('active',m==='gen');
+  document.getElementById('mb-simp').classList.toggle('active',m==='simp');
+  document.getElementById('genWrap').classList.toggle('hide',m!=='gen');
+  document.getElementById('simpWrap').classList.toggle('hide',m!=='simp');
+}
+function recalc(){calcGen();calcSimp();}
+
+function calcGen(){
+  // ① 매출
+  const o1=v('o1'),o2=v('o2'),o3=v('o3'),o4=v('o4'),o5=v('o5'),o6=v('o6'),o7a=v('o7a');
+  const t1=o1*0.1,t2=o2*0.1,t3=o3*0.1,t4=o4*0.1;
+  setT('o1t',t1);setT('o2t',t2);setT('o3t',t3);setT('o4t',t4);
+  const outBase=o1+o2+o3+o4+o5+o6+o7a;
+  const outTax=t1+t2+t3+t4+v('o7t')+v('o8t');
+  setT('o_base',outBase);setT('o_tax',outTax);
+
+  // ② 매입
+  const t10=v('p10')*0.1,t11=v('p11')*0.1,t13=v('p13')*0.1;
+  setT('p10t',t10);setT('p11t',t11);setT('p13t',t13);
+  // 그밖의공제(14)
+  const tcg=v('p14cg')*0.1,tcf=v('p14cf')*0.1;
+  setT('p14cgt',tcg);setT('p14cft',tcf);
+  // 의제매입
+  const uiRate=parseFloat(val('ui_rate'))||0;
+  let uiCredit=v('ui_base')*uiRate;
+  const uiLimRate=parseFloat(val('ui_limrate'))||0;
+  if(uiLimRate>0){
+    const lim=outBase*uiLimRate;
+    if(uiCredit>lim)uiCredit=lim;
+  }
+  setT('ui_credit',uiCredit);
+  const p14=tcg+tcf+uiCredit+v('p_recyc')+v('p_trans')+v('p_stock')+v('p_baddebt')+v('p_tourist');
+  setT('p14t',p14);
+  const pSum=t10+t11+v('p12t')+t13+p14;
+  setT('p_sum',pSum);
+  // 공제못할(16)
+  const ndAmtTax=v('nd_amt')*0.1;setT('nd_amt_t',ndAmtTax);
+  const nd=ndAmtTax+v('nd_common')+v('nd_bad');
+  setT('p16t',nd);
+  const pNet=pSum-nd;
+  setT('p_net',pNet);
+
+  // 납부전
+  setT('rb_out',outTax);setT('rb_in',pNet);
+  const net1=outTax-pNet;setT('net1',net1);
+
+  // 경감공제(18)
+  const einvCredit=Math.min(v('e18_einv_cnt')*200,1000000);
+  setT('e18_einv_credit',einvCredit);
+  const c18=v('e18_efile')+einvCredit+v('e18_etc');
+  setT('c18',c18);
+  // 발행공제(19)
+  const issueCredit=isCorp()?0:Math.min(v('c19_amt')*0.013,10000000);
+  setT('c19',issueCredit);
+  document.getElementById('c19_note').style.color=isCorp()?'var(--red)':'var(--gray)';
+  const c20=c18+issueCredit;
+
+  // 가산세(26)
+  const gUnreg=v('g_unreg')*0.01;setT('g_unreg_t',gUnreg);
+  const gTinvLate=v('g_tinv_late')*0.01;setT('g_tinv_late_t',gTinvLate);
+  const gTinvNo=v('g_tinv_no')*0.02;setT('g_tinv_no_t',gTinvNo);
+  const gEtrLate=v('g_etr_late')*0.003;setT('g_etr_late_t',gEtrLate);
+  const gEtrNo=v('g_etr_no')*0.005;setT('g_etr_no_t',gEtrNo);
+  const gSum=v('g_sum')*(parseFloat(val('g_sum_rate'))||0);setT('g_sum_t',gSum);
+  const gUnder=v('g_under')*(parseFloat(val('g_under_rate'))||0)*(1-(parseFloat(val('g_under_relief'))||0));setT('g_under_t',gUnder);
+  const gUnpaid=v('g_unpaid')*v('g_days')*0.00022;setT('g_unpaid_t',gUnpaid);
+  const gZero=v('g_zero')*0.005;setT('g_zero_t',gZero);
+  const c26=gUnreg+gTinvLate+gTinvNo+gEtrLate+gEtrNo+gSum+gUnder+gUnpaid+gZero+v('g_etc');
+  setT('c26',c26);
+
+  // 기납부
+  const prepaid=v('c21')+v('c22')+v('c25');
+
+  // ㉗ 차가감
+  const final=net1-c20-prepaid+c26;
+  const fe=document.getElementById('g_final');
+  fe.textContent=fmt(final)+' 원';
+  document.getElementById('g_detail').textContent=
+    '매출 '+fmt(outTax)+' − 매입 '+fmt(pNet)+' − 경감공제 '+fmt(c20)+(prepaid?' − 기납부 '+fmt(prepaid):'')+(c26?' + 가산세 '+fmt(c26):'')+(final<0?'  →  환급':'');
+
+  // 과세표준명세 검증
+  const tsSum=v('ts1a')+v('ts2a')+v('ts3a')+v('ts_excl');
+  setT('ts_sum',tsSum);
+  const expect=o1+o2+o3+o4+o5+o6+o7a;
+  const vEl=document.getElementById('ts_valid');
+  if(tsSum===0){vEl.textContent='';vEl.className='hint';}
+  else if(Math.abs(tsSum-expect)<1){vEl.textContent='✔ 매출 과세표준과 일치';vEl.className='hint valid-ok';}
+  else{vEl.textContent='⚠ 매출 과세표준('+fmt(expect)+')과 차이 '+fmt(tsSum-expect);vEl.className='hint valid-bad';}
+}
+
+function resetGen(){
+  if(!confirm('일반과세 입력값을 모두 지울까요? (기본정보 포함)'))return;
+  document.querySelectorAll('#genWrap input').forEach(i=>{i.value=(i.id==='e18_efile')?'10000':(i.type==='number'?'':'');});
+  document.querySelectorAll('#genWrap select').forEach(s=>s.selectedIndex=0);
+  calcGen();
+}
+
+function calcSimp(){
+  // ① 업종별 납부세액
+  const g15=v('sg15'),g20=v('sg20'),g25=v('sg25'),g30=v('sg30'),g40=v('sg40'),gz=v('sg_zero');
+  const t15=g15*0.15*0.1,t20=g20*0.20*0.1,t25=g25*0.25*0.1,t30=g30*0.30*0.1,t40=g40*0.40*0.1;
+  setT('sg15t',t15);setT('sg20t',t20);setT('sg25t',t25);setT('sg30t',t30);setT('sg40t',t40);
+  const supply=g15+g20+g25+g30+g40+gz; // 공급대가 합계
+  setT('s_base',supply);
+  const payTax=t15+t20+t25+t30+t40+v('sg_stock'); // 재고납부세액 가산
+  setT('s_paytax',payTax);
+  // ② 공제세액
+  const buyCredit=v('s_buy')*0.005;
+  const cardCredit=Math.min(v('s_card')*0.013,10000000);
+  setT('s_buy_credit',buyCredit);setT('s_card_credit',cardCredit);
+  let creditSum=buyCredit+v('s_self')+v('s_e_credit')+cardCredit+v('s_etc_credit');
+  if(creditSum>payTax)creditSum=payTax; // 간이는 환급 없음(납부세액 한도)
+  setT('s_credit_sum',creditSum);
+  // ③ 가산세
+  const pUnreg=v('sp_unreg')*0.005;setT('sp_unreg_t',pUnreg);
+  const pTinv=v('sp_tinv')*(parseFloat(val('sp_tinv_rate'))||0);setT('sp_tinv_t',pTinv);
+  const pUnder=v('sp_under')*(parseFloat(val('sp_under_rate'))||0)*(1-(parseFloat(val('sp_under_relief'))||0));setT('sp_under_t',pUnder);
+  const pUnpaid=v('sp_unpaid')*v('sp_days')*0.00022;setT('sp_unpaid_t',pUnpaid);
+  const penSum=pUnreg+pTinv+pUnder+pUnpaid+v('sp_etc');
+  setT('s_pen_sum',penSum);
+  // 차가감
+  const exempt=supply<48000000;
+  let final=payTax-creditSum-v('s_prepaid');
+  if(exempt && final>0)final=0; // 납부면제: 납부세액 0 (재고·가산세는 별도 안내)
+  final+=penSum;
+  const fe=document.getElementById('s_final');
+  fe.className='value'+(final<0?' refund':'');
+  fe.textContent=fmt(final)+' 원'+(exempt?' (납부면제)':'');
+  document.getElementById('s_detail').textContent=exempt
+    ?'공급대가 '+fmt(supply)+'원 < 4,800만원 → 납부세액 면제'+(penSum?' (단, 가산세 '+fmt(penSum)+' 별도)':'')+'. 신고불성실·허위등록은 면제자 제외.'
+    :'납부세액 '+fmt(payTax)+' − 공제 '+fmt(creditSum)+(v('s_prepaid')?' − 예정부과 '+fmt(v('s_prepaid')):'')+(penSum?' + 가산세 '+fmt(penSum):'');
+}
+function resetSimp(){
+  if(!confirm('간이과세 입력값을 모두 지울까요?'))return;
+  document.querySelectorAll('#simpWrap input').forEach(i=>{i.value=(i.id==='s_e_credit')?'10000':'';});
+  document.querySelectorAll('#simpWrap select').forEach(s=>s.selectedIndex=0);
+  calcSimp();
+}
+
+// ── 저장/불러오기 (localStorage) ──
+const LS_AUTO='hbtax_vat_auto',LS_CASES='hbtax_vat_cases';
+function collectState(){const s={};document.querySelectorAll('.calc-body input,.calc-body select').forEach(el=>{if(el.id)s[el.id]=el.value;});s['_mode']=document.getElementById('genWrap').classList.contains('hide')?'simp':'gen';return s;}
+function applyState(s,run){Object.keys(s).forEach(id=>{if(id==='_mode')return;const el=document.getElementById(id);if(el)el.value=s[id];});if(s._mode)setMode(s._mode);if(run!==false)recalc();}
+function getCases(){try{return JSON.parse(localStorage.getItem(LS_CASES)||'{}');}catch(e){return{};}}
+function refreshCaseList(){const sel=document.getElementById('caseSel');if(!sel)return;const c=getCases();const names=Object.keys(c).sort();sel.innerHTML=names.length?names.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">${n}</option>`).join(''):'<option value="">— 저장된 신고 없음 —</option>';}
+function defaultCaseName(){const nm=val('i_name')||'사업자';const yr=val('i_year')||'';const pd=val('i_period')||'';return (nm+' '+yr+' '+pd).trim();}
+function saveCase(){const name=prompt('저장할 신고 이름:',defaultCaseName());if(!name)return;const c=getCases();c[name]=collectState();try{localStorage.setItem(LS_CASES,JSON.stringify(c));}catch(e){alert('저장 공간이 부족합니다.');return;}refreshCaseList();document.getElementById('caseSel').value=name;alert('저장되었습니다: '+name);}
+function loadCase(){const name=val('caseSel');if(!name)return alert('불러올 신고를 선택하세요.');const c=getCases();if(c[name])applyState(c[name]);}
+function deleteCase(){const name=val('caseSel');if(!name)return;if(!confirm('「'+name+'」 신고를 삭제할까요?'))return;const c=getCases();delete c[name];localStorage.setItem(LS_CASES,JSON.stringify(c));refreshCaseList();}
+
+// ── CSV 내보내기 ──
+function exportCSV(){
+  const t=id=>{const el=document.getElementById(id);return el?(el.textContent||el.value||''):'';};
+  const iv=id=>val(id);
+  const isSimp=document.getElementById('genWrap').classList.contains('hide');
+  const base=[
+    ['구분','항목','값'],
+    ['기본정보','과세유형',isSimp?'간이과세':'일반과세'],
+    ['기본정보','과세기간',iv('i_year')+' '+iv('i_period')],
+    ['기본정보','신고구분',iv('i_kind')],
+    ['기본정보','사업자구분',iv('i_biztype')],
+    ['기본정보','상호',iv('i_name')],
+    ['기본정보','사업자등록번호',iv('i_bizno')],
+    ['기본정보','대표자',iv('i_ceo')],
+    ['기본정보','업태/종목',iv('i_uptae')+' / '+iv('i_jongmok')],
+  ];
+  const rows=isSimp?base.concat([
+    ['매출','과세표준(공급대가) 합계',t('s_base')],
+    ['매출','납부세액',t('s_paytax')],
+    ['공제','공제세액 합계',t('s_credit_sum')],
+    ['공제','└ 매입세액공제(0.5%)',t('s_buy_credit')],
+    ['공제','└ 신용카드발행공제(1.3%)',t('s_card_credit')],
+    ['기납부','예정부과세액',iv('s_prepaid')],
+    ['가산세','가산세 합계',t('s_pen_sum')],
+    ['결과','차가감 납부할세액',t('s_final')],
+  ]):base.concat([
+    ['매출','과세표준 합계',t('o_base')],
+    ['매출','매출세액 ⑨',t('o_tax')],
+    ['매입','매입세액 합계 ⑮',t('p_sum')],
+    ['매입','의제매입세액',t('ui_credit')],
+    ['매입','공제못할매입세액 ⑯',t('p16t')],
+    ['매입','차감매입세액 ⑰',t('p_net')],
+    ['공제','그밖의경감공제 ⑱',t('c18')],
+    ['공제','신용카드발행공제 ⑲',t('c19')],
+    ['기납부','예정미환급 21',iv('c21')],
+    ['기납부','예정고지 22',iv('c22')],
+    ['가산세','가산세액 계 26',t('c26')],
+    ['결과','㉗ 차가감 납부할세액',t('g_final')],
+  ]);
+  const csv='﻿'+rows.map(r=>r.map(c=>`"${(c+'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`부가세신고_${isSimp?'간이_':''}${iv('i_name')||'신고서'}_${iv('i_year')}${iv('i_period')}.csv`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+// ── 사업자등록번호 자동 하이픈 ──
+function hyphenBizno(){const el=document.getElementById('i_bizno');if(!el)return;el.addEventListener('input',()=>{let d=el.value.replace(/[^0-9]/g,'').slice(0,10);let out=d;if(d.length>5)out=d.slice(0,3)+'-'+d.slice(3,5)+'-'+d.slice(5);else if(d.length>3)out=d.slice(0,3)+'-'+d.slice(3);el.value=out;});}
+
+// ── 초기화 ──
+(function init(){
+  hyphenBizno();
+  try{const a=localStorage.getItem(LS_AUTO);if(a)applyState(JSON.parse(a),false);}catch(e){}
+  // 자동저장
+  document.querySelectorAll('.calc-body input,.calc-body select').forEach(el=>{
+    el.addEventListener('change',()=>{try{localStorage.setItem(LS_AUTO,JSON.stringify(collectState()));}catch(e){}});
+  });
+  refreshCaseList();
+  recalc();
+})();
+</script>
+</body>
+</html>

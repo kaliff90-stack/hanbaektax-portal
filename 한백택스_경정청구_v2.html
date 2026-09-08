@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d1e3d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="한백택스 경정청구">
+<title>한백택스 경정청구 · 세금 환급 시뮬레이터</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Nanum Gothic',sans-serif}
+:root{--p:#0267FF;--p1:#E6F0FF;--p2:#053E8B;--dk:#181D27;--g0:#F7F8FA;--g1:#F2F5F9;--g2:#E5EAF0;--g3:#C8D1DE;--g4:#8D99AB;--g5:#5A6577;--ok:#00C48C;--ok1:#E8FAF4;--wn:#FFB800;--wn1:#FFF8E6;--ng:#FF4757;--ng1:#FFF0F1;--ac:#FF7800;--ac1:#FFF3E6;--gold:#F59E0B;--violet:#7C3AED;--violet1:#F3EEFF}
+html,body{overflow-x:hidden}
+body{background:var(--g0);min-height:100vh}
+.fu{animation:fu .5s cubic-bezier(.16,1,.3,1)}
+.fi{animation:fi .3s ease}
+.pop{animation:pop .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes fu{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes countUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(2,103,255,.2)}50%{box-shadow:0 0 40px rgba(2,103,255,.4)}}
+.shimmer{background:linear-gradient(90deg,var(--g1) 25%,var(--g2) 50%,var(--g1) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--g3);border-radius:99px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--p)!important;box-shadow:0 0 0 3px rgba(2,103,255,.1)}
+input[type=range]{-webkit-appearance:none;height:6px;border-radius:99px;background:var(--g2);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--p);cursor:pointer;box-shadow:0 2px 8px rgba(2,103,255,.3)}
+.glass{background:rgba(255,255,255,.92);backdrop-filter:blur(16px)}
+.card{background:#fff;border-radius:24px;padding:28px;border:1px solid var(--g2)}
+.btn-p{background:var(--p);color:#fff;border:none;padding:16px 32px;border-radius:16px;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 6px 24px rgba(2,103,255,.3);transition:all .2s}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(2,103,255,.4)}
+.btn-p:disabled{background:var(--g2);color:var(--g4);cursor:not-allowed;box-shadow:none;transform:none}
+.btn-s{background:#fff;color:var(--g5);border:2px solid var(--g2);padding:14px 24px;border-radius:14px;font-weight:700;font-size:14px;cursor:pointer;transition:all .2s}
+.btn-s:hover{border-color:var(--p);color:var(--p)}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:8px;font-size:11px;font-weight:700}
+.tooltip{position:relative;cursor:help}.tooltip:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--dk);color:#fff;padding:8px 14px;border-radius:10px;font-size:11px;white-space:nowrap;z-index:100;font-weight:600}
+@media(max-width:768px){
+  .grid-3{grid-template-columns:1fr!important}
+  .grid-4{grid-template-columns:repeat(2,1fr)!important}
+  .grid-2{grid-template-columns:1fr!important}
+  .hero-title{font-size:32px!important}
+  .hide-mobile{display:none!important}
+  .year-btns{flex-wrap:wrap}
+  .year-btns button{min-width:calc(33.33% - 8px)}
+}
+@media print{
+  .no-print{display:none!important}
+  body{background:#fff}
+  .card{border:1px solid #ddd;break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<a class="standalone-back" id="backPortal" href="한백택스_세무계산_포털.html" style="display:inline-flex;align-items:center;gap:8px;background:#C8963E;color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;margin:12px 16px 0;font-family:'Nanum Gothic',sans-serif">← 전체 세무계산 포털</a><script>if(window.self!==window.top){var _bp=document.getElementById('backPortal');if(_bp)_bp.style.display='none'}</script>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef,useMemo,useCallback}=React;
+
+const fmt=n=>n?Math.round(n).toLocaleString('ko-KR'):'0';
+const fmtW=n=>{if(!n)return'0';if(n>=100000000)return(n/100000000).toFixed(1)+'억';if(n>=10000)return Math.round(n/10000).toLocaleString()+'만';return fmt(n)};
+const pct=n=>n?n.toFixed(1):'0';
+
+// ═══ 세목별 공제 항목 데이터 (2025 세법 기준) ═══
+const DEDUCTIONS = {
+  income: {
+    label: '종합소득세',
+    sub: '개인사업자 · 프리랜서',
+    icon: 'fa-user-tie',
+    color: '#0267FF',
+    gradient: 'linear-gradient(135deg,#0267FF,#5B9BFF)',
+    filingMonth: 5,
+    items: [
+      {id:'d1',name:'중소기업 특별세액감면',desc:'중소기업 업종별 5~30% 세액감면 (조특법 §7)',rate:.15,maxAmt:50000000,category:'세액감면',priority:'high',법조문:'조특법 제7조'},
+      {id:'d2',name:'고용증대 세액공제',desc:'상시근로자 수 증가 시 1인당 700~1,100만원 공제',rate:.08,maxAmt:30000000,category:'세액공제',priority:'high',법조문:'조특법 제29조의7'},
+      {id:'d3',name:'사회보험료 세액공제',desc:'고용보험·국민연금 사업주부담분 50~100%',rate:.05,maxAmt:10000000,category:'세액공제',priority:'medium',법조문:'조특법 제30조의4'},
+      {id:'d4',name:'연구인력개발비 세액공제',desc:'R&D 비용의 25%(신성장 30~40%) 세액공제',rate:.12,maxAmt:100000000,category:'세액공제',priority:'high',법조문:'조특법 제10조'},
+      {id:'d5',name:'성실신고확인비용 세액공제',desc:'성실신고확인서 작성 비용의 60%(120만원 한도)',rate:.03,maxAmt:1200000,category:'세액공제',priority:'low',법조문:'소득세법 제70조의2'},
+      {id:'d6',name:'의료비·교육비 세액공제',desc:'성실사업자 특별세액공제(의료비 15%, 교육비 15%)',rate:.04,maxAmt:5000000,category:'세액공제',priority:'medium',법조문:'소득세법 제59조의4'},
+      {id:'d7',name:'기장세액공제',desc:'복식부기의무자 기장 시 산출세액의 20%(100만원 한도)',rate:.02,maxAmt:1000000,category:'세액공제',priority:'low',법조문:'소득세법 제56조의2'},
+      {id:'d8',name:'전자신고 세액공제',desc:'전자신고 시 2만원 공제',rate:.01,maxAmt:20000,category:'세액공제',priority:'low',법조문:'소득세법 제56조의3'},
+      {id:'d9',name:'통합투자 세액공제',desc:'사업용 유형자산 투자금의 기본 10%',rate:.06,maxAmt:50000000,category:'세액공제',priority:'medium',법조문:'조특법 제24조'},
+      {id:'d10',name:'정규직 전환 세액공제',desc:'비정규직→정규직 전환 시 1인당 1,000만원',rate:.03,maxAmt:20000000,category:'세액공제',priority:'medium',법조문:'조특법 제30조의2'},
+    ]
+  },
+  corp: {
+    label: '법인세',
+    sub: '중소·중견기업',
+    icon: 'fa-building',
+    color: '#00C48C',
+    gradient: 'linear-gradient(135deg,#00C48C,#34D399)',
+    filingMonth: 3,
+    items: [
+      {id:'c1',name:'중소기업 특별세액감면',desc:'제조·건설·도소매 등 업종별 5~30% 감면',rate:.18,maxAmt:100000000,category:'세액감면',priority:'high',법조문:'조특법 제7조'},
+      {id:'c2',name:'고용증대 세액공제',desc:'수도권 700만/비수도권 770만원(1인당, 3년간)',rate:.10,maxAmt:50000000,category:'세액공제',priority:'high',법조문:'조특법 제29조의7'},
+      {id:'c3',name:'통합투자 세액공제',desc:'사업용 자산 투자 시 기본 10%(중소기업)',rate:.08,maxAmt:80000000,category:'세액공제',priority:'high',법조문:'조특법 제24조'},
+      {id:'c4',name:'연구인력개발비 세액공제',desc:'일반 R&D 25%, 신성장·원천기술 30~40%',rate:.15,maxAmt:200000000,category:'세액공제',priority:'high',법조문:'조특법 제10조'},
+      {id:'c5',name:'경력단절여성 고용 세액공제',desc:'경단녀 재고용 시 인건비의 30%(중소 기준)',rate:.04,maxAmt:15000000,category:'세액공제',priority:'medium',법조문:'조특법 제29조의3'},
+      {id:'c6',name:'정규직 전환 세액공제',desc:'비정규직→정규직 전환 시 1인당 1,000만원',rate:.05,maxAmt:20000000,category:'세액공제',priority:'medium',법조문:'조특법 제30조의2'},
+      {id:'c7',name:'안전설비 투자 세액공제',desc:'안전시설 투자액의 7%(중소기업)',rate:.03,maxAmt:10000000,category:'세액공제',priority:'low',법조문:'조특법 제25조'},
+      {id:'c8',name:'상생결제 세액공제',desc:'하도급대금 조기지급 시 지급금액의 0.5%',rate:.02,maxAmt:5000000,category:'세액공제',priority:'low',법조문:'조특법 제7조의4'},
+      {id:'c9',name:'사회보험료 세액공제',desc:'신규 고용인원 사회보험료 사업주부담분',rate:.04,maxAmt:12000000,category:'세액공제',priority:'medium',법조문:'조특법 제30조의4'},
+      {id:'c10',name:'감가상각비 조정',desc:'세무·회계 감가상각 차이 정정(시부인계산)',rate:.06,maxAmt:40000000,category:'소득조정',priority:'medium',법조문:'법인세법 제23조'},
+      {id:'c11',name:'접대비 한도 재검토',desc:'접대비 한도 적용 오류 시 손금산입 환원',rate:.02,maxAmt:8000000,category:'소득조정',priority:'low',법조문:'법인세법 제25조'},
+    ]
+  },
+  vat: {
+    label: '부가가치세',
+    sub: '일반과세자',
+    icon: 'fa-receipt',
+    color: '#FF7800',
+    gradient: 'linear-gradient(135deg,#FF7800,#FFA040)',
+    filingMonth: 1,
+    items: [
+      {id:'v1',name:'매입세액 누락분',desc:'미반영 세금계산서·신용카드 매입세액',rate:.25,maxAmt:50000000,category:'매입세액',priority:'high',법조문:'부가법 제38조'},
+      {id:'v2',name:'신용카드 매입세액',desc:'사업용 신용카드 매입세액 공제 누락분',rate:.15,maxAmt:30000000,category:'매입세액',priority:'high',법조문:'부가법 제46조'},
+      {id:'v3',name:'의제매입세액',desc:'면세 농산물 등 의제매입 공제(2/102~8/108)',rate:.08,maxAmt:10000000,category:'매입세액',priority:'medium',법조문:'부가법 제42조'},
+      {id:'v4',name:'대손세액 공제',desc:'대손(회수불능)처리 시 매출세액 차감',rate:.05,maxAmt:20000000,category:'매입세액',priority:'medium',법조문:'부가법 제45조'},
+      {id:'v5',name:'전자세금계산서 세액공제',desc:'전자발급 건당 200원(연 100만원 한도)',rate:.02,maxAmt:1000000,category:'세액공제',priority:'low',법조문:'부가법 제47조'},
+      {id:'v6',name:'재활용폐자원 매입세액',desc:'재활용폐자원 매입 시 의제매입세액 3/103~5/105',rate:.03,maxAmt:5000000,category:'매입세액',priority:'low',법조문:'조특법 제108조'},
+    ]
+  },
+  wage: {
+    label: '근로소득세',
+    sub: '연말정산 · 급여소득자',
+    icon: 'fa-id-badge',
+    color: '#7C3AED',
+    gradient: 'linear-gradient(135deg,#7C3AED,#A78BFA)',
+    filingMonth: 2,
+    items: [
+      {id:'w1',name:'인적공제 누락',desc:'부양가족(직계존속·비속·형제자매) 공제 누락',rate:.12,maxAmt:3000000,category:'소득공제',priority:'high',법조문:'소득세법 제50조'},
+      {id:'w2',name:'신용카드 소득공제',desc:'총급여 25% 초과 사용분 소득공제 누락',rate:.10,maxAmt:3000000,category:'소득공제',priority:'high',법조문:'조특법 제126조의2'},
+      {id:'w3',name:'의료비 세액공제',desc:'총급여 3% 초과 의료비 15%(난임 30%)',rate:.08,maxAmt:2000000,category:'세액공제',priority:'high',법조문:'소득세법 제59조의4'},
+      {id:'w4',name:'교육비 세액공제',desc:'대학 900만원·초중고 300만원 한도 15%',rate:.06,maxAmt:1500000,category:'세액공제',priority:'medium',법조문:'소득세법 제59조의4'},
+      {id:'w5',name:'기부금 세액공제',desc:'법정 15%(1천만원 초과 30%), 지정 15%',rate:.05,maxAmt:1000000,category:'세액공제',priority:'medium',법조문:'소득세법 제59조의4'},
+      {id:'w6',name:'월세 세액공제',desc:'총급여 7천만원 이하 월세 17%(5,500이하)',rate:.07,maxAmt:1020000,category:'세액공제',priority:'high',법조문:'조특법 제95조의2'},
+      {id:'w7',name:'주택청약 소득공제',desc:'무주택 세대주 청약저축 납입액 40% 공제',rate:.03,maxAmt:960000,category:'소득공제',priority:'low',법조문:'조특법 제87조'},
+      {id:'w8',name:'보험료 세액공제',desc:'보장성보험료 100만원 한도 12%',rate:.04,maxAmt:120000,category:'세액공제',priority:'low',법조문:'소득세법 제59조의4'},
+      {id:'w9',name:'연금계좌 세액공제',desc:'퇴직연금·개인연금 900만원 한도 15%',rate:.06,maxAmt:1350000,category:'세액공제',priority:'medium',법조문:'소득세법 제59조의3'},
+    ]
+  }
+};
+
+// 업종별 환급 데이터
+const INDUSTRY_RATES = {
+  '보건·의료':{ prob:64, avgRefund:8200000, icon:'fa-stethoscope', topItem:'고용증대 세액공제' },
+  '제조업':{ prob:50, avgRefund:12500000, icon:'fa-industry', topItem:'R&D 세액공제' },
+  '도소매':{ prob:34, avgRefund:5800000, icon:'fa-store', topItem:'중소기업 특별세액감면' },
+  '음식·숙박':{ prob:37, avgRefund:3200000, icon:'fa-utensils', topItem:'고용증대 세액공제' },
+  '건설업':{ prob:42, avgRefund:9500000, icon:'fa-hard-hat', topItem:'투자 세액공제' },
+  '정보통신':{ prob:34, avgRefund:7800000, icon:'fa-laptop-code', topItem:'R&D 세액공제' },
+  '전문서비스':{ prob:37, avgRefund:6400000, icon:'fa-briefcase', topItem:'중소기업 특별세액감면' },
+  '부동산':{ prob:28, avgRefund:4200000, icon:'fa-building-columns', topItem:'감가상각비 조정' },
+  '교육서비스':{ prob:32, avgRefund:3800000, icon:'fa-graduation-cap', topItem:'고용증대 세액공제' },
+  '기타':{ prob:30, avgRefund:4500000, icon:'fa-ellipsis', topItem:'중소기업 특별세액감면' },
+};
+
+// 경정청구 필요 서류 (세목별)
+const REQUIRED_DOCS = {
+  income: [
+    {name:'종합소득세 과세표준확정신고서(기존)',required:true},
+    {name:'소득금액증명원',required:true},
+    {name:'세액공제·감면 증빙서류',required:true},
+    {name:'사업장 현황신고서',required:false},
+    {name:'원천징수영수증',required:false},
+    {name:'4대보험 납부내역',required:false},
+    {name:'고용인원 변동 내역',required:false},
+    {name:'R&D 지출 증빙',required:false},
+  ],
+  corp: [
+    {name:'법인세 과세표준 및 세액신고서(기존)',required:true},
+    {name:'재무제표(B/S, I/S)',required:true},
+    {name:'세무조정계산서',required:true},
+    {name:'원천징수이행상황신고서',required:false},
+    {name:'투자 증빙(매매계약서, 세금계산서)',required:false},
+    {name:'고용인원 증빙(4대보험 가입자 명부)',required:false},
+    {name:'감가상각비 명세서',required:false},
+    {name:'접대비 지출 증빙',required:false},
+  ],
+  vat: [
+    {name:'부가가치세 신고서(기존)',required:true},
+    {name:'매출·매입처별 세금계산서합계표',required:true},
+    {name:'누락 세금계산서 원본',required:true},
+    {name:'신용카드 매출전표 등 수령명세서',required:false},
+    {name:'대손사유 증빙(판결문, 회생계획 등)',required:false},
+    {name:'면세농산물 매입증빙',required:false},
+  ],
+  wage: [
+    {name:'근로소득 원천징수영수증',required:true},
+    {name:'연말정산 간소화 자료',required:true},
+    {name:'주민등록등본(부양가족)',required:false},
+    {name:'기부금 영수증',required:false},
+    {name:'월세 계약서 및 이체내역',required:false},
+    {name:'교육비 납입증명서',required:false},
+    {name:'장애인증명서(해당 시)',required:false},
+  ],
+};
+
+// 성공 사례
+const SUCCESS_CASES = [
+  {industry:'보건·의료',type:'종합소득세',amount:12800000,period:'2019~2023 (5개년)',item:'고용증대·사회보험료 세액공제',desc:'간호사 채용 증가분에 대한 세액공제를 5년간 소급 적용'},
+  {industry:'제조업',type:'법인세',amount:45000000,period:'2021~2023 (3개년)',item:'R&D 세액공제·통합투자 세액공제',desc:'자체 연구개발비 및 생산설비 투자에 대한 세액공제 재검토'},
+  {industry:'정보통신',type:'법인세',amount:23000000,period:'2020~2024 (5개년)',item:'중소기업 특별세액감면·고용증대',desc:'IT 스타트업 특별감면 및 개발인력 증원에 따른 공제'},
+  {industry:'도소매',type:'부가가치세',amount:8500000,period:'2022~2024 (3개년)',item:'매입세액 누락분·신용카드 매입세액',desc:'사업용 카드 매입세액 미반영분 일괄 경정청구'},
+  {industry:'음식·숙박',type:'종합소득세',amount:5200000,period:'2021~2024 (4개년)',item:'고용증대·중소기업 특별세액감면',desc:'프랜차이즈 직영점 아르바이트 인원 증가분 세액공제'},
+  {industry:'건설업',type:'법인세',amount:32000000,period:'2020~2023 (4개년)',item:'통합투자·안전설비 세액공제',desc:'중장비 투자 및 안전시설 투자에 대한 세액공제 적용'},
+];
+
+// FAQ
+const FAQ_DATA = [
+  {q:'경정청구란 무엇인가요?',a:'이미 신고·납부한 세금이 실제보다 많았던 경우, 국세기본법 제45조의2에 따라 과다 납부한 세금의 환급을 국세청에 청구하는 제도입니다. 법정신고기한으로부터 5년 이내에 청구할 수 있습니다.'},
+  {q:'경정청구를 하면 세무조사를 받나요?',a:'경정청구 자체가 세무조사 사유가 되지는 않습니다. 다만 청구 금액이 크거나 근거가 불명확한 경우 확인조사가 진행될 수 있으므로, 정확한 법적 근거와 증빙을 갖추는 것이 중요합니다.'},
+  {q:'처리 기간은 얼마나 걸리나요?',a:'국세기본법상 경정청구일로부터 2개월 이내에 처리하도록 되어 있습니다. 다만 내용이 복잡한 경우 추가 확인 기간이 소요될 수 있으며, 통상 1~3개월 정도 소요됩니다.'},
+  {q:'성과보수란 무엇인가요?',a:'환급에 성공한 경우에만 수수료가 발생하는 방식입니다. 환급금이 실제로 입금되지 않으면 비용이 발생하지 않아 납세자의 부담이 없습니다.'},
+  {q:'여러 세목을 동시에 경정청구할 수 있나요?',a:'네, 종합소득세·법인세·부가가치세 등 다른 세목을 동시에 경정청구할 수 있습니다. 다만 각 세목별로 별도의 경정청구서를 작성해야 합니다.'},
+  {q:'경정청구가 거부될 수도 있나요?',a:'네, 국세청 심사 결과 환급 사유가 인정되지 않으면 거부(불채택)될 수 있습니다. 이 경우 조세심판원에 심판청구를 하거나 행정소송을 통해 다툴 수 있습니다.'},
+  {q:'가산세 없이 세금을 돌려받을 수 있나요?',a:'경정청구로 환급받는 경우에는 가산세가 부과되지 않습니다. 오히려 국세환급가산금(이자)을 함께 받을 수 있습니다. 2026년 기준 연 3.1%(국세기본법 시행규칙 §19의3)가 적용됩니다.'},
+];
+
+// 국세환급가산금 이율 (국세기본법 시행규칙 §19의3, 2026.3.20. 시행 기준 연 3.1% = 1천분의 31)
+const REFUND_INTEREST_ANNUAL = 0.031; // 연 3.1%
+
+// ═══ 공통 컴포넌트 ═══
+function AnimNumber({value,prefix='',suffix='',duration=800}){
+  const [display,setDisplay]=useState(0);
+  useEffect(()=>{
+    let start=0;const end=value;const st=Date.now();
+    const tick=()=>{const elapsed=Date.now()-st;const progress=Math.min(elapsed/duration,1);const eased=1-Math.pow(1-progress,3);setDisplay(Math.floor(eased*end));if(progress<1)requestAnimationFrame(tick)};
+    tick();
+  },[value]);
+  return <span>{prefix}{fmt(display)}{suffix}</span>;
+}
+
+function ProgressBar({pct:p,color='var(--p)',height=8,animated=true}){
+  const [w,setW]=useState(0);
+  useEffect(()=>{setTimeout(()=>setW(p),100)},[p]);
+  return(
+    <div style={{width:'100%',background:'var(--g2)',borderRadius:99,height,overflow:'hidden'}}>
+      <div style={{width:Math.min(100,w)+'%',height:'100%',background:color,borderRadius:99,transition:animated?'width .8s cubic-bezier(.16,1,.3,1)':'none'}}/>
+    </div>
+  );
+}
+
+function Badge({children,color='var(--p)',bg='var(--p1)'}){
+  return <span className="tag" style={{color,background:bg}}>{children}</span>;
+}
+
+function Accordion({items}){
+  const [open,setOpen]=useState(null);
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:8}}>
+      {items.map((item,i)=>(
+        <div key={i} style={{background:'#fff',borderRadius:16,border:'1px solid var(--g2)',overflow:'hidden'}}>
+          <button onClick={()=>setOpen(open===i?null:i)} style={{width:'100%',padding:'16px 20px',background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'space-between',textAlign:'left'}}>
+            <span style={{fontWeight:700,fontSize:14,color:'var(--dk)'}}>{item.q}</span>
+            <i className={`fas fa-chevron-${open===i?'up':'down'}`} style={{color:'var(--g4)',fontSize:12,transition:'transform .2s'}}/>
+          </button>
+          {open===i&&(
+            <div className="fi" style={{padding:'0 20px 16px',fontSize:13,color:'var(--g5)',lineHeight:1.8}}>
+              {item.a}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function StepIndicator({steps,current}){
+  return(
+    <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:0,padding:'0 20px'}}>
+      {steps.map((s,i)=>(
+        <React.Fragment key={i}>
+          <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
+            <div style={{width:36,height:36,borderRadius:'50%',background:i<=current?'var(--p)':'var(--g2)',color:i<=current?'#fff':'var(--g4)',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:800,fontSize:13,transition:'all .3s',boxShadow:i===current?'0 4px 12px rgba(2,103,255,.3)':'none'}}>
+              {i<current?<i className="fas fa-check" style={{fontSize:12}}/>:i+1}
+            </div>
+            <span style={{fontSize:10,fontWeight:700,color:i<=current?'var(--p2)':'var(--g4)',whiteSpace:'nowrap'}}>{s}</span>
+          </div>
+          {i<steps.length-1&&<div style={{flex:1,height:3,background:i<current?'var(--p)':'var(--g2)',borderRadius:99,margin:'0 -4px',marginBottom:20,transition:'background .3s',minWidth:30}}/>}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
+function DeadlineCountdown({year,filingMonth}){
+  // 경정청구 기한: 법정신고기한 + 5년
+  const filingDate = new Date(year+1, filingMonth, 0); // 신고기한(해당 월 말일)
+  const deadline = new Date(year+6, filingMonth, 0); // 경정청구 기한(법정신고기한+5년)
+  const now = new Date();
+  const daysLeft = Math.ceil((deadline - now)/(1000*60*60*24));
+  const isExpired = daysLeft <= 0;
+  const isUrgent = daysLeft > 0 && daysLeft <= 180;
+
+  return(
+    <div style={{display:'flex',alignItems:'center',gap:6}}>
+      {isExpired ? (
+        <Badge color="var(--ng)" bg="var(--ng1)"><i className="fas fa-times-circle" style={{marginRight:3}}/>기한 만료</Badge>
+      ) : isUrgent ? (
+        <Badge color="var(--wn)" bg="var(--wn1)"><i className="fas fa-exclamation-triangle" style={{marginRight:3}}/>D-{daysLeft}</Badge>
+      ) : (
+        <Badge color="var(--ok)" bg="var(--ok1)"><i className="fas fa-clock" style={{marginRight:3}}/>D-{daysLeft}</Badge>
+      )}
+    </div>
+  );
+}
+
+// ═══ 계산 로직 (강화) ═══
+function calcResult(taxType, form){
+  const items = DEDUCTIONS[taxType].items;
+  const indData = INDUSTRY_RATES[form.industry] || INDUSTRY_RATES['기타'];
+  const taxPaid = form.taxPaid;
+  const years = form.years;
+  const revenue = form.revenue;
+  const employees = form.employees;
+
+  // 업종·규모별 보정계수
+  const sizeFactor = revenue > 1000000000 ? 1.2 : revenue > 500000000 ? 1.0 : 0.8;
+  const empFactor = employees > 20 ? 1.15 : employees > 10 ? 1.05 : employees > 5 ? 0.95 : 0.85;
+
+  const details = items.map(item => {
+    const base = taxPaid * item.rate * sizeFactor;
+    let refund = Math.min(base, item.maxAmt);
+
+    // 항목별 세부 보정
+    if(item.id.includes('2') && employees < 3) refund *= 0.3; // 고용증대는 직원 수 영향
+    if(item.id.includes('4') && form.industry !== '정보통신' && form.industry !== '제조업') refund *= 0.4; // R&D는 업종 영향
+    if(item.id.includes('1')) refund *= empFactor; // 특별감면은 규모 영향
+
+    // 연도별 가중치
+    const yearWeight = years.length * 0.82;
+    const adjusted = Math.round(refund * yearWeight * (0.65 + Math.random() * 0.35));
+
+    // 적용 가능성 판정
+    const probBase = item.priority === 'high' ? 0.78 : item.priority === 'medium' ? 0.55 : 0.35;
+    const applicable = Math.random() < probBase;
+
+    return { ...item, refund: applicable ? adjusted : 0, applicable, probBase: Math.round(probBase * 100) };
+  });
+
+  const applicableDetails = details.filter(d => d.applicable && d.refund > 0);
+  const totalRefund = applicableDetails.reduce((a, d) => a + d.refund, 0);
+
+  // 연도별 분배 (최근 연도에 가중치)
+  const yearWeights = years.map((y, i) => 0.7 + (i / years.length) * 0.6);
+  const weightSum = yearWeights.reduce((a, b) => a + b, 0);
+  const byYear = years.map((y, i) => {
+    const amount = Math.round(totalRefund * yearWeights[i] / weightSum);
+    const filingMonth = DEDUCTIONS[taxType].filingMonth;
+    const deadline = new Date(y + 6, filingMonth, 0);
+    const now = new Date();
+    const daysLeft = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
+    return { year: y, amount, daysLeft, expired: daysLeft <= 0 };
+  }).filter(y => !y.expired);
+
+  const adjustedTotal = byYear.reduce((a, y) => a + y.amount, 0);
+
+  // 환급 가능성
+  const probability = Math.min(95, Math.max(15,
+    indData.prob
+    + (employees > 10 ? 8 : employees > 5 ? 4 : 0)
+    + (taxPaid > 50000000 ? 10 : taxPaid > 20000000 ? 5 : 0)
+    + (years.length >= 4 ? 6 : years.length >= 2 ? 3 : 0)
+    + (applicableDetails.filter(d => d.priority === 'high').length * 3)
+  ));
+
+  // 리스크 평가
+  const riskLevel = probability >= 70 ? 'low' : probability >= 45 ? 'medium' : 'high';
+
+  // 환급가산금 예상 (평균 180일 기준, 연 3.1% 일할계산)
+  const estimatedInterest = Math.round(adjustedTotal * REFUND_INTEREST_ANNUAL * 180 / 365);
+
+  // 성과보수 예상 (환급금의 20% 기준)
+  const estimatedFee = Math.round(adjustedTotal * 0.20);
+  const netRefund = adjustedTotal - estimatedFee + estimatedInterest;
+
+  return {
+    totalRefund: adjustedTotal,
+    details: applicableDetails,
+    allDetails: details,
+    byYear,
+    probability,
+    riskLevel,
+    industry: form.industry,
+    avgIndustry: indData.avgRefund,
+    estimatedInterest,
+    estimatedFee,
+    netRefund,
+    topItem: applicableDetails.length > 0 ? applicableDetails.sort((a, b) => b.refund - a.refund)[0] : null,
+  };
+}
+
+// ═══ 메인 앱 ═══
+function App(){
+  const [page,setPage]=useState('landing');
+  const [taxType,setTaxType]=useState('income');
+  const [formData,setFormData]=useState({industry:'보건·의료',revenue:500000000,taxPaid:25000000,employees:5,years:[2021,2022,2023,2024,2025],bizType:'개인',totalSalary:50000000});
+  const [result,setResult]=useState(null);
+
+  return(
+    <div style={{minHeight:'100vh',background:page==='landing'?'linear-gradient(180deg,#0A1628 0%,#162848 50%,#1a3258 100%)':'var(--g0)'}}>
+      {page==='landing'&&<Landing onStart={()=>setPage('input')}/>}
+      {page==='input'&&<InputPage taxType={taxType} setTaxType={setTaxType} formData={formData} setFormData={setFormData} onAnalyze={()=>{setPage('analyzing');setTimeout(()=>{setResult(calcResult(taxType,formData));setPage('result')},3000)}} onBack={()=>setPage('landing')}/>}
+      {page==='analyzing'&&<Analyzing taxType={taxType}/>}
+      {page==='result'&&result&&<ResultPage result={result} taxType={taxType} formData={formData} onReset={()=>{setPage('landing');setResult(null)}} onRetry={()=>setPage('input')}/>}
+    </div>
+  );
+}
+
+// ═══ 랜딩 페이지 ═══
+function Landing({onStart}){
+  const [activeCase,setActiveCase]=useState(0);
+  useEffect(()=>{const iv=setInterval(()=>setActiveCase(p=>(p+1)%SUCCESS_CASES.length),4000);return()=>clearInterval(iv)},[]);
+
+  return(
+    <div style={{minHeight:'100vh',position:'relative',overflow:'hidden'}}>
+      <div style={{position:'absolute',top:'-10%',right:'-5%',width:600,height:600,background:'radial-gradient(circle,rgba(2,103,255,.15),transparent 70%)',borderRadius:'50%'}}/>
+      <div style={{position:'absolute',bottom:'-10%',left:'-5%',width:500,height:500,background:'radial-gradient(circle,rgba(0,196,140,.1),transparent 70%)',borderRadius:'50%'}}/>
+
+      {/* 헤더 */}
+      <header style={{maxWidth:1100,margin:'0 auto',padding:'24px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'relative',zIndex:2}}>
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <div style={{width:40,height:40,background:'var(--p)',borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 4px 16px rgba(2,103,255,.3)'}}>
+            <i className="fas fa-coins" style={{color:'#fff',fontSize:16}}/>
+          </div>
+          <span style={{color:'#fff',fontWeight:800,fontSize:18}}>한백택스</span>
+        </div>
+        <span style={{color:'var(--g4)',fontSize:13,padding:'8px 16px',borderRadius:10,border:'1px solid rgba(255,255,255,.1)'}}>세무법인 한백택스</span>
+      </header>
+
+      {/* 히어로 */}
+      <div className="fu" style={{maxWidth:800,margin:'0 auto',padding:'60px 24px 40px',textAlign:'center',position:'relative',zIndex:2}}>
+        <div style={{display:'inline-flex',alignItems:'center',gap:8,background:'rgba(2,103,255,.15)',border:'1px solid rgba(2,103,255,.3)',padding:'8px 20px',borderRadius:99,marginBottom:28}}>
+          <i className="fas fa-sparkles" style={{color:'var(--gold)',fontSize:13}}/>
+          <span style={{color:'var(--p)',fontSize:13,fontWeight:700}}>AI 세금 환급 진단 시스템</span>
+        </div>
+        <h1 className="hero-title" style={{color:'#fff',fontSize:44,fontWeight:800,lineHeight:1.3,letterSpacing:-1,marginBottom:20}}>
+          더 낸 세금,<br/>
+          <span style={{background:'linear-gradient(135deg,var(--p),#5B9BFF)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>돌려받으세요</span>
+        </h1>
+        <p style={{color:'var(--g4)',fontSize:17,lineHeight:1.7,maxWidth:520,margin:'0 auto 40px'}}>
+          최대 5년간 놓친 세액공제·감면을 무료로 진단하고<br/>
+          경정청구를 통해 환급받을 수 있습니다
+        </p>
+        <button onClick={onStart} className="btn-p" style={{padding:'18px 48px',fontSize:17,animation:'glow 2s infinite'}}>
+          <i className="fas fa-magnifying-glass-dollar" style={{marginRight:10}}/>무료 환급 진단하기
+        </button>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:20,marginTop:20}}>
+          <span style={{color:'var(--g4)',fontSize:12}}><i className="fas fa-shield-check" style={{marginRight:4,color:'var(--ok)'}}/>무료 진단</span>
+          <span style={{color:'var(--g4)',fontSize:12}}><i className="fas fa-handshake" style={{marginRight:4,color:'var(--ok)'}}/>성과보수</span>
+          <span style={{color:'var(--g4)',fontSize:12}}><i className="fas fa-user-tie" style={{marginRight:4,color:'var(--ok)'}}/>전문 세무사</span>
+        </div>
+      </div>
+
+      {/* 통계 */}
+      <div className="fu grid-4" style={{maxWidth:1000,margin:'20px auto 0',padding:'0 24px',display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16}}>
+        {[
+          {icon:'fa-coins',label:'누적 환급 진단액',value:'362억원',sub:'2024년 기준'},
+          {icon:'fa-building',label:'법인 평균 환급금',value:'646만원',sub:'법인 사업자'},
+          {icon:'fa-chart-line',label:'환급 발생 비율',value:'53%',sub:'진단 법인 대상'},
+          {icon:'fa-clock-rotate-left',label:'평균 처리 기간',value:'2.1개월',sub:'접수→환급'},
+        ].map((s,i)=>(
+          <div key={i} style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.08)',borderRadius:20,padding:24,textAlign:'center',backdropFilter:'blur(8px)'}}>
+            <div style={{width:44,height:44,background:'rgba(2,103,255,.12)',borderRadius:14,display:'inline-flex',alignItems:'center',justifyContent:'center',marginBottom:12}}>
+              <i className={`fas ${s.icon}`} style={{color:'var(--p)',fontSize:16}}/>
+            </div>
+            <p style={{color:'#fff',fontSize:22,fontWeight:800}}>{s.value}</p>
+            <p style={{color:'var(--g4)',fontSize:11,fontWeight:700,marginTop:4}}>{s.label}</p>
+            <p style={{color:'var(--g4)',fontSize:10,marginTop:2}}>{s.sub}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* 성공사례 자동롤링 */}
+      <div className="fu" style={{maxWidth:1000,margin:'40px auto 0',padding:'0 24px'}}>
+        <h3 style={{color:'#fff',fontSize:18,fontWeight:800,textAlign:'center',marginBottom:20}}>
+          <i className="fas fa-trophy" style={{color:'var(--gold)',marginRight:8}}/>최근 환급 성공 사례
+        </h3>
+        <div style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.08)',borderRadius:20,padding:28,backdropFilter:'blur(8px)'}}>
+          <div className="fi" key={activeCase} style={{display:'flex',alignItems:'center',gap:20,flexWrap:'wrap'}}>
+            <div style={{width:56,height:56,borderRadius:16,background:'rgba(0,196,140,.12)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+              <i className="fas fa-check-circle" style={{color:'var(--ok)',fontSize:24}}/>
+            </div>
+            <div style={{flex:1,minWidth:200}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+                <Badge color="#fff" bg="rgba(255,255,255,.12)">{SUCCESS_CASES[activeCase].industry}</Badge>
+                <Badge color="var(--ok)" bg="rgba(0,196,140,.12)">{SUCCESS_CASES[activeCase].type}</Badge>
+              </div>
+              <p style={{color:'#fff',fontSize:14,lineHeight:1.6}}>{SUCCESS_CASES[activeCase].desc}</p>
+              <p style={{color:'var(--g4)',fontSize:12,marginTop:4}}>{SUCCESS_CASES[activeCase].period} · {SUCCESS_CASES[activeCase].item}</p>
+            </div>
+            <div style={{textAlign:'right'}}>
+              <p style={{color:'var(--ok)',fontSize:28,fontWeight:800}}>{fmtW(SUCCESS_CASES[activeCase].amount)}원</p>
+              <p style={{color:'var(--g4)',fontSize:11}}>환급 완료</p>
+            </div>
+          </div>
+          <div style={{display:'flex',justifyContent:'center',gap:6,marginTop:16}}>
+            {SUCCESS_CASES.map((_,i)=>(
+              <div key={i} onClick={()=>setActiveCase(i)} style={{width:i===activeCase?24:8,height:8,borderRadius:99,background:i===activeCase?'var(--p)':'rgba(255,255,255,.15)',cursor:'pointer',transition:'all .3s'}}/>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 업종별 환급 비율 */}
+      <div className="fu" style={{maxWidth:1000,margin:'40px auto 0',padding:'0 24px'}}>
+        <h3 style={{color:'#fff',fontSize:18,fontWeight:800,textAlign:'center',marginBottom:20}}><i className="fas fa-chart-bar" style={{color:'var(--p)',marginRight:8}}/>업종별 환급 발생 비율</h3>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:10}} className="grid-4">
+          {Object.entries(INDUSTRY_RATES).map(([k,v])=>(
+            <div key={k} style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.06)',borderRadius:14,padding:'14px 10px',textAlign:'center'}}>
+              <i className={`fas ${v.icon}`} style={{color:'var(--p)',fontSize:16,marginBottom:6,display:'block'}}/>
+              <p style={{color:'#fff',fontSize:20,fontWeight:800}}>{v.prob}%</p>
+              <p style={{color:'var(--g4)',fontSize:10,fontWeight:700,marginTop:2}}>{k}</p>
+              <p style={{color:'var(--g3)',fontSize:9,marginTop:2}}>평균 {fmtW(v.avgRefund)}원</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 경정청구 절차 간략 */}
+      <div className="fu" style={{maxWidth:1000,margin:'48px auto 0',padding:'0 24px 80px'}}>
+        <h3 style={{color:'#fff',fontSize:18,fontWeight:800,textAlign:'center',marginBottom:24}}><i className="fas fa-route" style={{color:'var(--ok)',marginRight:8}}/>경정청구 진행 절차</h3>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:12}} className="grid-3">
+          {[
+            {icon:'fa-magnifying-glass-chart',label:'무료 진단',desc:'AI로 누락 항목 분석',color:'var(--p)'},
+            {icon:'fa-user-check',label:'전문가 검토',desc:'세무사 정밀 심사',color:'var(--violet)'},
+            {icon:'fa-file-signature',label:'경정청구서 작성',desc:'법적 근거 첨부',color:'var(--ok)'},
+            {icon:'fa-landmark',label:'국세청 심사',desc:'2~3개월 처리',color:'var(--ac)'},
+            {icon:'fa-piggy-bank',label:'환급금 입금',desc:'계좌로 직접 환급',color:'var(--gold)'},
+          ].map((s,i)=>(
+            <div key={i} style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.06)',borderRadius:16,padding:20,textAlign:'center'}}>
+              <div style={{width:44,height:44,borderRadius:14,background:`${s.color}20`,display:'inline-flex',alignItems:'center',justifyContent:'center',marginBottom:10}}>
+                <i className={`fas ${s.icon}`} style={{color:s.color,fontSize:18}}/>
+              </div>
+              <p style={{color:'#fff',fontWeight:800,fontSize:13}}>{s.label}</p>
+              <p style={{color:'var(--g4)',fontSize:11,marginTop:4}}>{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══ 입력 페이지 ═══
+function InputPage({taxType,setTaxType,formData,setFormData,onAnalyze,onBack}){
+  const set=(k,v)=>setFormData(p=>({...p,[k]:v}));
+  const toggleYear=(y)=>setFormData(p=>({...p,years:p.years.includes(y)?p.years.filter(x=>x!==y):[...p.years,y]}));
+  const valid=formData.taxPaid>0&&formData.years.length>0;
+  const taxInfo=DEDUCTIONS[taxType];
+
+  // 경정청구 가능 연도 (최대 5년)
+  const currentYear = 2026;
+  const availableYears = taxType === 'wage'
+    ? [2021,2022,2023,2024,2025]
+    : [2020,2021,2022,2023,2024,2025];
+
+  return(
+    <div style={{minHeight:'100vh',background:'var(--g0)'}}>
+      <header className="glass" style={{position:'sticky',top:0,zIndex:10,borderBottom:'1px solid var(--g2)',padding:'0 24px'}}>
+        <div style={{maxWidth:700,margin:'0 auto',height:64,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <button onClick={onBack} className="btn-s" style={{padding:'8px 16px',border:'none'}}><i className="fas fa-arrow-left" style={{marginRight:6}}/>뒤로</button>
+          <span style={{fontWeight:800,color:'var(--dk)'}}>환급 진단</span>
+          <div style={{width:60}}/>
+        </div>
+      </header>
+
+      <div className="fu" style={{maxWidth:700,margin:'0 auto',padding:'32px 24px 80px'}}>
+        <StepIndicator steps={['세목 선택','기본 정보','공제 연도','진단']} current={0}/>
+
+        {/* 세목 선택 */}
+        <div style={{marginTop:40}}>
+          <h3 style={{fontWeight:800,fontSize:18,marginBottom:6}}>어떤 세금을 환급받고 싶으신가요?</h3>
+          <p style={{fontSize:13,color:'var(--g4)',marginBottom:16}}>해당하는 세목을 선택하시면 맞춤 진단을 진행합니다</p>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:12}} className="grid-2">
+            {Object.entries(DEDUCTIONS).map(([k,v])=>(
+              <button key={k} onClick={()=>setTaxType(k)} style={{background:taxType===k?v.gradient:'#fff',color:taxType===k?'#fff':'var(--dk)',border:`2px solid ${taxType===k?'transparent':'var(--g2)'}`,borderRadius:20,padding:20,cursor:'pointer',textAlign:'left',transition:'all .2s',boxShadow:taxType===k?`0 4px 20px ${v.color}30`:'none'}}>
+                <div style={{display:'flex',alignItems:'center',gap:12}}>
+                  <div style={{width:44,height:44,borderRadius:14,background:taxType===k?'rgba(255,255,255,.2)':'var(--g0)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                    <i className={`fas ${v.icon}`} style={{fontSize:18,color:taxType===k?'#fff':v.color}}/>
+                  </div>
+                  <div>
+                    <span style={{fontWeight:800,fontSize:15,display:'block'}}>{v.label}</span>
+                    <span style={{fontSize:11,opacity:.7}}>{v.sub}</span>
+                  </div>
+                </div>
+                <div style={{marginTop:10,fontSize:11,opacity:.7}}>
+                  공제항목 {v.items.length}개 · 고우선 {v.items.filter(i=>i.priority==='high').length}개
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 기본 정보 */}
+        <div style={{marginTop:40}}>
+          <h3 style={{fontWeight:800,fontSize:18,marginBottom:20}}>기본 정보를 입력해주세요</h3>
+          <div className="card">
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}} className="grid-2">
+              {taxType !== 'wage' && (
+                <div>
+                  <label style={{fontSize:12,fontWeight:700,color:'var(--g4)',display:'block',marginBottom:8}}>사업자 유형</label>
+                  <select value={formData.bizType} onChange={e=>set('bizType',e.target.value)} style={{width:'100%',padding:'12px 14px',border:'2px solid var(--g2)',borderRadius:14,fontSize:13,fontWeight:700,background:'var(--g0)'}}>
+                    <option>개인</option><option>법인</option>
+                  </select>
+                </div>
+              )}
+              <div>
+                <label style={{fontSize:12,fontWeight:700,color:'var(--g4)',display:'block',marginBottom:8}}>{taxType==='wage'?'근무 업종':'업종'}</label>
+                <select value={formData.industry} onChange={e=>set('industry',e.target.value)} style={{width:'100%',padding:'12px 14px',border:'2px solid var(--g2)',borderRadius:14,fontSize:13,fontWeight:700,background:'var(--g0)'}}>
+                  {Object.keys(INDUSTRY_RATES).map(k=><option key={k}>{k}</option>)}
+                </select>
+              </div>
+            </div>
+
+            {taxType === 'wage' ? (
+              <>
+                <div style={{marginTop:20}}>
+                  <label style={{fontSize:12,fontWeight:700,color:'var(--g4)',display:'block',marginBottom:8}}>연간 총급여액</label>
+                  <div style={{position:'relative'}}>
+                    <input type="text" value={fmt(formData.totalSalary)} onChange={e=>set('totalSalary',parseInt(e.target.value.replace(/[^0-9]/g,''))||0)} style={{width:'100%',padding:'12px 60px 12px 14px',border:'2px solid var(--g2)',borderRadius:14,fontSize:14,fontWeight:700,background:'var(--g0)'}}/>
+                    <span style={{position:'absolute',right:14,top:'50%',transform:'translateY(-50%)',color:'var(--g4)',fontSize:13,fontWeight:700}}>원</span>
+                  </div>
+                  <input type="range" min={20000000} max={200000000} step={1000000} value={formData.totalSalary} onChange={e=>set('totalSalary',parseInt(e.target.value))} style={{width:'100%',marginTop:8}}/>
+                  <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:'var(--g4)',marginTop:2}}><span>2천만원</span><span>2억원</span></div>
+                </div>
+                <div style={{marginTop:20}}>
+                  <label style={{fontSize:12,fontWeight:700,color:'var(--g4)',display:'block',marginBottom:8}}>연말정산 결정세액 (원천징수 총액)</label>
+                  <div style={{position:'relative'}}>
+                    <input type="text" value={fmt(formData.taxPaid)} onChange={e=>set('taxPaid',parseInt(e.target.value.replace(/[^0-9]/g,''))||0)} style={{width:'100%',padding:'12px 60px 12px 14px',border:'2px solid var(--g2)',borderRadius:14,fontSize:14,fontWeight:700,background:'var(--g0)'}}/>
+                    <span style={{position:'absolute',right:14,top:'50%',transform:'translateY(-50%)',color:'var(--g4)',fontSize:13,fontWeight:700}}>원</span>
+                  </div>
+                  <input type="range" min={0} max={50000000} step={100000} value={formData.taxPaid} onChange={e=>set('taxPaid',parseInt(e.target.value))} style={{width:'100%',marginTop:8}}/>
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{marginTop:20}}>
+                  <label style={{fontSize:12,fontWeight:700,color:'var(--g4)',display:'block',marginBottom:8}}>연 매출액</label>
+                  <div style={{position:'relative'}}>
+                    <input type="text" value={fmt(formData.revenue)} onChange={e=>set('revenue',parseInt(e.target.value.replace(/[^0-9]/g,''))||0)} style={{width:'100%',padding:'12px 60px 12px 14px',border:'2px solid var(--g2)',borderRadius:14,fontSize:14,fontWeight:700,background:'var(--g0)'}}/>
+                    <span style={{position:'absolute',right:14,top:'50%',transform:'translateY(-50%)',color:'var(--g4)',fontSize:13,fontWeight:700}}>원</span>
+                  </div>
+                  <input type="range" min={0} max={5000000000} step={10000000} value={formData.revenue} onChange={e=>set('revenue',parseInt(e.target.value))} style={{width:'100%',marginTop:8}}/>
+                  <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:'var(--g4)',marginTop:2}}><span>0원</span><span>50억원</span></div>
+                </div>
+                <div style={{marginTop:20}}>
+                  <label style={{fontSize:12,fontWeight:700,color:'var(--g4)',display:'block',marginBottom:8}}>연 납부 세금 (기신고 세액)</label>
+                  <div style={{position:'relative'}}>
+                    <input type="text" value={fmt(formData.taxPaid)} onChange={e=>set('taxPaid',parseInt(e.target.value.replace(/[^0-9]/g,''))||0)} style={{width:'100%',padding:'12px 60px 12px 14px',border:'2px solid var(--g2)',borderRadius:14,fontSize:14,fontWeight:700,background:'var(--g0)'}}/>
+                    <span style={{position:'absolute',right:14,top:'50%',transform:'translateY(-50%)',color:'var(--g4)',fontSize:13,fontWeight:700}}>원</span>
+                  </div>
+                  <input type="range" min={0} max={500000000} step={1000000} value={formData.taxPaid} onChange={e=>set('taxPaid',parseInt(e.target.value))} style={{width:'100%',marginTop:8}}/>
+                </div>
+                <div style={{marginTop:20}}>
+                  <label style={{fontSize:12,fontWeight:700,color:'var(--g4)',display:'block',marginBottom:8}}>상시 근로자 수</label>
+                  <input type="number" value={formData.employees} onChange={e=>set('employees',parseInt(e.target.value)||0)} min={0} style={{width:'100%',padding:'12px 14px',border:'2px solid var(--g2)',borderRadius:14,fontSize:14,fontWeight:700,background:'var(--g0)'}}/>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* 경정청구 연도 (기한 카운트다운 포함) */}
+        <div style={{marginTop:40}}>
+          <h3 style={{fontWeight:800,fontSize:18,marginBottom:6}}>경정청구 대상 연도</h3>
+          <p style={{fontSize:13,color:'var(--g4)',marginBottom:16}}>
+            <i className="fas fa-info-circle" style={{marginRight:4}}/>
+            법정신고기한으로부터 <b>5년 이내</b> 소급 가능 (국세기본법 §45의2)
+          </p>
+          <div className="year-btns" style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+            {availableYears.map(y=>{
+              const filingMonth = taxInfo.filingMonth;
+              const deadline = new Date(y+6, filingMonth, 0);
+              const now = new Date();
+              const daysLeft = Math.ceil((deadline-now)/(1000*60*60*24));
+              const expired = daysLeft <= 0;
+              const urgent = daysLeft > 0 && daysLeft <= 180;
+              const selected = formData.years.includes(y);
+
+              return(
+                <button key={y} onClick={()=>!expired&&toggleYear(y)} disabled={expired} style={{flex:1,minWidth:80,padding:'14px 0',borderRadius:14,border:`2px solid ${expired?'var(--g2)':selected?'var(--p)':'var(--g2)'}`,background:expired?'var(--g1)':selected?'var(--p1)':'#fff',color:expired?'var(--g3)':selected?'var(--p)':'var(--g5)',fontWeight:800,fontSize:14,cursor:expired?'not-allowed':'pointer',transition:'all .15s',position:'relative',opacity:expired?.5:1}}>
+                  {y}
+                  <div style={{fontSize:9,marginTop:4,fontWeight:600}}>
+                    {expired ? '기한만료' : urgent ? <span style={{color:'var(--ng)'}}>D-{daysLeft}</span> : <span style={{color:'var(--ok)'}}>D-{daysLeft}</span>}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          {formData.years.length > 0 && (
+            <div style={{marginTop:12,background:'var(--p1)',borderRadius:12,padding:'10px 16px',fontSize:12,color:'var(--p2)'}}>
+              <i className="fas fa-calendar-check" style={{marginRight:6}}/>
+              선택: {formData.years.sort().join(', ')}년 ({formData.years.length}개 귀속연도)
+            </div>
+          )}
+        </div>
+
+        {/* 검토 항목 미리보기 */}
+        <div style={{marginTop:32}}>
+          <h3 style={{fontWeight:800,fontSize:16,marginBottom:12}}>
+            <i className="fas fa-list-check" style={{color:taxInfo.color,marginRight:8}}/>
+            검토 예정 공제항목 ({taxInfo.items.length}개)
+          </h3>
+          <div className="card" style={{padding:20}}>
+            <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
+              {taxInfo.items.map(item=>(
+                <Badge key={item.id}
+                  color={item.priority==='high'?'var(--ok)':item.priority==='medium'?'var(--p)':'var(--g4)'}
+                  bg={item.priority==='high'?'var(--ok1)':item.priority==='medium'?'var(--p1)':'var(--g1)'}>
+                  {item.priority==='high'&&<i className="fas fa-star" style={{fontSize:8}}/>}
+                  {item.name}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* 진단 버튼 */}
+        <button onClick={onAnalyze} disabled={!valid} className="btn-p" style={{width:'100%',marginTop:40,padding:'18px 0',fontSize:16}}>
+          <i className="fas fa-magnifying-glass-dollar" style={{marginRight:8}}/>
+          {taxInfo.label} 환급금 무료 진단하기
+        </button>
+        {!valid && <p style={{textAlign:'center',fontSize:12,color:'var(--ng)',marginTop:8}}>납부 세액과 대상 연도를 입력해주세요</p>}
+      </div>
+    </div>
+  );
+}
+
+// ═══ 분석 중 ═══
+function Analyzing({taxType}){
+  const [step,setStep]=useState(0);
+  const taxInfo = DEDUCTIONS[taxType];
+  const steps=[
+    `${taxInfo.label} 납세 이력 조회 중...`,
+    `${taxInfo.items.length}개 공제·감면 항목 분석 중...`,
+    '누락 세액공제 교차검증 중...',
+    '업종별 환급 통계 대조 중...',
+    '환급 예상액 최종 산출 중...',
+  ];
+  useEffect(()=>{const iv=setInterval(()=>setStep(p=>p<steps.length-1?p+1:p),550);return()=>clearInterval(iv)},[]);
+  return(
+    <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'linear-gradient(135deg,#0A1628,#162848)'}}>
+      <div className="fu" style={{textAlign:'center',maxWidth:400,padding:24}}>
+        <div style={{width:100,height:100,borderRadius:30,background:'rgba(2,103,255,.1)',display:'inline-flex',alignItems:'center',justifyContent:'center',marginBottom:32,position:'relative'}}>
+          <i className={`fas ${taxInfo.icon}`} style={{color:taxInfo.color,fontSize:40}}/>
+          <div style={{position:'absolute',inset:-4,borderRadius:34,border:'3px solid transparent',borderTopColor:taxInfo.color,animation:'spin 1s linear infinite'}}/>
+        </div>
+        <h2 style={{color:'#fff',fontSize:24,fontWeight:800,marginBottom:12}}>AI 환급 분석 중</h2>
+        <p className="fi" key={step} style={{color:taxInfo.color,fontSize:14,fontWeight:700,marginBottom:32}}>{steps[step]}</p>
+        <ProgressBar pct={(step+1)/steps.length*100} color={taxInfo.color} height={6}/>
+        <p style={{color:'var(--g4)',fontSize:12,marginTop:16}}>잠시만 기다려주세요...</p>
+      </div>
+    </div>
+  );
+}
+
+// ═══ 결과 페이지 (대폭 강화) ═══
+function ResultPage({result,taxType,formData,onReset,onRetry}){
+  const taxInfo=DEDUCTIONS[taxType];
+  const hasRefund=result.totalRefund>0;
+  const [activeTab,setActiveTab]=useState('overview');
+  const docs = REQUIRED_DOCS[taxType] || [];
+
+  const tabs = [
+    {id:'overview',label:'환급 요약',icon:'fa-chart-pie'},
+    {id:'details',label:'공제 상세',icon:'fa-list-check'},
+    {id:'timeline',label:'연도별 분석',icon:'fa-calendar-alt'},
+    {id:'money',label:'수익 분석',icon:'fa-calculator'},
+    {id:'docs',label:'필요 서류',icon:'fa-folder-open'},
+    {id:'faq',label:'자주 묻는 질문',icon:'fa-circle-question'},
+  ];
+
+  return(
+    <div style={{minHeight:'100vh',background:'var(--g0)'}}>
+      {/* 상단 결과 배너 */}
+      <div style={{background:hasRefund?'linear-gradient(135deg,#0A1628,#0C2340)':'var(--g1)',padding:'48px 24px 40px'}}>
+        <div className="fu" style={{maxWidth:800,margin:'0 auto',textAlign:'center'}}>
+          {hasRefund?(
+            <>
+              <div className="pop" style={{width:80,height:80,borderRadius:24,background:'rgba(0,196,140,.12)',display:'inline-flex',alignItems:'center',justifyContent:'center',marginBottom:20}}>
+                <i className="fas fa-coins" style={{color:'var(--ok)',fontSize:32}}/>
+              </div>
+              <p style={{color:'var(--ok)',fontSize:14,fontWeight:700,marginBottom:8}}><i className="fas fa-circle-check" style={{marginRight:6}}/>환급 가능 금액이 발견되었습니다!</p>
+              <p style={{color:'#fff',fontSize:48,fontWeight:800,letterSpacing:-1}}>
+                <AnimNumber value={result.totalRefund} suffix="원"/>
+              </p>
+              <p style={{color:'var(--g4)',fontSize:14,marginTop:12}}>
+                {formData.bizType==='개인'||taxType==='wage'?'':'법인'} {taxInfo.label} · {formData.industry} · {result.details.length}개 공제항목 · {result.byYear.length}개 귀속연도
+              </p>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:12,marginTop:16,flexWrap:'wrap'}}>
+                <div style={{display:'inline-flex',alignItems:'center',gap:6,background:result.riskLevel==='low'?'rgba(0,196,140,.15)':result.riskLevel==='medium'?'rgba(255,184,0,.15)':'rgba(255,71,87,.15)',padding:'8px 16px',borderRadius:99}}>
+                  <i className={`fas ${result.riskLevel==='low'?'fa-shield-check':result.riskLevel==='medium'?'fa-exclamation-triangle':'fa-triangle-exclamation'}`} style={{color:result.riskLevel==='low'?'var(--ok)':result.riskLevel==='medium'?'var(--wn)':'var(--ng)'}}/>
+                  <span style={{color:result.riskLevel==='low'?'var(--ok)':result.riskLevel==='medium'?'var(--wn)':'var(--ng)',fontSize:13,fontWeight:700}}>환급 가능성 {result.probability}%</span>
+                </div>
+                <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(2,103,255,.15)',padding:'8px 16px',borderRadius:99}}>
+                  <i className="fas fa-piggy-bank" style={{color:'var(--p)'}}/>
+                  <span style={{color:'var(--p)',fontSize:13,fontWeight:700}}>실수령 예상 {fmtW(result.netRefund)}원</span>
+                </div>
+              </div>
+            </>
+          ):(
+            <>
+              <i className="fas fa-circle-info" style={{fontSize:40,color:'var(--g3)',marginBottom:16}}/>
+              <h2 style={{fontSize:24,fontWeight:800}}>추가 환급 항목이 없습니다</h2>
+              <p style={{color:'var(--g4)',marginTop:8}}>입력하신 정보 기준으로 누락된 공제항목이 없습니다.</p>
+              <p style={{color:'var(--g4)',fontSize:13,marginTop:4}}>다른 세목이나 조건으로 다시 진단해보세요.</p>
+            </>
+          )}
+        </div>
+      </div>
+
+      {hasRefund&&(
+        <div style={{maxWidth:800,margin:'0 auto',padding:'0 24px 80px'}}>
+          {/* 탭 네비게이션 */}
+          <div className="no-print" style={{display:'flex',gap:4,padding:'20px 0 24px',overflowX:'auto',msOverflowStyle:'none',scrollbarWidth:'none'}}>
+            {tabs.map(t=>(
+              <button key={t.id} onClick={()=>setActiveTab(t.id)} style={{padding:'10px 16px',borderRadius:12,border:'none',background:activeTab===t.id?'var(--p)':'#fff',color:activeTab===t.id?'#fff':'var(--g5)',fontWeight:700,fontSize:12,cursor:'pointer',whiteSpace:'nowrap',transition:'all .2s',boxShadow:activeTab===t.id?'0 4px 12px rgba(2,103,255,.2)':'0 1px 3px rgba(0,0,0,.05)'}}>
+                <i className={`fas ${t.icon}`} style={{marginRight:6}}/>{t.label}
+              </button>
+            ))}
+          </div>
+
+          {/* 탭 내용 */}
+          {activeTab==='overview'&&<OverviewTab result={result} taxInfo={taxInfo} formData={formData} taxType={taxType}/>}
+          {activeTab==='details'&&<DetailsTab result={result} taxInfo={taxInfo}/>}
+          {activeTab==='timeline'&&<TimelineTab result={result} taxInfo={taxInfo} taxType={taxType}/>}
+          {activeTab==='money'&&<MoneyTab result={result} taxInfo={taxInfo} formData={formData}/>}
+          {activeTab==='docs'&&<DocsTab docs={docs} taxInfo={taxInfo}/>}
+          {activeTab==='faq'&&<FaqTab/>}
+
+          {/* 하단 CTA */}
+          <div className="no-print" style={{marginTop:32}}>
+            {/* 경정청구 진행 절차 */}
+            <div className="fu" style={{background:taxInfo.gradient,borderRadius:24,padding:32,color:'#fff',marginBottom:20}}>
+              <h3 style={{fontWeight:800,fontSize:18,marginBottom:16}}><i className="fas fa-file-signature" style={{marginRight:8}}/>경정청구 진행 절차</h3>
+              <div style={{display:'flex',flexDirection:'column',gap:14}}>
+                {[
+                  {step:'1',title:'무료 진단 완료',desc:`AI 시스템으로 ${result.details.length}개 누락 공제항목을 확인했습니다`,done:true},
+                  {step:'2',title:'전문가 정밀 검토',desc:'세무사가 실제 적용 가능 여부와 법적 근거를 검토합니다',done:false},
+                  {step:'3',title:'경정청구서 작성·접수',desc:'국세청 제출용 경정청구서와 증빙서류를 작성·접수합니다',done:false},
+                  {step:'4',title:'국세청 심사 (2~3개월)',desc:'담당 세무서에서 경정청구서를 심사합니다',done:false},
+                  {step:'5',title:'환급금 입금 + 환급가산금',desc:`승인 후 통장으로 환급금이 입금됩니다 (가산금 약 ${fmtW(result.estimatedInterest)}원)`,done:false},
+                ].map(s=>(
+                  <div key={s.step} style={{display:'flex',alignItems:'center',gap:14}}>
+                    <div style={{width:36,height:36,borderRadius:12,background:s.done?'var(--ok)':'rgba(255,255,255,.15)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                      {s.done?<i className="fas fa-check" style={{fontSize:12}}/>:<span style={{fontWeight:800,fontSize:14}}>{s.step}</span>}
+                    </div>
+                    <div>
+                      <p style={{fontWeight:700,fontSize:14}}>{s.title}</p>
+                      <p style={{fontSize:12,opacity:.7}}>{s.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 주의사항 */}
+            <div style={{background:'var(--p1)',borderRadius:20,padding:24,marginBottom:20,border:'1px solid rgba(2,103,255,.1)'}}>
+              <p style={{fontSize:12,fontWeight:700,color:'var(--p2)',marginBottom:8}}><i className="fas fa-info-circle" style={{marginRight:6}}/>안내사항</p>
+              <ul style={{fontSize:12,color:'var(--g5)',lineHeight:2,paddingLeft:16}}>
+                <li>본 결과는 입력하신 정보를 기반으로 한 <b>예상 시뮬레이션</b>입니다.</li>
+                <li>실제 환급금은 세무전문가 검토 후 확정됩니다.</li>
+                <li>경정청구 기한: 법정신고기한으로부터 <b>5년 이내</b> (국세기본법 §45의2)</li>
+                <li>성과보수 방식: 환급 성공 시에만 수수료가 발생합니다.</li>
+                <li>경정청구 자체는 세무조사 사유에 해당하지 않습니다.</li>
+                <li>환급가산금(이자): 연 3.1% (2026년 기준, 국세기본법 시행규칙 §19의3)</li>
+              </ul>
+            </div>
+
+            {/* CTA 버튼 */}
+            <div style={{display:'flex',gap:12}}>
+              <button onClick={onRetry} className="btn-s" style={{flex:1}}>
+                <i className="fas fa-rotate-right" style={{marginRight:6}}/>다시 진단
+              </button>
+              <button onClick={()=>window.print()} className="btn-s" style={{flex:1}}>
+                <i className="fas fa-print" style={{marginRight:6}}/>인쇄
+              </button>
+              <button onClick={()=>alert('세무법인 한백택스에 경정청구 상담을 요청합니다.\n\n📞 02-XXX-XXXX\n📧 tax@hanbaek.co.kr')} className="btn-p" style={{flex:2}}>
+                <i className="fas fa-phone" style={{marginRight:8}}/>전문가 상담 요청
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!hasRefund&&(
+        <div style={{maxWidth:700,margin:'0 auto',padding:'40px 24px',textAlign:'center'}}>
+          <button onClick={onRetry} className="btn-s" style={{marginRight:12}}>다른 조건으로 진단</button>
+          <button onClick={onReset} className="btn-p">처음으로</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══ 결과 탭 컴포넌트들 ═══
+
+function OverviewTab({result,taxInfo,formData,taxType}){
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:20}}>
+      {/* 핵심 지표 4개 */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:12}} className="grid-2">
+        {[
+          {label:'총 예상 환급금',value:fmtW(result.totalRefund)+'원',icon:'fa-coins',color:'var(--ok)',bg:'var(--ok1)'},
+          {label:'환급 가능성',value:result.probability+'%',icon:'fa-chart-line',color:'var(--p)',bg:'var(--p1)'},
+          {label:'적용 공제항목',value:result.details.length+'개',icon:'fa-list-check',color:'var(--ac)',bg:'var(--ac1)'},
+          {label:'실수령 예상',value:fmtW(result.netRefund)+'원',icon:'fa-piggy-bank',color:'var(--violet)',bg:'var(--violet1)'},
+        ].map((m,i)=>(
+          <div key={i} className="card" style={{textAlign:'center',padding:20}}>
+            <div style={{width:40,height:40,borderRadius:12,background:m.bg,display:'inline-flex',alignItems:'center',justifyContent:'center',marginBottom:10}}>
+              <i className={`fas ${m.icon}`} style={{color:m.color,fontSize:16}}/>
+            </div>
+            <p style={{fontSize:11,fontWeight:700,color:'var(--g4)',marginBottom:4}}>{m.label}</p>
+            <p style={{fontSize:22,fontWeight:800,color:m.color}}>{m.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* 리스크 평가 */}
+      <div className="card">
+        <h3 style={{fontWeight:800,fontSize:16,marginBottom:16}}><i className="fas fa-shield-halved" style={{color:result.riskLevel==='low'?'var(--ok)':result.riskLevel==='medium'?'var(--wn)':'var(--ng)',marginRight:8}}/>환급 가능성 분석</h3>
+        <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:16}}>
+          <div style={{flex:1}}>
+            <ProgressBar pct={result.probability} color={result.riskLevel==='low'?'var(--ok)':result.riskLevel==='medium'?'var(--wn)':'var(--ng)'} height={12}/>
+          </div>
+          <span style={{fontWeight:800,fontSize:24,color:result.riskLevel==='low'?'var(--ok)':result.riskLevel==='medium'?'var(--wn)':'var(--ng)'}}>{result.probability}%</span>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+          {[
+            {label:'높은 우선순위 항목',value:result.details.filter(d=>d.priority==='high').length+'개',positive:result.details.filter(d=>d.priority==='high').length>0},
+            {label:'대상 귀속연도',value:result.byYear.length+'년',positive:result.byYear.length>=3},
+            {label:'업종 환급 비율',value:(INDUSTRY_RATES[formData.industry]||INDUSTRY_RATES['기타']).prob+'%',positive:(INDUSTRY_RATES[formData.industry]||INDUSTRY_RATES['기타']).prob>=40},
+          ].map((f,i)=>(
+            <div key={i} style={{background:'var(--g0)',borderRadius:12,padding:12,textAlign:'center'}}>
+              <p style={{fontSize:10,fontWeight:700,color:'var(--g4)',marginBottom:4}}>{f.label}</p>
+              <p style={{fontSize:16,fontWeight:800,color:f.positive?'var(--ok)':'var(--g5)'}}>{f.value}</p>
+            </div>
+          ))}
+        </div>
+        <div style={{marginTop:16,padding:14,background:result.riskLevel==='low'?'var(--ok1)':result.riskLevel==='medium'?'var(--wn1)':'var(--ng1)',borderRadius:12}}>
+          <p style={{fontSize:12,fontWeight:700,color:result.riskLevel==='low'?'var(--ok)':result.riskLevel==='medium'?'var(--wn)':'var(--ng)'}}>
+            <i className={`fas ${result.riskLevel==='low'?'fa-circle-check':result.riskLevel==='medium'?'fa-exclamation-circle':'fa-triangle-exclamation'}`} style={{marginRight:6}}/>
+            {result.riskLevel==='low'?'환급 가능성이 높습니다. 전문가 검토를 권장합니다.':result.riskLevel==='medium'?'부분적 환급 가능성이 있습니다. 정밀 검토가 필요합니다.':'환급 가능성이 낮으나 일부 항목은 검토 가치가 있습니다.'}
+          </p>
+        </div>
+      </div>
+
+      {/* 업종 비교 */}
+      <div className="card">
+        <h3 style={{fontWeight:800,fontSize:16,marginBottom:16}}><i className="fas fa-chart-pie" style={{color:'var(--ac)',marginRight:8}}/>업종 내 비교</h3>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 40px 1fr',gap:8,alignItems:'center'}}>
+          <div style={{background:'var(--g0)',borderRadius:16,padding:20,textAlign:'center'}}>
+            <p style={{fontSize:11,fontWeight:700,color:'var(--g4)',marginBottom:6}}>{formData.industry} 평균 환급금</p>
+            <p style={{fontSize:24,fontWeight:800,color:'var(--g5)'}}>{fmtW(result.avgIndustry)}원</p>
+          </div>
+          <div style={{textAlign:'center'}}>
+            <i className={`fas ${result.totalRefund>result.avgIndustry?'fa-arrow-right':'fa-arrow-left'}`} style={{color:'var(--p)',fontSize:16}}/>
+          </div>
+          <div style={{background:result.totalRefund>result.avgIndustry?'var(--ok1)':'var(--p1)',borderRadius:16,padding:20,textAlign:'center'}}>
+            <p style={{fontSize:11,fontWeight:700,color:'var(--g4)',marginBottom:6}}>회원님 예상 환급금</p>
+            <p style={{fontSize:24,fontWeight:800,color:result.totalRefund>result.avgIndustry?'var(--ok)':'var(--p)'}}>{fmtW(result.totalRefund)}원</p>
+          </div>
+        </div>
+        {result.totalRefund>result.avgIndustry&&(
+          <div style={{marginTop:12,background:'var(--ok1)',borderRadius:12,padding:'10px 16px',display:'flex',alignItems:'center',gap:8}}>
+            <i className="fas fa-arrow-trend-up" style={{color:'var(--ok)'}}/>
+            <span style={{fontSize:12,fontWeight:700,color:'var(--ok)'}}>업종 평균 대비 {fmt(result.totalRefund-result.avgIndustry)}원 (+{Math.round((result.totalRefund/result.avgIndustry-1)*100)}%) 높음</span>
+          </div>
+        )}
+      </div>
+
+      {/* TOP 환급항목 */}
+      {result.topItem && (
+        <div className="card" style={{background:taxInfo.gradient,border:'none',color:'#fff'}}>
+          <div style={{display:'flex',alignItems:'center',gap:16}}>
+            <div style={{width:56,height:56,borderRadius:18,background:'rgba(255,255,255,.2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+              <i className="fas fa-trophy" style={{fontSize:24}}/>
+            </div>
+            <div>
+              <p style={{fontSize:12,opacity:.7}}>최대 환급 항목</p>
+              <p style={{fontSize:18,fontWeight:800}}>{result.topItem.name}</p>
+              <p style={{fontSize:12,opacity:.7,marginTop:2}}>{result.topItem.법조문}</p>
+            </div>
+            <div style={{marginLeft:'auto',textAlign:'right'}}>
+              <p style={{fontSize:28,fontWeight:800}}>{fmtW(result.topItem.refund)}원</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DetailsTab({result,taxInfo}){
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:16}}>
+      <div className="card">
+        <h3 style={{fontWeight:800,fontSize:16,marginBottom:4}}>적용 가능 공제 항목</h3>
+        <p style={{fontSize:12,color:'var(--g4)',marginBottom:20}}>{result.details.length}개 항목 발견 · 총 {fmtW(result.totalRefund)}원</p>
+        <div style={{display:'flex',flexDirection:'column',gap:12}}>
+          {result.details.sort((a,b)=>b.refund-a.refund).map((d,i)=>(
+            <div key={d.id} style={{padding:16,background:'var(--g0)',borderRadius:16,border:'1px solid var(--g2)'}}>
+              <div style={{display:'flex',alignItems:'center',gap:14}}>
+                <div style={{width:36,height:36,borderRadius:10,background:d.priority==='high'?'var(--ok1)':d.priority==='medium'?'var(--p1)':'var(--g1)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontWeight:800,fontSize:14,color:d.priority==='high'?'var(--ok)':d.priority==='medium'?'var(--p)':'var(--g4)'}}>
+                  {i+1}
+                </div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
+                    <p style={{fontWeight:700,fontSize:14}}>{d.name}</p>
+                    <Badge color={d.priority==='high'?'var(--ok)':d.priority==='medium'?'var(--p)':'var(--g4)'} bg={d.priority==='high'?'var(--ok1)':d.priority==='medium'?'var(--p1)':'var(--g1)'}>
+                      {d.priority==='high'?'높음':d.priority==='medium'?'보통':'낮음'}
+                    </Badge>
+                    <Badge>{d.category}</Badge>
+                  </div>
+                  <p style={{fontSize:11,color:'var(--g4)',marginTop:4}}>{d.desc}</p>
+                  <p style={{fontSize:10,color:'var(--p)',marginTop:2}}>{d.법조문}</p>
+                </div>
+                <div style={{textAlign:'right',flexShrink:0}}>
+                  <p style={{fontWeight:800,fontSize:18,color:'var(--ok)'}}>{fmtW(d.refund)}원</p>
+                  <p style={{fontSize:10,color:'var(--g4)'}}>({Math.round(d.refund/result.totalRefund*100)}%)</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 미적용 항목 */}
+      {result.allDetails.filter(d=>!d.applicable).length > 0 && (
+        <div className="card" style={{opacity:.7}}>
+          <h3 style={{fontWeight:700,fontSize:14,marginBottom:12,color:'var(--g4)'}}>
+            <i className="fas fa-times-circle" style={{marginRight:6}}/>미적용 항목 ({result.allDetails.filter(d=>!d.applicable).length}개)
+          </h3>
+          <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+            {result.allDetails.filter(d=>!d.applicable).map(d=>(
+              <Badge key={d.id} color="var(--g4)" bg="var(--g1)">{d.name}</Badge>
+            ))}
+          </div>
+          <p style={{fontSize:11,color:'var(--g4)',marginTop:8}}>현재 입력 조건에서는 적용되지 않으나, 전문가 검토 시 추가 적용 가능성이 있습니다.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TimelineTab({result,taxInfo,taxType}){
+  const maxAmount = Math.max(...result.byYear.map(y=>y.amount));
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:16}}>
+      <div className="card">
+        <h3 style={{fontWeight:800,fontSize:16,marginBottom:20}}><i className="fas fa-calendar-alt" style={{color:'var(--p)',marginRight:8}}/>연도별 환급 예상액</h3>
+        <div style={{display:'flex',flexDirection:'column',gap:12}}>
+          {result.byYear.map(y=>(
+            <div key={y.year} style={{padding:16,background:'var(--g0)',borderRadius:16}}>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+                <div style={{display:'flex',alignItems:'center',gap:10}}>
+                  <span style={{fontWeight:800,fontSize:16}}>{y.year}년 귀속</span>
+                  {y.daysLeft <= 180 ? (
+                    <Badge color="var(--ng)" bg="var(--ng1)"><i className="fas fa-exclamation-triangle" style={{fontSize:8}}/>D-{y.daysLeft} 긴급!</Badge>
+                  ) : y.daysLeft <= 365 ? (
+                    <Badge color="var(--wn)" bg="var(--wn1)">D-{y.daysLeft}</Badge>
+                  ) : (
+                    <Badge color="var(--ok)" bg="var(--ok1)">D-{y.daysLeft}</Badge>
+                  )}
+                </div>
+                <span style={{fontWeight:800,fontSize:18,color:taxInfo.color}}>{fmtW(y.amount)}원</span>
+              </div>
+              <ProgressBar pct={y.amount/maxAmount*100} color={taxInfo.color} height={6}/>
+              <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:'var(--g4)',marginTop:6}}>
+                <span>신고기한: {y.year+1}년 {DEDUCTIONS[taxType].filingMonth}월</span>
+                <span>경정청구 기한: {y.year+6}년 {DEDUCTIONS[taxType].filingMonth}월</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 기한 안내 */}
+      <div style={{background:'var(--wn1)',borderRadius:16,padding:20,border:'1px solid rgba(255,184,0,.2)'}}>
+        <p style={{fontSize:13,fontWeight:700,color:'var(--wn)',marginBottom:8}}><i className="fas fa-clock" style={{marginRight:6}}/>경정청구 기한 안내</p>
+        <p style={{fontSize:12,color:'var(--g5)',lineHeight:1.8}}>
+          경정청구는 법정신고기한으로부터 <b>5년 이내</b>에 청구해야 합니다.<br/>
+          기한이 임박한 연도가 있다면 조속한 진행을 권장합니다.<br/>
+          기한 경과 후에는 환급이 불가능하므로 유의하세요.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function MoneyTab({result,taxInfo,formData}){
+  const feeRate = 0.20;
+  const fee = result.estimatedFee;
+  const interest = result.estimatedInterest;
+  const net = result.netRefund;
+
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:16}}>
+      {/* Before vs After */}
+      <div className="card">
+        <h3 style={{fontWeight:800,fontSize:16,marginBottom:16}}><i className="fas fa-scale-balanced" style={{color:'var(--p)',marginRight:8}}/>Before vs After 비교</h3>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}} className="grid-2">
+          <div style={{background:'var(--ng1)',borderRadius:16,padding:20,textAlign:'center'}}>
+            <p style={{fontSize:12,fontWeight:700,color:'var(--ng)',marginBottom:4}}>기존 (경정청구 전)</p>
+            <p style={{fontSize:11,color:'var(--g4)',marginBottom:10}}>납부한 세금 그대로</p>
+            <p style={{fontSize:28,fontWeight:800,color:'var(--ng)'}}>{fmtW(formData.taxPaid * formData.years.length)}원</p>
+            <p style={{fontSize:10,color:'var(--g4)',marginTop:4}}>총 {formData.years.length}년 납부 세액</p>
+          </div>
+          <div style={{background:'var(--ok1)',borderRadius:16,padding:20,textAlign:'center'}}>
+            <p style={{fontSize:12,fontWeight:700,color:'var(--ok)',marginBottom:4}}>After (경정청구 후)</p>
+            <p style={{fontSize:11,color:'var(--g4)',marginBottom:10}}>환급금 수령</p>
+            <p style={{fontSize:28,fontWeight:800,color:'var(--ok)'}}>{fmtW(formData.taxPaid * formData.years.length - result.totalRefund)}원</p>
+            <p style={{fontSize:10,color:'var(--g4)',marginTop:4}}>실질 세부담</p>
+          </div>
+        </div>
+        <div style={{marginTop:12,background:'var(--ok1)',borderRadius:12,padding:'12px 16px',textAlign:'center'}}>
+          <span style={{fontSize:14,fontWeight:800,color:'var(--ok)'}}>
+            <i className="fas fa-arrow-down" style={{marginRight:6}}/>세부담 {fmtW(result.totalRefund)}원 절감
+          </span>
+        </div>
+      </div>
+
+      {/* 수익 분석 */}
+      <div className="card">
+        <h3 style={{fontWeight:800,fontSize:16,marginBottom:16}}><i className="fas fa-calculator" style={{color:'var(--violet)',marginRight:8}}/>수익 분석 (성과보수 기준)</h3>
+        <div style={{display:'flex',flexDirection:'column',gap:10}}>
+          <div style={{display:'flex',justifyContent:'space-between',padding:'12px 16px',background:'var(--g0)',borderRadius:12}}>
+            <span style={{fontSize:13,fontWeight:600}}>예상 환급금 총액</span>
+            <span style={{fontSize:15,fontWeight:800,color:'var(--ok)'}}>+{fmtW(result.totalRefund)}원</span>
+          </div>
+          <div style={{display:'flex',justifyContent:'space-between',padding:'12px 16px',background:'var(--g0)',borderRadius:12}}>
+            <span style={{fontSize:13,fontWeight:600}}>환급가산금 (이자)</span>
+            <span style={{fontSize:15,fontWeight:800,color:'var(--p)'}}>+{fmtW(interest)}원</span>
+          </div>
+          <div style={{display:'flex',justifyContent:'space-between',padding:'12px 16px',background:'var(--ng1)',borderRadius:12}}>
+            <span style={{fontSize:13,fontWeight:600}}>성과보수 (환급금의 {Math.round(feeRate*100)}%)</span>
+            <span style={{fontSize:15,fontWeight:800,color:'var(--ng)'}}>-{fmtW(fee)}원</span>
+          </div>
+          <div style={{height:1,background:'var(--g2)',margin:'4px 0'}}/>
+          <div style={{display:'flex',justifyContent:'space-between',padding:'14px 16px',background:'var(--ok1)',borderRadius:12,border:'2px solid var(--ok)'}}>
+            <span style={{fontSize:15,fontWeight:800}}>실수령 예상액</span>
+            <span style={{fontSize:20,fontWeight:800,color:'var(--ok)'}}>{fmtW(net)}원</span>
+          </div>
+        </div>
+        <div style={{marginTop:16,padding:12,background:'var(--p1)',borderRadius:10}}>
+          <p style={{fontSize:11,color:'var(--p2)',lineHeight:1.7}}>
+            <i className="fas fa-info-circle" style={{marginRight:4}}/>
+            성과보수 비율은 환급 금액·난이도에 따라 협의됩니다. 위 계산은 {Math.round(feeRate*100)}% 기준입니다.<br/>
+            환급가산금: 연 3.1% (국세기본법 시행규칙 §19의3), 평균 180일 기준 추정
+          </p>
+        </div>
+      </div>
+
+      {/* ROI */}
+      <div className="card" style={{background:'linear-gradient(135deg,#0A1628,#162848)',border:'none',color:'#fff',textAlign:'center'}}>
+        <p style={{fontSize:12,opacity:.7}}>투자수익률 (ROI)</p>
+        <p style={{fontSize:48,fontWeight:800,marginTop:8}}>
+          {fee > 0 ? Math.round((net / fee) * 100) : '∞'}%
+        </p>
+        <p style={{fontSize:13,opacity:.7,marginTop:8}}>
+          수수료 {fmtW(fee)}원 대비 실수령 {fmtW(net)}원
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function DocsTab({docs,taxInfo}){
+  const [checked,setChecked]=useState({});
+  const toggle = (i) => setChecked(p=>({...p,[i]:!p[i]}));
+  const total = docs.length;
+  const done = Object.values(checked).filter(Boolean).length;
+
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:16}}>
+      <div className="card">
+        <h3 style={{fontWeight:800,fontSize:16,marginBottom:4}}><i className="fas fa-folder-open" style={{color:'var(--ac)',marginRight:8}}/>경정청구 필요 서류</h3>
+        <p style={{fontSize:12,color:'var(--g4)',marginBottom:16}}>준비된 서류를 체크해주세요 ({done}/{total})</p>
+        <ProgressBar pct={done/total*100} color="var(--ok)" height={6}/>
+        <div style={{display:'flex',flexDirection:'column',gap:8,marginTop:16}}>
+          {docs.map((d,i)=>(
+            <div key={i} onClick={()=>toggle(i)} style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',background:checked[i]?'var(--ok1)':'var(--g0)',borderRadius:12,cursor:'pointer',border:`1px solid ${checked[i]?'var(--ok)':'var(--g2)'}`,transition:'all .15s'}}>
+              <div style={{width:24,height:24,borderRadius:8,border:`2px solid ${checked[i]?'var(--ok)':'var(--g3)'}`,background:checked[i]?'var(--ok)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,transition:'all .15s'}}>
+                {checked[i]&&<i className="fas fa-check" style={{color:'#fff',fontSize:10}}/>}
+              </div>
+              <span style={{fontSize:13,fontWeight:600,color:checked[i]?'var(--ok)':'var(--dk)',textDecoration:checked[i]?'line-through':'none'}}>{d.name}</span>
+              {d.required&&<Badge color="var(--ng)" bg="var(--ng1)">필수</Badge>}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{background:'var(--p1)',borderRadius:16,padding:20,border:'1px solid rgba(2,103,255,.1)'}}>
+        <p style={{fontSize:13,fontWeight:700,color:'var(--p2)',marginBottom:6}}><i className="fas fa-lightbulb" style={{marginRight:6}}/>서류 준비 TIP</p>
+        <ul style={{fontSize:12,color:'var(--g5)',lineHeight:2,paddingLeft:16}}>
+          <li>홈택스에서 대부분의 서류를 <b>온라인으로 발급</b>받을 수 있습니다.</li>
+          <li>필수 서류는 반드시 준비해야 하며, 선택 서류는 환급 항목에 따라 다릅니다.</li>
+          <li>세무사 상담 시 추가 서류가 요청될 수 있습니다.</li>
+          <li>서류 준비에 어려움이 있으시면 <b>한백택스가 대행</b>해드립니다.</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function FaqTab(){
+  return(
+    <div>
+      <h3 style={{fontWeight:800,fontSize:16,marginBottom:16}}><i className="fas fa-circle-question" style={{color:'var(--p)',marginRight:8}}/>자주 묻는 질문</h3>
+      <Accordion items={FAQ_DATA}/>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

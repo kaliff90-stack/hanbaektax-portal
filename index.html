@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>세무법인 한백택스 · 세무 도구 모음</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#1B3A5C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="한백택스">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="세무법인 한백택스 세무 계산기·시뮬레이터 모음 — 양도·증여·상속·종합소득세·연말정산·4대보험·업종코드 검색">
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Nanum Gothic',sans-serif;-webkit-tap-highlight-color:transparent}
+:root{
+  --navy:#1B3A5C;--blue:#2E6DA4;--gold:#C8963E;
+  --bg:#f0f2f5;--card:#fff;--txt:#2D3748;--gray:#718096;--border:#CBD5E0;
+  --head:#1B3A5C;--head-txt:#fff;--head-sub:#a0b4cc;--shadow:rgba(27,58,92,.12);
+  --chip:#fff;--chip-txt:#1B3A5C;
+}
+html[data-theme="dark"]{
+  --bg:#12171F;--card:#1B2230;--txt:#E2E8F0;--gray:#94A3B8;--border:#2F3B4D;
+  --head:#0E1621;--head-txt:#F1F5F9;--head-sub:#8FA6C0;--shadow:rgba(0,0,0,.45);
+  --chip:#1B2230;--chip-txt:#D9E4F0;--blue:#5B9BD5;
+}
+body{background:var(--bg);color:var(--txt);min-height:100vh;padding-bottom:48px;font-size:16px;line-height:1.6}
+a{color:var(--blue)}
+.top{background:var(--head);color:var(--head-txt);padding:18px 16px 14px;text-align:center;position:relative}
+.top h1{font-size:22px;letter-spacing:-.5px}
+.top .sub{font-size:13px;color:var(--head-sub);margin-top:5px}
+.top .acts{position:absolute;top:12px;right:12px;display:flex;gap:8px}
+.iconbtn{min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.28);background:transparent;color:var(--head-txt);border-radius:12px;font-size:18px;cursor:pointer}
+.iconbtn:hover{background:rgba(255,255,255,.12)}
+.iconbtn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.bar{background:var(--head);color:var(--gold);text-align:center;padding:8px 12px;font-size:13px;font-weight:700;border-bottom:3px solid var(--gold)}
+.wrap{max-width:900px;margin:0 auto;padding:16px}
+.searchbox{position:sticky;top:0;z-index:20;background:var(--bg);padding:12px 0 8px;margin-bottom:4px}
+.search{width:100%;padding:14px 16px;font-size:16px;border:1px solid var(--border);border-radius:12px;outline:none;font-weight:700;color:var(--navy);background:var(--card)}
+html[data-theme="dark"] .search{color:var(--txt)}
+.search:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(46,109,164,.25)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:10px 0 2px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;min-height:38px;padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:var(--chip);color:var(--chip-txt);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
+html[data-theme="dark"] .chip[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
+.chip:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.cat{font-size:15px;font-weight:800;color:var(--navy);margin:20px 4px 10px;display:flex;align-items:center;gap:8px}
+html[data-theme="dark"] .cat{color:var(--head-sub)}
+.cat .dot{width:8px;height:8px;border-radius:50%;background:var(--gold);flex:0 0 auto}
+.cat .n{font-size:12px;font-weight:700;color:var(--gray)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px}
+.card{position:relative;display:flex;flex-direction:column;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 40px 16px 16px;text-decoration:none;color:inherit;min-height:96px;transition:transform .12s,box-shadow .12s,border-color .12s}
+.card:hover{transform:translateY(-2px);box-shadow:0 6px 18px var(--shadow);border-color:var(--blue)}
+.card:active{transform:scale(.985)}
+.card:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.card .ico{font-size:24px;line-height:1}
+.card .ttl{font-size:14px;font-weight:800;color:var(--navy);line-height:1.35}
+html[data-theme="dark"] .card .ttl{color:#DCE7F3}
+.card .ds{font-size:12px;color:var(--gray);line-height:1.45}
+.card.feat{background:linear-gradient(135deg,#1B3A5C,#2E6DA4);border-color:transparent}
+.card.feat .ttl{color:#fff}
+.card.feat .ds{color:#cde0f5}
+.star{position:absolute;top:6px;right:6px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border:none;background:transparent;font-size:17px;line-height:1;cursor:pointer;color:var(--border);border-radius:10px}
+.star[aria-pressed="true"]{color:var(--gold)}
+.star:hover{background:rgba(200,150,62,.16)}
+.star:focus-visible{outline:3px solid var(--gold);outline-offset:1px}
+.card.feat .star{color:rgba(255,255,255,.55)}
+.card.feat .star[aria-pressed="true"]{color:var(--gold)}
+.empty{text-align:center;color:var(--gray);padding:44px 16px;font-size:14px;display:none}
+.foot{margin-top:30px;padding:18px;background:var(--card);border:1px solid var(--border);border-radius:14px;font-size:13px;color:var(--gray);line-height:1.75}
+.foot b{color:var(--navy)}
+html[data-theme="dark"] .foot b{color:#DCE7F3}
+.foot a{font-weight:700;text-decoration:none}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;z-index:60;display:none;align-items:center;gap:12px;background:var(--navy);color:#fff;padding:12px 16px;border-radius:14px;box-shadow:0 8px 26px rgba(0,0,0,.3);font-size:14px;font-weight:700;max-width:calc(100% - 32px)}
+.toast.on{display:flex}
+.toast button{min-height:38px;padding:8px 14px;border:none;border-radius:10px;background:var(--gold);color:#26180a;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap}
+.toast .x{background:transparent;color:#cdd9e6;padding:8px 6px;font-size:16px}
+@media(max-width:420px){
+  .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .top h1{font-size:20px}
+}
+@media(prefers-reduced-motion:reduce){.card{transition:none}}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>세무법인 한백택스</h1>
+  <div class="sub">HANBAEK TAX · 세무 도구 모음</div>
+  <div class="acts">
+    <button class="iconbtn" id="offlineBtn" type="button" title="도구 전체 오프라인 저장" aria-label="도구 전체 오프라인 저장">📥</button>
+    <button class="iconbtn" id="installBtn" type="button" title="홈 화면에 설치" aria-label="홈 화면에 설치" hidden>⬇</button>
+    <button class="iconbtn" id="themeBtn" type="button" title="화면 테마 전환" aria-label="화면 테마 전환">🌙</button>
+  </div>
+</div>
+<div class="bar">대표세무사 차재영 · 02-2277-3101 · 서울 중구 동호로 315, 신안빌딩 2층</div>
+
+<div class="wrap">
+  <div class="searchbox">
+    <input type="search" class="search" id="q" placeholder="🔍 도구 검색 (예: 양도, 실수령, ㅇㅁㅈㅅ)" aria-label="도구 검색" autocomplete="off">
+    <div class="chips" id="chips" role="group" aria-label="분류 필터"></div>
+  </div>
+
+  <div id="list"></div>
+  <div class="empty" id="empty">검색 결과가 없습니다. 다른 낱말로 찾아 보십시오.</div>
+
+  <div class="foot">
+    <b>세무법인 한백택스</b><br>
+    대표세무사 차재영 · 사업자등록번호 522-85-00152<br>
+    서울특별시 중구 동호로 315, 신안빌딩 2층 (장충동2가 173-1)<br>
+    Tel 02-2277-3101 · Fax 02-2277-3161<br>
+    <a href="mailto:hb090@hanbaektax.kr">hb090@hanbaektax.kr</a> · <a href="mailto:hb3101@naver.com">hb3101@naver.com</a><br><br>
+    ※ 본 계산기·시뮬레이터는 참고용이며, 정확한 세액은 세무사 검토 후 확정됩니다.
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span id="toastMsg"></span>
+  <button type="button" id="toastAct">새로고침</button>
+  <button type="button" class="x" id="toastX" aria-label="닫기">✕</button>
+</div>
+
+<script>
+/* ── 도구 목록 ── k: 검색 별칭 ── */
+const APPS = [
+  {cat:'대표 서비스', items:[
+    {f:'한백택스_카톡채널_포털_v3.html', i:'📱', t:'간편 세무 포털', d:'상담·계산기·자료전송·경정청구', k:'카톡 카카오 상담 채널', feat:true},
+    {f:'한백택스_세무계산_포털.html', i:'🧮', t:'세무계산 포털', d:'전체 계산기 통합 메뉴', k:'통합 전체 메뉴 데스크톱', feat:true},
+    {f:'한백택스_모바일.html', i:'📲', t:'모바일 포털', d:'모바일 최적화 메뉴', k:'휴대폰 폰 스마트폰', feat:true},
+    {f:'업종코드_빠른검색_v5.html', i:'🔎', t:'업종코드 빠른검색', d:'자연어·초성 검색 · 경비율 조회', k:'업종 코드 표준산업분류 경비율 사업자등록 단순경비율 기준경비율'},
+    {f:'업종코드_빠른검색_v5_모바일.html', i:'🔍', t:'업종코드 검색 (모바일)', d:'모바일 최적화 업종코드 검색', k:'업종 코드 모바일 휴대폰 경비율'},
+  ]},
+  {cat:'소득세 · 연말정산', items:[
+    {f:'한백택스_종합소득세_계산기.html', i:'📊', t:'종합소득세 계산기', d:'소득세 산출', k:'종소세 사업소득 신고'},
+    {f:'2025년_종합소득세_확정신고_계산기.html', i:'📋', t:'종소세 확정신고 계산기', d:'2025 귀속', k:'종소세 확정신고 2025 귀속'},
+    {f:'한백택스_연말정산_계산기.html', i:'🧾', t:'연말정산 계산기', d:'근로소득 정산', k:'연말정산 근로소득 소득공제 세액공제'},
+    {f:'한백택스_원천징수_연말정산.html', i:'💼', t:'원천징수·연말정산', d:'원천세 정산', k:'원천세 간이세액표 지급명세서'},
+    {f:'한백택스_급여실수령액_계산기.html', i:'💰', t:'급여 실수령액', d:'세후 월급 계산', k:'월급 실수령 세후 급여 연봉'},
+    {f:'한백택스_세후세전_역산계산기.html', i:'🔄', t:'세후·세전 역산', d:'실수령 ↔ 세전', k:'역산 그로스업 세전 세후 연봉'},
+    {f:'2026_세후세전_역산계산기.html', i:'🔄', t:'세후·세전 역산 (2026)', d:'2026 기준', k:'역산 그로스업 2026'},
+    {f:'한백택스_퇴직소득세_계산기_v2.html', i:'🏦', t:'퇴직소득세 계산기', d:'퇴직금 세액 · 환산급여공제', k:'퇴직금 퇴직소득 정산 근속연수'},
+    {f:'한백택스_4대보험_계산기_v2.html', i:'🛡️', t:'4대보험 계산기', d:'국민연금·건강·고용·산재', k:'국민연금 건강보험 고용보험 산재 요율'},
+  ]},
+  {cat:'법인 · 부가세', items:[
+    {f:'한백택스_법인세_계산기_v2.html', i:'🏢', t:'법인세 계산기', d:'법인세 산출', k:'법인 세율 과세표준'},
+    {f:'한백택스_부가가치세_신고시뮬레이터.html', i:'🧾', t:'부가가치세 시뮬레이터', d:'매출·매입 세액', k:'부가세 매입세액 매출세액 신고'},
+    {f:'한백택스_업무용승용차_운행일지.html', i:'🚗', t:'업무용승용차 운행일지', d:'운행기록부·손금한도', k:'차량 운행기록부 손금 감가상각'},
+    {f:'한백택스_환차손익_계산기.html', i:'💱', t:'환차손익 계산기', d:'외화 평가손익', k:'외화 환율 평가손익 달러'},
+  ]},
+  {cat:'양도 · 증여 · 상속 · 부동산', items:[
+    {f:'한백택스_양도소득세_계산기.html', i:'🏠', t:'양도소득세 계산기', d:'양도차익 세액', k:'양도세 부동산 매매 장기보유특별공제'},
+    {f:'2026_양도소득세_계산기.html', i:'🏠', t:'양도소득세 계산기 (2026)', d:'2026 기준', k:'양도세 2026 부동산'},
+    {f:'한백택스_증여세_계산기.html', i:'🎁', t:'증여세 계산기', d:'증여세 산출', k:'증여 증여재산공제 사전증여'},
+    {f:'2026_증여세_시뮬레이션.html', i:'🎁', t:'증여세 시뮬레이션 (2026)', d:'2026 기준', k:'증여 2026'},
+    {f:'한백택스_증여세대납_계산기.html', i:'🎁', t:'증여세 대납 계산기', d:'세금 대납 효과', k:'증여 대납 재차증여'},
+    {f:'한백택스_상속세_계산기.html', i:'⚰️', t:'상속세 계산기', d:'일괄·배우자·금융재산공제', k:'상속 배우자공제 일괄공제 금융재산'},
+    {f:'한백택스_부담부증여_계산기.html', i:'🏠', t:'부담부증여 계산기', d:'양도세+증여세 동시계산', k:'부담부 채무인수 전세보증금 대출'},
+    {f:'한백택스_가업상속_시뮬레이터.html', i:'🏭', t:'가업상속 시뮬레이터', d:'가업상속공제 상증법 제18조의2', k:'가업승계 가업상속공제 사후관리'},
+    {f:'한백택스_취득세_종합부동산세_계산기_v2.html', i:'🏘️', t:'취득세·종부세 계산기', d:'부동산 보유세', k:'취득세 종부세 재산세 보유세 다주택'},
+    {f:'한백택스_건물기준시가_계산기_v3.html', i:'🏗️', t:'건물 기준시가 계산기', d:'기준시가 산정', k:'기준시가 건물 신축가격기준액'},
+    {f:'2026_건물기준시가_계산기.html', i:'🏗️', t:'건물 기준시가 (2026)', d:'2026 고시', k:'기준시가 2026 고시'},
+    {f:'한백택스_비상장주식_평가계산기.html', i:'📈', t:'비상장주식 평가', d:'순손익·순자산 가중평가', k:'비상장 주식평가 순자산 순손익 할증'},
+  ]},
+  {cat:'환급 · 일정 · 도구', items:[
+    {f:'한백택스_경정청구_v2.html', i:'↩️', t:'경정청구 시뮬레이션', d:'5년치 환급 진단', k:'경정청구 환급 기한후신고'},
+    {f:'한백택스_가산세_계산기.html', i:'⏰', t:'가산세 계산기', d:'무신고·과소·납부지연·감면', k:'가산세 무신고 납부지연 감면'},
+    {f:'한백택스_세금신고기한_캘린더.html', i:'📅', t:'세금신고기한 캘린더', d:'신고 마감일', k:'일정 마감일 신고기한 달력'},
+    {f:'PDF_OCR_Excel변환_한백택스_v4.html', i:'📄', t:'PDF·OCR·엑셀 변환', d:'문서 변환 도구', k:'피디에프 오시알 엑셀 변환 스캔'},
+    {f:'한백택스_세법검증_보고서.html', i:'⚖️', t:'세법검증 보고서', d:'법령 검증 자료', k:'법령 검증 조문'},
+    {f:'한백택스_전산매체_대응지도_v4.html', i:'🗂️', t:'지급명세서 전산매체 대응지도', d:'서식↔레코드 대조 · 제출파일 오류검증', k:'전산매체 지급명세서 레코드 홈택스 제출'},
+  ]},
+];
+
+/* ── 저장소 ── */
+const LS = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v===null? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+let favs   = LS.get('hbt_fav', []);
+let recent = LS.get('hbt_recent', []);
+
+/* ── 초성 검색 ── */
+const CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+function choOf(s){
+  let out='';
+  for(const ch of s){
+    const c = ch.charCodeAt(0)-0xAC00;
+    out += (c>=0 && c<11172) ? CHO[Math.floor(c/588)] : ch;
+  }
+  return out;
+}
+const isChoQuery = s => /^[ㄱ-ㅎ]+$/.test(s.replace(/\s/g,''));
+
+/* ── 색인 ── */
+const ALL = [];
+APPS.forEach(g => g.items.forEach(a => {
+  a.cat = g.cat;
+  /* 분류명은 색인에 넣지 않는다 — "양도" 한 낱말에 부동산 분류가 통째로 걸린다 */
+  a.hay = (a.t+' '+a.d+' '+(a.k||'')).toLowerCase();
+  a.cho = choOf(a.t+(a.k||''));
+  ALL.push(a);
+}));
+const byFile = {};
+ALL.forEach(a => { byFile[a.f] = a; });
+
+/* ── 필터 ── */
+let activeCat = LS.get('hbt_cat', '전체');
+function match(a, q){
+  if(!q) return true;
+  if(isChoQuery(q)) return a.cho.includes(q.replace(/\s/g,''));
+  return a.hay.includes(q.toLowerCase()) || a.cho.includes(choOf(q));
+}
+
+/* ── 렌더 ── */
+function cardEl(a){
+  const el = document.createElement('a');
+  el.className = 'card' + (a.feat ? ' feat' : '');
+  el.href = encodeURI(a.f);
+  el.innerHTML = '<div class="ico" aria-hidden="true">'+a.i+'</div>'
+               + '<div class="ttl">'+a.t+'</div>'
+               + '<div class="ds">'+a.d+'</div>';
+  el.addEventListener('click', () => pushRecent(a.f));
+  const st = document.createElement('button');
+  st.type = 'button';
+  st.className = 'star';
+  const on = favs.indexOf(a.f) >= 0;
+  st.setAttribute('aria-pressed', on ? 'true' : 'false');
+  st.setAttribute('aria-label', a.t + ' 즐겨찾기');
+  st.textContent = on ? '★' : '☆';
+  st.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); toggleFav(a.f); });
+  el.appendChild(st);
+  return el;
+}
+function section(title, items){
+  const frag = document.createDocumentFragment();
+  const h = document.createElement('div');
+  h.className = 'cat';
+  h.innerHTML = '<span class="dot" aria-hidden="true"></span>' + title + ' <span class="n">' + items.length + '</span>';
+  frag.appendChild(h);
+  const g = document.createElement('div');
+  g.className = 'grid';
+  items.forEach(a => g.appendChild(cardEl(a)));
+  frag.appendChild(g);
+  return frag;
+}
+function render(){
+  const q = document.getElementById('q').value.trim();
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+  let shown = 0;
+
+  const pool = ALL.filter(a => match(a, q) && (activeCat === '전체' || a.cat === activeCat));
+
+  if(!q && activeCat === '전체'){
+    const fv = favs.map(f => byFile[f]).filter(Boolean);
+    if(fv.length){ list.appendChild(section('⭐ 즐겨찾기', fv)); shown += fv.length; }
+    const rc = recent.map(f => byFile[f]).filter(Boolean).filter(a => favs.indexOf(a.f) < 0).slice(0, 6);
+    if(rc.length){ list.appendChild(section('🕘 최근 사용', rc)); shown += rc.length; }
+  }
+
+  APPS.forEach(g => {
+    const items = pool.filter(a => a.cat === g.cat);
+    if(!items.length) return;
+    list.appendChild(section(g.cat, items));
+    shown += items.length;
+  });
+  document.getElementById('empty').style.display = shown ? 'none' : 'block';
+}
+function toggleFav(f){
+  favs = favs.indexOf(f) >= 0 ? favs.filter(x => x !== f) : favs.concat([f]);
+  LS.set('hbt_fav', favs);
+  render();
+}
+function pushRecent(f){
+  recent = [f].concat(recent.filter(x => x !== f)).slice(0, 8);
+  LS.set('hbt_recent', recent);
+}
+
+/* ── 분류 칩 ── */
+(function buildChips(){
+  const box = document.getElementById('chips');
+  ['전체'].concat(APPS.map(g => g.cat)).forEach(c => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.textContent = c;
+    b.setAttribute('aria-pressed', c === activeCat ? 'true' : 'false');
+    b.addEventListener('click', () => {
+      activeCat = c;
+      LS.set('hbt_cat', c);
+      const all = box.querySelectorAll('.chip');
+      for(let i = 0; i < all.length; i++){
+        all[i].setAttribute('aria-pressed', all[i].textContent === c ? 'true' : 'false');
+      }
+      render();
+    });
+    box.appendChild(b);
+  });
+})();
+
+/* ── 테마 ── */
+const themeBtn = document.getElementById('themeBtn');
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  themeBtn.textContent = t === 'dark' ? '☀' : '🌙';
+  const m = document.querySelector('meta[name="theme-color"]');
+  if(m) m.setAttribute('content', t === 'dark' ? '#0E1621' : '#1B3A5C');
+}
+(function initTheme(){
+  const saved = LS.get('hbt_theme', null);
+  const sys = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(saved || (sys ? 'dark' : 'light'));
+})();
+themeBtn.addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  LS.set('hbt_theme', next);
+  applyTheme(next);
+});
+
+/* ── 검색 입력 ── */
+const qEl = document.getElementById('q');
+qEl.addEventListener('input', render);
+qEl.addEventListener('keydown', e => { if(e.key === 'Escape'){ qEl.value = ''; render(); } });
+document.addEventListener('keydown', e => {
+  if(e.key === '/' && document.activeElement !== qEl){ e.preventDefault(); qEl.focus(); }
+});
+
+/* ── 알림 배너 ── */
+const toast = document.getElementById('toast');
+function showToast(msg, actLabel, onAct){
+  document.getElementById('toastMsg').textContent = msg;
+  const act = document.getElementById('toastAct');
+  if(actLabel){ act.hidden = false; act.textContent = actLabel; act.onclick = onAct; }
+  else { act.hidden = true; }
+  toast.classList.add('on');
+}
+document.getElementById('toastX').addEventListener('click', () => toast.classList.remove('on'));
+
+/* ── PWA 설치 ── */
+let deferredPrompt = null;
+const installBtn = document.getElementById('installBtn');
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBtn.hidden = false;
+});
+installBtn.addEventListener('click', () => {
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => { deferredPrompt = null; installBtn.hidden = true; });
+});
+window.addEventListener('appinstalled', () => { installBtn.hidden = true; });
+
+/* ── 도구 전체 오프라인 저장 ── sw.js 와 같은 캐시에 담는다 ── */
+const CACHE_NAME = 'hanbaektax-v3';
+const offlineBtn = document.getElementById('offlineBtn');
+if(!('caches' in window) || location.protocol === 'file:'){
+  offlineBtn.hidden = true;
+}
+offlineBtn.addEventListener('click', () => {
+  const urls = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png']
+    .concat(ALL.map(a => './' + encodeURI(a.f)));
+  let done = 0, fail = 0;
+  offlineBtn.disabled = true;
+  showToast('오프라인 저장 준비 중…');
+  caches.open(CACHE_NAME).then(cache => {
+    const step = i => {
+      if(i >= urls.length){
+        offlineBtn.disabled = false;
+        showToast('오프라인 저장 완료 · ' + done + '건' + (fail ? ' (실패 ' + fail + '건)' : ''));
+        setTimeout(() => toast.classList.remove('on'), 4000);
+        return;
+      }
+      cache.add(urls[i])
+        .then(() => { done++; })
+        .catch(() => { fail++; })
+        .then(() => {
+          document.getElementById('toastMsg').textContent =
+            '오프라인 저장 중… ' + (i + 1) + '/' + urls.length;
+          step(i + 1);
+        });
+    };
+    document.getElementById('toastAct').hidden = true;
+    step(0);
+  }).catch(() => {
+    offlineBtn.disabled = false;
+    showToast('오프라인 저장에 실패했습니다.');
+  });
+});
+
+/* ── 서비스 워커 ── */
+if('serviceWorker' in navigator && location.protocol !== 'file:'){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        if(!nw) return;
+        nw.addEventListener('statechange', () => {
+          if(nw.state === 'installed' && navigator.serviceWorker.controller){
+            showToast('새 버전이 준비되었습니다.', '새로고침', () => {
+              nw.postMessage({type:'SKIP_WAITING'});
+              location.reload();
+            });
+          }
+        });
+      });
+    }).catch(() => {});
+  });
+}
+
+render();
+</script>
+</body>
+</html>
