@@ -82,6 +82,11 @@ mark{background:var(--mark);color:var(--mark-txt);border-radius:3px;padding:0 1p
   background:var(--navy);color:var(--gold);font-size:13px;font-weight:800;letter-spacing:-.5px;
   box-shadow:0 5px 14px rgba(27,58,92,.22);
 }
+.brand .logo{height:36px;width:auto;display:block}
+.brand .logo-d{display:none}
+html[data-theme="dark"] .brand .logo-l{display:none}
+html[data-theme="dark"] .brand .logo-d{display:block}
+.brand .n2{margin-left:6px;padding-left:12px;border-left:1px solid var(--border);white-space:nowrap}
 .names{min-width:0}
 .n1{display:block;font-size:16.5px;font-weight:800;letter-spacing:-.3px;line-height:1.2}
 .n2{display:block;font-size:11px;color:var(--gray);letter-spacing:.3px;margin-top:2px}
@@ -280,8 +285,8 @@ body.is-offline .offbar{display:block}
   .card{padding:13px 42px 13px 13px;min-height:106px}
   .hero{padding:22px 16px 14px}
   .hero h1{font-size:22px}
-  .n1{font-size:15.5px}
-  .mark{width:36px;height:36px;font-size:12px}
+  .brand .logo{height:30px}
+  .brand .n2{display:none}
   .top-in,.toolbar-in,.wrap{padding-left:14px;padding-right:14px}
   .toolbar{top:calc(57px + env(safe-area-inset-top))}
 }
@@ -315,11 +320,9 @@ body.is-offline .offbar{display:block}
 <header class="top">
   <div class="top-in">
     <a class="brand" href="./">
-      <span class="mark" aria-hidden="true">한백</span>
-      <span class="names">
-        <span class="n1">세무법인 한백택스</span>
-        <span class="n2">HANBAEK TAX · 세무 도구 모음</span>
-      </span>
+      <img class="logo logo-l" src="logo.png" alt="세무법인 한백택스" width="1400" height="259">
+      <img class="logo logo-d" src="logo-white.png" alt="" aria-hidden="true" width="1400" height="259">
+      <span class="n2">세무 도구 모음</span>
     </a>
     <nav class="navlinks" id="navlinks" aria-label="분류 바로가기"></nav>
     <div class="acts">
@@ -777,7 +780,7 @@ window.addEventListener('appinstalled', () => { installBtn.hidden = true; });
 /* ══════════ 서비스 워커 ══════════
  * 캐시 이름은 sw.js 가 홀로 관리한다 — 이 파일과 어긋날 일이 없다.
  */
-const SHELL_URLS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
+const SHELL_URLS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './logo.png', './logo-white.png', './logo-mark.png'];
 const TOOL_URLS  = ALL.map(a => './' + encodeURI(a.f));
 const offlineBtn = document.getElementById('offlineBtn');
 const swOK = ('serviceWorker' in navigator) && location.protocol !== 'file:';
