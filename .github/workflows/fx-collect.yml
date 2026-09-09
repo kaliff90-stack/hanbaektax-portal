@@ -80,6 +80,14 @@ jobs:
             printf '# fx-data\n\n세무환율 조회 앱이 읽는 환율 데이터 브랜치. 워크플로 fx-collect.yml 이 자동 갱신한다.\n' > data/README.md
           fi
 
+      - name: 관세청 접속 진단
+        run: |
+          echo "unipass.customs.go.kr DNS: $(getent hosts unipass.customs.go.kr || echo '해석 실패')"
+          curl -sS -o /dev/null --max-time 15 -w 'HTTPS 443 → HTTP %{http_code} (%{time_total}s)\n' \
+            "https://unipass.customs.go.kr/csp/myc/bsopspptinfo/dclrSpptInfo/WeekFxrtQryCtr/retrieveWeekFxrt.do?pageIndex=1&pageUnit=100&aplyDt=$(date -u +%Y-%m-%d)&weekFxrtTpcd=2" \
+            || echo "curl 실패 (종료코드 $?) - 러너에서 관세청 접속 불가"
+        continue-on-error: true
+
       - name: 환율 수집
         env:
           KOREAEXIM_KEY: ${{ secrets.KOREAEXIM_KEY }}
@@ -255,7 +263,8 @@ jobs:
                 if (weeks.length === 1 || cs % 20 === 0) console.log(`과세환율 ${cdoc.week_start}~${cdoc.week_end}: 수입 ${cdoc.import.length} · 수출 ${cdoc.export.length} 통화. USD 과세환율 ${cdoc.import.find(r => r.unit === 'USD')?.rate}`);
               } catch (e) {
                 /* 과세환율 실패는 전체 실패로 만들지 않는다. 매매기준율만이라도 올린다. */
-                cf++; console.warn(`과세환율 ${sunday} 실패 (계속 진행): ${e.message}`);
+                cf++; console.warn(`과세환율 ${sunday} 실패 (계속 진행): ${e.message}${e.cause ? ' / 원인: ' + (e.cause.code || e.cause.message || e.cause) : ''}`);
+                if (cf >= 3 && cs === 0) { console.warn('관세청 접속이 계속 실패해 이번 실행의 과세환율 수집을 중단합니다.'); break; }
               }
               if (weeks.length > 1) await sleep(250);
             }
