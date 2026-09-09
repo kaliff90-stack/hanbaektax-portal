@@ -42,6 +42,14 @@ on:
         description: '일괄 수집 종료일 (YYYYMMDD)'
         required: false
         default: ''
+      ecos_from:
+        description: '한국은행 ECOS 과거 매매기준율 수집 시작일 (YYYYMMDD). ECOS_KEY 비밀값 필요, ecos_to 와 함께'
+        required: false
+        default: ''
+      ecos_to:
+        description: 'ECOS 수집 종료일 (YYYYMMDD)'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -78,6 +86,9 @@ jobs:
           TARGET_DATE: ${{ github.event.inputs.date }}
           RANGE_FROM: ${{ github.event.inputs.from }}
           RANGE_TO: ${{ github.event.inputs.to }}
+          ECOS_KEY: ${{ secrets.ECOS_KEY }}
+          ECOS_FROM: ${{ github.event.inputs.ecos_from }}
+          ECOS_TO: ${{ github.event.inputs.ecos_to }}
         run: |
           node - <<'EOF'
           const fs = require('fs');
@@ -94,8 +105,12 @@ jobs:
           /* ── 수집 대상 일자 ── */
           const kstToday = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10).replace(/-/g, '');
           const from = (process.env.RANGE_FROM || '').trim(), to = (process.env.RANGE_TO || '').trim();
+          const ecosFrom = (process.env.ECOS_FROM || '').trim(), ecosTo = (process.env.ECOS_TO || '').trim();
+          const ecosOnly = !!(ecosFrom && ecosTo && !(from && to) && !(process.env.TARGET_DATE || '').trim());
           let days = [];
-          if (from && to) {
+          if (ecosOnly) {
+            /* ECOS 만 수집하는 실행: 수출입은행 호출은 하지 않는다 */
+          } else if (from && to) {
             if (!/^\d{8}$/.test(from) || !/^\d{8}$/.test(to) || from > to) { console.error('from/to 형식 오류 (YYYYMMDD, from <= to)'); process.exit(1); }
             for (let d = new Date(toDash(from) + 'T00:00:00Z'); d.toISOString().slice(0, 10).replace(/-/g, '') <= to; d.setUTCDate(d.getUTCDate() + 1)) {
               const dow = d.getUTCDay();
@@ -105,7 +120,7 @@ jobs:
           } else {
             days = [(process.env.TARGET_DATE || '').trim() || kstToday];
           }
-          console.log(`수집 대상: ${days.length}일 (${toDash(days[0])} ~ ${toDash(days[days.length - 1])})`);
+          if (days.length) console.log(`수집 대상: ${days.length}일 (${toDash(days[0])} ~ ${toDash(days[days.length - 1])})`);
 
           async function fetchText(url) {
             const r = await fetch(url, { headers: { 'User-Agent': 'hanbaektax-fx-collect' } });
@@ -173,10 +188,62 @@ jobs:
               }
               if (days.length > 1) await sleep(250);
             }
-            console.log(`매매기준율: 저장 ${saved} · 고시없음 ${skipped} · 실패 ${failed}`);
-            if (saved === 0 && failed > 0) process.exit(1);
+            if (days.length) console.log(`매매기준율: 저장 ${saved} · 고시없음 ${skipped} · 실패 ${failed}`);
+            if (days.length && saved === 0 && failed > 0) process.exit(1);
 
-            /* 과세환율: 주(일요일 시작)별 한 번씩 */
+            /* ── 1-1) 한국은행 ECOS 과거 매매기준율 (선택) ──
+             * 통계표 731Y001 "주요국 통화의 대원화환율"(일별). 수출입은행 API 의 일일 한도(1,000회)를 피해 오래된 연도를 채운다.
+             * 매매기준율(USD·위안)·재정환율만 있고 TTB/TTS 는 없다. 수출입은행 수집본이 이미 있는 날짜는 건드리지 않는다.
+             * 호출: https://ecos.bok.or.kr/api/StatisticSearch/{KEY}/json/kr/1/1000/731Y001/D/{from}/{to}/{item}
+             * 응답: { StatisticSearch: { list_total_count, row:[{ TIME:'20230102', DATA_VALUE:'1267.3', ... }] } }
+             * 2026-09-09 검증: 20260909 USD 1341.1 = 수출입은행 KFTC 매매기준율과 일치 */
+            const ecosKey = process.env.ECOS_KEY;
+            if (ecosFrom && ecosTo) {
+              if (!ecosKey) { console.error('ecos_from/ecos_to 를 지정했지만 ECOS_KEY 비밀값이 없습니다.'); process.exit(1); }
+              if (!/^\d{8}$/.test(ecosFrom) || !/^\d{8}$/.test(ecosTo) || ecosFrom > ecosTo) { console.error('ecos_from/ecos_to 형식 오류'); process.exit(1); }
+              const ECOS_ITEMS = [
+                ['USD', '0000001', '미국 달러'], ['JPY(100)', '0000002', '일본 옌'], ['EUR', '0000003', '유로'], ['CNH', '0000053', '위안화'],
+                ['GBP', '0000012', '영국 파운드'], ['CAD', '0000013', '캐나다 달러'], ['CHF', '0000014', '스위스 프랑'], ['AUD', '0000017', '호주 달러'],
+                ['NZD', '0000026', '뉴질랜드 달러'], ['HKD', '0000015', '홍콩 달러'], ['THB', '0000028', '태국 바트'], ['SGD', '0000024', '싱가포르 달러'],
+                ['IDR(100)', '0000029', '인도네시아 루피아'], ['MYR', '0000025', '말레이지아 링기트'], ['BND', '0000036', '브루나이 달러'],
+                ['SEK', '0000016', '스웨덴 크로나'], ['DKK', '0000018', '덴마아크 크로네'], ['NOK', '0000019', '노르웨이 크로네'],
+                ['SAR', '0000020', '사우디 리얄'], ['KWD', '0000021', '쿠웨이트 디나르'], ['BHD', '0000022', '바레인 디나르'], ['AED', '0000023', '아랍에미리트 디르함'],
+              ];
+              /* 1회 1,000행 한도 → 연 단위로 나눠 호출 */
+              const chunks = [];
+              for (let y = +ecosFrom.slice(0, 4); y <= +ecosTo.slice(0, 4); y++) {
+                const a = Math.max(+ecosFrom, y * 10000 + 101), b = Math.min(+ecosTo, y * 10000 + 1231);
+                if (a <= b) chunks.push([String(a), String(b)]);
+              }
+              const byDate = {};
+              let calls = 0, rowsTotal = 0;
+              for (const [unit, item, name] of ECOS_ITEMS) {
+                for (const [a, b] of chunks) {
+                  try {
+                    const raw = await fetchText(`https://ecos.bok.or.kr/api/StatisticSearch/${ecosKey}/json/kr/1/1000/731Y001/D/${a}/${b}/${item}`);
+                    let d; try { d = JSON.parse(raw); } catch (e) { throw new Error('ECOS 응답이 JSON 이 아닙니다: ' + raw.slice(0, 120)); }
+                    if (d.RESULT) throw new Error(`ECOS ${d.RESULT.CODE}: ${String(d.RESULT.MESSAGE).split('\n')[0]}`);
+                    const rows = (d.StatisticSearch && d.StatisticSearch.row) || [];
+                    for (const r of rows) { const v = num(r.DATA_VALUE); if (v === null || !/^\d{8}$/.test(r.TIME)) continue; (byDate[r.TIME] ||= []).push({ unit, name, base: v, ttb: null, tts: null }); rowsTotal++; }
+                    calls++;
+                  } catch (e) {
+                    console.error(`ECOS ${unit} ${a}~${b}: ${e.message}`);
+                    if (/ECOS (INFO-100|ERROR-1)/.test(e.message)) { console.error('ECOS 인증키 문제로 중단합니다.'); process.exit(1); }
+                  }
+                  await sleep(200);
+                }
+              }
+              let ecosSaved = 0, ecosKept = 0;
+              for (const ymd of Object.keys(byDate).sort()) {
+                const file = path.join(OUT, 'daily', toDash(ymd) + '.json');
+                if (fs.existsSync(file)) { ecosKept++; continue; }   /* 수출입은행 수집본 우선 */
+                const doc = { date: toDash(ymd), source: '한국은행 ECOS 731Y001 주요국 통화의 대원화환율 (매매기준율·재정환율, TTB/TTS 없음)', fetched_at: nowIso, rates: byDate[ymd] };
+                fs.writeFileSync(file, JSON.stringify(doc, null, 1)); ecosSaved++;
+              }
+              console.log(`ECOS: 호출 ${calls} · 행 ${rowsTotal} · 저장 ${ecosSaved}일 · 기존 수집본 유지 ${ecosKept}일 (${toDash(ecosFrom)}~${toDash(ecosTo)})`);
+            }
+
+            /* 과세환율: 주(일요일 시작)별 한 번씩 (ECOS 전용 실행에서는 생략) */
             const weeks = [...new Set(days.map(ymd => { const d = new Date(toDash(ymd) + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - d.getUTCDay()); return d.toISOString().slice(0, 10); }))];
             let cs = 0, cf = 0;
             for (const sunday of weeks) {
@@ -192,7 +259,7 @@ jobs:
               }
               if (weeks.length > 1) await sleep(250);
             }
-            console.log(`과세환율: 저장 ${cs} 주 · 실패 ${cf} 주`);
+            if (weeks.length) console.log(`과세환율: 저장 ${cs} 주 · 실패 ${cf} 주`);
 
             /* ── 3) 통화별 시계열 파일 — 앱의 "통화별 기간 조회"용. 매 실행마다 daily/·customs/ 전체를 다시 훑어 만든다 ──
              * series/index.json          { updated, daily_from, daily_to, weekly_from, weekly_to, currencies:[{code, unit, name, daily, weekly}] }
@@ -239,5 +306,8 @@ jobs:
             echo "변경 없음 - 푸시 생략"
           else
             git commit -m "환율 수집 $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M')"
+            # 실행 중 다른 실행이 먼저 푸시했을 수 있다. 최신 브랜치 위에 얹고(충돌 시 이번 수집분 우선) 푸시한다.
+            git fetch origin fx-data
+            git rebase -X theirs origin/fx-data || { git rebase --abort; echo "리베이스 실패 - 강제 없이 중단"; exit 1; }
             git push origin fx-data
           fi
