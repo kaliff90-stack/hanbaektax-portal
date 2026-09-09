@@ -502,5 +502,274 @@ initMoneyInputs();
 })();
 try{calcInherit();}catch(e){}
 </script>
+<!-- HB-CONSULT v1 -->
+<script>
+/* 한백택스 상담·자료전송 위젯 — 생성기: 02-도구 & 스크립트/Python 스크립트/상담위젯_주입.py
+   이 블록은 자동 생성이다. 직접 고치지 말고 생성기를 고쳐 다시 실행한다. */
+(function(){
+  if (window.self !== window.top) return;          /* 포털에 iframe 으로 담긴 경우는 부모 버튼을 쓴다 */
+  if (window.__hbConsult) return;
+  window.__hbConsult = 1;
+
+  var HB = { name:'세무법인 한백택스', tel:'02-2277-3101', telHref:'+82222773101',
+             fax:'02-2277-3161', email:'hb090@hanbaektax.kr',
+             addr:'서울특별시 중구 동호로 315, 신안빌딩 2층' };
+
+  /* 자료 접수 메일중계 (Google Apps Script 웹 앱)
+     url 이 비어 있으면 휴대폰 공유창 → 메일 앱 순서로 내려간다.
+     설정 절차: 04-문서 & 가이드/앱 사용 가이드 - 자료전송 메일중계 설정 */
+  var RELAY = { url:'', token:'hbtax-relay', maxTotal:20*1024*1024 };
+  function relayReady(){ return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(RELAY.url||''); }
+
+  function ls(k, v){
+    try { if (v === undefined) return localStorage.getItem(k) || ''; localStorage.setItem(k, v); }
+    catch(e) { return ''; }
+    return '';
+  }
+  function fmtSize(n){
+    return n < 1024 ? n+'B' : n < 1048576 ? (n/1024).toFixed(0)+'KB' : (n/1048576).toFixed(1)+'MB';
+  }
+  function toB64(f){
+    return new Promise(function(res, rej){
+      var r = new FileReader();
+      r.onload = function(){ res(String(r.result).split(',')[1] || ''); };
+      r.onerror = function(){ rej(r.error || new Error('read')); };
+      r.readAsDataURL(f);
+    });
+  }
+  function relaySend(payload){
+    var body = JSON.stringify(Object.assign({ token:RELAY.token, page:location.href.split('?')[0], ua:navigator.userAgent }, payload));
+    return fetch(RELAY.url, { method:'POST', body })          /* Content-Type 지정 안 함 → preflight 없이 전송 */
+      .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){
+        if (!r.ok || !j.ok) throw new Error(j.error || ('HTTP ' + r.status));
+        return j;
+      }); });
+  }
+
+  var files = [];
+  var host = document.createElement('div');
+  host.className = 'hb-consult-host';
+  var st = document.createElement('style');
+  st.textContent = '.hb-consult-host{position:fixed;inset:auto 0 0 auto;z-index:2147483000}@media print{.hb-consult-host{display:none!important}}';
+  document.head.appendChild(st);
+  document.body.appendChild(host);
+  var sr = host.attachShadow({ mode:'open' });
+
+  var ICON = {
+    head:'<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2a8 8 0 0 0-8 8v4a3 3 0 0 0 3 3h1v-8H6v-1a6 6 0 1 1 12 0v1h-2v8h1a3 3 0 0 0 3-3v-4a8 8 0 0 0-8-8z"/></svg>',
+    tel:'<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11 11 0 0 0 3.5.56 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11 11 0 0 0 .56 3.5 1 1 0 0 1-.25 1z"/></svg>',
+    mail:'<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5z"/></svg>',
+    up:'<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M19.35 10.04A7.49 7.49 0 0 0 12 4a7.48 7.48 0 0 0-6.63 4.04A6 6 0 0 0 6 20h13a5 5 0 0 0 .35-9.96zM14 13v4h-4v-4H7l5-5 5 5z"/></svg>',
+    send:'<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>',
+    x:'<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg>'
+  };
+
+  sr.innerHTML = [
+'<style>',
+'  :host,*{box-sizing:border-box}',
+'  *{margin:0;padding:0;font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif}',
+'  .fab{position:fixed;right:20px;bottom:20px;display:flex;align-items:center;gap:8px;padding:14px 20px;border:none;border-radius:99px;background:#0267FF;color:#fff;font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 8px 28px rgba(2,103,255,.4)}',
+'  .fab:hover{background:#0257db}',
+'  .ov{position:fixed;inset:0;background:rgba(10,22,40,.55);display:none;align-items:flex-end;justify-content:center}',
+'  .ov.on{display:flex}',
+'  .sheet{background:#fff;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;border-radius:28px 28px 0 0;padding:24px 24px 32px;animation:up .3s cubic-bezier(.16,1,.3,1)}',
+'  @keyframes up{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}',
+'  .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}',
+'  .hd h3{font-size:18px;font-weight:800;color:#181D27;display:flex;align-items:center;gap:8px}',
+'  .hd h3 svg{color:#0267FF}',
+'  .cls{background:none;border:none;cursor:pointer;color:#8D99AB;padding:4px;display:flex}',
+'  .sub{font-size:12px;color:#8D99AB;margin-bottom:20px}',
+'  .row{display:flex;gap:10px}',
+'  .lnk{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 8px;border-radius:16px;text-decoration:none;text-align:center}',
+'  .lnk.t{background:#E6F0FF;border:1px solid rgba(2,103,255,.15)}',
+'  .lnk.t svg{color:#0267FF}.lnk.t b{font-size:13px;color:#053E8B}',
+'  .lnk.m{background:#E8FAF4;border:1px solid rgba(0,196,140,.2)}',
+'  .lnk.m svg{color:#00C48C}.lnk.m b{font-size:12px;color:#181D27;word-break:break-all}',
+'  .lnk s{font-size:11px;color:#8D99AB;text-decoration:none}',
+'  label{display:block;font-size:12px;font-weight:700;color:#5A6577;margin:16px 0 6px}',
+'  label span{font-weight:600;color:#8D99AB}',
+'  input,textarea{width:100%;padding:12px 14px;border:2px solid #E5EAF0;border-radius:12px;font-size:14px;font-weight:600;color:#181D27;background:#fff}',
+'  input:focus,textarea:focus{outline:none;border-color:#0267FF;box-shadow:0 0 0 3px rgba(2,103,255,.1)}',
+'  textarea{resize:vertical;line-height:1.7}',
+'  .drop{border:2px dashed #C8D1DE;background:#F7F8FA;border-radius:16px;padding:24px 16px;text-align:center;cursor:pointer}',
+'  .drop.on{border-color:#0267FF;background:#E6F0FF}',
+'  .drop svg{color:#C8D1DE;display:block;margin:0 auto 8px}',
+'  .drop.on svg{color:#0267FF}',
+'  .drop p{font-size:13px;font-weight:700;color:#5A6577}',
+'  .drop small{font-size:11px;color:#8D99AB;display:block;margin-top:4px}',
+'  .fl{display:flex;flex-direction:column;gap:6px;margin-top:12px}',
+'  .fi{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#F7F8FA;border:1px solid #E5EAF0;border-radius:12px}',
+'  .fi span{flex:1;font-size:12px;font-weight:600;color:#181D27;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+'  .fi em{font-size:11px;color:#8D99AB;font-style:normal;flex-shrink:0}',
+'  .fi button{background:none;border:none;cursor:pointer;color:#8D99AB;display:flex;padding:2px}',
+'  .tot{font-size:11px;color:#8D99AB;text-align:right;font-weight:700;margin-top:6px}',
+'  .tot.over{color:#FF4757}',
+'  .msg{font-size:12px;font-weight:700;color:#053E8B;background:#E6F0FF;padding:10px 14px;border-radius:12px;margin-top:14px;line-height:1.6}',
+'  .go{width:100%;margin-top:16px;padding:16px 0;border:none;border-radius:16px;background:#0267FF;color:#fff;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 24px rgba(2,103,255,.3)}',
+'  .go:disabled{background:#E5EAF0;color:#8D99AB;cursor:not-allowed;box-shadow:none}',
+'  .note{font-size:11px;color:#8D99AB;text-align:center;margin-top:10px;line-height:1.7}',
+'  .foot{font-size:11px;color:#8D99AB;text-align:center;margin-top:12px;padding-top:12px;border-top:1px solid #E5EAF0;line-height:1.8}',
+'  @media(max-width:400px){.fab{padding:12px 16px;font-size:13px}}',
+'</style>',
+'<button class="fab" id="fab" title="한백택스 상담 · 자료 보내기">' + ICON.head + '상담·자료전송</button>',
+'<div class="ov" id="ov">',
+'  <div class="sheet" id="sheet">',
+'    <div class="hd"><h3>' + ICON.head + '전문가 상담 · 자료 접수</h3>',
+'      <button class="cls" id="cls" aria-label="닫기">' + ICON.x + '</button></div>',
+'    <p class="sub">' + HB.name + ' · 대표세무사 차재영</p>',
+'    <div class="row">',
+'      <a class="lnk t" id="atel" href="tel:' + HB.telHref + '">' + ICON.tel + '<b>' + HB.tel + '</b><s>전화 걸기</s></a>',
+'      <a class="lnk m" id="amail" href="#">' + ICON.mail + '<b>' + HB.email + '</b><s>메일 보내기</s></a>',
+'    </div>',
+'    <div class="row">',
+'      <div style="flex:1"><label>성함</label><input id="nm" placeholder="홍길동"></div>',
+'      <div style="flex:1"><label>연락처</label><input id="ph" inputmode="tel" placeholder="010-0000-0000"></div>',
+'    </div>',
+'    <label>자료 첨부 <span>(사진·PDF·엑셀 등, 합계 20MB 이내)</span></label>',
+'    <div class="drop" id="drop">' + ICON.up + '<p>여기를 눌러 파일 선택 · 끌어다 놓기</p>',
+'      <small>계산 결과 화면을 찍은 사진도 그대로 보내실 수 있습니다</small></div>',
+'    <input id="fin" type="file" multiple accept="image/*,application/pdf,.xls,.xlsx,.hwp,.hwpx,.doc,.docx,.zip,.csv,.txt" style="display:none">',
+'    <div class="fl" id="fl"></div>',
+'    <label>문의내용</label>',
+'    <textarea id="mm" rows="3" placeholder="예) 계산 결과 확인 부탁드립니다. 상담 가능한 시간 알려주세요."></textarea>',
+'    <div id="msgbox"></div>',
+'    <button class="go" id="go">' + ICON.send + '한백택스로 보내기</button>',
+'    <p class="note" id="note"></p>',
+'    <p class="foot">' + HB.name + ' · ' + HB.addr + '<br>전화 ' + HB.tel + ' · 팩스 ' + HB.fax + ' · ' + HB.email + '</p>',
+'  </div>',
+'</div>'
+  ].join('\n');
+
+  var $ = function(id){ return sr.getElementById(id); };
+  var ov = $('ov'), fin = $('fin'), drop = $('drop'), flBox = $('fl'), msgBox = $('msgbox');
+
+  $('note').textContent = relayReady()
+    ? '버튼을 누르면 자료와 문의내용이 ' + HB.email + ' 로 바로 접수됩니다.'
+    : '휴대폰에서는 공유창으로, PC에서는 메일 앱으로 연결됩니다. (파일은 메일에 직접 첨부)';
+
+  function pageName(){
+    return (document.title || '').replace(/\s*[·|-]\s*한백택스.*$/, '').trim() || document.title || '한백택스 계산기';
+  }
+  function bodyText(){
+    var n = $('nm').value.trim(), p = $('ph').value.trim(), m = $('mm').value.trim();
+    var L = ['세무법인 한백택스 상담 신청', '',
+             '· 문의 화면: ' + pageName(),
+             '· 성함: ' + (n || '(미기재)'),
+             '· 연락처: ' + (p || '(미기재)')];
+    if (m) L.push('· 문의내용: ' + m);
+    if (files.length) L.push('', '· 첨부 자료(' + files.length + '건): ' + files.map(function(f){ return f.name; }).join(', '));
+    L.push('', '(' + location.href.split('?')[0] + ' 에서 보냄)');
+    return L.join('\n');
+  }
+  function mailHref(){
+    return 'mailto:' + HB.email
+      + '?subject=' + encodeURIComponent('[' + pageName() + '] 상담 문의' + ($('nm').value.trim() ? ' - ' + $('nm').value.trim() : ''))
+      + '&body=' + encodeURIComponent(bodyText());
+  }
+  function say(t){ msgBox.innerHTML = t ? '<p class="msg"></p>' : ''; if (t) msgBox.firstChild.textContent = t; }
+
+  function renderFiles(){
+    flBox.innerHTML = '';
+    if (!files.length) return;
+    var tot = 0;
+    files.forEach(function(f, i){
+      tot += f.size;
+      var d = document.createElement('div');
+      d.className = 'fi';
+      d.innerHTML = '<span></span><em>' + fmtSize(f.size) + '</em><button aria-label="삭제">' + ICON.x + '</button>';
+      d.firstChild.textContent = f.name;
+      d.lastChild.onclick = function(){ files.splice(i, 1); renderFiles(); };
+      flBox.appendChild(d);
+    });
+    var t = document.createElement('p');
+    t.className = 'tot' + (tot > RELAY.maxTotal ? ' over' : '');
+    t.textContent = '합계 ' + fmtSize(tot) + ' / 20MB';
+    flBox.appendChild(t);
+  }
+  function addFiles(list){
+    var add = Array.prototype.slice.call(list || []);
+    add.forEach(function(f){
+      if (!files.some(function(q){ return q.name === f.name && q.size === f.size; })) files.push(f);
+    });
+    renderFiles();
+    say('');
+  }
+
+  function open(){
+    $('nm').value = ls('hbSenderName');
+    $('ph').value = ls('hbSenderPhone');
+    $('amail').href = mailHref();
+    ov.classList.add('on');
+    $('fab').style.display = 'none';
+    document.body.style.overflow = 'hidden';
+  }
+  function close(){
+    ov.classList.remove('on');
+    $('fab').style.display = '';
+    document.body.style.overflow = '';
+  }
+
+  $('fab').onclick = open;
+  $('cls').onclick = close;
+  ov.onclick = function(e){ if (e.target === ov) close(); };
+  $('sheet').onclick = function(e){ e.stopPropagation(); };
+  ['nm','ph','mm'].forEach(function(id){ $(id).oninput = function(){ $('amail').href = mailHref(); }; });
+
+  drop.onclick = function(){ fin.click(); };
+  fin.onchange = function(){ addFiles(fin.files); fin.value = ''; };
+  ['dragenter','dragover'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add('on'); }); });
+  ['dragleave','drop'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove('on'); }); });
+  drop.addEventListener('drop', function(e){ addFiles(e.dataTransfer && e.dataTransfer.files); });
+
+  $('go').onclick = function(){
+    var n = $('nm').value.trim(), p = $('ph').value.trim(), m = $('mm').value.trim();
+    if (!files.length && !m) { say('보내실 자료를 올리거나 문의내용을 적어주세요'); return; }
+    ls('hbSenderName', n); ls('hbSenderPhone', p);
+    var tot = files.reduce(function(a, f){ return a + f.size; }, 0);
+
+    /* 0순위: 메일중계가 설정되어 있으면 파일째로 사무실 메일(hb090)로 접수 */
+    if (relayReady() && files.length) {
+      if (tot > RELAY.maxTotal) { say('파일 합계가 20MB를 넘습니다. 나눠서 보내주세요'); return; }
+      $('go').disabled = true;
+      say('한백택스로 전송 중… (' + fmtSize(tot) + ')');
+      Promise.all(files.map(function(f){
+        return toB64(f).then(function(d){ return { name:f.name, type:f.type || 'application/octet-stream', size:f.size, data:d }; });
+      })).then(function(enc){
+        return relaySend({ type:pageName() + ' 상담', name:n, phone:p, memo:m, text:bodyText(), files:enc });
+      }).then(function(r){
+        files = []; renderFiles(); $('mm').value = '';
+        $('go').disabled = false;
+        say('한백택스(' + HB.email + ')로 접수했습니다' + (r.id ? ' · 접수번호 ' + r.id : ''));
+      }).catch(function(err){
+        $('go').disabled = false;
+        if (confirm('자동 접수에 실패했습니다 (' + err.message + ').\n휴대폰 공유창이나 메일 앱으로 대신 보낼까요?')) fallback();
+      });
+      return;
+    }
+    fallback();
+  };
+
+  function fallback(){
+    /* 1순위: Web Share API 로 실제 파일 전송 (카톡·메일·드라이브 등) */
+    if (navigator.canShare && files.length && navigator.canShare({ files:files })) {
+      navigator.share({ files:files, title:'한백택스 자료 전송', text:bodyText() }).then(function(){
+        files = []; renderFiles();
+        say('공유앱으로 전송했습니다');
+      }).catch(function(err){
+        if (err && err.name === 'AbortError') return;
+        mailFallback();
+      });
+      return;
+    }
+    mailFallback();
+  }
+  /* 2순위(폴백): 메일 앱 본문 자동작성 — 파일은 수동 첨부 */
+  function mailFallback(){
+    window.location.href = mailHref();
+    say(files.length ? '메일 앱을 열었습니다 — 위 파일을 메일에 직접 첨부해 주세요' : '메일 앱을 열었습니다');
+  }
+})();
+</script>
+<!-- /HB-CONSULT -->
 </body>
 </html>

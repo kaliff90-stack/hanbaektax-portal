@@ -68,6 +68,26 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 <script type="text/babel">
 const {useState,useEffect,useRef,useMemo,useCallback}=React;
 
+/* ── 세무법인 한백택스 연락처 (문서 머리글·바닥글과 동일) ── */
+const HB={ name:'세무법인 한백택스', tel:'02-2277-3101', telHref:'+82222773101',
+  fax:'02-2277-3161', email:'hb090@hanbaektax.kr', email2:'hb3101@naver.com',
+  addr:'서울특별시 중구 동호로 315, 신안빌딩 2층' };
+
+/* ── 자료 접수 메일중계 (Google Apps Script 웹 앱) ──
+ * 카톡채널 포털 v3 와 같은 설정을 쓴다. url 이 비어 있으면 공유창·메일 앱 방식으로 동작한다.
+ * 설정 절차: 04-문서 & 가이드/앱 사용 가이드 - 자료전송 메일중계 설정 */
+const RELAY={ url:'', token:'hbtax-relay', maxTotal:20*1024*1024 };
+const relayReady=()=>/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(RELAY.url||'');
+const fileToB64=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]||'');r.onerror=()=>rej(r.error||new Error('read'));r.readAsDataURL(f);});
+async function relaySend(payload){
+  const body=JSON.stringify(Object.assign({token:RELAY.token,page:location.href.split('?')[0],ua:navigator.userAgent},payload));
+  const res=await fetch(RELAY.url,{method:'POST',body});   /* Content-Type 지정 안 함 → preflight 없이 전송 */
+  let j={}; try{ j=await res.json(); }catch(e){}
+  if(!res.ok||!j.ok) throw new Error(j.error||('HTTP '+res.status));
+  return j;
+}
+const fmtSize=n=>n<1024?n+'B':n<1048576?(n/1024).toFixed(0)+'KB':(n/1048576).toFixed(1)+'MB';
+
 const fmt=n=>n?Math.round(n).toLocaleString('ko-KR'):'0';
 const fmtW=n=>{if(!n)return'0';if(n>=100000000)return(n/100000000).toFixed(1)+'억';if(n>=10000)return Math.round(n/10000).toLocaleString()+'만';return fmt(n)};
 const pct=n=>n?n.toFixed(1):'0';
@@ -402,19 +422,213 @@ function calcResult(taxType, form){
   };
 }
 
+/* 상담 메일에 붙일 진단 결과 요약 */
+function consultSummary(result,taxType,formData){
+  if(!result) return '';
+  const t=DEDUCTIONS[taxType];
+  return [
+    '[앱 진단 결과]',
+    '· 세목: '+(t?t.label:taxType)+' / '+formData.bizType+' / '+formData.industry,
+    '· 대상 귀속연도: '+result.byYear.map(y=>y.year).join(', '),
+    '· 예상 환급액: '+fmt(result.totalRefund)+'원 (환급 가능성 '+result.probability+'%)',
+    '· 실수령 예상: '+fmt(result.netRefund)+'원',
+    '· 적용 가능 공제항목: '+result.details.map(d=>d.name).join(', '),
+    '※ 앱 시뮬레이션 값이며 실제 환급액은 세무사 검토 후 확정됩니다.'
+  ].join('\n');
+}
+
+// ═══ 상담 신청 · 자료 접수 시트 ═══
+function ConsultSheet({open,onClose,summary}){
+  const [files,setFiles]=useState([]);
+  const [name,setName]=useState('');
+  const [phone,setPhone]=useState('');
+  const [memo,setMemo]=useState('');
+  const [busy,setBusy]=useState(false);
+  const [msg,setMsg]=useState('');
+  const [drag,setDrag]=useState(false);
+  const fileRef=useRef(null);
+  const total=files.reduce((a,f)=>a+f.size,0);
+
+  useEffect(()=>{
+    if(!open) return;
+    setName(localStorage.getItem('hbSenderName')||'');
+    setPhone(localStorage.getItem('hbSenderPhone')||'');
+    document.body.style.overflow='hidden';
+    return()=>{document.body.style.overflow=''};
+  },[open]);
+
+  if(!open) return null;
+
+  const addFiles=list=>{
+    const add=Array.from(list||[]);
+    if(!add.length) return;
+    setFiles(p=>[...p,...add.filter(f=>!p.some(q=>q.name===f.name&&q.size===f.size))]);
+    setMsg('');
+  };
+  const removeFile=i=>setFiles(p=>p.filter((_,k)=>k!==i));
+
+  const bodyText=()=>[
+    '세무법인 한백택스 경정청구 상담 신청',
+    '',
+    '· 성함: '+(name.trim()||'(미기재)'),
+    '· 연락처: '+(phone.trim()||'(미기재)'),
+    memo.trim()?('· 문의내용: '+memo.trim()):'',
+    summary?('\n'+summary):'',
+    files.length?('\n· 첨부 자료('+files.length+'건): '+files.map(f=>f.name).join(', ')):''
+  ].filter(Boolean).join('\n');
+
+  const mailHref=to=>'mailto:'+to+'?subject='+encodeURIComponent('[경정청구 상담] '+(name.trim()||'앱 접수'))+'&body='+encodeURIComponent(bodyText());
+
+  async function send(){
+    if(!files.length&&!memo.trim()){ setMsg('보내실 자료를 올리거나 문의내용을 적어주세요'); return; }
+    localStorage.setItem('hbSenderName',name);
+    localStorage.setItem('hbSenderPhone',phone);
+
+    /* 0순위: 메일중계가 설정되어 있으면 파일째로 사무실 메일(hb090)로 접수 */
+    if(relayReady()&&files.length){
+      if(total>RELAY.maxTotal){ setMsg('파일 합계가 20MB를 넘습니다. 나눠서 보내주세요'); return; }
+      setBusy(true); setMsg('한백택스로 전송 중… ('+fmtSize(total)+')');
+      try{
+        const enc=[];
+        for(const f of files){ enc.push({name:f.name,type:f.type||'application/octet-stream',size:f.size,data:await fileToB64(f)}); }
+        const r=await relaySend({type:'경정청구 상담',name:name.trim(),phone:phone.trim(),memo:memo.trim(),text:bodyText(),files:enc});
+        setFiles([]); setMemo(''); setBusy(false);
+        setMsg('한백택스('+HB.email+')로 접수했습니다'+(r.id?' · 접수번호 '+r.id:''));
+        return;
+      }catch(err){
+        setBusy(false);
+        if(!confirm('자동 접수에 실패했습니다 ('+err.message+').\n휴대폰 공유창이나 메일 앱으로 대신 보낼까요?')) return;
+      }
+    }
+
+    /* 1순위: Web Share API 로 실제 파일 전송 (카톡·메일·드라이브 등) */
+    if(navigator.canShare&&files.length&&navigator.canShare({files})){
+      try{
+        await navigator.share({files,title:'한백택스 경정청구 자료',text:bodyText()});
+        setFiles([]); setMsg('공유앱으로 전송했습니다');
+        return;
+      }catch(err){ if(err&&err.name==='AbortError') return; }
+    }
+
+    /* 2순위(폴백): 메일 앱 본문 자동작성 — 파일은 수동 첨부 */
+    window.location.href=mailHref(HB.email);
+    setMsg(files.length?'메일 앱을 열었습니다 — 위 파일을 메일에 직접 첨부해 주세요':'메일 앱을 열었습니다');
+  }
+
+  const lbl={display:'block',fontSize:12,fontWeight:700,color:'var(--g5)',marginBottom:6};
+  const inp={width:'100%',padding:'12px 14px',border:'2px solid var(--g2)',borderRadius:12,fontSize:14,fontWeight:600,color:'var(--dk)',background:'#fff'};
+
+  return(
+    <div className="no-print" onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(10,22,40,.55)',zIndex:900,display:'flex',alignItems:'flex-end',justifyContent:'center',backdropFilter:'blur(3px)'}}>
+      <div className="fu" onClick={e=>e.stopPropagation()} style={{background:'#fff',width:'100%',maxWidth:560,maxHeight:'92vh',overflowY:'auto',borderRadius:'28px 28px 0 0',padding:'24px 24px 32px'}}>
+
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
+          <h3 style={{fontWeight:800,fontSize:18}}><i className="fas fa-headset" style={{color:'var(--p)',marginRight:8}}/>전문가 상담 · 자료 접수</h3>
+          <button onClick={onClose} style={{background:'none',border:'none',cursor:'pointer',color:'var(--g4)',fontSize:20,padding:4}}><i className="fas fa-xmark"/></button>
+        </div>
+        <p style={{fontSize:12,color:'var(--g4)',marginBottom:20}}>{HB.name} · 대표세무사 차재영</p>
+
+        {/* 바로 연결 */}
+        <div style={{display:'flex',gap:10,marginBottom:20}}>
+          <a href={'tel:'+HB.telHref} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:6,padding:'16px 8px',background:'var(--p1)',border:'1px solid rgba(2,103,255,.15)',borderRadius:16,textDecoration:'none'}}>
+            <i className="fas fa-phone" style={{color:'var(--p)',fontSize:18}}/>
+            <span style={{fontSize:13,fontWeight:800,color:'var(--p2)'}}>{HB.tel}</span>
+            <span style={{fontSize:11,color:'var(--g4)'}}>전화 걸기</span>
+          </a>
+          <a href={mailHref(HB.email)} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:6,padding:'16px 8px',background:'var(--ok1)',border:'1px solid rgba(0,196,140,.2)',borderRadius:16,textDecoration:'none'}}>
+            <i className="fas fa-envelope" style={{color:'var(--ok)',fontSize:18}}/>
+            <span style={{fontSize:12,fontWeight:800,color:'var(--dk)',wordBreak:'break-all'}}>{HB.email}</span>
+            <span style={{fontSize:11,color:'var(--g4)'}}>메일 보내기</span>
+          </a>
+        </div>
+
+        {/* 보내는 분 */}
+        <div style={{display:'flex',gap:10,marginBottom:16}}>
+          <div style={{flex:1}}>
+            <label style={lbl}>성함</label>
+            <input value={name} onChange={e=>setName(e.target.value)} placeholder="홍길동" style={inp}/>
+          </div>
+          <div style={{flex:1}}>
+            <label style={lbl}>연락처</label>
+            <input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="010-0000-0000" inputMode="tel" style={inp}/>
+          </div>
+        </div>
+
+        {/* 자료 업로드 */}
+        <label style={lbl}>증빙자료 첨부 <span style={{fontWeight:600,color:'var(--g4)'}}>(사진·PDF·엑셀 등, 합계 20MB 이내)</span></label>
+        <div
+          onClick={()=>fileRef.current&&fileRef.current.click()}
+          onDragOver={e=>{e.preventDefault();setDrag(true)}}
+          onDragLeave={()=>setDrag(false)}
+          onDrop={e=>{e.preventDefault();setDrag(false);addFiles(e.dataTransfer.files)}}
+          style={{border:'2px dashed '+(drag?'var(--p)':'var(--g3)'),background:drag?'var(--p1)':'var(--g0)',borderRadius:16,padding:'24px 16px',textAlign:'center',cursor:'pointer',transition:'all .15s',marginBottom:12}}>
+          <i className="fas fa-cloud-arrow-up" style={{fontSize:24,color:drag?'var(--p)':'var(--g3)',marginBottom:8,display:'block'}}/>
+          <p style={{fontSize:13,fontWeight:700,color:'var(--g5)'}}>여기를 눌러 파일 선택 · 끌어다 놓기</p>
+          <p style={{fontSize:11,color:'var(--g4)',marginTop:4}}>원천징수영수증 · 소득금액증명 · 계산서 · 지출증빙 등</p>
+        </div>
+        <input ref={fileRef} type="file" multiple accept="image/*,application/pdf,.xls,.xlsx,.hwp,.hwpx,.doc,.docx,.zip,.csv,.txt" onChange={e=>{addFiles(e.target.files);e.target.value=''}} style={{display:'none'}}/>
+
+        {files.length>0&&(
+          <div style={{display:'flex',flexDirection:'column',gap:6,marginBottom:12}}>
+            {files.map((f,i)=>(
+              <div key={i} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',background:'var(--g0)',border:'1px solid var(--g2)',borderRadius:12}}>
+                <i className="fas fa-file-lines" style={{color:'var(--p)',fontSize:14}}/>
+                <span style={{flex:1,fontSize:12,fontWeight:600,color:'var(--dk)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{f.name}</span>
+                <span style={{fontSize:11,color:'var(--g4)',flexShrink:0}}>{fmtSize(f.size)}</span>
+                <button onClick={()=>removeFile(i)} style={{background:'none',border:'none',cursor:'pointer',color:'var(--g4)',padding:2}}><i className="fas fa-xmark"/></button>
+              </div>
+            ))}
+            <p style={{fontSize:11,color:total>RELAY.maxTotal?'var(--ng)':'var(--g4)',textAlign:'right',fontWeight:700}}>합계 {fmtSize(total)} / 20MB</p>
+          </div>
+        )}
+
+        <label style={lbl}>문의내용</label>
+        <textarea value={memo} onChange={e=>setMemo(e.target.value)} rows={3} placeholder="예) 2021~2023년 고용증대세액공제 누락분 경정청구 상담 요청드립니다."
+          style={{...inp,resize:'vertical',lineHeight:1.7,marginBottom:16}}/>
+
+        {msg&&<p style={{fontSize:12,fontWeight:700,color:'var(--p2)',background:'var(--p1)',padding:'10px 14px',borderRadius:12,marginBottom:12,lineHeight:1.6}}>{msg}</p>}
+
+        <button onClick={send} disabled={busy} className="btn-p" style={{width:'100%',padding:'16px 0',fontSize:15}}>
+          {busy?<span><i className="fas fa-spinner" style={{marginRight:8,animation:'spin 1s linear infinite'}}/>전송 중…</span>
+               :<span><i className="fas fa-paper-plane" style={{marginRight:8}}/>한백택스로 보내기</span>}
+        </button>
+        <p style={{fontSize:11,color:'var(--g4)',textAlign:'center',marginTop:10,lineHeight:1.7}}>
+          {relayReady()
+            ? '버튼을 누르면 자료와 문의내용이 '+HB.email+' 로 바로 접수됩니다.'
+            : '휴대폰에서는 공유창으로, PC에서는 메일 앱으로 연결됩니다. (파일은 메일에 직접 첨부)'}
+        </p>
+        <p style={{fontSize:11,color:'var(--g4)',textAlign:'center',marginTop:12,lineHeight:1.8,borderTop:'1px solid var(--g2)',paddingTop:12}}>
+          {HB.name} · {HB.addr}<br/>전화 {HB.tel} · 팩스 {HB.fax} · {HB.email}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ═══ 메인 앱 ═══
 function App(){
   const [page,setPage]=useState('landing');
   const [taxType,setTaxType]=useState('income');
   const [formData,setFormData]=useState({industry:'보건·의료',revenue:500000000,taxPaid:25000000,employees:5,years:[2021,2022,2023,2024,2025],bizType:'개인',totalSalary:50000000});
   const [result,setResult]=useState(null);
+  const [consult,setConsult]=useState(false);
 
   return(
     <div style={{minHeight:'100vh',background:page==='landing'?'linear-gradient(180deg,#0A1628 0%,#162848 50%,#1a3258 100%)':'var(--g0)'}}>
       {page==='landing'&&<Landing onStart={()=>setPage('input')}/>}
       {page==='input'&&<InputPage taxType={taxType} setTaxType={setTaxType} formData={formData} setFormData={setFormData} onAnalyze={()=>{setPage('analyzing');setTimeout(()=>{setResult(calcResult(taxType,formData));setPage('result')},3000)}} onBack={()=>setPage('landing')}/>}
       {page==='analyzing'&&<Analyzing taxType={taxType}/>}
-      {page==='result'&&result&&<ResultPage result={result} taxType={taxType} formData={formData} onReset={()=>{setPage('landing');setResult(null)}} onRetry={()=>setPage('input')}/>}
+      {page==='result'&&result&&<ResultPage result={result} taxType={taxType} formData={formData} onReset={()=>{setPage('landing');setResult(null)}} onRetry={()=>setPage('input')} onConsult={()=>setConsult(true)}/>}
+
+      {/* 상시 문의 버튼 — 어느 화면에서나 사무실로 연결된다 */}
+      {!consult&&(
+        <button className="no-print" onClick={()=>setConsult(true)} title="한백택스 상담 · 자료 보내기"
+          style={{position:'fixed',right:20,bottom:20,zIndex:800,display:'flex',alignItems:'center',gap:8,padding:'14px 20px',borderRadius:99,border:'none',background:'var(--p)',color:'#fff',fontWeight:800,fontSize:14,cursor:'pointer',boxShadow:'0 8px 28px rgba(2,103,255,.4)'}}>
+          <i className="fas fa-headset"/>상담·자료전송
+        </button>
+      )}
+      <ConsultSheet open={consult} onClose={()=>setConsult(false)}
+        summary={result?consultSummary(result,taxType,formData):''}/>
     </div>
   );
 }
@@ -768,7 +982,7 @@ function Analyzing({taxType}){
 }
 
 // ═══ 결과 페이지 (대폭 강화) ═══
-function ResultPage({result,taxType,formData,onReset,onRetry}){
+function ResultPage({result,taxType,formData,onReset,onRetry,onConsult}){
   const taxInfo=DEDUCTIONS[taxType];
   const hasRefund=result.totalRefund>0;
   const [activeTab,setActiveTab]=useState('overview');
@@ -838,7 +1052,7 @@ function ResultPage({result,taxType,formData,onReset,onRetry}){
           {activeTab==='details'&&<DetailsTab result={result} taxInfo={taxInfo}/>}
           {activeTab==='timeline'&&<TimelineTab result={result} taxInfo={taxInfo} taxType={taxType}/>}
           {activeTab==='money'&&<MoneyTab result={result} taxInfo={taxInfo} formData={formData}/>}
-          {activeTab==='docs'&&<DocsTab docs={docs} taxInfo={taxInfo}/>}
+          {activeTab==='docs'&&<DocsTab docs={docs} taxInfo={taxInfo} onConsult={onConsult}/>}
           {activeTab==='faq'&&<FaqTab/>}
 
           {/* 하단 CTA */}
@@ -880,17 +1094,23 @@ function ResultPage({result,taxType,formData,onReset,onRetry}){
               </ul>
             </div>
 
-            {/* CTA 버튼 */}
-            <div style={{display:'flex',gap:12}}>
-              <button onClick={onRetry} className="btn-s" style={{flex:1}}>
-                <i className="fas fa-rotate-right" style={{marginRight:6}}/>다시 진단
+            {/* CTA 버튼 — 상담 버튼은 한 줄을 다 쓴다(줄바꿈 방지) */}
+            <div className="no-print" style={{display:'flex',flexDirection:'column',gap:12}}>
+              <button onClick={onConsult} className="btn-p" style={{width:'100%',padding:'18px 0',fontSize:15,whiteSpace:'nowrap'}}>
+                <i className="fas fa-headset" style={{marginRight:8}}/>전문가 상담 · 자료 보내기
               </button>
-              <button onClick={()=>window.print()} className="btn-s" style={{flex:1}}>
-                <i className="fas fa-print" style={{marginRight:6}}/>인쇄
-              </button>
-              <button onClick={()=>alert('세무법인 한백택스에 경정청구 상담을 요청합니다.\n\n📞 02-XXX-XXXX\n📧 tax@hanbaek.co.kr')} className="btn-p" style={{flex:2}}>
-                <i className="fas fa-phone" style={{marginRight:8}}/>전문가 상담 요청
-              </button>
+              <div style={{display:'flex',gap:12}}>
+                <button onClick={onRetry} className="btn-s" style={{flex:1,whiteSpace:'nowrap'}}>
+                  <i className="fas fa-rotate-right" style={{marginRight:6}}/>다시 진단
+                </button>
+                <button onClick={()=>window.print()} className="btn-s" style={{flex:1,whiteSpace:'nowrap'}}>
+                  <i className="fas fa-print" style={{marginRight:6}}/>인쇄
+                </button>
+              </div>
+              <p style={{fontSize:11,color:'var(--g4)',textAlign:'center',lineHeight:1.8}}>
+                {HB.name} · <a href={'tel:'+HB.telHref} style={{color:'var(--p)',fontWeight:800,textDecoration:'none'}}>{HB.tel}</a>
+                {' · '}<a href={'mailto:'+HB.email} style={{color:'var(--p)',fontWeight:800,textDecoration:'none'}}>{HB.email}</a>
+              </p>
             </div>
           </div>
         </div>
@@ -898,8 +1118,17 @@ function ResultPage({result,taxType,formData,onReset,onRetry}){
 
       {!hasRefund&&(
         <div style={{maxWidth:700,margin:'0 auto',padding:'40px 24px',textAlign:'center'}}>
-          <button onClick={onRetry} className="btn-s" style={{marginRight:12}}>다른 조건으로 진단</button>
-          <button onClick={onReset} className="btn-p">처음으로</button>
+          <div style={{display:'flex',flexWrap:'wrap',gap:12,justifyContent:'center'}}>
+            <button onClick={onRetry} className="btn-s" style={{whiteSpace:'nowrap'}}>다른 조건으로 진단</button>
+            <button onClick={onReset} className="btn-s" style={{whiteSpace:'nowrap'}}>처음으로</button>
+            <button onClick={onConsult} className="btn-p" style={{whiteSpace:'nowrap'}}><i className="fas fa-headset" style={{marginRight:8}}/>세무사에게 문의</button>
+          </div>
+          <p style={{fontSize:12,color:'var(--g4)',marginTop:20,lineHeight:1.8}}>
+            직접 확인이 필요하시면 {HB.name}로 연락 주십시오.<br/>
+            <a href={'tel:'+HB.telHref} style={{color:'var(--p)',fontWeight:800,textDecoration:'none'}}>{HB.tel}</a>
+            {' · '}
+            <a href={'mailto:'+HB.email} style={{color:'var(--p)',fontWeight:800,textDecoration:'none'}}>{HB.email}</a>
+          </p>
         </div>
       )}
     </div>
@@ -1178,7 +1407,7 @@ function MoneyTab({result,taxInfo,formData}){
   );
 }
 
-function DocsTab({docs,taxInfo}){
+function DocsTab({docs,taxInfo,onConsult}){
   const [checked,setChecked]=useState({});
   const toggle = (i) => setChecked(p=>({...p,[i]:!p[i]}));
   const total = docs.length;
@@ -1211,6 +1440,18 @@ function DocsTab({docs,taxInfo}){
           <li>세무사 상담 시 추가 서류가 요청될 수 있습니다.</li>
           <li>서류 준비에 어려움이 있으시면 <b>한백택스가 대행</b>해드립니다.</li>
         </ul>
+      </div>
+
+      {/* 준비된 서류 바로 보내기 */}
+      <div className="no-print" style={{background:'var(--dk)',borderRadius:16,padding:24,textAlign:'center'}}>
+        <i className="fas fa-cloud-arrow-up" style={{color:'var(--gold)',fontSize:26,marginBottom:10,display:'block'}}/>
+        <p style={{color:'#fff',fontSize:15,fontWeight:800,marginBottom:6}}>준비된 서류를 지금 보내시겠습니까?</p>
+        <p style={{color:'var(--g3)',fontSize:12,marginBottom:16,lineHeight:1.7}}>
+          사진·PDF·엑셀 파일을 그대로 올리시면 {HB.name}({HB.email})로 접수됩니다.
+        </p>
+        <button onClick={onConsult} className="btn-p" style={{padding:'14px 28px'}}>
+          <i className="fas fa-paper-plane" style={{marginRight:8}}/>자료 보내기
+        </button>
       </div>
     </div>
   );
