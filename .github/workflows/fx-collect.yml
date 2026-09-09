@@ -1,15 +1,21 @@
 name: 세무환율 수집 (fx-data)
 
 # 하는 일
-#   평일 오전(KST 11:30, 14:00 재시도) 한국수출입은행 환율 API 로 그날의 매매기준율·TTB·TTS 를 받아
-#   fx-data 브랜치에 JSON 으로 쌓는다. 웹앱(한백택스_세무환율_조회.html)은 raw.githubusercontent 로 이 브랜치를 읽는다.
-#     latest.json               최신 영업일
-#     daily/YYYY-MM-DD.json     일자별 누적
-#     customs/latest.json       관세청 주간 과세환율·수출환율 (UNIPASS_KEY 가 있을 때만)
+#   평일 오전(KST 11:30, 14:00 재시도) 한국수출입은행 환율 API 로 그날의 매매기준율·TTB·TTS 를 받고,
+#   관세청 UNI-PASS 주간환율(과세환율·수출환율)을 받아 fx-data 브랜치에 JSON 으로 쌓는다.
+#   웹앱(한백택스_세무환율_조회.html)은 raw.githubusercontent 로 이 브랜치를 읽는다.
+#     latest.json               최신 영업일 매매기준율
+#     daily/YYYY-MM-DD.json     일자별 매매기준율 누적
+#     customs/latest.json       최신 주 과세환율·수출환율
+#     customs/YYYY-MM-DD.json   주 시작일(일요일)별 과세환율 누적
 #
 # 필요한 비밀값 (Settings → Secrets and variables → Actions)
 #   KOREAEXIM_KEY  필수. 한국수출입은행 Open API 인증키 (https://www.koreaexim.go.kr/ir/HPHKIR020M01 에서 무료 발급, 일 1,000회)
-#   UNIPASS_KEY    선택. 관세청 UNI-PASS Open API 환율정보조회(API030) 인증키
+#   관세청 주간환율은 UNI-PASS 공개 조회라 키가 필요 없다 (2026-09-09 확인).
+#
+# 과거 기간 일괄 수집 (backfill)
+#   Actions 탭 → 이 워크플로 → Run workflow 에서 from/to 를 YYYYMMDD 로 넣는다. 예) from 20241202, to 20260909
+#   수출입은행 일일 한도 1,000회를 넘지 않도록 한 번에 영업일 900일 이내로 나눠 실행한다.
 #
 # 배포 경로
 #   이 파일은 볼트의 웹배포_공개용/.github/workflows/ 에 있고, 세무포털_배포.ps1 이 웹배포_공개용 트리를
@@ -23,7 +29,15 @@ on:
   workflow_dispatch:
     inputs:
       date:
-        description: '수집일 (YYYYMMDD). 비우면 오늘(KST). 과거 일자 보충에 사용'
+        description: '수집일 (YYYYMMDD). 비우면 오늘(KST)'
+        required: false
+        default: ''
+      from:
+        description: '일괄 수집 시작일 (YYYYMMDD). to 와 함께 지정'
+        required: false
+        default: ''
+      to:
+        description: '일괄 수집 종료일 (YYYYMMDD)'
         required: false
         default: ''
 
@@ -59,8 +73,9 @@ jobs:
       - name: 환율 수집
         env:
           KOREAEXIM_KEY: ${{ secrets.KOREAEXIM_KEY }}
-          UNIPASS_KEY: ${{ secrets.UNIPASS_KEY }}
           TARGET_DATE: ${{ github.event.inputs.date }}
+          RANGE_FROM: ${{ github.event.inputs.from }}
+          RANGE_TO: ${{ github.event.inputs.to }}
         run: |
           node - <<'EOF'
           const fs = require('fs');
@@ -69,79 +84,113 @@ jobs:
           const key = process.env.KOREAEXIM_KEY;
           if (!key) { console.error('KOREAEXIM_KEY 비밀값이 없습니다. 수출입은행 인증키를 등록하십시오.'); process.exit(1); }
 
-          const kst = new Date(Date.now() + 9 * 3600 * 1000);
-          const today = kst.toISOString().slice(0, 10).replace(/-/g, '');
-          const ymd = (process.env.TARGET_DATE || '').trim() || today;
-          const dash = ymd.slice(0, 4) + '-' + ymd.slice(4, 6) + '-' + ymd.slice(6, 8);
           const num = s => { const v = parseFloat(String(s ?? '').replace(/,/g, '')); return isNaN(v) ? null : v; };
           const nowIso = new Date().toISOString();
+          const toDash = ymd => ymd.slice(0, 4) + '-' + ymd.slice(4, 6) + '-' + ymd.slice(6, 8);
+          const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+          /* ── 수집 대상 일자 ── */
+          const kstToday = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10).replace(/-/g, '');
+          const from = (process.env.RANGE_FROM || '').trim(), to = (process.env.RANGE_TO || '').trim();
+          let days = [];
+          if (from && to) {
+            if (!/^\d{8}$/.test(from) || !/^\d{8}$/.test(to) || from > to) { console.error('from/to 형식 오류 (YYYYMMDD, from <= to)'); process.exit(1); }
+            for (let d = new Date(toDash(from) + 'T00:00:00Z'); d.toISOString().slice(0, 10).replace(/-/g, '') <= to; d.setUTCDate(d.getUTCDate() + 1)) {
+              const dow = d.getUTCDay();
+              if (dow !== 0 && dow !== 6) days.push(d.toISOString().slice(0, 10).replace(/-/g, ''));
+            }
+            if (days.length > 900) { console.error(`영업일 ${days.length}일은 일일 한도(1,000회)에 걸립니다. 900일 이내로 나눠 실행하십시오.`); process.exit(1); }
+          } else {
+            days = [(process.env.TARGET_DATE || '').trim() || kstToday];
+          }
+          console.log(`수집 대상: ${days.length}일 (${toDash(days[0])} ~ ${toDash(days[days.length - 1])})`);
 
           async function fetchText(url) {
             const r = await fetch(url, { headers: { 'User-Agent': 'hanbaektax-fx-collect' } });
-            if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + url.replace(/authkey=[^&]+|crkyCn=[^&]+/g, '***'));
+            if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + url.replace(/authkey=[^&]+/g, 'authkey=***'));
             return r.text();
           }
+          function writeIfNewer(file, doc, dateKey) {
+            let prev = '';
+            try { prev = JSON.parse(fs.readFileSync(file, 'utf8'))[dateKey] || ''; } catch (e) {}
+            if (doc[dateKey] >= prev) fs.writeFileSync(file, JSON.stringify(doc, null, 1));
+          }
 
-          (async () => {
-            /* ── 1) 수출입은행 AP01: 매매기준율(deal_bas_r) · 송금받을때(ttb) · 송금보낼때(tts) ── */
-            const url = `https://oapi.koreaexim.go.kr/site/program/financial/exchangeJSON?authkey=${key}&searchdate=${ymd}&data=AP01`;
-            const raw = await fetchText(url);
+          /* ── 1) 수출입은행 AP01: 매매기준율 · TTB · TTS ── */
+          async function exim(ymd) {
+            const raw = await fetchText(`https://oapi.koreaexim.go.kr/site/program/financial/exchangeJSON?authkey=${key}&searchdate=${ymd}&data=AP01`);
             let arr; try { arr = JSON.parse(raw); } catch (e) { throw new Error('수출입은행 응답이 JSON 이 아닙니다: ' + raw.slice(0, 200)); }
             if (!Array.isArray(arr)) throw new Error('수출입은행 응답 형식 오류');
-            if (arr.length === 0) { console.log(`${dash}: 고시 없음(비영업일 또는 미고시). 종료.`); return; }
-            if (arr[0].result !== 1) { throw new Error('수출입은행 result=' + arr[0].result + ' (2 DATA코드 오류, 3 인증코드 오류, 4 일일제한 초과)'); }
-
+            if (arr.length === 0) return null;                       /* 비영업일 또는 미고시 */
+            if (arr[0].result !== 1) throw new Error('수출입은행 result=' + arr[0].result + ' (2 DATA코드 오류, 3 인증코드 오류, 4 일일제한 초과)');
             /* base 는 서울외국환중개 매매기준율(kftc_deal_bas_r)을 우선하고, 없으면 수출입은행 매매기준율(deal_bas_r). 두 값을 모두 남긴다. */
             const rates = arr.map(r => ({ unit: r.cur_unit, name: r.cur_nm,
                                           base: num(r.kftc_deal_bas_r) ?? num(r.deal_bas_r), exim_base: num(r.deal_bas_r), kftc_base: num(r.kftc_deal_bas_r),
                                           ttb: num(r.ttb), tts: num(r.tts) }))
                              .filter(r => r.unit && r.unit !== 'KRW' && r.base !== null);
-            const doc = { date: dash, source: '한국수출입은행 환율 API (AP01) · 매매기준율은 서울외국환중개(KFTC_DEAL_BAS_R) 값', fetched_at: nowIso, rates };
+            return { date: toDash(ymd), source: '한국수출입은행 환율 API (AP01) · 매매기준율은 서울외국환중개(KFTC_DEAL_BAS_R) 값', fetched_at: nowIso, rates };
+          }
+
+          /* ── 2) 관세청 주간환율 — UNI-PASS 공개 조회(로그인·키 불필요, 2026-09-09 확인) ──
+           * 정보조회 → 신고지원정보 → 주간환율 화면이 쓰는 JSON. weekFxrtTpcd 1=수출, 2=수입(과세). aplyDt 가 속한 주(일~토)를 돌려준다.
+           * 응답: { aplyDtStrtDd, aplyDtEndDd, count, items:[{ currCd, currNm, intnCurrEnglNm, weekFxrt, beforeWeekFxrt }] }
+           * 환율은 1 통화단위당 원(엔도 1엔 기준). */
+          async function customsOne(dash, tpcd) {
+            const raw = await fetchText(`https://unipass.customs.go.kr/csp/myc/bsopspptinfo/dclrSpptInfo/WeekFxrtQryCtr/retrieveWeekFxrt.do?pageIndex=1&pageUnit=100&aplyDt=${dash}&weekFxrtTpcd=${tpcd}`);
+            let d; try { d = JSON.parse(raw); } catch (e) { throw new Error('관세청 응답이 JSON 이 아닙니다: ' + raw.slice(0, 200)); }
+            const items = (d.items || []).map(r => ({ unit: r.currCd, name: r.currNm, name_en: r.intnCurrEnglNm, rate: num(r.weekFxrt), prev: num(r.beforeWeekFxrt) }))
+                                          .filter(r => r.unit && r.unit !== 'KRW' && r.rate !== null);
+            if (!items.length) throw new Error('관세청 응답에 항목 없음: ' + raw.slice(0, 200));
+            return { start: d.aplyDtStrtDd || '', end: d.aplyDtEndDd || '', items };
+          }
+          async function customs(dash) {
+            const [imp, exp] = await Promise.all([customsOne(dash, 2), customsOne(dash, 1)]);
+            return { week_start: imp.start, week_end: imp.end, fetched_at: nowIso, unit_note: '원/1통화단위 (엔·루피아 포함)',
+                     source: '관세청 UNI-PASS 주간환율 조회 (정보조회 › 신고지원정보 › 주간환율)', import: imp.items, export: exp.items };
+          }
+
+          (async () => {
             fs.mkdirSync(path.join(OUT, 'daily'), { recursive: true });
-            fs.writeFileSync(path.join(OUT, 'daily', dash + '.json'), JSON.stringify(doc, null, 1));
+            fs.mkdirSync(path.join(OUT, 'customs'), { recursive: true });
+            let saved = 0, skipped = 0, failed = 0;
 
-            /* latest 는 더 최신 일자로만 덮어쓴다 (과거 보충 실행이 최신본을 되돌리지 않도록) */
-            const latestPath = path.join(OUT, 'latest.json');
-            let prevDate = '';
-            try { prevDate = JSON.parse(fs.readFileSync(latestPath, 'utf8')).date || ''; } catch (e) {}
-            if (dash >= prevDate) fs.writeFileSync(latestPath, JSON.stringify(doc, null, 1));
-            console.log(`${dash}: ${rates.length} 통화 저장. USD 매매기준율 ${rates.find(r => r.unit === 'USD')?.base}`);
-
-            /* ── 2) 관세청 UNI-PASS 환율정보조회 (선택) ── */
-            const ukey = process.env.UNIPASS_KEY;
-            if (!ukey) { console.log('UNIPASS_KEY 없음 - 과세환율 수집 생략'); return; }
-            const hosts = ['https://unipass.customs.go.kr:38010', 'https://unipass.customs.go.kr'];
-            async function customs(imexTp) {
-              let lastErr;
-              for (const h of hosts) {
-                try {
-                  const xml = await fetchText(`${h}/ext/rest/trifFxrtInfoQry/retrieveTrifFxrtInfo?crkyCn=${ukey}&qryYymmDd=${ymd}&imexTp=${imexTp}`);
-                  const items = [...xml.matchAll(/<trifFxrtInfoQryRsltVo>([\s\S]*?)<\/trifFxrtInfoQryRsltVo>/g)].map(m => {
-                    const g = t => (m[1].match(new RegExp('<' + t + '>([^<]*)<')) || [])[1] || '';
-                    return { unit: g('currSgn'), name: g('mtryUtNm'), rate: num(g('fxrt')), from: g('aplyBgnDt') };
-                  }).filter(r => r.unit && r.rate !== null);
-                  if (items.length) return items;
-                  lastErr = new Error('관세청 응답에 항목 없음: ' + xml.slice(0, 200));
-                } catch (e) { lastErr = e; }
+            /* 매매기준율: 일자별 */
+            for (const ymd of days) {
+              try {
+                const doc = await exim(ymd);
+                if (!doc) { skipped++; if (days.length === 1) console.log(`${toDash(ymd)}: 고시 없음(비영업일 또는 미고시)`); }
+                else {
+                  fs.writeFileSync(path.join(OUT, 'daily', doc.date + '.json'), JSON.stringify(doc, null, 1));
+                  writeIfNewer(path.join(OUT, 'latest.json'), doc, 'date');
+                  saved++;
+                  if (days.length === 1 || saved % 50 === 0) console.log(`${doc.date}: ${doc.rates.length} 통화 저장. USD 매매기준율 ${doc.rates.find(r => r.unit === 'USD')?.base}`);
+                }
+              } catch (e) {
+                failed++; console.error(`${toDash(ymd)}: ${e.message}`);
+                if (/result=[34]/.test(e.message)) { console.error('인증키 또는 일일 한도 문제로 중단합니다.'); break; }
               }
-              throw lastErr;
+              if (days.length > 1) await sleep(250);
             }
-            try {
-              const [imp, exp] = await Promise.all([customs(2), customs(1)]);
-              const from = imp[0]?.from || '';
-              const fromDash = from ? from.slice(0, 4) + '-' + from.slice(4, 6) + '-' + from.slice(6, 8) : '';
-              let end = '';
-              if (fromDash) { const d = new Date(fromDash + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + 6); end = d.toISOString().slice(0, 10); }
-              const cdoc = { week_start: fromDash, week_end: end, fetched_at: nowIso, source: '관세청 UNI-PASS 환율정보조회 API',
-                             import: imp.map(({ unit, name, rate }) => ({ unit, name, rate })), export: exp.map(({ unit, name, rate }) => ({ unit, name, rate })) };
-              fs.mkdirSync(path.join(OUT, 'customs'), { recursive: true });
-              fs.writeFileSync(path.join(OUT, 'customs', 'latest.json'), JSON.stringify(cdoc, null, 1));
-              if (fromDash) fs.writeFileSync(path.join(OUT, 'customs', fromDash + '.json'), JSON.stringify(cdoc, null, 1));
-              console.log(`과세환율 ${fromDash}~${end}: 수입 ${imp.length} · 수출 ${exp.length} 통화`);
-            } catch (e) {
-              /* 과세환율 실패는 전체 실패로 만들지 않는다. 매매기준율만이라도 올린다. */
-              console.warn('과세환율 수집 실패 (계속 진행): ' + e.message);
+            console.log(`매매기준율: 저장 ${saved} · 고시없음 ${skipped} · 실패 ${failed}`);
+            if (saved === 0 && failed > 0) process.exit(1);
+
+            /* 과세환율: 주(일요일 시작)별 한 번씩 */
+            const weeks = [...new Set(days.map(ymd => { const d = new Date(toDash(ymd) + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - d.getUTCDay()); return d.toISOString().slice(0, 10); }))];
+            let cs = 0, cf = 0;
+            for (const sunday of weeks) {
+              try {
+                const cdoc = await customs(sunday);
+                if (cdoc.week_start) fs.writeFileSync(path.join(OUT, 'customs', cdoc.week_start + '.json'), JSON.stringify(cdoc, null, 1));
+                writeIfNewer(path.join(OUT, 'customs', 'latest.json'), cdoc, 'week_start');
+                cs++;
+                if (weeks.length === 1 || cs % 20 === 0) console.log(`과세환율 ${cdoc.week_start}~${cdoc.week_end}: 수입 ${cdoc.import.length} · 수출 ${cdoc.export.length} 통화. USD 과세환율 ${cdoc.import.find(r => r.unit === 'USD')?.rate}`);
+              } catch (e) {
+                /* 과세환율 실패는 전체 실패로 만들지 않는다. 매매기준율만이라도 올린다. */
+                cf++; console.warn(`과세환율 ${sunday} 실패 (계속 진행): ${e.message}`);
+              }
+              if (weeks.length > 1) await sleep(250);
             }
+            console.log(`과세환율: 저장 ${cs} 주 · 실패 ${cf} 주`);
           })().catch(e => { console.error(e.message); process.exit(1); });
           EOF
 

@@ -233,8 +233,13 @@ tr:hover td{background:color-mix(in srgb,var(--blue) 8%,transparent)}
   <!-- ══ 5. 관세청 과세환율 ══ -->
   <section class="card" id="secCustoms">
     <h2>관세청 과세환율 · 수출환율 (주간) <span class="badge" id="bdCustoms">확인 중</span></h2>
-    <p class="desc">수입물품 과세가격 환산(수입 부가세 포함)에는 관세청장이 주 단위로 정하는 과세환율을 씁니다. 관세법 제18조.</p>
-    <div id="customsBody"><div class="loading">과세환율 데이터를 확인하는 중</div></div>
+    <p class="desc">수입물품 과세가격 환산(수입 부가세 포함)에는 관세청장이 주 단위(일요일~토요일)로 정하는 과세환율을 씁니다. 관세법 제18조. 수입신고일을 고르면 그 주의 고시를 보여줍니다.</p>
+    <div class="grid">
+      <div class="field"><label for="cuDate">수입신고일 (적용 주 조회)</label><input type="date" id="cuDate"></div>
+      <div class="field"><label>&nbsp;</label><button class="btn primary" id="btnCuDate" type="button" style="width:100%">그 주 환율 조회</button></div>
+      <div class="field"><label>&nbsp;</label><button class="btn" id="btnCuLatest" type="button" style="width:100%">최신 주로</button></div>
+    </div>
+    <div id="customsBody" style="margin-top:14px"><div class="loading">과세환율 데이터를 확인하는 중</div></div>
   </section>
 
   <!-- ══ 6. 세무 용도별 적용환율 ══ -->
@@ -444,12 +449,18 @@ async function lookupDate(){
   const d=$('qDate').value, body=$('dateBody');
   if(!d){ body.innerHTML='<div class="note warn">조회일을 선택하십시오.</div>'; return; }
   body.innerHTML='<div class="loading">'+esc(d)+' 환율을 찾는 중</div>';
-  /* 1) 공식 수집본 */
+  /* 1) 공식 수집본. 선택일이 비영업일이면 직전 고시일(최대 7일 전)까지 거슬러 찾는다 */
   try{
-    const o = await getJSON(DATA_BASE+'daily/'+d+'.json');
-    if(o && Array.isArray(o.rates) && o.rates.length){
+    let o=null, hit=d;
+    for(let back=0; back<=7; back++){
+      const t=new Date(d+'T00:00:00'); t.setDate(t.getDate()-back); hit=iso(t);
+      try{ const r = await getJSON(DATA_BASE+'daily/'+hit+'.json'); if(r && Array.isArray(r.rates) && r.rates.length){ o=r; break; } }catch(e){}
+    }
+    if(o){
       const tmp=document.createElement('div'); renderOfficial(tmp, o, false);
-      body.innerHTML = '<div class="note"><b>'+esc(d)+'</b> 공식 매매기준율(수집본)</div>'+tmp.innerHTML;
+      const head = hit===d ? '<div class="note"><b>'+esc(d)+'</b> 공식 매매기준율(수집본)</div>'
+                           : '<div class="note warn"><b>'+esc(d)+'</b> 은 고시가 없는 날(비영업일)입니다. 직전 고시일 <b>'+esc(hit)+'</b> 의 매매기준율을 표시합니다.</div>';
+      body.innerHTML = head+tmp.innerHTML;
       body.querySelector('.note:last-child').insertAdjacentHTML('beforeend', ' <button class="btn small" type="button" id="btnUseDate">이 날짜 환율을 환산기에 적용</button>');
       $('btnUseDate').addEventListener('click', ()=>{ setCurrent('official', o); $('secConv').scrollIntoView({behavior:'smooth'}); });
       return;
@@ -527,23 +538,35 @@ function calc(){
 }
 
 /* ══════════ 5. 관세청 과세환율 ══════════ */
-async function loadCustoms(){
+/* 관세청 주는 일요일~토요일. 날짜를 주면 그 주 일요일 파일(customs/YYYY-MM-DD.json)을, 없으면 latest.json 을 읽는다 */
+function weekSunday(d){ const t=new Date(d+'T00:00:00'); t.setDate(t.getDate()-t.getDay()); return iso(t); }
+async function loadCustoms(date){
   const body=$('customsBody'), bd=$('bdCustoms');
+  body.innerHTML='<div class="loading">과세환율 데이터를 확인하는 중</div>';
+  const file = date ? 'customs/'+weekSunday(date)+'.json' : 'customs/latest.json?t='+Date.now();
   try{
-    const c = await getJSON(DATA_BASE+'customs/latest.json?t='+Date.now());
+    const c = await getJSON(DATA_BASE+file);
     if(!c || (!Array.isArray(c.import) && !Array.isArray(c.export))) throw new Error('empty');
-    S.customs=c; bd.textContent='공식'; bd.className='badge';
+    S.customs=c; bd.textContent = date ? '공식 · '+esc(date)+' 적용 주' : '공식 · 최신'; bd.className='badge';
     const imp = new Map((c.import||[]).map(r=>[r.unit,r])), exp = new Map((c.export||[]).map(r=>[r.unit,r]));
     const units=[...new Set([...imp.keys(), ...exp.keys()])].sort((a,b)=>{const o=['USD','JPY','EUR','CNY','CNH'];const ia=o.indexOf(a),ib=o.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib)||a.localeCompare(b);});
     let h='<div class="tblwrap"><table><thead><tr><th>통화</th><th>과세환율 (수입)</th><th>수출환율</th></tr></thead><tbody>';
     units.forEach(u=>{ const i=imp.get(u), e=exp.get(u); h+=`<tr class="${['USD','JPY','EUR','CNY'].includes(u)?'main':''}"><td class="l"><span class="cur">${esc(u)}</span><span class="nm">${esc((i||e).name||'')}</span></td><td class="r">${i?fmt(i.rate,2):'—'}</td><td class="r">${e?fmt(e.rate,2):'—'}</td></tr>`; });
     h+='</tbody></table></div>';
-    h+=`<div class="note">적용기간 <b>${esc(c.week_start||'')} ~ ${esc(c.week_end||'')}</b> · 출처 ${esc(c.source||'관세청 UNI-PASS 환율정보 API')} · 수집 ${esc((c.fetched_at||'').replace('T',' ').slice(0,16))} UTC</div>`;
+    h+=`<div class="note">적용기간 <b>${esc(c.week_start||'')} ~ ${esc(c.week_end||'')}</b> · 출처 ${esc(c.source||'관세청 UNI-PASS 주간환율')} · 수집 ${esc((c.fetched_at||'').replace('T',' ').slice(0,16))} UTC. `
+      +'단위: 원/1통화단위 (관세청 고시는 엔도 1엔 기준이라 위 매매기준율 표의 100엔 단위와 다릅니다).</div>';
     body.innerHTML=h;
   }catch(e){
-    S.customs=null; bd.textContent='미연결'; bd.className='badge warn';
-    body.innerHTML='<div class="note warn">과세환율 수집본이 없습니다. 관세청 UNI-PASS 환율정보 API 키(선택)를 저장소 비밀값 <code>UNIPASS_KEY</code>로 등록하면 주간 과세환율·수출환율이 이 표에 채워집니다. '
-      +'그 전에는 <a href="https://unipass.customs.go.kr/csp/index.do" target="_blank" rel="noopener">UNI-PASS → 정보조회 → 환율정보</a>에서 확인하십시오.</div>';
+    S.customs=null;
+    if(date){
+      bd.textContent='수집본 없음'; bd.className='badge warn';
+      body.innerHTML='<div class="note warn"><b>'+esc(date)+'</b> 이 속한 주('+esc(weekSunday(date))+' 시작)의 과세환율 수집본이 없습니다. 수집 시작 이전 주이거나 미래 주입니다. '
+        +'<a href="https://unipass.customs.go.kr/csp/index.do" target="_blank" rel="noopener">UNI-PASS → 정보조회 → 신고지원정보 → 주간환율</a>에서 기준일자를 넣어 확인하십시오.</div>';
+    }else{
+      bd.textContent='미연결'; bd.className='badge warn';
+      body.innerHTML='<div class="note warn">과세환율 수집본이 아직 없습니다. 수집 작업이 실행되면 채워집니다. '
+        +'그 전에는 <a href="https://unipass.customs.go.kr/csp/index.do" target="_blank" rel="noopener">UNI-PASS → 정보조회 → 신고지원정보 → 주간환율</a>에서 확인하십시오.</div>';
+    }
   }
 }
 
@@ -559,6 +582,7 @@ function updateStatus(){
 async function init(){
   $('qDate').value = kstToday();
   $('qDate').max = kstToday();
+  $('cuDate').value = kstToday();
   $('cvAmt').value = LS.get('hbt_fx_amt','');
   await Promise.allSettled([loadOfficial(), loadRef(), loadCustoms()]);
   if(!S.current && S.ref) setCurrent('ref', S.ref);
@@ -570,6 +594,9 @@ $('btnTheme').addEventListener('click', ()=>{
   document.documentElement.setAttribute('data-theme', next); LS.set('hbt_theme', next);
 });
 $('btnDate').addEventListener('click', lookupDate);
+$('btnCuDate').addEventListener('click', ()=>{ const v=$('cuDate').value; if(v) loadCustoms(v); });
+$('cuDate').addEventListener('keydown', e=>{ if(e.key==='Enter'){ const v=$('cuDate').value; if(v) loadCustoms(v); } });
+$('btnCuLatest').addEventListener('click', ()=>loadCustoms());
 $('qDate').addEventListener('keydown', e=>{ if(e.key==='Enter') lookupDate(); });
 document.querySelectorAll('[data-q]').forEach(b=>b.addEventListener('click', ()=>quickDate(b.dataset.q)));
 $('cvCur').addEventListener('change', ()=>{ LS.set('hbt_fx_cur', $('cvCur').value); fillRate(); });
