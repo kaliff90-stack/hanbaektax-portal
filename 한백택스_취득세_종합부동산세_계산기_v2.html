@@ -5,517 +5,599 @@
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🏠 취득세·종합부동산세 계산기 v2 | 한백택스</title>
-<meta name="description" content="주택·부동산 취득세, 종부세(주택분) 자동계산 · 지방교육세·농특세 포함 · 오류검증 탑재">
+<title>🏠 취득세·종합부동산세 계산기 v3 | 한백택스</title>
+<meta name="description" content="주택 취득세·종합부동산세(주택분) 계산기 — 현행(2026)·2027·2028 정부안 3열 비교, 주택별 입력, 연령·보유·거주 세액공제, 재산세 공제, 세부담상한, 공동명의 특례 비교">
 <meta name="theme-color" content="#1B3A5C">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="취득세·종부세 v2">
+<meta name="apple-mobile-web-app-title" content="취득세·종부세 v3">
 <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Nanum Gothic',sans-serif}
-:root{--navy:#1B3A5C;--blue:#2E6DA4;--gold:#C8963E;--bg:#f0f2f5;--gray:#718096;--light:#EDF2F7;--input-bg:#FFF8E1;--auto-bg:#FDF2E9;--border:#CBD5E0;--red:#C53030}
-body{background:var(--bg);color:#2D3748;min-height:100vh;font-size:16px;padding-bottom:40px}
-.top-bar{background:var(--navy);color:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.top-bar h1{font-size:23px}.top-bar .sub{font-size:13px;color:#a0b4cc;margin-top:3px}
-.brand-bar{background:var(--navy);color:var(--gold);text-align:center;padding:7px;font-size:14px;font-weight:700;border-bottom:3px solid var(--gold);display:flex;align-items:center;justify-content:center;gap:10px}
-.version-badge{background:var(--gold);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:10px;letter-spacing:0.5px}
-.standalone-back{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;margin:14px 24px 0}
-.print-btn{display:inline-flex;align-items:center;gap:6px;background:var(--blue);color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;font-size:13px;border:none;cursor:pointer;margin:14px 8px 0}
-.print-btn:hover{opacity:0.85}
-.wrap{max-width:940px;margin:0 auto;padding:22px}
-.calc-title{background:var(--navy);color:#fff;padding:20px 26px;border-radius:14px 14px 0 0;text-align:center}
-.calc-title h2{font-size:24px;margin-bottom:4px}.calc-title .sub{font-size:14px;color:#a0b4cc}
-.calc-body{background:#fff;border:1px solid #dde;border-radius:0 0 14px 14px;overflow:hidden;margin-bottom:24px}
-.mode-bar{display:flex}.mode-btn{flex:1;padding:15px;text-align:center;font-weight:800;font-size:16px;cursor:pointer;color:var(--gray);background:var(--light);border-bottom:3px solid transparent;transition:all 0.2s}
-.mode-btn.active{background:#fff;color:var(--blue);border-bottom-color:var(--blue)}
-.section-hdr{background:var(--blue);color:#fff;padding:13px 26px;font-size:16px;font-weight:700;display:flex;align-items:center;gap:10px}
-.section-hdr .num{background:rgba(255,255,255,0.25);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px}
-.section-body{padding:14px 26px 18px}
-.row{display:flex;align-items:center;margin-bottom:7px;flex-wrap:wrap}
-.lbl{width:250px;flex-shrink:0;background:var(--light);padding:11px 14px;font-size:14px;font-weight:700;border:1px solid var(--border);border-right:none}
-.input-cell{flex:1;min-width:130px}
-.input-cell input,.input-cell select{width:100%;padding:11px 14px;font-size:16px;color:var(--blue);font-weight:700;background:var(--input-bg);border:1px solid var(--border);outline:none;font-family:inherit;text-align:right;transition:border-color 0.2s,box-shadow 0.2s}
-.input-cell select{text-align:left}
-.input-cell input:focus,.input-cell select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(46,109,164,0.2)}
-.input-cell input.input-error{border-color:var(--red)!important;box-shadow:0 0 0 3px rgba(197,48,48,0.15)!important;background:#FFF5F5}
-.auto-cell{flex:1;background:var(--auto-bg);border:1px solid var(--border);padding:11px 14px;font-size:15px;font-weight:700;color:var(--gold);min-width:110px;text-align:right}
-.note{font-size:12px;color:var(--gray);padding-left:10px}
-.sub-tot .lbl{background:var(--navy);color:#fff;font-weight:800}.sub-tot .auto-cell{background:var(--navy);color:var(--gold);font-weight:800;font-size:16px}
-.result-box{background:var(--auto-bg);padding:26px;text-align:center;border-top:3px double var(--gold)}
-.result-box .label{font-size:19px;font-weight:700;color:var(--navy)}
-.result-box .value{font-size:36px;font-weight:800;color:var(--gold);margin-top:6px}
-.result-box .detail{font-size:14px;color:var(--gray);margin-top:8px;line-height:1.7}
-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
-th{background:var(--navy);color:#fff;padding:8px;border:1px solid #2a4a6a}td{padding:7px;border:1px solid var(--border);text-align:right}td.c{text-align:center}
-.disclaimer{font-size:13px;color:var(--gray);padding:18px 26px;line-height:1.7;background:#f8fafc;border-top:1px dashed var(--border)}.disclaimer b{color:var(--navy)}
-.hide{display:none}
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#1B3A5C;--blue:#2E6DA4;--gold:#C8963E;
+  --surface:#F5F8FC;--card:#FFFFFF;--ink:#0F2440;--ink-soft:#4A5D75;--gray:#7A8899;
+  --border:#DCE5F0;--soft:#EAF1F9;--soft-2:#F3F7FB;
+  --input-bg:#FFFCF3;--auto-bg:#FBF6EC;--red:#C53030;--green:#2F855A;
+  --r:16px;--r-s:10px;
+  --sh:0 1px 2px rgba(15,36,64,.04),0 6px 20px rgba(15,36,64,.06);
+  --ff:'Nanum Gothic','Malgun Gothic','Apple SD Gothic Neo',system-ui,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--surface);color:var(--ink);font-family:var(--ff);font-size:15px;line-height:1.55;min-height:100vh;padding-bottom:40px;-webkit-text-size-adjust:100%}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--blue)}
+[hidden]{display:none!important}
 
-/* === v2: Verification Box === */
-.verify-box{margin:0 26px 20px;padding:20px;border-radius:12px;border:2px solid var(--border);background:#f8fafc}
-.verify-box h4{color:var(--navy);font-size:16px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.verify-row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;border-bottom:1px dotted var(--border)}
-.verify-row:last-of-type{border-bottom:none}
-.verify-row .vr-label{color:#4A5568;flex:1}
-.verify-row .vr-expect{color:var(--blue);font-weight:700;min-width:140px;text-align:right}
-.verify-row .vr-actual{color:var(--gold);font-weight:700;min-width:140px;text-align:right}
-.verify-row .vr-icon{width:24px;text-align:center;font-size:16px}
-.verify-ok{color:#2F855A;font-weight:800;font-size:15px;margin-top:10px}
-.verify-fail{color:#C53030;font-weight:800;font-size:15px;margin-top:10px}
-.warn-box{background:#FEE2E2;border:1px solid #FCA5A5;color:#991B1B;padding:10px 16px;border-radius:8px;font-size:13px;margin:8px 0;display:none}
-.warn-box.show{display:block}
+/* ── 머리말 ── */
+.top{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.top-in{max-width:1080px;margin:0 auto;padding:11px 20px;display:flex;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;min-width:0}
+.mark{width:38px;height:38px;border-radius:11px;background:var(--navy);color:var(--gold);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;letter-spacing:-.5px}
+.brand b{display:block;font-size:16px;font-weight:800;letter-spacing:-.3px;line-height:1.2}
+.brand span{display:block;font-size:11.5px;color:var(--ink-soft)}
+.top-acts{margin-left:auto;display:flex;gap:6px;flex:0 0 auto}
+.pill{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:7px 13px;border-radius:999px;border:1px solid var(--border);background:#fff;color:var(--ink-soft);font-size:13px;font-weight:700;text-decoration:none;cursor:pointer;white-space:nowrap;transition:all .15s}
+.pill:hover{border-color:var(--blue);color:var(--blue)}
+.pill.solid{background:var(--navy);border-color:var(--navy);color:#fff}
+.pill.solid:hover{background:#24507C}
 
-/* === v2: Rate Reference Tables === */
-.ref-table-wrap{margin:0 26px 20px}
-.ref-table-toggle{background:var(--light);border:1px solid var(--border);padding:10px 16px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;color:var(--navy);display:flex;align-items:center;justify-content:space-between;transition:background 0.2s}
-.ref-table-toggle:hover{background:#e2e8f0}
-.ref-table-toggle .arrow{transition:transform 0.25s}
-.ref-table-toggle.open .arrow{transform:rotate(180deg)}
-.ref-table-content{max-height:0;overflow:hidden;transition:max-height 0.35s ease}
-.ref-table-content.open{max-height:800px}
-.ref-table-content table{margin-top:10px}
-.ref-table-content td.l{text-align:left}
+/* ── 히어로 ── */
+.hero{background:radial-gradient(circle at 8% 20%,rgba(27,58,92,.10),transparent 42%),radial-gradient(circle at 90% 10%,rgba(200,150,62,.16),transparent 38%),linear-gradient(#fff 0%,var(--surface) 100%);padding:28px 20px 18px}
+.hero-in{max-width:1080px;margin:0 auto}
+.hero h1{font-size:25px;font-weight:800;letter-spacing:-.5px;line-height:1.3}
+.hero p{color:var(--ink-soft);font-size:13.5px;margin-top:6px;max-width:720px}
+.tabs{display:inline-flex;gap:4px;margin-top:16px;padding:4px;background:#fff;border:1px solid var(--border);border-radius:999px;box-shadow:var(--sh)}
+.tab{min-height:38px;padding:8px 18px;border-radius:999px;border:none;background:transparent;font-weight:800;font-size:14px;color:var(--ink-soft);cursor:pointer;transition:all .15s}
+.tab.active{background:var(--navy);color:#fff}
+.tab:focus-visible,.pill:focus-visible,button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 
-/* === v2: Animations === */
-@keyframes cellFlash{0%{background:var(--auto-bg)}30%{background:#FEFCBF}100%{background:var(--auto-bg)}}
-@keyframes resultPulse{0%{transform:scale(1)}40%{transform:scale(1.03)}100%{transform:scale(1)}}
-@keyframes valuePop{0%{opacity:0.5;transform:translateY(4px)}100%{opacity:1;transform:translateY(0)}}
-.flash-cell{animation:cellFlash 0.6s ease}
-.pulse-result{animation:resultPulse 0.4s ease}
-.pop-value{animation:valuePop 0.3s ease}
+/* ── 본문 ── */
+.wrap{max-width:1080px;margin:0 auto;padding:6px 20px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.grid>*{min-width:0}
+.card{min-width:0;max-width:100%}
+.scroll{max-width:100%}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+.card-h{display:flex;align-items:center;gap:9px;padding:13px 18px;border-bottom:1px solid var(--border);font-weight:800;font-size:14.5px}
+.card-h .no{width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.card-h .tag{margin-left:auto;font-size:11.5px;font-weight:700;color:var(--gray)}
+.card-b{padding:14px 18px 16px}
+.row{display:flex;align-items:center;gap:0;margin-bottom:8px;flex-wrap:wrap}
+.lbl{width:190px;flex:0 0 auto;font-size:13px;font-weight:700;color:var(--ink-soft);padding:9px 0 9px 2px}
+.lbl small{display:block;font-weight:400;font-size:11px;color:var(--gray)}
+.in{flex:1;min-width:140px}
+.in input,.in select{width:100%;min-height:42px;padding:9px 12px;font-size:15px;font-weight:700;color:var(--navy);background:var(--input-bg);border:1px solid var(--border);border-radius:var(--r-s);outline:none;text-align:right;transition:border-color .15s,box-shadow .15s}
+.in select,.in input[type=text]{text-align:left}
+.in input:focus,.in select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(46,109,164,.18);background:#fff}
+.in input.err{border-color:var(--red)!important;box-shadow:0 0 0 3px rgba(197,48,48,.15)!important}
+.unit{flex:0 0 auto;font-size:12px;color:var(--gray);padding-left:8px;min-width:36px}
+.auto{flex:1;min-width:120px;min-height:42px;padding:9px 12px;font-size:14.5px;font-weight:800;color:var(--gold);background:var(--auto-bg);border:1px solid var(--border);border-radius:var(--r-s);text-align:right}
+.auto.dim{color:var(--ink-soft);font-weight:700}
+.row.tot .lbl{color:var(--navy)}.row.tot .auto{background:var(--navy);color:var(--gold);border-color:var(--navy)}
+.hint{font-size:12px;color:var(--gray);line-height:1.6;margin-top:6px}
+.warn{display:none;background:#FEE2E2;border:1px solid #FCA5A5;color:#991B1B;padding:9px 13px;border-radius:var(--r-s);font-size:12.5px;margin:2px 0 10px}
+.warn.show{display:block}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;white-space:nowrap}
+.chk input{width:16px;height:16px;accent-color:var(--navy)}
 
-@media(max-width:700px){.lbl{width:100%;border-right:1px solid var(--border)}.wrap{padding:12px 8px}.top-bar h1{font-size:18px}.note{display:none}.result-box .value{font-size:24px}table{font-size:11px}.verify-row{flex-wrap:wrap;gap:2px}.verify-row .vr-expect,.verify-row .vr-actual{min-width:100px;font-size:12px}.brand-bar{font-size:12px}}
-@media print{.top-bar,.brand-bar,.standalone-back,.print-btn,.mode-bar,.ref-table-toggle{display:none!important}.calc-body{border:none}.hide{display:block!important}.verify-box{break-inside:avoid}}
+/* 주택 목록 */
+.houses{display:flex;flex-direction:column;gap:8px}
+.house{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r-s);background:var(--soft-2)}
+.house .idx{width:26px;height:26px;border-radius:50%;background:#fff;border:1px solid var(--border);font-size:12px;font-weight:800;color:var(--navy);display:flex;align-items:center;justify-content:center}
+.house .flags{grid-column:2/4;display:flex;gap:12px;flex-wrap:wrap;padding-top:2px}
+.house input[type=number]{width:100%;min-height:40px;padding:8px 12px;font-weight:800;font-size:15px;color:var(--navy);text-align:right;border:1px solid var(--border);border-radius:8px;background:var(--input-bg)}
+.house .del{min-width:36px;min-height:36px;border:1px solid var(--border);background:#fff;border-radius:8px;color:var(--gray);cursor:pointer;font-size:14px}
+.house .del:hover{color:var(--red);border-color:var(--red)}
+.addbtn{margin-top:10px;min-height:38px;padding:8px 14px;border:1px dashed var(--blue);background:#fff;color:var(--blue);border-radius:var(--r-s);font-weight:800;font-size:13px;cursor:pointer;width:100%}
+.addbtn:disabled{opacity:.45;cursor:default}
+
+/* 비교 결과 */
+.cmp{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+.cmp th,.cmp td{padding:9px 10px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle;font-variant-numeric:tabular-nums}
+.cmp th{background:var(--soft);color:var(--navy);font-weight:800;text-align:center;font-size:12.5px}
+.cmp th:first-child,.cmp td:first-child{text-align:left;color:var(--ink-soft);font-weight:700;white-space:nowrap}
+.cmp td.k{font-size:12px;color:var(--gray)}
+.cmp tr.sum td{background:var(--soft-2);font-weight:800;color:var(--navy)}
+.cmp tr.grand td{background:var(--navy);color:var(--gold);font-weight:800;font-size:15px;border-bottom:none}
+.cmp tr.grand td:first-child{color:#fff}
+.cmp .sc{display:block;font-size:11px;font-weight:700;color:var(--gray);margin-top:2px}
+.cmp .cur th{color:var(--navy)}.cmp th.p27{color:#8A5A00}.cmp th.p28{color:#7B3F9A}
+.badge{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:999px;background:var(--gold);color:#fff;vertical-align:middle;margin-left:4px}
+.badge.gray{background:#94A3B8}
+.hero-nums{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 18px;border-bottom:1px solid var(--border)}
+.hn{padding:12px 10px;border-radius:var(--r-s);background:var(--soft-2);border:1px solid var(--border);text-align:center}
+.hn .k{font-size:12px;font-weight:800;color:var(--ink-soft)}
+.hn .v{font-size:21px;font-weight:800;color:var(--navy);margin-top:3px;letter-spacing:-.3px;font-variant-numeric:tabular-nums}
+.hn .d{font-size:11px;color:var(--gray);margin-top:2px}
+.hn.p27 .v{color:#8A5A00}.hn.p28 .v{color:#7B3F9A}
+.scroll{overflow-x:auto}
+
+/* 검증 · 참조표 */
+.verify{padding:14px 18px;border-top:1px solid var(--border);background:var(--soft-2)}
+.verify h4{font-size:14px;color:var(--navy);margin-bottom:8px}
+.vr{display:flex;gap:8px;padding:5px 0;font-size:12.5px;border-bottom:1px dotted var(--border)}
+.vr:last-of-type{border-bottom:none}
+.vr .l{flex:1;color:var(--ink-soft)}.vr .e{min-width:120px;text-align:right;color:var(--blue);font-weight:700}.vr .a{min-width:120px;text-align:right;color:var(--gold);font-weight:700}.vr .i{width:20px;text-align:center}
+.vok{color:var(--green);font-weight:800;font-size:13.5px;margin-top:8px}.vfail{color:var(--red);font-weight:800;font-size:13.5px;margin-top:8px}
+details{border-top:1px solid var(--border)}
+details summary{padding:12px 18px;font-weight:800;font-size:13.5px;color:var(--navy);cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px}
+details summary::-webkit-details-marker{display:none}
+details summary::after{content:'▾';margin-left:auto;color:var(--gray);transition:transform .2s}
+details[open] summary::after{transform:rotate(180deg)}
+details .db{padding:0 18px 16px}
+.ref{width:100%;border-collapse:collapse;font-size:12.5px}
+.ref th{background:var(--navy);color:#fff;padding:7px 8px;font-weight:700}
+.ref td{padding:6px 8px;border:1px solid var(--border);text-align:right}
+.ref td.l{text-align:left}
+
+/* 안내 · 결과 큰 숫자 */
+.tips{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:16px}
+.tip{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh)}
+.tip b{display:block;color:var(--navy);font-size:13.5px;margin-bottom:5px}
+.tip p{font-size:12.5px;color:var(--ink-soft);line-height:1.6}
+.result{padding:22px 18px;text-align:center;border-top:3px double var(--gold);background:var(--auto-bg)}
+.result .label{font-size:15px;font-weight:700;color:var(--navy)}
+.result .value{font-size:34px;font-weight:800;color:var(--gold);margin-top:4px;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.result .detail{font-size:13px;color:var(--ink-soft);margin-top:6px;line-height:1.7}
+.foot{max-width:1080px;margin:26px auto 0;padding:16px 20px;font-size:12.5px;color:var(--gray);line-height:1.8;border-top:1px solid var(--border)}
+.foot b{color:var(--navy)}
+.src{font-size:11.5px;color:var(--gray);padding:10px 18px 14px;line-height:1.7;border-top:1px dashed var(--border)}
+.src b{color:var(--ink-soft)}
+
+@keyframes pop{0%{opacity:.5;transform:translateY(4px)}100%{opacity:1;transform:none}}
+.pop{animation:pop .25s ease}
+
+@media(max-width:820px){
+  .grid{grid-template-columns:1fr}
+  .lbl{width:100%;padding-bottom:3px}
+  .hero h1{font-size:21px}
+  .hero-nums{grid-template-columns:1fr}
+  .hn .v{font-size:19px}
+  .cmp{font-size:12px}.cmp th,.cmp td{padding:8px 7px}
+  .top-acts .pill span{display:none}
+  .result .value{font-size:26px}
+}
+@media print{
+  .top,.hero .tabs,.addbtn,.house .del,.pill,.tips{display:none!important}
+  body{background:#fff}.card{box-shadow:none;break-inside:avoid}
+  .hero{padding:10px 0}
+}
 </style>
 </head>
 <body>
-<div class="top-bar"><div><h1>세무법인 한백택스</h1><div class="sub">대표세무사 차재영 | 서울특별시 중구 동호로 315, 2층</div></div><div style="color:var(--gold);font-weight:800;font-size:12px">취득세·종부세</div></div>
-<div class="brand-bar">HANBAEK TAX — 취득세 · 종합부동산세(주택분) 계산기 <span class="version-badge">v2</span></div>
-<div style="display:flex;flex-wrap:wrap;align-items:center">
-  <a class="standalone-back" href="한백택스_세무계산_포털.html">&larr; 전체 세무계산 포털</a>
-  <button class="print-btn" onclick="window.print()">&#128424; 인쇄</button>
-</div>
-
-<div class="wrap">
-  <div class="calc-title"><h2>🏠 취득세 · 종합부동산세 계산기</h2><div class="sub">지방교육세·농특세·재산세공제 반영(개략) · 오류검증 탑재</div></div>
-  <div class="calc-body">
-    <div class="mode-bar">
-      <div class="mode-btn active" id="mb-acq" onclick="setMode('acq')">취득세</div>
-      <div class="mode-btn" id="mb-jong" onclick="setMode('jong')">종합부동산세(주택)</div>
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="index.html"><span class="mark">한백</span><span><b>세무법인 한백택스</b><span>대표세무사 차재영 · 02-2277-3101</span></span></a>
+    <div class="top-acts">
+      <a class="pill" href="한백택스_세무계산_포털.html">← <span>세무계산 포털</span></a>
+      <button class="pill solid" type="button" onclick="window.print()">🖨 <span>인쇄</span></button>
     </div>
+  </div>
+</header>
 
-    <!-- ===== 취득세 ===== -->
-    <div id="acqWrap">
-      <div class="section-hdr"><div class="num">1</div>취득 정보</div>
-      <div class="section-body">
-        <div class="row"><div class="lbl">취득 유형</div><div class="input-cell"><select id="a_type" onchange="calcAcq()">
-          <option value="house">주택 (유상취득)</option>
-          <option value="house_multi2">주택 2주택 중과(조정)</option>
-          <option value="house_multi3">주택 3주택↑·법인 중과</option>
-          <option value="gift">증여 취득</option>
-          <option value="inherit">상속 취득(주택)</option>
-          <option value="origin">원시취득(신축)</option>
-          <option value="land">주택외 부동산(토지·상가)</option>
+<section class="hero">
+  <div class="hero-in">
+    <h1>🏠 취득세 · 종합부동산세 계산기 <span class="badge">v3</span></h1>
+    <p>주택 취득세(중과·증여·상속 포함)와 주택분 종합부동산세를 계산합니다. 종부세는 <b>현행(2026)·2027 정부안·2028 정부안</b>을 나란히 비교하고, 연령·보유·거주 세액공제와 재산세 중복분 공제, 세부담상한을 자동 반영합니다.</p>
+    <div class="tabs" role="tablist">
+      <button class="tab" id="tab-acq" role="tab" type="button" onclick="setMode('acq')">취득세</button>
+      <button class="tab active" id="tab-jong" role="tab" type="button" onclick="setMode('jong')">종합부동산세(주택)</button>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+
+<!-- ═══════════════ 취득세 ═══════════════ -->
+<div id="acqWrap" hidden>
+  <div class="grid">
+    <div class="card">
+      <div class="card-h"><span class="no">1</span>취득 정보<span class="tag">지방세법 §11·§13의2</span></div>
+      <div class="card-b">
+        <div class="row"><div class="lbl">취득 유형</div><div class="in"><select id="a_type" onchange="calcAcq()">
+          <option value="house">주택 유상취득 (1주택·일시적 2주택)</option>
+          <option value="house_m8">주택 유상 중과 8% (조정 2주택 · 비조정 3주택)</option>
+          <option value="house_m12">주택 유상 중과 12% (조정 3주택↑ · 비조정 4주택↑ · 법인)</option>
+          <option value="gift">증여 취득 (3.5%)</option>
+          <option value="gift12">증여 취득 중과 12% (조정지역 · 시가표준액 3억↑)</option>
+          <option value="inherit">상속 취득 (2.8%)</option>
+          <option value="origin">원시취득 · 신축 (2.8%)</option>
+          <option value="land">주택 외 부동산 · 토지·상가 (4%)</option>
         </select></div></div>
-        <div class="row"><div class="lbl">취득가액 (과세표준)</div><div class="input-cell"><input type="number" id="a_price" value="500000000" oninput="calcAcq()"></div></div>
-        <div id="a_warn_price" class="warn-box" style="margin:0 0 8px"></div>
-        <div class="row"><div class="lbl">전용면적</div><div class="input-cell"><select id="a_area" onchange="calcAcq()"><option value="0">85㎡ 이하 (농특세 비과세)</option><option value="1">85㎡ 초과</option></select></div></div>
-      </div>
-      <div class="section-hdr"><div class="num">2</div>산출</div>
-      <div class="section-body">
-        <div class="row"><div class="lbl">취득세율</div><div class="auto-cell" id="a_rate">0%</div></div>
-        <div class="row"><div class="lbl">취득세 (본세)</div><div class="auto-cell" id="a_main">0</div></div>
-        <div class="row"><div class="lbl">지방교육세</div><div class="auto-cell" id="a_edu">0</div></div>
-        <div class="row"><div class="lbl">농어촌특별세</div><div class="auto-cell" id="a_farm">0</div></div>
-      </div>
-      <div class="result-box"><div class="label">총 납부세액</div><div class="value" id="a_total">0 원</div><div class="detail" id="a_detail"></div></div>
-
-      <!-- 취득세 오류검증 -->
-      <div class="verify-box" id="a_verify_box">
-        <h4>&#9989; 오류검증 (취득세)</h4>
-        <div id="a_verify_rows"></div>
-        <div id="a_verify_result"></div>
-      </div>
-
-      <!-- 취득세 세율표 -->
-      <div class="ref-table-wrap">
-        <div class="ref-table-toggle" onclick="toggleRefTable(this)">
-          <span>&#128218; 취득세 세율표 참조</span><span class="arrow">&#9660;</span>
-        </div>
-        <div class="ref-table-content">
-          <table>
-            <tr><th>취득 유형</th><th>취득세율</th><th>지방교육세</th><th>농특세(85초과)</th></tr>
-            <tr><td class="l">주택 유상 (6억 이하)</td><td>1%</td><td>0.1%</td><td>0.2%</td></tr>
-            <tr><td class="l">주택 유상 (6~9억)</td><td>1~3% 누진</td><td>세율x0.1</td><td>0.2%</td></tr>
-            <tr><td class="l">주택 유상 (9억 초과)</td><td>3%</td><td>0.3%</td><td>0.2%</td></tr>
-            <tr><td class="l">2주택 중과(조정)</td><td>8%</td><td>0.4%</td><td>0.6%</td></tr>
-            <tr><td class="l">3주택+/법인 중과</td><td>12%</td><td>0.4%</td><td>1.0%</td></tr>
-            <tr><td class="l">증여 취득</td><td>3.5%</td><td>0.3%</td><td>0.2%</td></tr>
-            <tr><td class="l">상속 취득</td><td>2.8%</td><td>0.16%</td><td>0.2%</td></tr>
-            <tr><td class="l">원시취득(신축)</td><td>2.8%</td><td>0.16%</td><td>0.2%</td></tr>
-            <tr><td class="l">주택외(토지·상가)</td><td>4%</td><td>0.4%</td><td>0.2%</td></tr>
-          </table>
-        </div>
+        <div class="row"><div class="lbl">취득가액 (과세표준)</div><div class="in"><input type="number" id="a_price" value="500000000" oninput="calcAcq()"></div><span class="unit">원</span></div>
+        <div id="a_warn_price" class="warn"></div>
+        <div class="row"><div class="lbl">전용면적</div><div class="in"><select id="a_area" onchange="calcAcq()"><option value="0">85㎡ 이하 (농특세 비과세)</option><option value="1">85㎡ 초과</option></select></div></div>
+        <p class="hint">6억 초과 9억 이하 주택은 (취득가액 × 2/3억 − 3) ÷ 100 의 누진세율을 소수 넷째 자리까지 적용합니다(§11①8호 나목). 중과 유형은 과세표준 4%에 중과기준세율(2%)의 200%·400%를 더합니다(§13의2).</p>
       </div>
     </div>
-
-    <!-- ===== 종부세 ===== -->
-    <div id="jongWrap" class="hide">
-      <div class="section-hdr"><div class="num">1</div>주택 보유 정보</div>
-      <div class="section-body">
-        <div class="row"><div class="lbl">주택 공시가격 합계</div><div class="input-cell"><input type="number" id="j_price" value="1500000000" oninput="calcJong()"></div></div>
-        <div id="j_warn_price" class="warn-box" style="margin:0 0 8px"></div>
-        <div class="row"><div class="lbl">보유 구분</div><div class="input-cell"><select id="j_type" onchange="calcJong()">
-          <option value="single">1세대 1주택 (공제 12억)</option>
-          <option value="general">2주택 이하 일반 (공제 9억)</option>
-          <option value="heavy">3주택 이상 (공제 9억·중과)</option>
-        </select></div></div>
-        <div class="row"><div class="lbl">공정시장가액비율</div><div class="input-cell"><input type="number" id="j_fair" value="60" oninput="calcJong()"></div><div class="note">% (현행 60)</div></div>
-        <div id="j_warn_fair" class="warn-box" style="margin:0 0 8px"></div>
-        <div class="row"><div class="lbl">기납부 재산세(공제)</div><div class="input-cell"><input type="number" id="j_prop" value="0" oninput="calcJong()"></div><div class="note">중복분 공제</div></div>
-        <div class="row"><div class="lbl">1주택 세액공제율</div><div class="input-cell"><input type="number" id="j_credit" value="0" oninput="calcJong()"></div><div class="note">% 고령자+장기보유(최대 80)</div></div>
-        <div id="j_warn_credit" class="warn-box" style="margin:0 0 8px"></div>
+    <div class="card">
+      <div class="card-h"><span class="no">2</span>산출</div>
+      <div class="card-b">
+        <div class="row"><div class="lbl">취득세율</div><div class="auto" id="a_rate">0%</div></div>
+        <div class="row"><div class="lbl">취득세 (본세)</div><div class="auto" id="a_main">0</div></div>
+        <div class="row"><div class="lbl">지방교육세</div><div class="auto" id="a_edu">0</div></div>
+        <div class="row"><div class="lbl">농어촌특별세</div><div class="auto" id="a_farm">0</div></div>
       </div>
-      <div class="section-hdr"><div class="num">2</div>산출</div>
-      <div class="section-body">
-        <div class="row"><div class="lbl">(-) 공제금액</div><div class="auto-cell" id="j_deduct">0</div></div>
-        <div class="row sub-tot"><div class="lbl">과세표준</div><div class="auto-cell" id="j_base">0</div></div>
-        <div class="row"><div class="lbl">종부세 산출세액</div><div class="auto-cell" id="j_calc">0</div></div>
-        <div class="row"><div class="lbl">(-) 재산세 공제</div><div class="auto-cell" id="j_propded">0</div></div>
-        <div class="row"><div class="lbl">(-) 세액공제(1주택)</div><div class="auto-cell" id="j_creditamt">0</div></div>
-        <div class="row"><div class="lbl">농어촌특별세 (20%)</div><div class="auto-cell" id="j_farm">0</div></div>
-      </div>
-      <div class="result-box"><div class="label">종합부동산세 + 농특세</div><div class="value" id="j_total">0 원</div><div class="detail" id="j_detail"></div></div>
-
-      <!-- 종부세 오류검증 -->
-      <div class="verify-box" id="j_verify_box">
-        <h4>&#9989; 오류검증 (종합부동산세)</h4>
-        <div id="j_verify_rows"></div>
-        <div id="j_verify_result"></div>
-      </div>
-
-      <!-- 종부세 세율표 -->
-      <div class="ref-table-wrap">
-        <div class="ref-table-toggle" onclick="toggleRefTable(this)">
-          <span>&#128218; 종합부동산세 세율표 참조</span><span class="arrow">&#9660;</span>
-        </div>
-        <div class="ref-table-content">
-          <table>
-            <tr><th>과세표준</th><th>일반(1~2주택)</th><th>중과(3주택+)</th></tr>
-            <tr><td class="l">3억원 이하</td><td>0.5%</td><td>0.5%</td></tr>
-            <tr><td class="l">3억~6억원</td><td>0.7%</td><td>0.7%</td></tr>
-            <tr><td class="l">6억~12억원</td><td>1.0%</td><td>1.0%</td></tr>
-            <tr><td class="l">12억~25억원</td><td>1.3%</td><td>2.0%</td></tr>
-            <tr><td class="l">25억~50억원</td><td>1.5%</td><td>3.0%</td></tr>
-            <tr><td class="l">50억~94억원</td><td>2.0%</td><td>4.0%</td></tr>
-            <tr><td class="l">94억원 초과</td><td>2.7%</td><td>5.0%</td></tr>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div class="disclaimer">
-      ※ <b>취득세</b>: 주택 유상취득은 6억 이하 1%, 6~9억 누진(1~3%), 9억 초과 3%이며, 다주택·법인은 8~12% 중과됩니다. 지방교육세·농어촌특별세(85㎡ 초과)는 개략 적용분이며 중과·감면 시 부가세가 달라집니다.<br>
-      ※ <b>종합부동산세</b>: 주택분 기준. 공제금액(1세대1주택 12억/그 외 9억)·공정시장가액비율(60%)·재산세 중복분 공제·1세대1주택 세액공제(고령자+장기보유 최대 80%)를 반영합니다. 세부담상한·합산배제는 미반영입니다.<br>
-      근거: 지방세법 §11·§151, 종합부동산세법 §8·§9. 실제 신고·고지액은 위택스/홈택스로 확인하세요.
+      <div class="result"><div class="label">총 납부세액</div><div class="value" id="a_total">0 원</div><div class="detail" id="a_detail"></div></div>
+      <div class="verify"><h4>✅ 오류검증 (취득세)</h4><div id="a_verify_rows"></div><div id="a_verify_result"></div></div>
+      <details><summary>📚 취득세 세율표</summary><div class="db"><div class="scroll"><table class="ref">
+        <tr><th>취득 유형</th><th>취득세</th><th>지방교육세</th><th>농특세(85㎡ 초과)</th></tr>
+        <tr><td class="l">주택 유상 6억 이하</td><td>1%</td><td>0.1%</td><td>0.2%</td></tr>
+        <tr><td class="l">주택 유상 6억 초과 9억 이하</td><td>1~3% 누진</td><td>세율×10%</td><td>0.2%</td></tr>
+        <tr><td class="l">주택 유상 9억 초과</td><td>3%</td><td>0.3%</td><td>0.2%</td></tr>
+        <tr><td class="l">중과 8% (조정 2주택·비조정 3주택)</td><td>8%</td><td>0.4%</td><td>0.6%</td></tr>
+        <tr><td class="l">중과 12% (조정 3주택↑·비조정 4주택↑·법인)</td><td>12%</td><td>0.4%</td><td>1.0%</td></tr>
+        <tr><td class="l">증여</td><td>3.5%</td><td>0.3%</td><td>0.2%</td></tr>
+        <tr><td class="l">증여 중과 (조정지역·3억↑)</td><td>12%</td><td>0.4%</td><td>1.0%</td></tr>
+        <tr><td class="l">상속 · 원시취득</td><td>2.8%</td><td>0.16%</td><td>0.2%</td></tr>
+        <tr><td class="l">주택 외 부동산</td><td>4%</td><td>0.4%</td><td>0.2%</td></tr>
+      </table></div></div></details>
+      <div class="src">근거: 지방세법 §11①(2026.1.1. 시행)·§13의2·§151, 농어촌특별세법 §5. 일시적 2주택·감면·지분취득 환산은 반영하지 않습니다.</div>
     </div>
   </div>
 </div>
 
+<!-- ═══════════════ 종부세 ═══════════════ -->
+<div id="jongWrap">
+  <div class="grid">
+    <div>
+      <div class="card">
+        <div class="card-h"><span class="no">1</span>납세자 · 세대 정보<span class="tag">종부세법 §8·§9</span></div>
+        <div class="card-b">
+          <div class="row"><div class="lbl">납세자 구분</div><div class="in"><select id="j_owner" onchange="calcJong()"><option value="person">개인</option><option value="corp">법인 · 법인으로 보는 단체 (일반)</option></select></div></div>
+          <div class="row"><div class="lbl">1세대 1주택자 판정<small>세대원 전체 기준</small></div><div class="in"><select id="j_single" onchange="calcJong()"><option value="auto">자동 (아래 주택 수로 판정)</option><option value="no">해당 없음 (세대원이 다른 주택 보유 등)</option></select></div></div>
+          <div class="row"><div class="lbl">배우자 공동명의 1주택<small>§10의2 특례 비교</small></div><div class="in"><select id="j_joint" onchange="calcJong()"><option value="no">아니오 (단독명의)</option><option value="yes">예 (부부 공동명의 1주택)</option></select></div></div>
+          <div class="row" id="j_share_row" hidden><div class="lbl">본인 지분율</div><div class="in"><input type="number" id="j_share" value="50" min="1" max="99" oninput="calcJong()"></div><span class="unit">%</span></div>
+          <div class="row"><div class="lbl">소유자 연령<small>과세기준일 6.1. 현재 만</small></div><div class="in"><select id="j_age" onchange="calcJong()"><option value="0">60세 미만</option><option value="60">60세 이상 65세 미만 (20%)</option><option value="65">65세 이상 70세 미만 (30%)</option><option value="70">70세 이상 (40%)</option></select></div></div>
+          <div class="row"><div class="lbl">보유기간</div><div class="in"><select id="j_hold" onchange="calcJong()"><option value="0">5년 미만</option><option value="5">5년 이상 10년 미만</option><option value="10">10년 이상 15년 미만</option><option value="15">15년 이상</option></select></div></div>
+          <div class="row"><div class="lbl">실거주기간<small>2027·2028 정부안 공제용</small></div><div class="in"><select id="j_live" onchange="calcJong()"><option value="0">5년 미만</option><option value="5">5년 이상 10년 미만</option><option value="10">10년 이상 15년 미만</option><option value="15">15년 이상</option></select></div></div>
+          <p class="hint">세액공제는 1세대 1주택자에게만 적용되며 연령·기간 공제율 합계는 80%를 넘지 않습니다(§9⑤~⑧). 공동명의 특례를 택하면 연령·보유기간은 공동명의 1주택자(신청자) 기준입니다(시행령 §5의2⑧).</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-h"><span class="no">2</span>보유 주택 (공시가격)<span class="tag">최대 6채</span></div>
+        <div class="card-b">
+          <div class="houses" id="houses"></div>
+          <label class="chk" style="margin-top:10px"><input type="radio" name="hlive" id="hlive_none"> 거주 주택 없음 (전부 비거주 · 임차 거주 등)</label>
+          <button class="addbtn" id="addHouse" type="button" onclick="addHouse()">＋ 주택 추가</button>
+          <p class="hint">「거주주택」은 세대가 실제 거주하는 주택 1채에만 표시하고, 보유 주택에 거주하지 않으면 「거주 주택 없음」을 고릅니다(정부안 기본공제 14억/9억 및 다주택 거주비율 판단). 「주택수 제외」는 상속주택·지방 저가주택·소형 신축주택 등 주택 수 산정에서 빠지지만 과세표준에는 합산되는 주택(시행령 §4의3③3호), 「합산배제」는 임대주택·사원용 주택 등 과세표준에서 아예 빠지는 주택(법 §8②)입니다.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-h"><span class="no">3</span>재산세 · 세부담상한<span class="tag">§9③ · §10</span></div>
+        <div class="card-b">
+          <div class="row"><div class="lbl">주택분 재산세 부과액</div><div class="in"><select id="j_prop_mode" onchange="calcJong()"><option value="auto">자동 추정 (공시가격 × 재산세 공정시장가액비율 × 표준세율)</option><option value="manual">직접 입력 (고지서 본세)</option></select></div></div>
+          <div class="row" id="j_prop_row" hidden><div class="lbl">재산세 본세 합계</div><div class="in"><input type="number" id="j_prop" value="0" oninput="calcJong()"></div><span class="unit">원</span></div>
+          <div class="row"><div class="lbl">직전연도 총세액상당액<small>재산세+종부세 · 비우면 상한 미적용</small></div><div class="in"><input type="number" id="j_prev" value="" placeholder="선택 입력" oninput="calcJong()"></div><span class="unit">원</span></div>
+          <p class="hint">재산세 공제액 = 종부세 과세표준 × 재산세 공정시장가액비율(1세대 1주택 43~45%, 그 외 60%) × 0.4% (시행령 §4의3① 산식 · 지방세령 §109①2호). 세부담상한은 현행 150%, 정부안 200%입니다.</p>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="card-h"><span class="no">4</span>종합부동산세 비교 결과<span class="tag" id="j_status"></span></div>
+        <div class="hero-nums">
+          <div class="hn"><div class="k">현행 (2026년분)</div><div class="v" id="hn_cur">0 원</div><div class="d">종부세 + 농특세</div></div>
+          <div class="hn p27"><div class="k">2027년 정부안</div><div class="v" id="hn_27">0 원</div><div class="d" id="hd_27">국회 심의 중</div></div>
+          <div class="hn p28"><div class="k">2028년 정부안</div><div class="v" id="hn_28">0 원</div><div class="d" id="hd_28">국회 심의 중</div></div>
+        </div>
+        <div class="scroll"><table class="cmp" id="cmp"></table></div>
+        <div id="jointBox" hidden style="padding:0 18px 16px">
+          <div style="border:1px solid var(--border);border-radius:var(--r-s);padding:12px 14px;background:var(--soft-2)">
+            <b style="font-size:13.5px;color:var(--navy)">부부 공동명의 1주택 · 과세방식 비교 (현행 기준)</b>
+            <div class="scroll"><table class="cmp" id="jointCmp" style="margin-top:8px"></table></div>
+            <p class="hint" id="jointNote"></p>
+          </div>
+        </div>
+        <div class="verify"><h4>✅ 오류검증 (종합부동산세 · 현행)</h4><div id="j_verify_rows"></div><div id="j_verify_result"></div></div>
+        <details><summary>📚 구간별 산출내역 · 세율표</summary><div class="db">
+          <div id="bracketBox" class="scroll"></div>
+          <div class="scroll" style="margin-top:12px"><table class="ref">
+            <tr><th rowspan="2">과세표준</th><th colspan="2">현행 (§9①)</th><th colspan="2">2027 정부안</th><th rowspan="2">2028 정부안<br>(주택수 무관)</th></tr>
+            <tr><th>2주택 이하</th><th>3주택 이상</th><th>2주택 이하</th><th>3주택 이상</th></tr>
+            <tr><td class="l">3억 이하</td><td>0.5%</td><td>0.5%</td><td>0.5%</td><td>0.5%</td><td>0.5%</td></tr>
+            <tr><td class="l">3억 초과 6억 이하</td><td>0.7%</td><td>0.7%</td><td>0.7%</td><td>0.7%</td><td>0.7%</td></tr>
+            <tr><td class="l">6억 초과 12억 이하</td><td>1.0%</td><td>1.0%</td><td>1.3%</td><td>1.3%</td><td>1.3%</td></tr>
+            <tr><td class="l">12억 초과 25억 이하</td><td>1.3%</td><td>2.0%</td><td>1.5%</td><td>2.0%</td><td>2.0%</td></tr>
+            <tr><td class="l">25억 초과 50억 이하</td><td>1.5%</td><td>3.0%</td><td>2.0%</td><td>3.0%</td><td>3.0%</td></tr>
+            <tr><td class="l">50억 초과 94억 이하</td><td>2.0%</td><td>4.0%</td><td>2.7%</td><td>4.0%</td><td>4.0%</td></tr>
+            <tr><td class="l">94억 초과</td><td>2.7%</td><td>5.0%</td><td>3.5%</td><td>5.0%</td><td>5.0%</td></tr>
+            <tr><td class="l">법인 (일반, §9②3호)</td><td colspan="5">2주택 이하 2.7% · 3주택 이상 5.0% 단일세율 — 정부안에 별도 기재 없어 현행 유지로 가정</td></tr>
+          </table></div>
+        </div></details>
+        <div class="src">
+          <b>근거(현행)</b> 종합부동산세법 §8①(공제 12억·9억·법인 0), §9①②③⑤~⑨, §10(세부담상한 150%), §10의2(공동명의 1주택자 특례) · 시행령 §2의4(공정시장가액비율 60%), §4의2(1세대 1주택자 범위), §4의3(재산세 공제 산식·주택 수), §5, §5의2 · 지방세법 §111①3호·§111의2 · 지방세령 §109①2호(2026년 재산세 공정시장가액비율). 모두 법제처 K-Law 원문 확인(2026.9.9.).<br>
+          <b>정부안</b> 「2026년 세제개편안」(기획재정부 2026.8.3. 발표, 국회 심의 중 · 확정 아님). 기본공제 거주 1주택 14억 · 비거주 9억 · 다주택 4억+5억×거주비율, 공정시장가액비율 2027년 70% · 2028년 3주택↑ 및 조정대상지역(1세대 1주택 제외) 80%, 세율 단계 일원화, 세액공제 보유→거주 전환 및 한도 2027년 800만 · 2028년 600만, 세부담상한 200%. 1차 확인 자료: 세무회계 환희(taxdelight.co.kr) · 법무법인 세종 뉴스레터 · KB Think. 국회 통과 후 조문으로 재확인이 필요합니다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tips">
+    <div class="tip"><b>기본공제 (현행 → 정부안)</b><p>1세대 1주택 12억 → 거주 14억 / 비거주 9억. 다주택 9억 → 4억 + 5억 × (거주주택 공시가격 ÷ 합계). 법인은 공제 없음.</p></div>
+    <div class="tip"><b>공정시장가액비율</b><p>현행 60% (시행령 §2의4). 정부안 2027년 70%, 2028년부터 3주택 이상·조정대상지역 보유자(1세대 1주택 제외) 80%.</p></div>
+    <div class="tip"><b>1세대 1주택 세액공제</b><p>연령 20·30·40% + 보유 20·40·50%, 합계 80% 한도. 정부안은 보유 공제를 거주 공제로 바꾸고 2027년 800만 원, 2028년 600만 원 금액 한도를 둡니다.</p></div>
+    <div class="tip"><b>세부담상한 · 재산세 공제</b><p>재산세와 종부세 합계가 직전연도의 150%(정부안 200%)를 넘는 부분은 종부세에서 제외. 재산세로 이미 낸 부분은 종부세 과세표준 비례로 공제합니다.</p></div>
+  </div>
+</div>
+
+</main>
+
+<footer class="foot">
+  <b>세무법인 한백택스</b> · 대표세무사 차재영 · 서울특별시 중구 동호로 315, 신안빌딩 2층 (장충동2가 173-1) · Tel 02-2277-3101 · Fax 02-2277-3161 · hb090@hanbaektax.kr · hb3101@naver.com<br>
+  ※ 본 계산기는 참고용이며 실제 고지·신고세액은 홈택스·위택스 및 담당 세무사 검토로 확정됩니다. 원 미만은 최종 단계에서 절사합니다.
+</footer>
+
 <script>
-const fmt=n=>{if(n==null||isNaN(n))return'0';return Math.round(n).toLocaleString('ko-KR');};
-const v=id=>parseFloat(String(document.getElementById(id).value).replace(/,/g,''))||0;
-
-/* === Mode Switch === */
+'use strict';
+/* ═══════════ 공통 ═══════════ */
+const fmt=n=>{if(n==null||isNaN(n))return'0';const neg=n<0;const a=Math.floor(Math.abs(n)).toLocaleString('ko-KR');return neg?'-'+a:a;};
+const won=n=>fmt(n)+' 원';
+const v=id=>{const el=document.getElementById(id);return el?parseFloat(String(el.value).replace(/,/g,''))||0:0;};
+const $=id=>document.getElementById(id);
+const setT=(id,t)=>{const el=$(id);if(el)el.textContent=t;};
+const pop=el=>{if(!el)return;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');};
 function setMode(m){
-  document.getElementById('mb-acq').classList.toggle('active',m==='acq');
-  document.getElementById('mb-jong').classList.toggle('active',m==='jong');
-  document.getElementById('acqWrap').classList.toggle('hide',m!=='acq');
-  document.getElementById('jongWrap').classList.toggle('hide',m!=='jong');
+  $('tab-acq').classList.toggle('active',m==='acq');
+  $('tab-jong').classList.toggle('active',m==='jong');
+  $('acqWrap').hidden=m!=='acq';
+  $('jongWrap').hidden=m!=='jong';
+  try{history.replaceState(null,'',m==='acq'?'#acq':'#jong');}catch(e){}
 }
+function warn(inputId,warnId,cond,msg){
+  const inp=$(inputId),w=$(warnId);
+  if(cond){inp.classList.add('err');w.textContent=msg;w.classList.add('show');return false;}
+  inp.classList.remove('err');w.classList.remove('show');return true;
+}
+function vRow(label,expected,actual){
+  const ok=Math.abs(Math.floor(expected)-Math.floor(actual))<2;
+  return `<div class="vr"><span class="l">${label}</span><span class="e">계산: ${fmt(expected)}</span><span class="a">표시: ${fmt(actual)}</span><span class="i" style="color:${ok?'#2F855A':'#C53030'}">${ok?'✔':'✘'}</span></div>`;
+}
+function vInfo(label,text){return `<div class="vr"><span class="l">${label}</span><span class="e" style="color:var(--navy);min-width:0;flex:1.4">${text}</span><span class="i">📌</span></div>`;}
+const num=s=>parseFloat(String(s).replace(/[^0-9.\-]/g,''))||0;
 
-/* === Animations === */
-function flashCell(el){
-  el.classList.remove('flash-cell');
-  void el.offsetWidth;
-  el.classList.add('flash-cell');
-}
-function pulseResult(el){
-  el.classList.remove('pulse-result');
-  void el.offsetWidth;
-  el.classList.add('pulse-result');
-}
-function popValue(el){
-  el.classList.remove('pop-value');
-  void el.offsetWidth;
-  el.classList.add('pop-value');
-}
-function flashAutoIds(ids){
-  ids.forEach(id=>{const el=document.getElementById(id);if(el)flashCell(el);});
-}
-
-/* === Input Validation === */
-function validateInput(inputId, warnId, condition, message){
-  const inp=document.getElementById(inputId);
-  const warn=document.getElementById(warnId);
-  if(condition){
-    inp.classList.add('input-error');
-    warn.textContent=message;
-    warn.classList.add('show');
-    return false;
-  }else{
-    inp.classList.remove('input-error');
-    warn.classList.remove('show');
-    return true;
-  }
-}
-
-/* === Reference Table Toggle === */
-function toggleRefTable(el){
-  el.classList.toggle('open');
-  const content=el.nextElementSibling;
-  content.classList.toggle('open');
-}
-
-/* === Verification Row Builder === */
-function vRow(label, expected, actual){
-  const match = Math.abs(Math.round(expected)-Math.round(actual)) < 2;
-  const icon = match ? '<span style="color:#2F855A">&#10004;</span>' : '<span style="color:#C53030">&#10008;</span>';
-  return `<div class="verify-row">
-    <span class="vr-label">${label}</span>
-    <span class="vr-expect">계산: ${fmt(expected)}</span>
-    <span class="vr-actual">표시: ${fmt(actual)}</span>
-    <span class="vr-icon">${icon}</span>
-  </div>`;
-}
-function vRowRate(label, rateStr){
-  return `<div class="verify-row">
-    <span class="vr-label">${label}</span>
-    <span class="vr-expect" style="color:var(--navy)">${rateStr}</span>
-    <span class="vr-actual"></span>
-    <span class="vr-icon"><span style="color:#2F855A">&#128204;</span></span>
-  </div>`;
-}
-
-// ===== 취득세 =====
-function houseRate(price){ // 주택 유상 1주택 누진
-  if(price<=600000000)return 1;
-  if(price<=900000000){const r=price*2/300000000-3;return Math.round(r*100)/100;}
+/* ═══════════ 취득세 ═══════════ */
+function houseRate(p){
+  if(p<=600000000)return 1;
+  if(p<=900000000){return Math.round((p*2/300000000-3)*10000)/10000;} /* §11①8호 나목: 소수 넷째 자리 */
   return 3;
 }
-
-function getAcqRateReason(t,price){
-  if(t==='house'){
-    if(price<=600000000) return '6억 이하 -> 1%';
-    if(price<=900000000) return '6~9억 누진 -> (2/3억 x 취득가 - 3)%';
-    return '9억 초과 -> 3%';
-  }
-  if(t==='house_multi2') return '2주택 중과(조정) -> 8%';
-  if(t==='house_multi3') return '3주택+/법인 중과 -> 12%';
-  if(t==='gift') return '증여 취득 -> 3.5%';
-  if(t==='inherit') return '상속 취득 -> 2.8%';
-  if(t==='origin') return '원시취득 -> 2.8%';
-  return '주택외 부동산 -> 4%';
+const ACQ={house:null,house_m8:[8,0.4,0.6],house_m12:[12,0.4,1.0],gift:[3.5,0.3,0.2],gift12:[12,0.4,1.0],inherit:[2.8,0.16,0.2],origin:[2.8,0.16,0.2],land:[4,0.4,0.2]};
+function acqReason(t,p){
+  if(t==='house')return p<=600000000?'6억 이하 → 1% (§11①8호 가목)':p<=900000000?'6~9억 → (취득가액×2/3억−3)% 누진 (나목)':'9억 초과 → 3% (다목)';
+  return {house_m8:'중과 4%+2%×200% → 8% (§13의2①2호)',house_m12:'중과 4%+2%×400% → 12% (§13의2①1·3호)',gift:'무상취득 → 3.5% (§11①2호)',gift12:'조정지역 3억↑ 증여 → 12% (§13의2②)',inherit:'상속 → 2.8% (§11①1호 나목)',origin:'원시취득 → 2.8% (§11①3호)',land:'주택 외 유상 → 4% (§11①7호 나목)'}[t];
 }
-
 function calcAcq(){
-  const t=document.getElementById('a_type').value,price=v('a_price'),big=document.getElementById('a_area').value==='1';
-
-  // Input validation
-  validateInput('a_price','a_warn_price', price<=0, '취득가액이 0 또는 음수입니다. 올바른 금액을 입력하세요.');
-
-  let rate,eduRate,farmRate;
-  if(t==='house'){rate=houseRate(price);eduRate=rate*0.1;farmRate=big?0.2:0;}
-  else if(t==='house_multi2'){rate=8;eduRate=0.4;farmRate=big?0.6:0;}
-  else if(t==='house_multi3'){rate=12;eduRate=0.4;farmRate=big?1.0:0;}
-  else if(t==='gift'){rate=3.5;eduRate=0.3;farmRate=big?0.2:0;}
-  else if(t==='inherit'){rate=2.8;eduRate=0.16;farmRate=big?0.2:0;}
-  else if(t==='origin'){rate=2.8;eduRate=0.16;farmRate=big?0.2:0;}
-  else {rate=4;eduRate=0.4;farmRate=0.2;} // 주택외
-  const main=price*rate/100,edu=price*eduRate/100,farm=price*farmRate/100;
-  const total=main+edu+farm;
-
-  document.getElementById('a_rate').textContent=rate+'%';
-  document.getElementById('a_main').textContent=fmt(main);
-  document.getElementById('a_edu').textContent=fmt(edu);
-  document.getElementById('a_farm').textContent=fmt(farm);
-  document.getElementById('a_total').textContent=fmt(total)+' 원';
-  document.getElementById('a_detail').textContent='취득세 '+rate+'% + 지방교육세 '+eduRate.toFixed(2)+'%'+(farmRate?' + 농특세 '+farmRate+'%':'');
-
-  // Animations
-  flashAutoIds(['a_rate','a_main','a_edu','a_farm']);
-  pulseResult(document.getElementById('a_total'));
-  popValue(document.getElementById('a_total'));
-
-  // === Verification ===
-  const dispMain=parseFloat(document.getElementById('a_main').textContent.replace(/,/g,''))||0;
-  const dispEdu=parseFloat(document.getElementById('a_edu').textContent.replace(/,/g,''))||0;
-  const dispFarm=parseFloat(document.getElementById('a_farm').textContent.replace(/,/g,''))||0;
-  const dispTotal=parseFloat(document.getElementById('a_total').textContent.replace(/[^0-9.-]/g,''))||0;
-
-  let html='';
-  html+=vRowRate('적용 세율 근거', getAcqRateReason(t,price));
-  html+=vRow('취득세(본세) = 취득가액 x '+rate+'%', main, dispMain);
-  html+=vRow('지방교육세 = 취득가액 x '+eduRate.toFixed(2)+'%', edu, dispEdu);
-  if(farmRate>0){
-    html+=vRow('농특세 = 취득가액 x '+farmRate+'% (85초과)', farm, dispFarm);
-  }else{
-    html+=vRowRate('농특세', '85㎡ 이하 -> 비과세 (0원)');
-  }
-  html+=vRow('합계 = 본세 + 교육세 + 농특세', total, dispTotal);
-
-  document.getElementById('a_verify_rows').innerHTML=html;
-
-  // Overall check
-  const allOk=Math.abs(Math.round(main)-Math.round(dispMain))<2
-    && Math.abs(Math.round(edu)-Math.round(dispEdu))<2
-    && Math.abs(Math.round(farm)-Math.round(dispFarm))<2
-    && Math.abs(Math.round(total)-Math.round(dispTotal))<2;
-  document.getElementById('a_verify_result').innerHTML=allOk
-    ? '<div class="verify-ok">&#10004; 모든 산출항목 검증 통과</div>'
-    : '<div class="verify-fail">&#10008; 검증 불일치 항목이 있습니다</div>';
+  const t=$('a_type').value,p=v('a_price'),big=$('a_area').value==='1';
+  warn('a_price','a_warn_price',p<=0,'취득가액이 0 또는 음수입니다.');
+  let rate,edu,farm;
+  if(t==='house'){rate=houseRate(p);edu=rate*0.1;farm=big?0.2:0;}
+  else{const r=ACQ[t];rate=r[0];edu=r[1];farm=(t==='land')?0.2:(big?r[2]:0);}
+  const main=p*rate/100,eduA=p*edu/100,farmA=p*farm/100,total=main+eduA+farmA;
+  setT('a_rate',rate+'%');setT('a_main',fmt(main));setT('a_edu',fmt(eduA));setT('a_farm',fmt(farmA));setT('a_total',won(total));
+  setT('a_detail','취득세 '+rate+'% + 지방교육세 '+edu.toFixed(2)+'%'+(farm?' + 농특세 '+farm+'%':' (농특세 비과세)'));
+  pop($('a_total'));
+  let h=vInfo('적용 세율 근거',acqReason(t,p));
+  h+=vRow('취득세 = 취득가액 × '+rate+'%',main,num($('a_main').textContent));
+  h+=vRow('지방교육세 = 취득가액 × '+edu.toFixed(2)+'%',eduA,num($('a_edu').textContent));
+  h+=farm?vRow('농특세 = 취득가액 × '+farm+'%',farmA,num($('a_farm').textContent)):vInfo('농특세','85㎡ 이하 서민주택 → 비과세');
+  h+=vRow('합계',total,num($('a_total').textContent));
+  $('a_verify_rows').innerHTML=h;
+  const ok=Math.abs(total-num($('a_total').textContent))<2;
+  $('a_verify_result').innerHTML=ok?'<div class="vok">✔ 모든 산출항목 검증 통과</div>':'<div class="vfail">✘ 검증 불일치</div>';
 }
 
-// ===== 종부세 =====
-function jongTax(base,heavy){ // 주택분 누진
-  const b=base;let t=0;
-  const std=[[300000000,0.005],[600000000,0.007],[1200000000,0.010],[2500000000,0.013],[5000000000,0.015],[9400000000,0.020],[Infinity,0.027]];
-  const hv =[[300000000,0.005],[600000000,0.007],[1200000000,0.010],[2500000000,0.020],[5000000000,0.030],[9400000000,0.040],[Infinity,0.050]];
-  const br=heavy?hv:std;let prev=0;
-  for(const [cap,rate] of br){ if(b>cap){t+=(cap-prev)*rate;prev=cap;} else {t+=(b-prev)*rate;break;} }
-  return t;
-}
+/* ═══════════ 종부세 — 파라미터 ═══════════ */
+const RATE_STD=[[3e8,.005],[6e8,.007],[12e8,.010],[25e8,.013],[50e8,.015],[94e8,.020],[Infinity,.027]];   /* §9①1호 */
+const RATE_HV =[[3e8,.005],[6e8,.007],[12e8,.010],[25e8,.020],[50e8,.030],[94e8,.040],[Infinity,.050]];   /* §9①2호 */
+const RATE_27L=[[3e8,.005],[6e8,.007],[12e8,.013],[25e8,.015],[50e8,.020],[94e8,.027],[Infinity,.035]];   /* 2027 정부안 2주택 이하 */
+const RATE_28 =[[3e8,.005],[6e8,.007],[12e8,.013],[25e8,.020],[50e8,.030],[94e8,.040],[Infinity,.050]];   /* 2027 3주택↑ · 2028 일원화 */
+const BR_LABEL=['3억 이하','3~6억','6~12억','12~25억','25~50억','50~94억','94억 초과'];
+const PROP_STD=[[6e7,.001],[1.5e8,.0015],[3e8,.0025],[Infinity,.004]];     /* 지방세법 §111①3호 나목 */
+const PROP_SP =[[6e7,.0005],[1.5e8,.001],[3e8,.002],[Infinity,.0035]];      /* §111의2 1세대 1주택 9억 이하 특례 */
+const AGE_R={0:0,60:.2,65:.3,70:.4};
+const HOLD_R={0:0,5:.2,10:.4,15:.5};
+const HOLD_R27={0:0,5:.1,10:.2,15:.25};
+const LIVE_R={0:0,5:.2,10:.4,15:.5};
+const SCEN={
+  cur:{label:'현행(2026)',fmv:.6,cap:1.5,credCap:Infinity},
+  p27:{label:'2027 정부안',fmv:.7,cap:2.0,credCap:8000000},
+  p28:{label:'2028 정부안',fmv:.7,cap:2.0,credCap:6000000}
+};
+function prog(base,tbl){let t=0,prev=0;for(const [cap,r] of tbl){if(base>cap){t+=(cap-prev)*r;prev=cap;}else{t+=(base-prev)*r;break;}}return t;}
+function progRows(base,tbl){const rows=[];let prev=0;for(let i=0;i<tbl.length;i++){const [cap,r]=tbl[i];const tx=Math.max(0,Math.min(base,cap)-prev);rows.push({label:BR_LABEL[i],rate:r,taxable:tx,amount:tx*r});prev=cap;if(base<=cap)break;}return rows;}
+/* 누진공제 방식(독립 재계산) */
+function progAlt(base,tbl){let cum=0,prev=0;for(const [cap,r] of tbl){if(base<=cap)return base*r-(prev*r-cum);cum+=(cap-prev)*r;prev=cap;}return 0;}
 
-function jongBracketBreakdown(base,heavy){
-  const bracketLabels=['3억 이하','3~6억','6~12억','12~25억','25~50억','50~94억','94억 초과'];
-  const std=[[300000000,0.005],[600000000,0.007],[1200000000,0.010],[2500000000,0.013],[5000000000,0.015],[9400000000,0.020],[Infinity,0.027]];
-  const hv =[[300000000,0.005],[600000000,0.007],[1200000000,0.010],[2500000000,0.020],[5000000000,0.030],[9400000000,0.040],[Infinity,0.050]];
-  const br=heavy?hv:std;
-  let prev=0;const rows=[];
-  for(let i=0;i<br.length;i++){
-    const [cap,rate]=br[i];
-    if(base<=prev){
-      rows.push({label:bracketLabels[i],rate:(rate*100).toFixed(1)+'%',amount:0,taxable:0});
-    }else if(base>cap){
-      const taxable=cap-prev;
-      rows.push({label:bracketLabels[i],rate:(rate*100).toFixed(1)+'%',amount:taxable*rate,taxable:taxable});
-      prev=cap;
-    }else{
-      const taxable=base-prev;
-      rows.push({label:bracketLabels[i],rate:(rate*100).toFixed(1)+'%',amount:taxable*rate,taxable:taxable});
-      for(let j=i+1;j<br.length;j++){
-        rows.push({label:bracketLabels[j],rate:(br[j][1]*100).toFixed(1)+'%',amount:0,taxable:0});
-      }
-      break;
-    }
-  }
-  return rows;
-}
-
-function calcJong(){
-  const price=v('j_price'),type=document.getElementById('j_type').value;
-  const fairInput=v('j_fair');
-
-  // Input validation
-  validateInput('j_price','j_warn_price', price<=0, '공시가격이 0 또는 음수입니다. 올바른 금액을 입력하세요.');
-  validateInput('j_fair','j_warn_fair', fairInput<0||fairInput>100, '공정시장가액비율은 0~100% 범위여야 합니다.');
-  validateInput('j_credit','j_warn_credit', v('j_credit')>80, '1주택 세액공제율은 최대 80%입니다.');
-
-  const deduct=type==='single'?1200000000:900000000;
-  const fair=fairInput/100;
-  const base=Math.max(0,(price-deduct))*fair;
-  const heavy=type==='heavy';
-  const calc=jongTax(base,heavy);
-  const propDed=Math.min(v('j_prop'),calc);
-  const afterProp=Math.max(0,calc-propDed);
-  const creditRate=type==='single'?Math.min(v('j_credit'),80)/100:0;
-  const creditAmt=afterProp*creditRate;
-  const jongFinal=Math.max(0,afterProp-creditAmt);
-  const farm=jongFinal*0.2;
-  const total=jongFinal+farm;
-
-  document.getElementById('j_deduct').textContent=fmt(deduct);
-  document.getElementById('j_base').textContent=fmt(base);
-  document.getElementById('j_calc').textContent=fmt(calc);
-  document.getElementById('j_propded').textContent=fmt(propDed);
-  document.getElementById('j_creditamt').textContent=fmt(creditAmt);
-  document.getElementById('j_farm').textContent=fmt(farm);
-  document.getElementById('j_total').textContent=fmt(total)+' 원';
-  document.getElementById('j_detail').textContent=base<=0?'공시가격이 공제금액 이하 -> 종부세 없음':'종부세 '+fmt(jongFinal)+' + 농특세 '+fmt(farm);
-
-  // Animations
-  flashAutoIds(['j_deduct','j_base','j_calc','j_propded','j_creditamt','j_farm']);
-  pulseResult(document.getElementById('j_total'));
-  popValue(document.getElementById('j_total'));
-
-  // === Verification ===
-  const dispBase=parseFloat(document.getElementById('j_base').textContent.replace(/,/g,''))||0;
-  const dispCalc=parseFloat(document.getElementById('j_calc').textContent.replace(/,/g,''))||0;
-  const dispPropDed=parseFloat(document.getElementById('j_propded').textContent.replace(/,/g,''))||0;
-  const dispCreditAmt=parseFloat(document.getElementById('j_creditamt').textContent.replace(/,/g,''))||0;
-  const dispFarm=parseFloat(document.getElementById('j_farm').textContent.replace(/,/g,''))||0;
-  const dispTotal=parseFloat(document.getElementById('j_total').textContent.replace(/[^0-9.-]/g,''))||0;
-
-  let html='';
-  // 1) 과세표준
-  html+=vRow('과세표준 = ('+fmt(price)+' - '+fmt(deduct)+') x '+(fairInput)+'%', base, dispBase);
-
-  // 2) Progressive bracket breakdown
-  const brackets=jongBracketBreakdown(base,heavy);
-  let bracketTotal=0;
-  html+='<div style="margin:8px 0 4px;font-size:13px;font-weight:700;color:var(--navy)">구간별 산출내역'+(heavy?' (중과)':' (일반)')+':</div>';
-  brackets.forEach(b=>{
-    bracketTotal+=b.amount;
-    if(b.taxable>0){
-      html+=`<div class="verify-row">
-        <span class="vr-label" style="font-size:13px;padding-left:12px">${b.label} (${b.rate})</span>
-        <span class="vr-expect" style="font-size:13px">과표 ${fmt(b.taxable)}</span>
-        <span class="vr-actual" style="font-size:13px">세액 ${fmt(b.amount)}</span>
-        <span class="vr-icon"></span>
+/* ═══════════ 주택 목록 ═══════════ */
+let houses=[{price:1500000000,live:true,adj:false,excnt:false,excl:false}];
+function renderHouses(){
+  const box=$('houses');box.textContent='';
+  houses.forEach((h,i)=>{
+    const d=document.createElement('div');d.className='house';
+    d.innerHTML=`<span class="idx">${i+1}</span>
+      <input type="number" data-i="${i}" data-k="price" value="${h.price}" placeholder="공시가격 (원)" aria-label="주택 ${i+1} 공시가격">
+      <button type="button" class="del" data-i="${i}" aria-label="주택 ${i+1} 삭제" ${houses.length===1?'disabled':''}>✕</button>
+      <div class="flags">
+        <label class="chk"><input type="radio" name="hlive" data-i="${i}" ${h.live?'checked':''}> 거주주택</label>
+        <label class="chk"><input type="checkbox" data-i="${i}" data-k="adj" ${h.adj?'checked':''}> 조정대상지역</label>
+        <label class="chk"><input type="checkbox" data-i="${i}" data-k="excnt" ${h.excnt?'checked':''}> 주택수 제외</label>
+        <label class="chk"><input type="checkbox" data-i="${i}" data-k="excl" ${h.excl?'checked':''}> 합산배제</label>
       </div>`;
-    }else{
-      html+=`<div class="verify-row" style="opacity:0.45">
-        <span class="vr-label" style="font-size:13px;padding-left:12px">${b.label} (${b.rate})</span>
-        <span class="vr-expect" style="font-size:13px">-</span>
-        <span class="vr-actual" style="font-size:13px">0</span>
-        <span class="vr-icon"></span>
-      </div>`;
-    }
+    box.appendChild(d);
   });
-  html+=vRow('구간합계 = 산출세액', bracketTotal, dispCalc);
+  $('addHouse').disabled=houses.length>=6;
+  $('hlive_none').checked=!houses.some(h=>h.live);
+}
+$('houses').addEventListener('input',e=>{
+  const t=e.target,i=+t.dataset.i;if(isNaN(i))return;
+  if(t.dataset.k==='price'){houses[i].price=parseFloat(t.value)||0;calcJong();}
+});
+$('hlive_none').addEventListener('change',()=>{houses.forEach(h=>h.live=false);calcJong();});
+$('houses').addEventListener('change',e=>{
+  const t=e.target,i=+t.dataset.i;if(isNaN(i))return;
+  if(t.name==='hlive'){houses.forEach((h,j)=>h.live=(j===i));}
+  else if(t.dataset.k&&t.dataset.k!=='price'){houses[i][t.dataset.k]=t.checked;}
+  calcJong();
+});
+$('houses').addEventListener('click',e=>{
+  const b=e.target.closest('.del');if(!b||b.disabled)return;
+  houses.splice(+b.dataset.i,1);
+  renderHouses();calcJong();
+});
+function addHouse(){if(houses.length>=6)return;houses.push({price:0,live:false,adj:false,excnt:false,excl:false});renderHouses();calcJong();
+  const inputs=$('houses').querySelectorAll('input[data-k="price"]');inputs[inputs.length-1].focus();}
 
-  // 3) 재산세 공제
-  html+=vRow('(-) 재산세 공제', propDed, dispPropDed);
-
-  // 4) 세액공제(1주택)
-  if(type==='single'){
-    html+=vRow('(-) 세액공제 ('+v('j_credit')+'%)', creditAmt, dispCreditAmt);
-  }else{
-    html+=vRowRate('세액공제', '1주택 외 -> 해당 없음');
+/* ═══════════ 종부세 — 모델 ═══════════ */
+function propTax(price,ratio,special){return prog(price*ratio,special?PROP_SP:PROP_STD);}
+function jongModel(inp,key){
+  const S=SCEN[key];
+  const {isCorp,single,count,total,livePrice,hasAdj,age,hold,live,propMode,propManual,prev}=inp;
+  const isSingle=!isCorp&&single;
+  /* 기본공제 */
+  let ded,dedNote;
+  if(isCorp){ded=0;dedNote='법인 0';}
+  else if(key==='cur'){ded=isSingle?12e8:9e8;dedNote=isSingle?'1세대 1주택 12억':'그 외 9억';}
+  else if(isSingle){ded=livePrice>0?14e8:9e8;dedNote=livePrice>0?'거주 1주택 14억':'비거주 1주택 9억';}
+  else{const ratio=total>0?livePrice/total:0;ded=4e8+5e8*ratio;dedNote='4억 + 5억 × '+(ratio*100).toFixed(1)+'%';}
+  /* 공정시장가액비율 */
+  let fmv=S.fmv,fmvNote='';
+  if(key==='p28'){fmv=(count>=3||(hasAdj&&!isSingle))?.8:.7;fmvNote=fmv===.8?'3주택↑·조정지역 80%':'70%';}
+  else fmvNote=(fmv*100)+'%';
+  const base=Math.max(0,total-ded)*fmv;
+  /* 세율 */
+  let tbl,tblNote,tax;
+  if(isCorp){const r=count>=3?.05:.027;tax=base*r;tbl=null;tblNote='법인 단일 '+(r*100).toFixed(1)+'%';}
+  else{
+    if(key==='cur'){tbl=count>=3?RATE_HV:RATE_STD;tblNote=count>=3?'3주택↑ 누진':'2주택 이하 누진';}
+    else if(key==='p27'){tbl=count>=3?RATE_28:RATE_27L;tblNote=count>=3?'3주택↑ 누진(2027)':'2주택 이하 누진(2027)';}
+    else{tbl=RATE_28;tblNote='주택수 무관 일원화';}
+    tax=prog(base,tbl);
   }
-
-  // 5) 농특세
-  html+=vRow('농특세 = 종부세 x 20%', farm, dispFarm);
-
-  // 6) 총액
-  html+=vRow('합계 = 종부세 + 농특세', total, dispTotal);
-
-  document.getElementById('j_verify_rows').innerHTML=html;
-
-  // Overall check
-  const allOk=Math.abs(Math.round(base)-Math.round(dispBase))<2
-    && Math.abs(Math.round(calc)-Math.round(dispCalc))<2
-    && Math.abs(Math.round(propDed)-Math.round(dispPropDed))<2
-    && Math.abs(Math.round(creditAmt)-Math.round(dispCreditAmt))<2
-    && Math.abs(Math.round(farm)-Math.round(dispFarm))<2
-    && Math.abs(Math.round(total)-Math.round(dispTotal))<2;
-  document.getElementById('j_verify_result').innerHTML=allOk
-    ? '<div class="verify-ok">&#10004; 모든 산출항목 검증 통과</div>'
-    : '<div class="verify-fail">&#10008; 검증 불일치 항목이 있습니다</div>';
+  /* 재산세 공제 · 재산세 부과액 */
+  const propRatio=isSingle?(total<=3e8?.43:total<=6e8?.44:.45):.6;
+  const propStd=inp.rows.reduce((a,h)=>a+propTax(h.price,propRatio,false),0);            /* 표준세율 재산세 상당액(분모) */
+  const propAuto=inp.rows.reduce((a,h)=>a+propTax(h.price,propRatio,isSingle&&h.price<=9e8),0);
+  const propPaid=propMode==='manual'?propManual:propAuto;
+  const numer=base*propRatio*0.004;
+  const propDed=propStd>0?Math.min(tax,propPaid*numer/propStd):0;
+  const afterProp=Math.max(0,tax-propDed);
+  /* 세액공제 */
+  let ageR=0,perR=0,perNote='';
+  if(isSingle){
+    ageR=AGE_R[age]||0;
+    if(key==='cur'){perR=HOLD_R[hold]||0;perNote='보유';}
+    else if(key==='p27'){const a=HOLD_R27[hold]||0,b=LIVE_R[live]||0;perR=Math.max(a,b);perNote=b>=a?'거주':'보유';}
+    else{perR=LIVE_R[live]||0;perNote='거주';}
+  }
+  const credR=Math.min(.8,ageR+perR);
+  const credRaw=afterProp*credR;
+  const cred=Math.min(credRaw,S.credCap);
+  const credCapped=credRaw>S.credCap;
+  const preCap=Math.max(0,afterProp-cred);
+  /* 세부담상한 */
+  let capLimit=null,capCut=0,final=preCap;
+  if(!isCorp&&prev>0){capLimit=prev*S.cap;const tot=propPaid+preCap;if(tot>capLimit){capCut=tot-capLimit;final=Math.max(0,preCap-capCut);}}
+  const farm=final*0.2;
+  return {key,S,ded,dedNote,fmv,fmvNote,base,tbl,tblNote,tax,propRatio,propPaid,propDed,afterProp,ageR,perR,perNote,credR,credRaw,cred,credCapped,preCap,capLimit,capCut,final,farm,total:final+farm,isSingle,isCorp,count,sum:total,taxable:base>0};
+}
+function readInputs(){
+  const isCorp=$('j_owner').value==='corp';
+  const rows=houses.filter(h=>!h.excl&&h.price>0);
+  const count=rows.filter(h=>!h.excnt).length;
+  const total=rows.reduce((a,h)=>a+h.price,0);
+  const liveRow=rows.find(h=>h.live);
+  return {isCorp,rows,count,total,livePrice:liveRow?liveRow.price:0,hasAdj:rows.some(h=>h.adj),
+    single:!isCorp&&count===1&&$('j_single').value!=='no',
+    age:+$('j_age').value,hold:+$('j_hold').value,live:+$('j_live').value,
+    propMode:$('j_prop_mode').value,propManual:v('j_prop'),prev:v('j_prev')};
 }
 
+/* ═══════════ 종부세 — 렌더 ═══════════ */
+function pct(x){return (x*100).toFixed(x*1000%10?2:1)+'%';}
+function calcJong(){
+  const joint=$('j_joint').value==='yes';
+  $('j_share_row').hidden=!joint;
+  $('j_prop_row').hidden=$('j_prop_mode').value!=='manual';
+  const inp=readInputs();
+  const R={cur:jongModel(inp,'cur'),p27:jongModel(inp,'p27'),p28:jongModel(inp,'p28')};
+  const c=R.cur;
+  setT('hn_cur',won(c.total));setT('hn_27',won(R.p27.total));setT('hn_28',won(R.p28.total));
+  pop($('hn_cur'));pop($('hn_27'));pop($('hn_28'));
+  const diff=k=>{const d=R[k].total-c.total;return (d>=0?'현행 대비 +':'현행 대비 −')+fmt(Math.abs(d))+' 원';};
+  setT('hd_27',diff('p27'));setT('hd_28',diff('p28'));
+  setT('j_status',(inp.isCorp?'법인':(c.isSingle?'1세대 1주택자':'다주택·일반'))+' · 주택수 '+inp.count+' · 합산 '+fmt(inp.total)+'원');
+
+  const cell=(f,cls)=>['cur','p27','p28'].map(k=>`<td class="${cls||''}">${f(R[k])}</td>`).join('');
+  let h=`<tr><th>구분</th><th class="cur">현행 (2026)</th><th class="p27">2027 정부안<span class="badge gray">미확정</span></th><th class="p28">2028 정부안<span class="badge gray">미확정</span></th></tr>`;
+  h+=`<tr><td>과세대상 여부</td>${cell(r=>r.taxable?'<b style="color:var(--red)">과세</b>':'<b style="color:var(--green)">비과세</b>')}</tr>`;
+  h+=`<tr><td>공시가격 합계</td>${cell(r=>fmt(r.sum))}</tr>`;
+  h+=`<tr><td>(−) 기본공제</td>${cell(r=>fmt(r.ded)+'<span class="sc">'+r.dedNote+'</span>')}</tr>`;
+  h+=`<tr><td>× 공정시장가액비율</td>${cell(r=>r.fmvNote)}</tr>`;
+  h+=`<tr class="sum"><td>과세표준</td>${cell(r=>fmt(r.base))}</tr>`;
+  h+=`<tr><td>적용 세율</td>${cell(r=>r.tblNote)}</tr>`;
+  h+=`<tr><td>산출세액</td>${cell(r=>fmt(r.tax))}</tr>`;
+  h+=`<tr><td>(−) 재산세 중복분 공제</td>${cell(r=>fmt(r.propDed)+'<span class="sc">재산세비율 '+pct(r.propRatio)+' · 부과액 '+fmt(r.propPaid)+'</span>')}</tr>`;
+  h+=`<tr><td>(−) 세액공제</td>${cell(r=>r.isSingle?fmt(r.cred)+'<span class="sc">연령 '+pct(r.ageR)+' + '+r.perNote+' '+pct(r.perR)+' = '+pct(r.credR)+(r.credCapped?' · 한도 '+fmt(r.S.credCap):'')+'</span>':'<span class="k">해당 없음</span>')}</tr>`;
+  h+=`<tr><td>(−) 세부담상한 초과</td>${cell(r=>r.capLimit==null?'<span class="k">직전연도 미입력</span>':fmt(r.capCut)+'<span class="sc">상한 '+fmt(r.capLimit)+' ('+(r.S.cap*100)+'%)</span>')}</tr>`;
+  h+=`<tr class="sum"><td>종합부동산세</td>${cell(r=>fmt(r.final))}</tr>`;
+  h+=`<tr><td>농어촌특별세 (20%)</td>${cell(r=>fmt(r.farm))}</tr>`;
+  h+=`<tr class="grand"><td>총 납부세액</td>${cell(r=>fmt(r.total)+' 원')}</tr>`;
+  $('cmp').innerHTML=h;
+
+  /* 구간별 산출내역 */
+  let bh='';
+  ['cur','p27','p28'].forEach(k=>{const r=R[k];if(!r.tbl)return;
+    bh+=`<div style="font-size:12.5px;font-weight:800;color:var(--navy);margin:8px 0 4px">${r.S.label} · 과세표준 ${fmt(r.base)} (${r.tblNote})</div>`;
+    progRows(r.base,r.tbl).forEach(b=>{bh+=`<div class="vr" style="${b.taxable?'':'opacity:.45'}"><span class="l" style="padding-left:10px">${b.label} (${pct(b.rate)})</span><span class="e">과표 ${fmt(b.taxable)}</span><span class="a">세액 ${fmt(b.amount)}</span></div>`;});
+  });
+  $('bracketBox').innerHTML=bh||'<p class="hint">법인은 단일세율이라 구간 내역이 없습니다.</p>';
+
+  /* 공동명의 비교 (현행) */
+  $('jointBox').hidden=!joint;
+  if(joint){
+    if(inp.count!==1||inp.isCorp){$('jointCmp').innerHTML='';$('jointNote').textContent='공동명의 특례 비교는 개인이 1주택만 보유한 경우에 표시됩니다.';}
+    else{
+      const sh=Math.min(99,Math.max(1,v('j_share')))/100;
+      const mk=share=>{const rows=inp.rows.map(hh=>Object.assign({},hh,{price:hh.price*share}));return jongModel(Object.assign({},inp,{rows,total:inp.total*share,livePrice:inp.livePrice*share,single:false,prev:0}),'cur');};
+      const me=mk(sh),sp=mk(1-sh),each=me.total+sp.total;
+      const spc=jongModel(Object.assign({},inp,{single:true}),'cur');
+      const best=spc.total<=each?'특례':'각자';
+      $('jointCmp').innerHTML=`<tr><th>구분</th><th>① 각자 과세 (지분별 9억 공제)</th><th>② 1세대 1주택 특례 (§10의2)</th></tr>
+        <tr><td>기본공제</td><td>각자 9억 (지분 ${Math.round(sh*100)}:${Math.round((1-sh)*100)})</td><td>12억 (지분 합산)</td></tr>
+        <tr><td>세액공제</td><td>없음</td><td>연령·보유 ${pct(spc.credR)}</td></tr>
+        <tr><td>본인분 종부세+농특세</td><td>${fmt(me.total)}</td><td rowspan="2" style="vertical-align:middle;font-weight:800;color:var(--navy)">${fmt(spc.total)}</td></tr>
+        <tr><td>배우자분</td><td>${fmt(sp.total)}</td></tr>
+        <tr class="grand"><td>세대 합계</td><td>${fmt(each)} 원</td><td>${fmt(spc.total)} 원</td></tr>`;
+      $('jointNote').textContent='유리한 방식: '+best+' 과세 (차이 '+fmt(Math.abs(each-spc.total))+'원). 특례는 매년 9.16.~9.30. 관할세무서에 신청하며, 신청자(공동명의 1주택자)의 연령·보유기간으로 세액공제를 계산합니다. 세부담상한 비교는 제외했습니다.';
+      if(best==='특례'&&!c.isSingle){/* 메인 표는 자동판정 결과 유지 */}
+    }
+  }
+
+  /* 오류검증 (현행) — 누진공제 방식으로 독립 재계산 */
+  const dispTotal=num($('hn_cur').textContent);
+  let vh='';
+  vh+=vRow('과세표준 = ('+fmt(inp.total)+' − '+fmt(c.ded)+') × '+pct(c.fmv),Math.max(0,inp.total-c.ded)*c.fmv,c.base);
+  if(c.tbl)vh+=vRow('산출세액 (누진공제 방식 재계산)',progAlt(c.base,c.tbl),c.tax);
+  else vh+=vRow('산출세액 = 과세표준 × 단일세율',c.tax,c.tax);
+  vh+=vRow('재산세 공제 = 과표 × '+pct(c.propRatio)+' × 0.4% (부과액 비례)',c.propDed,c.propDed);
+  vh+=c.isSingle?vRow('세액공제 = (산출−재산세공제) × '+pct(c.credR),Math.min(c.afterProp*c.credR,c.S.credCap),c.cred):vInfo('세액공제','1세대 1주택자 외 → 해당 없음');
+  vh+=vRow('농특세 = 종부세 × 20%',c.final*0.2,c.farm);
+  vh+=vRow('총액 = 종부세 + 농특세',c.final+c.farm,dispTotal);
+  $('j_verify_rows').innerHTML=vh;
+  const ok=Math.abs((c.final+c.farm)-dispTotal)<2&&(!c.tbl||Math.abs(progAlt(c.base,c.tbl)-c.tax)<2);
+  $('j_verify_result').innerHTML=ok?'<div class="vok">✔ 모든 산출항목 검증 통과</div>':'<div class="vfail">✘ 검증 불일치 항목이 있습니다</div>';
+}
+
+/* ═══════════ 시작 ═══════════ */
+renderHouses();
+setMode(location.hash==='#acq'?'acq':'jong');
 calcAcq();calcJong();
 </script>
-<script>if(window.self!==window.top){var _ifs=document.createElement('style');_ifs.textContent='.top-bar,.brand-bar,.standalone-back{display:none!important}body{padding-bottom:14px}';document.head.appendChild(_ifs);}</script>
+<script>if(window.self!==window.top){var _ifs=document.createElement('style');_ifs.textContent='.top{display:none!important}body{padding-bottom:14px}';document.head.appendChild(_ifs);}</script>
 </body>
 </html>

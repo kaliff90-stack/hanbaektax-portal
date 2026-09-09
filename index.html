@@ -7,16 +7,16 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="theme-color" content="#1B3A5C">
+<meta name="theme-color" content="#FFFFFF">
 <meta name="color-scheme" content="light dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="한백택스">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="description" content="세무법인 한백택스 세무 계산기·시뮬레이터 모음 — 양도·증여·상속·종합소득세·연말정산·4대보험·업종코드 검색">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="description" content="세무법인 한백택스 세무 계산기·시뮬레이터 모음 — 양도·증여·상속·종부세·종합소득세·연말정산·4대보험·비상장주식 평가·업종코드 검색">
 <meta property="og:type" content="website">
 <meta property="og:title" content="세무법인 한백택스 · 세무 도구 모음">
-<meta property="og:description" content="양도·증여·상속·종합소득세·연말정산·4대보험·업종코드 등 세무 계산기 모음">
+<meta property="og:description" content="양도·증여·상속·종부세·종합소득세·연말정산·4대보험·업종코드 등 세무 계산기 모음">
 <meta property="og:locale" content="ko_KR">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,30 +25,27 @@
 /* ══ 토큰 ══ */
 :root{
   --navy:#1B3A5C; --blue:#2E6DA4; --gold:#C8963E;
-
-  --bg:#F3F5F9; --card:#FFFFFF; --card-2:#FBFCFE;
-  --txt:#22303F; --txt-2:#3A4C60; --gray:#6B7A8D; --border:#DDE4ED;
-  --head:#1B3A5C; --head-2:#24507C; --head-txt:#FFFFFF; --head-sub:#AFC4DA;
-  --chip:#FFFFFF; --chip-txt:#2A4257; --chip-on:#1B3A5C; --chip-on-txt:#FFFFFF;
+  --bg:#F5F8FC; --card:#FFFFFF; --card-2:#F7FAFD;
+  --txt:#0F2440; --txt-2:#35507A; --gray:#6E7F94; --border:#DCE5F0;
+  --brand-soft:#E9F0F8; --gold-soft:#FBF3E4;
+  --chip:#FFFFFF; --chip-txt:#35507A; --chip-on:#1B3A5C; --chip-on-txt:#FFFFFF;
   --mark:#FBECC8; --mark-txt:#5A3E0B;
-  --sh1:0 1px 2px rgba(27,58,92,.05), 0 2px 6px rgba(27,58,92,.06);
-  --sh2:0 6px 20px rgba(27,58,92,.14);
-  --bar:#12293F;
-
+  --sh1:0 1px 2px rgba(15,36,64,.04), 0 4px 14px rgba(15,36,64,.05);
+  --sh2:0 10px 28px rgba(15,36,64,.12);
+  --nav:rgba(255,255,255,.86); --bar:#12293F;
   --a1:#C8963E; --a2:#2E6DA4; --a3:#2C7A6B; --a4:#96603A; --a5:#5B6BA8;
-
-  --r-s:10px; --r:14px; --r-l:18px;
+  --r-s:10px; --r:16px; --r-l:22px;
   --ff:'Nanum Gothic','Malgun Gothic','Apple SD Gothic Neo',system-ui,-apple-system,sans-serif;
 }
 html[data-theme="dark"]{
-  --bg:#101620; --card:#1A2230; --card-2:#1E2736;
-  --txt:#E6EDF5; --txt-2:#CBD8E6; --gray:#94A6BB; --border:#2C3849;
-  --head:#0D1520; --head-2:#152238; --head-txt:#F1F5F9; --head-sub:#93A9C2;
-  --chip:#1A2230; --chip-txt:#D3E0EE; --chip-on:#2E6DA4; --chip-on-txt:#FFFFFF;
+  --bg:#0F1621; --card:#182231; --card-2:#1D2838;
+  --txt:#E6EDF5; --txt-2:#C7D5E5; --gray:#94A6BB; --border:#2B3849;
+  --brand-soft:#1F2F45; --gold-soft:#3A2F17;
+  --chip:#182231; --chip-txt:#D3E0EE; --chip-on:#2E6DA4; --chip-on-txt:#FFFFFF;
   --mark:#5A4718; --mark-txt:#FCE9BE;
-  --sh1:0 1px 2px rgba(0,0,0,.35), 0 2px 8px rgba(0,0,0,.28);
-  --sh2:0 8px 26px rgba(0,0,0,.5);
-  --bar:#0A111B;
+  --sh1:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3);
+  --sh2:0 10px 30px rgba(0,0,0,.5);
+  --nav:rgba(15,22,33,.86); --bar:#0A111B;
   --blue:#5B9BD5; --gold:#D8A85A;
   --a1:#D8A85A; --a2:#5B9BD5; --a3:#4CA290; --a4:#C28A5C; --a5:#8A98D0;
 }
@@ -58,7 +55,7 @@ html[data-theme="dark"]{
 html{scroll-behavior:smooth}
 body{
   background:var(--bg); color:var(--txt); font-family:var(--ff);
-  font-size:16px; line-height:1.6; min-height:100dvh;
+  font-size:15px; line-height:1.6; min-height:100dvh;
   padding-bottom:calc(40px + env(safe-area-inset-bottom));
   -webkit-text-size-adjust:100%;
 }
@@ -70,115 +67,158 @@ mark{background:var(--mark);color:var(--mark-txt);border-radius:3px;padding:0 1p
   padding:12px 18px;border-radius:0 0 var(--r-s) 0;font-weight:800;text-decoration:none}
 .skip:focus{left:0}
 
-/* ══ 머리말 ══ */
+/* ══ 상단 내비 ══ */
 .top{
-  background:linear-gradient(135deg,var(--head) 0%,var(--head-2) 100%);
-  color:var(--head-txt); padding:calc(14px + env(safe-area-inset-top)) 16px 14px;
+  position:sticky;top:0;z-index:40;
+  background:var(--nav);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding-top:env(safe-area-inset-top);
 }
-.top-in{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:12px}
-.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.top-in{max-width:1080px;margin:0 auto;display:flex;align-items:center;gap:14px;padding:10px 20px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;text-decoration:none;color:inherit}
 .mark{
-  flex:0 0 auto;width:42px;height:42px;border-radius:12px;
+  flex:0 0 auto;width:40px;height:40px;border-radius:12px;
   display:flex;align-items:center;justify-content:center;
-  background:rgba(255,255,255,.10); border:1px solid rgba(200,150,62,.55);
-  color:var(--gold); font-size:14px; font-weight:800; letter-spacing:-.5px;
+  background:var(--navy);color:var(--gold);font-size:13px;font-weight:800;letter-spacing:-.5px;
+  box-shadow:0 5px 14px rgba(27,58,92,.22);
 }
 .names{min-width:0}
-.n1{display:block;font-size:19px;font-weight:800;letter-spacing:-.4px;line-height:1.25}
-.n2{display:block;font-size:11.5px;color:var(--head-sub);letter-spacing:.3px;margin-top:2px}
+.n1{display:block;font-size:16.5px;font-weight:800;letter-spacing:-.3px;line-height:1.2}
+.n2{display:block;font-size:11px;color:var(--gray);letter-spacing:.3px;margin-top:2px}
+.navlinks{display:flex;gap:2px;margin-left:8px}
+.navlinks button{
+  border:none;background:transparent;color:var(--txt-2);font-size:13px;font-weight:700;
+  padding:7px 11px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:background .14s,color .14s;
+}
+.navlinks button:hover{background:var(--brand-soft);color:var(--navy)}
+html[data-theme="dark"] .navlinks button:hover{color:#fff}
 .acts{margin-left:auto;display:flex;gap:6px;flex:0 0 auto}
 .iconbtn{
-  min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;
-  border:1px solid rgba(255,255,255,.26);background:rgba(255,255,255,.06);color:var(--head-txt);
-  border-radius:12px;font-size:17px;cursor:pointer;transition:background .15s,border-color .15s;
+  min-width:40px;min-height:40px;display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid var(--border);background:var(--card);color:var(--txt-2);
+  border-radius:999px;font-size:16px;cursor:pointer;transition:background .15s,border-color .15s;
 }
-.iconbtn:hover{background:rgba(255,255,255,.16)}
+.iconbtn:hover{border-color:var(--blue);color:var(--blue)}
 .iconbtn:disabled{opacity:.5;cursor:default}
 .iconbtn:focus-visible,.chip:focus-visible,.card:focus-visible,.star:focus-visible,
-.linkbtn:focus-visible,.toast button:focus-visible,.iconx:focus-visible{
+.linkbtn:focus-visible,.toast button:focus-visible,.iconx:focus-visible,.navlinks button:focus-visible,.hcard:focus-visible{
   outline:3px solid var(--gold);outline-offset:2px
 }
-.bar{
-  background:var(--bar);color:var(--gold);text-align:center;
-  padding:9px 12px;font-size:12.5px;font-weight:700;
-  border-bottom:2px solid rgba(200,150,62,.55);
-}
-.bar a{color:inherit;text-decoration:none;border-bottom:1px dotted rgba(200,150,62,.6)}
 
-/* ══ 검색 · 필터 ══ */
-.toolbar{position:sticky;top:0;z-index:30;background:var(--bg);border-bottom:1px solid transparent;transition:box-shadow .18s,border-color .18s}
-.toolbar.stuck{border-color:var(--border);box-shadow:0 4px 14px rgba(27,58,92,.07)}
-html[data-theme="dark"] .toolbar.stuck{box-shadow:0 4px 16px rgba(0,0,0,.4)}
-.toolbar-in{max-width:960px;margin:0 auto;padding:12px 16px 8px}
-.searchrow{position:relative;display:flex;align-items:center}
-.searchrow .mg{position:absolute;left:14px;font-size:15px;color:var(--gray);pointer-events:none}
+/* ══ 히어로 ══ */
+.hero{
+  background:
+    radial-gradient(circle at 6% 18%, rgba(27,58,92,.10), transparent 42%),
+    radial-gradient(circle at 92% 8%, rgba(200,150,62,.18), transparent 36%),
+    linear-gradient(var(--card) 0%, var(--bg) 100%);
+  padding:30px 20px 18px;
+}
+html[data-theme="dark"] .hero{background:
+    radial-gradient(circle at 6% 18%, rgba(91,155,213,.12), transparent 42%),
+    radial-gradient(circle at 92% 8%, rgba(216,168,90,.14), transparent 36%),
+    linear-gradient(var(--card) 0%, var(--bg) 100%)}
+.hero-in{max-width:1080px;margin:0 auto}
+.eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;color:var(--navy);
+  background:var(--brand-soft);border-radius:999px;padding:4px 11px;letter-spacing:.2px}
+html[data-theme="dark"] .eyebrow{color:#DCE7F3}
+.hero h1{font-size:27px;font-weight:800;letter-spacing:-.6px;line-height:1.3;margin-top:10px}
+.hero h1 em{font-style:normal;color:var(--blue)}
+.hero p{font-size:13.5px;color:var(--txt-2);margin-top:6px;max-width:640px}
+.searchrow{position:relative;display:flex;align-items:center;max-width:640px;margin-top:16px}
+.searchrow .mg{position:absolute;left:16px;font-size:15px;color:var(--gray);pointer-events:none}
 .search{
-  width:100%;padding:13px 44px 13px 40px;font-size:16px;font-weight:700;
-  border:1px solid var(--border);border-radius:12px;background:var(--card);color:var(--txt);
-  outline:none;transition:border-color .15s,box-shadow .15s;
+  width:100%;padding:14px 46px 14px 44px;font-size:15.5px;font-weight:700;
+  border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--txt);
+  outline:none;box-shadow:var(--sh1);transition:border-color .15s,box-shadow .15s;
 }
 .search::-webkit-search-cancel-button{display:none}
 .search::placeholder{color:var(--gray);font-weight:400}
-.search:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(46,109,164,.22)}
+.search:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(46,109,164,.16)}
 .iconx{
-  position:absolute;right:5px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;
-  border:none;background:transparent;color:var(--gray);font-size:15px;border-radius:9px;cursor:pointer;
+  position:absolute;right:7px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+  border:none;background:transparent;color:var(--gray);font-size:15px;border-radius:999px;cursor:pointer;
 }
 .iconx:hover{background:var(--bg);color:var(--txt)}
-.chips{display:flex;gap:7px;overflow-x:auto;padding:10px 0 3px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.hero-stats{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--gray)}
+.hero-stats b{color:var(--txt-2)}
+
+/* ══ 대표 카드 ══ */
+.hcards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}
+.hcard{
+  display:flex;flex-direction:column;gap:6px;text-decoration:none;color:#fff;
+  padding:18px 18px 16px;border-radius:var(--r);min-height:118px;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#1B3A5C 0%,#2E6DA4 100%);box-shadow:var(--sh1);
+  transition:transform .14s,box-shadow .14s;
+}
+.hcard:nth-child(2){background:linear-gradient(135deg,#8A5A1A 0%,#C8963E 100%)}
+.hcard:nth-child(3){background:linear-gradient(135deg,#1F5A50 0%,#2C7A6B 100%)}
+.hcard:hover{transform:translateY(-2px);box-shadow:var(--sh2)}
+.hcard .ico{font-size:24px;line-height:1}
+.hcard .ttl{font-size:15.5px;font-weight:800;letter-spacing:-.2px}
+.hcard .ds{font-size:12px;opacity:.88}
+.hcard .go{position:absolute;right:14px;bottom:12px;font-size:12px;font-weight:800;opacity:.85}
+
+/* ══ 분류 칩 ══ */
+.toolbar{position:sticky;top:calc(61px + env(safe-area-inset-top));z-index:30;background:var(--bg);transition:box-shadow .18s}
+.toolbar.stuck{box-shadow:0 6px 16px rgba(15,36,64,.06)}
+html[data-theme="dark"] .toolbar.stuck{box-shadow:0 6px 18px rgba(0,0,0,.4)}
+.toolbar-in{max-width:1080px;margin:0 auto;padding:10px 20px 6px}
+.chips{display:flex;gap:7px;overflow-x:auto;padding:2px 0 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .chips::-webkit-scrollbar{display:none}
 .chip{
-  flex:0 0 auto;min-height:36px;padding:7px 14px;border-radius:999px;cursor:pointer;
+  flex:0 0 auto;min-height:36px;padding:7px 15px;border-radius:999px;cursor:pointer;
   border:1px solid var(--border);background:var(--chip);color:var(--chip-txt);
   font-size:13px;font-weight:700;white-space:nowrap;transition:background .14s,color .14s,border-color .14s;
 }
-.chip:hover{border-color:var(--blue)}
+.chip:hover{border-color:var(--blue);color:var(--blue)}
 .chip[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-txt);border-color:var(--chip-on)}
 
 /* ══ 본문 ══ */
-.wrap{max-width:960px;margin:0 auto;padding:6px 16px 0}
-.count{font-size:12.5px;color:var(--gray);padding:6px 4px 2px;font-variant-numeric:tabular-nums;min-height:22px}
+.wrap{max-width:1080px;margin:0 auto;padding:4px 20px 0}
+.count{font-size:12.5px;color:var(--gray);padding:6px 2px 2px;font-variant-numeric:tabular-nums;min-height:22px}
 .cat{
-  display:flex;align-items:center;gap:8px;margin:22px 4px 11px;
-  font-size:14.5px;font-weight:800;color:var(--txt-2);letter-spacing:-.2px;
+  display:flex;align-items:center;gap:9px;margin:24px 2px 12px;
+  font-size:15.5px;font-weight:800;color:var(--txt);letter-spacing:-.2px;
 }
-.cat .dot{width:9px;height:9px;border-radius:50%;background:var(--acc,var(--gold));flex:0 0 auto}
+.cat .dot{width:10px;height:10px;border-radius:50%;background:var(--acc,var(--gold));flex:0 0 auto}
 .cat .n{font-size:11.5px;font-weight:700;color:var(--gray);font-variant-numeric:tabular-nums;
   background:var(--card);border:1px solid var(--border);border-radius:999px;padding:1px 8px}
 .linkbtn{margin-left:auto;border:none;background:transparent;color:var(--gray);
-  font-size:12px;font-weight:700;cursor:pointer;padding:6px 10px;border-radius:8px;min-height:36px}
+  font-size:12px;font-weight:700;cursor:pointer;padding:6px 10px;border-radius:999px;min-height:36px}
 .linkbtn:hover{color:var(--blue);background:var(--card)}
 
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(184px,1fr));gap:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
 .card{
-  position:relative;display:flex;flex-direction:column;gap:8px;
+  position:relative;display:flex;flex-direction:column;gap:7px;
   background:var(--card);border:1px solid var(--border);border-radius:var(--r);
-  padding:15px 46px 15px 15px;min-height:112px;text-decoration:none;color:inherit;
+  padding:16px 46px 15px 16px;min-height:116px;text-decoration:none;color:inherit;
   box-shadow:var(--sh1);
   transition:transform .13s ease,box-shadow .13s ease,border-color .13s ease;
 }
 .card:hover{transform:translateY(-2px);box-shadow:var(--sh2);border-color:var(--blue)}
 .card:active{transform:translateY(0) scale(.99)}
 .card .ico{
-  width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;
-  font-size:19px;line-height:1;background:var(--card-2);border:1px solid var(--border);
+  width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:19px;line-height:1;background:var(--brand-soft);border:1px solid transparent;
 }
 .card .ttl{font-size:14px;font-weight:800;color:var(--navy);line-height:1.35;letter-spacing:-.2px}
 html[data-theme="dark"] .card .ttl{color:#DCE7F3}
 .card .ds{font-size:12px;color:var(--gray);line-height:1.45;margin-top:-2px}
+.card .new{position:absolute;left:16px;bottom:12px;font-size:10px;font-weight:800;color:#fff;background:var(--gold);border-radius:999px;padding:2px 7px;letter-spacing:.3px}
+.card.hasnew{padding-bottom:30px}
 
 .card.feat{background:linear-gradient(135deg,#1B3A5C 0%,#2E6DA4 100%);border-color:transparent;color:#fff}
 html[data-theme="dark"] .card.feat{background:linear-gradient(135deg,#16324F 0%,#26527E 100%)}
 .card.feat .ttl{color:#fff}
 .card.feat .ds{color:#CFE1F4}
-.card.feat .ico{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.22)}
+.card.feat .ico{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.2)}
 .card.feat mark{background:rgba(255,255,255,.28);color:#fff}
 
 .star{
-  position:absolute;top:6px;right:6px;width:38px;height:38px;
+  position:absolute;top:8px;right:8px;width:36px;height:36px;
   display:flex;align-items:center;justify-content:center;
-  border:none;background:transparent;font-size:17px;line-height:1;cursor:pointer;
-  color:var(--border);border-radius:10px;transition:color .14s,background .14s,transform .14s;
+  border:none;background:transparent;font-size:16px;line-height:1;cursor:pointer;
+  color:var(--border);border-radius:999px;transition:color .14s,background .14s,transform .14s;
 }
 .star:hover{background:rgba(200,150,62,.16);color:var(--gold)}
 .star[aria-pressed="true"]{color:var(--gold)}
@@ -191,17 +231,25 @@ html[data-theme="dark"] .card.feat{background:linear-gradient(135deg,#16324F 0%,
 .empty .linkbtn{margin:14px auto 0;display:inline-block;border:1px solid var(--border);
   background:var(--card);color:var(--blue);padding:9px 16px;min-height:40px}
 
+/* ══ 안내 ══ */
+.tips{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:30px}
+.tip{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh1)}
+.tip .t{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:800;color:var(--navy);margin-bottom:5px}
+html[data-theme="dark"] .tip .t{color:#DCE7F3}
+.tip p{font-size:12.5px;color:var(--txt-2);line-height:1.65}
+.tip a{font-weight:700;text-decoration:none}
+
 .foot{
-  margin:32px 0 8px;padding:18px;background:var(--card);border:1px solid var(--border);
+  margin:28px 0 8px;padding:20px;background:var(--card);border:1px solid var(--border);
   border-radius:var(--r);font-size:13px;color:var(--gray);line-height:1.8;box-shadow:var(--sh1);
+  display:grid;grid-template-columns:1.2fr 1fr;gap:16px;
 }
 .foot b{color:var(--navy);font-size:14px}
 html[data-theme="dark"] .foot b{color:#DCE7F3}
 .foot a{font-weight:700;text-decoration:none}
-.foot .note{display:block;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:12px}
+.foot .note{font-size:12px;border-left:1px solid var(--border);padding-left:16px}
 
 /* ══ 알림 · 상태 ══ */
-/* 접속 끊김 안내 — 검색줄과 한 덩어리로 붙어 다닌다 */
 .offbar{display:none;background:#8A5A00;color:#fff;text-align:center;padding:7px 12px;font-size:12.5px;font-weight:700}
 body.is-offline .offbar{display:block}
 .toast{
@@ -220,20 +268,30 @@ body.is-offline .offbar{display:block}
 .toast .x{background:transparent;color:#BFCEDE;padding:7px 5px;font-size:15px;min-width:36px}
 .toast .x:hover{color:#fff}
 
+@media(max-width:900px){.navlinks{display:none}}
+@media(max-width:720px){
+  .hcards{grid-template-columns:1fr}
+  .hcard{min-height:0;padding:15px 16px}
+  .foot{grid-template-columns:1fr}
+  .foot .note{border-left:none;padding-left:0;border-top:1px solid var(--border);padding-top:12px}
+}
 @media(max-width:430px){
-  .grid{grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:10px}
-  .card{padding:13px 42px 13px 13px;min-height:104px}
-  .n1{font-size:17px}
-  .mark{width:38px;height:38px;font-size:13px}
-  .bar{font-size:11.5px;line-height:1.5}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(156px,1fr));gap:10px}
+  .card{padding:13px 42px 13px 13px;min-height:106px}
+  .hero{padding:22px 16px 14px}
+  .hero h1{font-size:22px}
+  .n1{font-size:15.5px}
+  .mark{width:36px;height:36px;font-size:12px}
+  .top-in,.toolbar-in,.wrap{padding-left:14px;padding-right:14px}
+  .toolbar{top:calc(57px + env(safe-area-inset-top))}
 }
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   *,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important}
-  .card:hover{transform:none}
+  .card:hover,.hcard:hover{transform:none}
 }
 @media print{
-  .toolbar,.acts,.toast,.star,.offbar,.bar{display:none !important}
+  .toolbar,.acts,.toast,.star,.offbar,.searchrow,.navlinks,.hcards{display:none !important}
   .card{break-inside:avoid;box-shadow:none}
   body{background:#fff}
 }
@@ -256,13 +314,14 @@ body.is-offline .offbar{display:block}
 
 <header class="top">
   <div class="top-in">
-    <div class="brand">
+    <a class="brand" href="./">
       <span class="mark" aria-hidden="true">한백</span>
       <span class="names">
-        <h1 class="n1">세무법인 한백택스</h1>
+        <span class="n1">세무법인 한백택스</span>
         <span class="n2">HANBAEK TAX · 세무 도구 모음</span>
       </span>
-    </div>
+    </a>
+    <nav class="navlinks" id="navlinks" aria-label="분류 바로가기"></nav>
     <div class="acts">
       <button class="iconbtn" id="offlineBtn" type="button" title="도구 전체 오프라인 저장" aria-label="도구 전체 오프라인 저장">📥</button>
       <button class="iconbtn" id="installBtn" type="button" title="홈 화면에 설치" aria-label="홈 화면에 설치" hidden>⬇</button>
@@ -270,19 +329,26 @@ body.is-offline .offbar{display:block}
     </div>
   </div>
 </header>
-<div class="bar">
-  대표세무사 차재영 · <a href="tel:+82222773101">02-2277-3101</a> · 서울 중구 동호로 315, 신안빌딩 2층
-</div>
+
+<section class="hero">
+  <div class="hero-in">
+    <span class="eyebrow">📍 대표세무사 차재영 · 서울 중구 동호로 315 신안빌딩 2층</span>
+    <h1>세금 계산, <em>바로</em> 확인하세요</h1>
+    <p>양도·증여·상속·종부세부터 연말정산·급여·비상장주식 평가까지. 최신 법령을 법제처 원문으로 확인해 반영한 세무 계산기 모음입니다.</p>
+    <div class="searchrow">
+      <span class="mg" aria-hidden="true">🔍</span>
+      <input type="search" class="search" id="q" placeholder="도구 검색 (예: 양도, 종부세, 실수령, ㅇㅁㅈㅅ)"
+             aria-label="도구 검색" autocomplete="off" enterkeyhint="search" spellcheck="false">
+      <button class="iconx" id="clearQ" type="button" aria-label="검색어 지우기" hidden>✕</button>
+    </div>
+    <div class="hero-stats"><span>수록 도구 <b id="statCount">0</b>종</span><span>오프라인 사용 <b>가능</b></span><span>검색 단축키 <b>/</b></span><span>⭐ 별표로 즐겨찾기 고정</span></div>
+    <div class="hcards" id="hcards"></div>
+  </div>
+</section>
 
 <div class="toolbar" id="toolbar">
   <div class="offbar" role="status">오프라인 상태입니다 · 저장해 둔 도구만 열립니다</div>
   <div class="toolbar-in">
-    <div class="searchrow">
-      <span class="mg" aria-hidden="true">🔍</span>
-      <input type="search" class="search" id="q" placeholder="도구 검색 (예: 양도, 실수령, ㅇㅁㅈㅅ)"
-             aria-label="도구 검색" autocomplete="off" enterkeyhint="search" spellcheck="false">
-      <button class="iconx" id="clearQ" type="button" aria-label="검색어 지우기" hidden>✕</button>
-    </div>
     <nav class="chips" id="chips" aria-label="분류 필터"></nav>
   </div>
 </div>
@@ -296,16 +362,24 @@ body.is-offline .offbar{display:block}
     <button class="linkbtn" id="resetBtn" type="button">검색·필터 초기화</button>
   </div>
 
+  <section class="tips" aria-label="안내">
+    <div class="tip"><div class="t">⚖️ 법령 기준</div><p>세율·공제·요율은 법제처 국가법령정보(K-Law) 원문으로 확인해 반영합니다. 국회 심의 중인 정부안은 「미확정」으로 따로 표시합니다.</p></div>
+    <div class="tip"><div class="t">🏠 종부세 정부안 비교</div><p>2026 세제개편안(2027·2028년 시행 예정)의 기본공제·공정시장가액비율·세율·세액공제 변화를 현행과 나란히 확인할 수 있습니다. <a href="한백택스_취득세_종합부동산세_계산기_v2.html">종부세 계산기 →</a></p></div>
+    <div class="tip"><div class="t">📞 상담 안내</div><p>계산 결과는 참고용입니다. 실제 신고·절세 검토는 <a href="tel:+82222773101">02-2277-3101</a> 또는 <a href="mailto:hb090@hanbaektax.kr">hb090@hanbaektax.kr</a>로 문의하십시오.</p></div>
+  </section>
+
   <footer class="foot">
-    <b>세무법인 한백택스</b><br>
-    대표세무사 차재영<br>
-    서울특별시 중구 동호로 315, 신안빌딩 2층 (장충동2가 173-1)<br>
-    Tel <a href="tel:+82222773101">02-2277-3101</a> · Fax 02-2277-3161<br>
-    <a href="mailto:hb090@hanbaektax.kr">hb090@hanbaektax.kr</a> · <a href="mailto:hb3101@naver.com">hb3101@naver.com</a>
-    <span class="note">
+    <div>
+      <b>세무법인 한백택스</b><br>
+      대표세무사 차재영<br>
+      서울특별시 중구 동호로 315, 신안빌딩 2층 (장충동2가 173-1)<br>
+      Tel <a href="tel:+82222773101">02-2277-3101</a> · Fax 02-2277-3161<br>
+      <a href="mailto:hb090@hanbaektax.kr">hb090@hanbaektax.kr</a> · <a href="mailto:hb3101@naver.com">hb3101@naver.com</a>
+    </div>
+    <div class="note">
       ※ 본 계산기·시뮬레이터는 참고용이며, 정확한 세액은 세무사 검토 후 확정됩니다.<br>
       <span id="footMeta"></span>
-    </span>
+    </div>
   </footer>
 </main>
 
@@ -319,7 +393,7 @@ body.is-offline .offbar{display:block}
 'use strict';
 
 /* ══════════ 도구 목록 ══════════
- * f: 파일명 · i: 아이콘 · t: 이름 · d: 설명 · k: 검색 별칭 · feat: 대표 카드
+ * f: 파일명 · i: 아이콘 · t: 이름 · d: 설명 · k: 검색 별칭 · feat: 대표 카드 · nw: 최근 개편
  */
 const APPS = [
   {cat:'대표 서비스', acc:'var(--a1)', items:[
@@ -349,15 +423,15 @@ const APPS = [
   {cat:'양도 · 증여 · 상속 · 부동산', acc:'var(--a4)', items:[
     {f:'한백택스_양도소득세_계산기.html', i:'🏠', t:'양도소득세 계산기', d:'취득·양도일 입력 → 보유·거주기간 자동', k:'양도세 부동산 매매 장기보유특별공제 1세대1주택 거주기간 비과세'},
     {f:'2026_양도소득세_계산기.html', i:'🏘️', t:'양도세 — 다주택·분양권', d:'주택수·분양권 취득시기·기납부세액', k:'양도세 다주택 중과 분양권 입주권 조정대상지역 비사업용토지 기납부'},
+    {f:'한백택스_취득세_종합부동산세_계산기_v2.html', i:'🏙️', t:'취득세·종부세 계산기', d:'현행·2027·2028 정부안 비교 · 세액공제·세부담상한', k:'취득세 종부세 종합부동산세 재산세 보유세 다주택 공정시장가액비율 세액공제 공동명의 정부안', nw:true},
     {f:'한백택스_증여세_계산기.html', i:'🎁', t:'증여세 계산기', d:'증여세 산출·세대생략 할증', k:'증여 증여재산공제 사전증여 세대생략 할증'},
     {f:'2026_증여세_시뮬레이션.html', i:'💍', t:'증여세 — 혼인·출산공제', d:'미성년·혼인출산 1억·목표액 역산', k:'증여 혼인공제 출산공제 미성년 신혼부부 역산 목표'},
     {f:'한백택스_증여세대납_계산기.html', i:'🎁', t:'증여세 대납 계산기', d:'세금 대납 효과', k:'증여 대납 재차증여'},
     {f:'한백택스_상속세_계산기.html', i:'⚰️', t:'상속세 계산기', d:'일괄·배우자·금융재산공제', k:'상속 배우자공제 일괄공제 금융재산'},
     {f:'한백택스_부담부증여_계산기.html', i:'🏠', t:'부담부증여 계산기', d:'양도세+증여세 동시계산', k:'부담부 채무인수 전세보증금 대출'},
     {f:'한백택스_가업상속_시뮬레이터.html', i:'🏭', t:'가업상속 시뮬레이터', d:'가업상속공제 상증법 제18조의2', k:'가업승계 가업상속공제 사후관리'},
-    {f:'한백택스_취득세_종합부동산세_계산기_v2.html', i:'🏘️', t:'취득세·종부세 계산기', d:'부동산 보유세', k:'취득세 종부세 재산세 보유세 다주택'},
     {f:'한백택스_건물기준시가_계산기_v3.html', i:'🏗️', t:'건물 기준시가 계산기', d:'기준시가 산정', k:'기준시가 건물 신축가격기준액'},
-    {f:'한백택스_비상장주식_평가계산기.html', i:'📈', t:'비상장주식 평가', d:'순손익·순자산 가중평가', k:'비상장 주식평가 순자산 순손익 할증'},
+    {f:'한백택스_비상장주식_평가계산기.html', i:'📈', t:'비상장주식 평가조서', d:'순손익·순자산·영업권 · 증자감자 환산 · 할증', k:'비상장 주식평가 순자산 순손익 할증 영업권 증자 감자 평가심의 상증법 63조', nw:true},
   ]},
   {cat:'환급 · 일정 · 도구', acc:'var(--a5)', items:[
     {f:'한백택스_경정청구_v2.html', i:'↩️', t:'경정청구 시뮬레이션', d:'5년치 환급 진단', k:'경정청구 환급 기한후신고'},
@@ -436,13 +510,14 @@ function hl(text, q){
 /* ══════════ 렌더 ══════════ */
 function cardEl(a, q){
   const el = document.createElement('a');
-  el.className = 'card' + (a.feat ? ' feat' : '');
+  el.className = 'card' + (a.feat ? ' feat' : '') + (a.nw ? ' hasnew' : '');
   el.href = encodeURI(a.f);
   el.style.setProperty('--acc', a.acc);
   el.innerHTML =
       '<span class="ico" aria-hidden="true">' + a.i + '</span>'
     + '<span class="ttl">' + hl(a.t, q) + '</span>'
-    + '<span class="ds">' + hl(a.d, q) + '</span>';
+    + '<span class="ds">' + hl(a.d, q) + '</span>'
+    + (a.nw ? '<span class="new">NEW · 개편</span>' : '');
   el.addEventListener('click', () => pushRecent(a.f));
 
   const on = favs.indexOf(a.f) >= 0;
@@ -461,6 +536,7 @@ function section(title, items, q, acc, extraBtn){
   const frag = document.createDocumentFragment();
   const h = document.createElement('h2');
   h.className = 'cat';
+  h.id = 'cat-' + title.replace(/[^가-힣a-zA-Z0-9]/g, '');
   h.style.setProperty('--acc', acc || 'var(--gold)');
   h.innerHTML = '<span class="dot" aria-hidden="true"></span>'
               + esc(title) + ' <span class="n">' + items.length + '</span>';
@@ -537,7 +613,25 @@ function pushRecent(f){
   LS.set('hbt_recent', recent);
 }
 
-/* ══════════ 분류 칩 ══════════ */
+/* ══════════ 대표 카드 (히어로) ══════════ */
+(function buildHero(){
+  const box = document.getElementById('hcards');
+  const feats = ALL.filter(a => a.feat).slice(0, 3);
+  feats.forEach(a => {
+    const el = document.createElement('a');
+    el.className = 'hcard';
+    el.href = encodeURI(a.f);
+    el.innerHTML = '<span class="ico" aria-hidden="true">' + a.i + '</span>'
+      + '<span class="ttl">' + esc(a.t) + '</span>'
+      + '<span class="ds">' + esc(a.d) + '</span>'
+      + '<span class="go" aria-hidden="true">열기 →</span>';
+    el.addEventListener('click', () => pushRecent(a.f));
+    box.appendChild(el);
+  });
+  document.getElementById('statCount').textContent = ALL.length;
+})();
+
+/* ══════════ 분류 칩 · 상단 링크 ══════════ */
 const chipBox = document.getElementById('chips');
 (function buildChips(){
   ['전체'].concat(CATS).forEach(c => {
@@ -549,6 +643,14 @@ const chipBox = document.getElementById('chips');
     b.setAttribute('aria-pressed', c === activeCat ? 'true' : 'false');
     b.addEventListener('click', () => setCat(c, b));
     chipBox.appendChild(b);
+  });
+  const nav = document.getElementById('navlinks');
+  CATS.forEach(c => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = c;
+    b.addEventListener('click', () => { setCat(c, chipBox.querySelector('.chip[data-cat="' + c + '"]')); document.getElementById('main').scrollIntoView({behavior:'smooth', block:'start'}); });
+    nav.appendChild(b);
   });
 })();
 function setCat(c, btn){
@@ -568,7 +670,7 @@ function applyTheme(t){
   themeBtn.textContent = t === 'dark' ? '☀' : '🌙';
   themeBtn.setAttribute('aria-label', t === 'dark' ? '밝은 화면으로 전환' : '어두운 화면으로 전환');
   const m = document.querySelector('meta[name="theme-color"]');
-  if(m) m.setAttribute('content', t === 'dark' ? '#0D1520' : '#1B3A5C');
+  if(m) m.setAttribute('content', t === 'dark' ? '#0F1621' : '#FFFFFF');
 }
 applyTheme(document.documentElement.getAttribute('data-theme') || 'light');
 themeBtn.addEventListener('click', () => {
@@ -629,7 +731,8 @@ window.addEventListener('scroll', () => {
   if(ticking) return;
   ticking = true;
   requestAnimationFrame(() => {
-    toolbar.classList.toggle('stuck', window.scrollY > 8);
+    const r = toolbar.getBoundingClientRect();
+    toolbar.classList.toggle('stuck', r.top <= 62 && window.scrollY > 40);
     ticking = false;
   });
 }, {passive:true});
@@ -748,7 +851,7 @@ if(!swOK){
 /* ══════════ 시작 ══════════ */
 clearQ.hidden = !query;
 document.getElementById('footMeta').textContent =
-  '수록 도구 ' + ALL.length + '종 · 오프라인 사용 가능 · 검색 단축키 “/”';
+  '수록 도구 ' + ALL.length + '종 · 오프라인 사용 가능 · 검색 단축키 “/” · 최근 개편 2026-09-09';
 render();
 </script>
 </body>
