@@ -1,0 +1,809 @@
+{
+ "week_start": "2026-01-25",
+ "week_end": "2026-01-31",
+ "fetched_at": "2026-09-09T06:28:39.487Z",
+ "unit_note": "원/1통화단위 (엔·루피아 포함)",
+ "source": "관세청 UNI-PASS 주간환율 조회 (정보조회 › 신고지원정보 › 주간환율)",
+ "import": [
+  {
+   "unit": "AED",
+   "name": "아랍에미리트 연합",
+   "name_en": "UAE Dirham",
+   "rate": 401.09,
+   "prev": 399.7
+  },
+  {
+   "unit": "ARS",
+   "name": "아르헨티나",
+   "name_en": "Argentine Peso",
+   "rate": 1.03,
+   "prev": 1.01
+  },
+  {
+   "unit": "AUD",
+   "name": "호주",
+   "name_en": "Australian Dollar",
+   "rate": 993.57,
+   "prev": 982.53
+  },
+  {
+   "unit": "BDT",
+   "name": "방글라데시",
+   "name_en": "Taka",
+   "rate": 12.04,
+   "prev": 12.01
+  },
+  {
+   "unit": "BHD",
+   "name": "바레인",
+   "name_en": "Bahraini Dinar",
+   "rate": 3907.09,
+   "prev": 3893.73
+  },
+  {
+   "unit": "BND",
+   "name": "브루나이",
+   "name_en": "Brunei Dollar",
+   "rate": 1146.71,
+   "prev": 1140.31
+  },
+  {
+   "unit": "BRL",
+   "name": "브라질",
+   "name_en": "Brazilian Real",
+   "rate": 275.66,
+   "prev": 273.01
+  },
+  {
+   "unit": "CAD",
+   "name": "캐나다",
+   "name_en": "Canadian Dollar",
+   "rate": 1063.75,
+   "prev": 1056.94
+  },
+  {
+   "unit": "CHF",
+   "name": "스위스",
+   "name_en": "Swiss Franc",
+   "rate": 1854.29,
+   "prev": 1833.68
+  },
+  {
+   "unit": "CLP",
+   "name": "칠레",
+   "name_en": "Chilean Peso",
+   "rate": 1.67,
+   "prev": 1.66
+  },
+  {
+   "unit": "CNY",
+   "name": "중국",
+   "name_en": "Yuan Renminbi",
+   "rate": 211.73,
+   "prev": 210.67
+  },
+  {
+   "unit": "COP",
+   "name": "콜롬비아",
+   "name_en": "Colombian Peso",
+   "rate": 0.4,
+   "prev": 0.4
+  },
+  {
+   "unit": "CZK",
+   "name": "체코공화국",
+   "name_en": "Czech Koruna",
+   "rate": 70.82,
+   "prev": 70.42
+  },
+  {
+   "unit": "DKK",
+   "name": "덴마크",
+   "name_en": "Danish Krone",
+   "rate": 230.36,
+   "prev": 228.68
+  },
+  {
+   "unit": "EGP",
+   "name": "이집트",
+   "name_en": "Egyptian Pound",
+   "rate": 31.12,
+   "prev": 31.1
+  },
+  {
+   "unit": "ETB",
+   "name": "에티오피아",
+   "name_en": "Ethiopian Birr",
+   "rate": 9.45,
+   "prev": 9.43
+  },
+  {
+   "unit": "EUR",
+   "name": "유럽연합",
+   "name_en": "Euro",
+   "rate": 1720.91,
+   "prev": 1708.65
+  },
+  {
+   "unit": "FJD",
+   "name": "피지",
+   "name_en": "Fiji Dollar",
+   "rate": 649.71,
+   "prev": 644.29
+  },
+  {
+   "unit": "GBP",
+   "name": "영국",
+   "name_en": "Pound Sterling",
+   "rate": 1979.2,
+   "prev": 1970.3
+  },
+  {
+   "unit": "HKD",
+   "name": "홍콩",
+   "name_en": "Hong Kong Dollar",
+   "rate": 188.91,
+   "prev": 188.27
+  },
+  {
+   "unit": "HUF",
+   "name": "헝가리",
+   "name_en": "Forint",
+   "rate": 4.48,
+   "prev": 4.43
+  },
+  {
+   "unit": "IDR",
+   "name": "인도네시아",
+   "name_en": "Rupiah",
+   "rate": 0.0871,
+   "prev": 0.0871
+  },
+  {
+   "unit": "ILS",
+   "name": "이스라엘",
+   "name_en": "Shekel",
+   "rate": 466.86,
+   "prev": 466.09
+  },
+  {
+   "unit": "INR",
+   "name": "인도",
+   "name_en": "Indian Rupee",
+   "rate": 16.16,
+   "prev": 16.26
+  },
+  {
+   "unit": "JOD",
+   "name": "요르단",
+   "name_en": "Jordanian Dinar",
+   "rate": 2077.66,
+   "prev": 2070.46
+  },
+  {
+   "unit": "JPY",
+   "name": "일본",
+   "name_en": "Yen",
+   "rate": 9.3155,
+   "prev": 9.2639
+  },
+  {
+   "unit": "KES",
+   "name": "케냐",
+   "name_en": "Kenyan Shilling",
+   "rate": 11.42,
+   "prev": 11.38
+  },
+  {
+   "unit": "KHR",
+   "name": "캄보디아",
+   "name_en": "Riel",
+   "rate": 0.37,
+   "prev": 0.37
+  },
+  {
+   "unit": "KWD",
+   "name": "쿠웨이트",
+   "name_en": "Kuwaiti Dinar",
+   "rate": 4818.65,
+   "prev": 4800.39
+  },
+  {
+   "unit": "KZT",
+   "name": "카자흐스탄",
+   "name_en": "Kazakhstan tenge",
+   "rate": 2.9,
+   "prev": 2.88
+  },
+  {
+   "unit": "LKR",
+   "name": "스리랑카",
+   "name_en": "Sri Lanka Rupee",
+   "rate": 4.76,
+   "prev": 4.75
+  },
+  {
+   "unit": "LYD",
+   "name": "리비아",
+   "name_en": "Libyan Dinar",
+   "rate": 247.38,
+   "prev": 270.32
+  },
+  {
+   "unit": "MMK",
+   "name": "미얀마",
+   "name_en": "Kyat",
+   "rate": 0.7,
+   "prev": 0.7
+  },
+  {
+   "unit": "MNT",
+   "name": "몽골",
+   "name_en": "Tugrik",
+   "rate": 0.41,
+   "prev": 0.41
+  },
+  {
+   "unit": "MOP",
+   "name": "마카오",
+   "name_en": "Pataca",
+   "rate": 183.29,
+   "prev": 182.7
+  },
+  {
+   "unit": "MXN",
+   "name": "멕시코",
+   "name_en": "Mexican Peso",
+   "rate": 83.92,
+   "prev": 82.31
+  },
+  {
+   "unit": "MYR",
+   "name": "말레이시아",
+   "name_en": "Malaysian Ringgit",
+   "rate": 363.65,
+   "prev": 361.64
+  },
+  {
+   "unit": "NOK",
+   "name": "노르웨이",
+   "name_en": "Norwegian Krone",
+   "rate": 147.4,
+   "prev": 145.57
+  },
+  {
+   "unit": "NPR",
+   "name": "네팔",
+   "name_en": "Nepalese Rupee",
+   "rate": 10.09,
+   "prev": 10.17
+  },
+  {
+   "unit": "NZD",
+   "name": "뉴질랜드",
+   "name_en": "New Zealand Dollar",
+   "rate": 858.15,
+   "prev": 843.55
+  },
+  {
+   "unit": "OMR",
+   "name": "오만",
+   "name_en": "Rial Omani",
+   "rate": 3826.29,
+   "prev": 3812.94
+  },
+  {
+   "unit": "PHP",
+   "name": "필리핀",
+   "name_en": "Philippine Peso",
+   "rate": 24.83,
+   "prev": 24.74
+  },
+  {
+   "unit": "PKR",
+   "name": "파키스탄",
+   "name_en": "Pakistan Rupee",
+   "rate": 5.26,
+   "prev": 5.23
+  },
+  {
+   "unit": "PLN",
+   "name": "폴란드",
+   "name_en": "Polish Zloty",
+   "rate": 408.14,
+   "prev": 405.68
+  },
+  {
+   "unit": "QAR",
+   "name": "카타르",
+   "name_en": "Qatari Rial",
+   "rate": 403.93,
+   "prev": 402.13
+  },
+  {
+   "unit": "RON",
+   "name": "루마니아",
+   "name_en": "Romanian Leu",
+   "rate": 337.87,
+   "prev": 335.72
+  },
+  {
+   "unit": "RUB",
+   "name": "러시아 연방",
+   "name_en": "Russian Rouble",
+   "rate": 19.05,
+   "prev": 18.68
+  },
+  {
+   "unit": "SAR",
+   "name": "사우디아라비아",
+   "name_en": "Saudi Riyal",
+   "rate": 392.82,
+   "prev": 391.44
+  },
+  {
+   "unit": "SEK",
+   "name": "스웨덴",
+   "name_en": "Swedish Krona",
+   "rate": 161.26,
+   "prev": 159.46
+  },
+  {
+   "unit": "SGD",
+   "name": "싱가포르",
+   "name_en": "Singapore Dollar",
+   "rate": 1146.71,
+   "prev": 1140.31
+  },
+  {
+   "unit": "THB",
+   "name": "태국",
+   "name_en": "Baht",
+   "rate": 47.21,
+   "prev": 46.77
+  },
+  {
+   "unit": "TRY",
+   "name": "튀르키예",
+   "name_en": "Turkish Lira",
+   "rate": 34.02,
+   "prev": 33.99
+  },
+  {
+   "unit": "TWD",
+   "name": "대만",
+   "name_en": "New Taiwan Dollar",
+   "rate": 46.56,
+   "prev": 46.48
+  },
+  {
+   "unit": "USD",
+   "name": "미국",
+   "name_en": "US Dollar",
+   "rate": 1473.06,
+   "prev": 1467.96
+  },
+  {
+   "unit": "UZS",
+   "name": "우즈베키스탄",
+   "name_en": "Uzbekistan Sum",
+   "rate": 0.12,
+   "prev": 0.12
+  },
+  {
+   "unit": "VND",
+   "name": "베트남",
+   "name_en": "Dong",
+   "rate": 0.0561,
+   "prev": 0.0558
+  },
+  {
+   "unit": "ZAR",
+   "name": "남아프리카공화국",
+   "name_en": "Rand",
+   "rate": 90.19,
+   "prev": 89.47
+  }
+ ],
+ "export": [
+  {
+   "unit": "AED",
+   "name": "아랍에미리트 연합",
+   "name_en": "UAE Dirham",
+   "rate": 401.09,
+   "prev": 399.7
+  },
+  {
+   "unit": "ARS",
+   "name": "아르헨티나",
+   "name_en": "Argentine Peso",
+   "rate": 1.03,
+   "prev": 1.01
+  },
+  {
+   "unit": "AUD",
+   "name": "호주",
+   "name_en": "Australian Dollar",
+   "rate": 993.57,
+   "prev": 982.53
+  },
+  {
+   "unit": "BDT",
+   "name": "방글라데시",
+   "name_en": "Taka",
+   "rate": 12.04,
+   "prev": 12.01
+  },
+  {
+   "unit": "BHD",
+   "name": "바레인",
+   "name_en": "Bahraini Dinar",
+   "rate": 3907.09,
+   "prev": 3893.73
+  },
+  {
+   "unit": "BND",
+   "name": "브루나이",
+   "name_en": "Brunei Dollar",
+   "rate": 1146.71,
+   "prev": 1140.31
+  },
+  {
+   "unit": "BRL",
+   "name": "브라질",
+   "name_en": "Brazilian Real",
+   "rate": 275.66,
+   "prev": 273.01
+  },
+  {
+   "unit": "CAD",
+   "name": "캐나다",
+   "name_en": "Canadian Dollar",
+   "rate": 1063.75,
+   "prev": 1056.94
+  },
+  {
+   "unit": "CHF",
+   "name": "스위스",
+   "name_en": "Swiss Franc",
+   "rate": 1854.29,
+   "prev": 1833.68
+  },
+  {
+   "unit": "CLP",
+   "name": "칠레",
+   "name_en": "Chilean Peso",
+   "rate": 1.67,
+   "prev": 1.66
+  },
+  {
+   "unit": "CNY",
+   "name": "중국",
+   "name_en": "Yuan Renminbi",
+   "rate": 211.73,
+   "prev": 210.67
+  },
+  {
+   "unit": "COP",
+   "name": "콜롬비아",
+   "name_en": "Colombian Peso",
+   "rate": 0.4,
+   "prev": 0.4
+  },
+  {
+   "unit": "CZK",
+   "name": "체코공화국",
+   "name_en": "Czech Koruna",
+   "rate": 70.82,
+   "prev": 70.42
+  },
+  {
+   "unit": "DKK",
+   "name": "덴마크",
+   "name_en": "Danish Krone",
+   "rate": 230.36,
+   "prev": 228.68
+  },
+  {
+   "unit": "EGP",
+   "name": "이집트",
+   "name_en": "Egyptian Pound",
+   "rate": 31.12,
+   "prev": 31.1
+  },
+  {
+   "unit": "ETB",
+   "name": "에티오피아",
+   "name_en": "Ethiopian Birr",
+   "rate": 9.45,
+   "prev": 9.43
+  },
+  {
+   "unit": "EUR",
+   "name": "유럽연합",
+   "name_en": "Euro",
+   "rate": 1720.91,
+   "prev": 1708.65
+  },
+  {
+   "unit": "FJD",
+   "name": "피지",
+   "name_en": "Fiji Dollar",
+   "rate": 649.71,
+   "prev": 644.29
+  },
+  {
+   "unit": "GBP",
+   "name": "영국",
+   "name_en": "Pound Sterling",
+   "rate": 1979.2,
+   "prev": 1970.3
+  },
+  {
+   "unit": "HKD",
+   "name": "홍콩",
+   "name_en": "Hong Kong Dollar",
+   "rate": 188.91,
+   "prev": 188.27
+  },
+  {
+   "unit": "HUF",
+   "name": "헝가리",
+   "name_en": "Forint",
+   "rate": 4.48,
+   "prev": 4.43
+  },
+  {
+   "unit": "IDR",
+   "name": "인도네시아",
+   "name_en": "Rupiah",
+   "rate": 0.0871,
+   "prev": 0.0871
+  },
+  {
+   "unit": "ILS",
+   "name": "이스라엘",
+   "name_en": "Shekel",
+   "rate": 466.86,
+   "prev": 466.09
+  },
+  {
+   "unit": "INR",
+   "name": "인도",
+   "name_en": "Indian Rupee",
+   "rate": 16.16,
+   "prev": 16.26
+  },
+  {
+   "unit": "JOD",
+   "name": "요르단",
+   "name_en": "Jordanian Dinar",
+   "rate": 2077.66,
+   "prev": 2070.46
+  },
+  {
+   "unit": "JPY",
+   "name": "일본",
+   "name_en": "Yen",
+   "rate": 9.3155,
+   "prev": 9.2639
+  },
+  {
+   "unit": "KES",
+   "name": "케냐",
+   "name_en": "Kenyan Shilling",
+   "rate": 11.42,
+   "prev": 11.38
+  },
+  {
+   "unit": "KHR",
+   "name": "캄보디아",
+   "name_en": "Riel",
+   "rate": 0.37,
+   "prev": 0.37
+  },
+  {
+   "unit": "KWD",
+   "name": "쿠웨이트",
+   "name_en": "Kuwaiti Dinar",
+   "rate": 4818.65,
+   "prev": 4800.39
+  },
+  {
+   "unit": "KZT",
+   "name": "카자흐스탄",
+   "name_en": "Kazakhstan tenge",
+   "rate": 2.9,
+   "prev": 2.88
+  },
+  {
+   "unit": "LKR",
+   "name": "스리랑카",
+   "name_en": "Sri Lanka Rupee",
+   "rate": 4.76,
+   "prev": 4.75
+  },
+  {
+   "unit": "LYD",
+   "name": "리비아",
+   "name_en": "Libyan Dinar",
+   "rate": 247.38,
+   "prev": 270.32
+  },
+  {
+   "unit": "MMK",
+   "name": "미얀마",
+   "name_en": "Kyat",
+   "rate": 0.7,
+   "prev": 0.7
+  },
+  {
+   "unit": "MNT",
+   "name": "몽골",
+   "name_en": "Tugrik",
+   "rate": 0.41,
+   "prev": 0.41
+  },
+  {
+   "unit": "MOP",
+   "name": "마카오",
+   "name_en": "Pataca",
+   "rate": 183.29,
+   "prev": 182.7
+  },
+  {
+   "unit": "MXN",
+   "name": "멕시코",
+   "name_en": "Mexican Peso",
+   "rate": 83.92,
+   "prev": 82.31
+  },
+  {
+   "unit": "MYR",
+   "name": "말레이시아",
+   "name_en": "Malaysian Ringgit",
+   "rate": 363.65,
+   "prev": 361.64
+  },
+  {
+   "unit": "NOK",
+   "name": "노르웨이",
+   "name_en": "Norwegian Krone",
+   "rate": 147.4,
+   "prev": 145.57
+  },
+  {
+   "unit": "NPR",
+   "name": "네팔",
+   "name_en": "Nepalese Rupee",
+   "rate": 10.09,
+   "prev": 10.17
+  },
+  {
+   "unit": "NZD",
+   "name": "뉴질랜드",
+   "name_en": "New Zealand Dollar",
+   "rate": 858.15,
+   "prev": 843.55
+  },
+  {
+   "unit": "OMR",
+   "name": "오만",
+   "name_en": "Rial Omani",
+   "rate": 3826.29,
+   "prev": 3812.94
+  },
+  {
+   "unit": "PHP",
+   "name": "필리핀",
+   "name_en": "Philippine Peso",
+   "rate": 24.83,
+   "prev": 24.74
+  },
+  {
+   "unit": "PKR",
+   "name": "파키스탄",
+   "name_en": "Pakistan Rupee",
+   "rate": 5.26,
+   "prev": 5.23
+  },
+  {
+   "unit": "PLN",
+   "name": "폴란드",
+   "name_en": "Polish Zloty",
+   "rate": 408.14,
+   "prev": 405.68
+  },
+  {
+   "unit": "QAR",
+   "name": "카타르",
+   "name_en": "Qatari Rial",
+   "rate": 403.93,
+   "prev": 402.13
+  },
+  {
+   "unit": "RON",
+   "name": "루마니아",
+   "name_en": "Romanian Leu",
+   "rate": 337.87,
+   "prev": 335.72
+  },
+  {
+   "unit": "RUB",
+   "name": "러시아 연방",
+   "name_en": "Russian Rouble",
+   "rate": 19.05,
+   "prev": 18.68
+  },
+  {
+   "unit": "SAR",
+   "name": "사우디아라비아",
+   "name_en": "Saudi Riyal",
+   "rate": 392.82,
+   "prev": 391.44
+  },
+  {
+   "unit": "SEK",
+   "name": "스웨덴",
+   "name_en": "Swedish Krona",
+   "rate": 161.26,
+   "prev": 159.46
+  },
+  {
+   "unit": "SGD",
+   "name": "싱가포르",
+   "name_en": "Singapore Dollar",
+   "rate": 1146.71,
+   "prev": 1140.31
+  },
+  {
+   "unit": "THB",
+   "name": "태국",
+   "name_en": "Baht",
+   "rate": 47.21,
+   "prev": 46.77
+  },
+  {
+   "unit": "TRY",
+   "name": "튀르키예",
+   "name_en": "Turkish Lira",
+   "rate": 34.02,
+   "prev": 33.99
+  },
+  {
+   "unit": "TWD",
+   "name": "대만",
+   "name_en": "New Taiwan Dollar",
+   "rate": 46.56,
+   "prev": 46.48
+  },
+  {
+   "unit": "USD",
+   "name": "미국",
+   "name_en": "US Dollar",
+   "rate": 1473.06,
+   "prev": 1467.96
+  },
+  {
+   "unit": "UZS",
+   "name": "우즈베키스탄",
+   "name_en": "Uzbekistan Sum",
+   "rate": 0.12,
+   "prev": 0.12
+  },
+  {
+   "unit": "VND",
+   "name": "베트남",
+   "name_en": "Dong",
+   "rate": 0.0561,
+   "prev": 0.0558
+  },
+  {
+   "unit": "ZAR",
+   "name": "남아프리카공화국",
+   "name_en": "Rand",
+   "rate": 90.19,
+   "prev": 89.47
+  }
+ ]
+}
