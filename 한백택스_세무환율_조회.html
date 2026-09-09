@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>💱 세무환율 조회 | 한백택스</title>
+<meta name="description" content="세무 신고에 쓰는 매매기준율·재정환율·과세환율을 한 화면에서 확인하고 원화로 환산">
+<meta property="og:title" content="💱 세무환율 조회">
+<meta property="og:description" content="매매기준율 · 재정환율 · 과세환율 · 원화 환산 · 세무법인 한백택스">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#1B3A5C">
+<meta name="color-scheme" content="light dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="세무환율 조회">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<script>
+/* 랜딩(index.html)과 같은 키(hbt_theme)로 테마를 맞춘다. 깜빡임을 막기 위해 head 에서 먼저 적용 */
+(function(){
+  try{
+    var t = localStorage.getItem('hbt_theme');
+    if(!t) t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  }catch(e){ document.documentElement.setAttribute('data-theme','light'); }
+})();
+</script>
+<style>
+/* ══ 토큰 (랜딩 index.html 과 동일 체계) ══ */
+:root{
+  --navy:#1B3A5C; --blue:#2E6DA4; --gold:#C8963E;
+  --bg:#F3F5F9; --card:#FFFFFF; --card-2:#FBFCFE;
+  --txt:#22303F; --txt-2:#3A4C60; --gray:#6B7A8D; --border:#DDE4ED;
+  --head:#1B3A5C; --head-2:#24507C; --head-txt:#FFFFFF; --head-sub:#AFC4DA;
+  --bar:#12293F;
+  --input-bg:#FFF8E1; --auto-bg:#FDF2E9;
+  --ok:#2C7A6B; --ok-bg:#E3F3EF; --warn:#9A5B12; --warn-bg:#FBECC8; --bad:#B23A3A; --bad-bg:#FBE4E4;
+  --sh1:0 1px 2px rgba(27,58,92,.05), 0 2px 6px rgba(27,58,92,.06);
+  --r-s:10px; --r:14px;
+  --ff:'Nanum Gothic','Malgun Gothic','Apple SD Gothic Neo',system-ui,-apple-system,sans-serif;
+}
+html[data-theme="dark"]{
+  --bg:#101620; --card:#1A2230; --card-2:#1E2736;
+  --txt:#E6EDF5; --txt-2:#CBD8E6; --gray:#94A6BB; --border:#2C3849;
+  --head:#0D1520; --head-2:#152238; --head-txt:#F1F5F9; --head-sub:#93A9C2;
+  --bar:#0A111B; --blue:#5B9BD5; --gold:#D8A85A;
+  --input-bg:#2A2A1E; --auto-bg:#2B2420;
+  --ok:#4CA290; --ok-bg:#16322C; --warn:#E0B060; --warn-bg:#3A2E14; --bad:#E07A7A; --bad-bg:#3A1C1C;
+  --sh1:0 1px 2px rgba(0,0,0,.35), 0 2px 8px rgba(0,0,0,.28);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none !important}
+body{background:var(--bg);color:var(--txt);font-family:var(--ff);font-size:16px;line-height:1.55;min-height:100dvh;
+  padding-bottom:calc(24px + env(safe-area-inset-bottom));-webkit-text-size-adjust:100%}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--blue)}
+
+/* ══ 머리말 (다른 계산기와 동일) ══ */
+.top-bar{background:linear-gradient(135deg,var(--head) 0%,var(--head-2) 100%);color:var(--head-txt);
+  padding:calc(14px + env(safe-area-inset-top)) 28px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.top-bar h1{font-size:24px;letter-spacing:-.5px;line-height:1.25}
+.top-bar .sub{font-size:14px;color:var(--head-sub);margin-top:3px}
+.top-bar .tag{color:var(--gold);font-weight:800;font-size:12px;text-align:right;white-space:nowrap}
+.brand-bar{background:var(--bar);color:var(--gold);text-align:center;padding:8px 12px;font-size:13px;font-weight:700;border-bottom:3px solid var(--gold)}
+.standalone-back{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;margin:14px 28px 0;transition:opacity .2s}
+.standalone-back:hover{opacity:.85}
+
+/* ══ 본문 ══ */
+.wrap{max-width:1100px;margin:0 auto;padding:16px 28px 28px}
+.status{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r-s);padding:10px 14px;box-shadow:var(--sh1);margin-bottom:16px;font-size:14px;color:var(--txt-2)}
+.status b{color:var(--txt)}
+.status .sp{flex:1}
+.btn{border:1px solid var(--border);background:var(--card-2);color:var(--txt);border-radius:8px;padding:8px 14px;font-weight:700;font-size:14px;cursor:pointer;
+  min-height:40px;transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--blue)}
+.btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}
+html[data-theme="dark"] .btn.primary{background:var(--blue);border-color:var(--blue)}
+.btn.small{padding:5px 10px;font-size:13px;min-height:32px}
+.btn:disabled{opacity:.5;cursor:default}
+.btn:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;box-shadow:var(--sh1);margin-bottom:18px}
+.card h2{font-size:19px;letter-spacing:-.3px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.card h2 .badge{font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px;background:var(--ok-bg);color:var(--ok)}
+.card h2 .badge.warn{background:var(--warn-bg);color:var(--warn)}
+.card h2 .badge.bad{background:var(--bad-bg);color:var(--bad)}
+.card .desc{font-size:14px;color:var(--gray);margin:6px 0 14px}
+.note{font-size:13.5px;color:var(--txt-2);background:var(--card-2);border:1px dashed var(--border);border-radius:8px;padding:10px 12px;margin-top:12px;line-height:1.6}
+.note.warn{border-color:var(--warn);background:var(--warn-bg);color:var(--txt)}
+.note.bad{border-color:var(--bad);background:var(--bad-bg);color:var(--txt)}
+
+.tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{padding:9px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
+th{text-align:center;background:var(--card-2);color:var(--txt-2);font-weight:800;font-size:13.5px}
+td.l{text-align:left} td.r{text-align:right;font-variant-numeric:tabular-nums} td.c{text-align:center}
+td .cur{font-weight:800} td .nm{color:var(--gray);font-size:13px;margin-left:6px}
+tr.main td{background:color-mix(in srgb,var(--gold) 7%,transparent)}
+tr:hover td{background:color-mix(in srgb,var(--blue) 8%,transparent)}
+.diff-ok{color:var(--ok);font-weight:700} .diff-warn{color:var(--warn);font-weight:700} .diff-bad{color:var(--bad);font-weight:700}
+.muted{color:var(--gray)}
+.loading{color:var(--gray);font-size:14px;padding:14px 0}
+.loading::before{content:"";display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;
+  margin-right:8px;vertical-align:-2px;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* 폼 */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px 16px}
+.field label{display:block;font-size:13px;font-weight:700;color:var(--txt-2);margin-bottom:5px}
+.field input,.field select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--txt);font-size:16px;min-height:44px}
+.field input[readonly]{background:var(--auto-bg)}
+.field input.r{text-align:right;font-variant-numeric:tabular-nums}
+.result{margin-top:14px;padding:14px 16px;border-radius:10px;background:color-mix(in srgb,var(--navy) 8%,var(--card));border:1px solid var(--border);
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px}
+.result .big{font-size:26px;font-weight:800;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.result .sub{font-size:13.5px;color:var(--gray)}
+.rowbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+
+/* 가이드 표 */
+.guide td{white-space:normal;vertical-align:top;line-height:1.55}
+.guide td:first-child{font-weight:800;white-space:nowrap}
+.guide .law{font-size:13.5px;color:var(--txt-2)}
+.guide code{font-family:inherit;background:var(--card-2);border:1px solid var(--border);border-radius:4px;padding:0 5px;font-size:13px}
+
+.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.links a{display:block;padding:11px 13px;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--txt);background:var(--card-2)}
+.links a b{display:block;color:var(--blue);font-size:15px}
+.links a span{font-size:13px;color:var(--gray)}
+
+.foot{margin-top:24px;padding-top:14px;border-top:1px solid var(--border);font-size:12.5px;color:var(--gray);line-height:1.7;text-align:center}
+.foot b{color:var(--txt-2)}
+
+@media(max-width:700px){
+  .top-bar{padding-left:14px;padding-right:14px}
+  .top-bar h1{font-size:20px} .top-bar .sub{font-size:12px} .brand-bar{font-size:12px}
+  .standalone-back{margin:10px 12px 0;font-size:12px}
+  .wrap{padding:12px 12px 20px}
+  .card{padding:16px 14px} .card h2{font-size:17px}
+  table{font-size:14px} th,td{padding:8px 7px}
+  .result .big{font-size:22px}
+}
+@media print{
+  .top-bar .tag,.standalone-back,.status .btn,.rowbtns,.links{display:none !important}
+  body{background:#fff;color:#000} .card{box-shadow:none;break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div>
+    <h1>세무법인 한백택스</h1>
+    <div class="sub">대표세무사 차재영 | 서울특별시 중구 동호로 315, 2층</div>
+  </div>
+  <div class="tag">세무환율 조회 v1</div>
+</div>
+<div class="brand-bar">HANBAEK TAX — 세무환율 조회 (매매기준율 · 재정환율 · 과세환율 · 원화 환산)</div>
+
+<a class="standalone-back" href="index.html">← 세무 도구 모음</a>
+
+<main class="wrap">
+
+  <div class="status" role="status" aria-live="polite">
+    <span>기준일 <b id="stDate">—</b></span>
+    <span>출처 <b id="stSrc">—</b></span>
+    <span class="muted" id="stTime"></span>
+    <span class="sp"></span>
+    <button class="btn small" id="btnTheme" type="button" aria-label="화면 테마 전환">🌓 테마</button>
+    <button class="btn small primary" id="btnReload" type="button">↻ 새로 고침</button>
+  </div>
+
+  <!-- ══ 1. 공식 매매기준율 ══ -->
+  <section class="card" id="secOfficial">
+    <h2>매매기준율 · 재정환율 <span class="badge" id="bdOfficial">확인 중</span></h2>
+    <p class="desc">한국수출입은행 환율 API 를 하루 한 번 수집한 값입니다. 매매기준율 열은 응답의 서울외국환중개 매매기준율(KFTC_DEAL_BAS_R)이며, 세무 신고에 쓰는 기준환율은 이 표를 사용합니다.</p>
+    <div id="officialBody"><div class="loading">공식 환율 데이터를 불러오는 중</div></div>
+  </section>
+
+  <!-- ══ 2. 참고환율 (실시간, 공개 API) ══ -->
+  <section class="card" id="secRef">
+    <h2>참고환율 (공개 API, 실시간 확인용) <span class="badge warn">참고용</span></h2>
+    <p class="desc">브라우저에서 직접 받아오는 해외 공개 환율입니다. 시세 흐름 확인용이며 <b>세무 신고 환율로는 사용하지 않습니다.</b> 두 출처의 편차가 크면 붉게 표시됩니다.</p>
+    <div id="refBody"><div class="loading">참고환율을 불러오는 중</div></div>
+  </section>
+
+  <!-- ══ 3. 날짜별 조회 ══ -->
+  <section class="card" id="secDate">
+    <h2>날짜별 환율 조회</h2>
+    <p class="desc">공급시기·평가기준일·사업연도 종료일 등 특정 날짜의 환율을 찾습니다. 공식 수집 데이터가 있으면 그 값을, 없으면 유럽중앙은행(ECB) 참고환율을 보여줍니다.</p>
+    <div class="grid">
+      <div class="field"><label for="qDate">조회일</label><input type="date" id="qDate"></div>
+      <div class="field"><label>&nbsp;</label><button class="btn primary" id="btnDate" type="button" style="width:100%">조회</button></div>
+    </div>
+    <div class="rowbtns">
+      <button class="btn small" type="button" data-q="today">오늘</button>
+      <button class="btn small" type="button" data-q="prevMonthEnd">전월 말일</button>
+      <button class="btn small" type="button" data-q="prevYearEnd">전년도 12.31</button>
+      <button class="btn small" type="button" data-q="halfEnd">직전 반기 말일</button>
+    </div>
+    <div id="dateBody" style="margin-top:14px"></div>
+  </section>
+
+  <!-- ══ 4. 원화 환산 ══ -->
+  <section class="card" id="secConv">
+    <h2>원화 환산 계산기</h2>
+    <p class="desc">외화 금액 × 적용환율. 원 미만은 절사합니다(최종 단계 1회).</p>
+    <div class="grid">
+      <div class="field"><label for="cvCur">통화</label><select id="cvCur"></select></div>
+      <div class="field"><label for="cvAmt">외화 금액</label><input type="text" inputmode="decimal" id="cvAmt" class="r" placeholder="예: 12,500.00"></div>
+      <div class="field"><label for="cvBasis">환율 기준</label>
+        <select id="cvBasis">
+          <option value="base">매매기준율</option>
+          <option value="ttb">송금 받을 때 (TTB)</option>
+          <option value="tts">송금 보낼 때 (TTS)</option>
+          <option value="manual">직접 입력</option>
+        </select></div>
+      <div class="field"><label for="cvRate">적용환율 (원/단위)</label><input type="text" inputmode="decimal" id="cvRate" class="r" readonly></div>
+    </div>
+    <div class="result">
+      <span class="big" id="cvOut">—</span>
+      <span class="sub" id="cvSub"></span>
+      <span class="sp" style="flex:1"></span>
+      <button class="btn small" type="button" id="btnCopy">복사</button>
+    </div>
+    <div class="note" id="cvNote">환율 출처가 참고환율일 때는 결과 옆에 "참고환율"이 표시됩니다. 신고서에는 공식 매매기준율을 확인한 뒤 사용하십시오.</div>
+  </section>
+
+  <!-- ══ 5. 관세청 과세환율 ══ -->
+  <section class="card" id="secCustoms">
+    <h2>관세청 과세환율 · 수출환율 (주간) <span class="badge" id="bdCustoms">확인 중</span></h2>
+    <p class="desc">수입물품 과세가격 환산(수입 부가세 포함)에는 관세청장이 주 단위로 정하는 과세환율을 씁니다. 관세법 제18조.</p>
+    <div id="customsBody"><div class="loading">과세환율 데이터를 확인하는 중</div></div>
+  </section>
+
+  <!-- ══ 6. 세무 용도별 적용환율 ══ -->
+  <section class="card" id="secGuide">
+    <h2>세무 용도별 적용환율 안내</h2>
+    <p class="desc">2026-09-09 기준 현행 조문을 법제처 국가법령정보 MCP로 확인한 내용입니다. 조문 인용은 요지이며 적용 전 원문을 확인하십시오.</p>
+    <div class="tblwrap">
+    <table class="guide">
+      <thead><tr><th>용도</th><th>적용 환율 · 기준 시점</th><th>근거</th></tr></thead>
+      <tbody>
+        <tr><td>부가세 공급가액<br>(외화 대가)</td>
+          <td>공급시기 <b>전</b>에 원화로 환가한 경우 → 환가한 금액.<br>공급시기 <b>이후</b> 외화로 보유·지급받는 경우 → <b>공급시기의 기준환율 또는 재정환율</b>.</td>
+          <td class="law">부가가치세법 제29조 ③ 제1호 단서<br>부가가치세법 시행령 제59조</td></tr>
+        <tr><td>법인세 외화자산·부채 평가</td>
+          <td>일반법인: 취득일·발생일 매매기준율(제1호) 또는 <b>사업연도 종료일 매매기준율(제2호)</b> 중 신고한 방법. 최초 신고 전에는 제1호. 신고 후 5개 사업연도 경과 시 변경 가능.<br>금융회사 등: 사업연도 종료일 매매기준율등으로 평가.</td>
+          <td class="law">법인세법 시행령 제76조 ①·②·③<br>법인세법 시행규칙 제39조의2 (매매기준율 = 외국환거래규정상 매매기준율·재정된 매매기준율)</td></tr>
+        <tr><td>소득세(사업소득) 외화자산·부채</td>
+          <td>상환 시 원화기장액과 상환 원화금액의 차익·차손을 상환일이 속하는 과세기간의 총수입금액·필요경비에 산입. 평가로 장부가액을 증감한 사업자는 조정명세서 첨부.</td>
+          <td class="law">소득세법 시행령 제97조 ①·②<br><span class="muted">개인의 기말 평가방법 세부는 별도 확인 필요</span></td></tr>
+        <tr><td>수입물품 과세가격<br>(관세 · 수입 부가세)</td>
+          <td>수입신고일(관세법 제17조의 날)이 속하는 주의 <b>전주 기준환율·재정환율을 평균</b>하여 관세청장이 정한 율(주간 고시).</td>
+          <td class="law">관세법 제18조 · 제17조<br>부가가치세법 제29조 ② (수입 과세표준 = 관세의 과세가격 + 관세 등)</td></tr>
+        <tr><td>상속·증여 외화재산</td>
+          <td><b>평가기준일 현재</b> 외국환거래법 제5조 ①에 따른 기준환율 또는 재정환율.</td>
+          <td class="law">상속세 및 증여세법 시행령 제58조의4</td></tr>
+        <tr><td>해외금융계좌 신고<br>(잔액 산출)</td>
+          <td>각 계좌의 <b>매월 말일</b> 잔액을 그 날의 일별 기준환율 또는 재정환율로 환산해 합산. 어느 하루라도 대통령령 기준금액 초과 시 다음 해 6월 신고.</td>
+          <td class="law">국제조세조정에 관한 법률 제53조 ①<br>같은 법 시행령 제93조 ①</td></tr>
+        <tr><td>매매기준율의 정의</td>
+          <td>미화: 최근 영업일 <b>오후 4시 시간가중평균환율</b>. 위안화: 최근 거래일 09:00~15:30 거래량 가중평균(시장평균환율). 재정된 매매기준율: 미화·위안화 외 통화의 대미화 매매중간율을 미화 매매기준율로 재정한 율.</td>
+          <td class="law">외국환거래규정 제1-2조 제7호<br>(재정경제부고시 제2026-88호, 2026.7.2. 개정)</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="note">양도소득세의 외화 취득·양도가액 환산, 국외원천 근로소득 환산 등은 위 조문 외에 예규·기본통칙에 따르므로 별도 확인이 필요합니다.</div>
+  </section>
+
+  <!-- ══ 7. 공식 출처 ══ -->
+  <section class="card">
+    <h2>공식 출처 바로가기</h2>
+    <div class="links">
+      <a href="https://www.smbs.biz/ExRate/TodayExRate.jsp" target="_blank" rel="noopener"><b>서울외국환중개 오늘의 환율</b><span>매매기준율 · 재정환율 고시 원천</span></a>
+      <a href="https://www.koreaexim.go.kr/ir/HPHKIR019M01" target="_blank" rel="noopener"><b>한국수출입은행 환율</b><span>일별 매매기준율 · TTB · TTS</span></a>
+      <a href="https://unipass.customs.go.kr/csp/index.do" target="_blank" rel="noopener"><b>관세청 UNI-PASS</b><span>주간 과세환율 · 수출환율</span></a>
+      <a href="https://ecos.bok.or.kr/" target="_blank" rel="noopener"><b>한국은행 ECOS</b><span>통계 731Y001 주요국 통화의 대원화환율</span></a>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <b>세무법인 한백택스</b> · 서울특별시 중구 동호로 315, 신안빌딩 2층<br>
+    전화 02-2277-3101 · 팩스 02-2277-3161 · hb090@hanbaektax.kr · hb3101@naver.com<br>
+    <span id="footNote">본 화면의 환율은 정보 제공 목적이며 최종 신고 시 고시 원문을 확인하십시오.</span>
+  </footer>
+</main>
+
+<script>
+/* ══════════ 설정 ══════════
+ * DATA_BASE : GitHub Actions(fx-collect.yml)가 fx-data 브랜치에 쌓는 공식 환율 JSON 위치.
+ *             raw.githubusercontent.com 은 CORS(*)를 허용하고 5분 캐시된다.
+ *             latest.json / daily/YYYY-MM-DD.json / customs/latest.json
+ * 참고환율   : open.er-api.com (USD 기준, 일 1회 갱신) + frankfurter.dev (ECB 고시, 영업일 16:00 CET)
+ */
+const DATA_BASE = 'https://raw.githubusercontent.com/kaliff90-stack/hanbaektax-portal/fx-data/';
+const ERAPI = 'https://open.er-api.com/v6/latest/USD';
+const FRANK = 'https://api.frankfurter.dev/v1/';
+
+/* 표시 통화. unit: 표시 단위(엔·루피아·동은 100 단위가 관행) */
+const CURS = [
+  {c:'USD', n:'미국 달러', u:1, main:true},
+  {c:'JPY', n:'일본 엔', u:100, main:true},
+  {c:'EUR', n:'유로', u:1, main:true},
+  {c:'CNY', n:'중국 위안', u:1, main:true, exim:'CNH'},
+  {c:'GBP', n:'영국 파운드', u:1},
+  {c:'HKD', n:'홍콩 달러', u:1},
+  {c:'AUD', n:'호주 달러', u:1},
+  {c:'CAD', n:'캐나다 달러', u:1},
+  {c:'CHF', n:'스위스 프랑', u:1},
+  {c:'SGD', n:'싱가포르 달러', u:1},
+  {c:'THB', n:'태국 바트', u:1},
+  {c:'VND', n:'베트남 동', u:100},
+  {c:'TWD', n:'대만 달러', u:1},
+  {c:'INR', n:'인도 루피', u:1},
+  {c:'IDR', n:'인도네시아 루피아', u:100},
+  {c:'MYR', n:'말레이시아 링깃', u:1},
+  {c:'PHP', n:'필리핀 페소', u:1},
+  {c:'NZD', n:'뉴질랜드 달러', u:1},
+  {c:'SEK', n:'스웨덴 크로나', u:1},
+  {c:'NOK', n:'노르웨이 크로네', u:1},
+  {c:'DKK', n:'덴마크 크로네', u:1},
+  {c:'AED', n:'아랍에미리트 디르함', u:1},
+  {c:'SAR', n:'사우디 리얄', u:1},
+  {c:'KWD', n:'쿠웨이트 디나르', u:1},
+  {c:'BHD', n:'바레인 디나르', u:1},
+];
+/* frankfurter(ECB)가 고시하는 통화만 교차확인에 쓴다 */
+const ECB_SET = new Set(['AUD','BGN','BRL','CAD','CHF','CNY','CZK','DKK','EUR','GBP','HKD','HUF','IDR','ILS','INR','ISK','JPY','KRW','MXN','MYR','NOK','NZD','PHP','PLN','RON','SEK','SGD','THB','TRY','USD','ZAR']);
+
+/* ══════════ 상태 ══════════ */
+const S = {
+  official: null,   /* {date, source, fetched_at, rates:[{unit,name,base,ttb,tts}]} */
+  ref: null,        /* {date, rates:{USD:1336.5,...} (원/표시단위), ecb:{...}} */
+  customs: null,
+  current: null,    /* 환산기에 쓰는 환율표: {kind:'official'|'ref', date, map:{USD:{base,ttb,tts,u}}} */
+};
+const $ = id => document.getElementById(id);
+const LS = {
+  get(k,d){ try{ const v=localStorage.getItem(k); return v===null?d:JSON.parse(v);}catch(e){return d;} },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+
+/* ══════════ 유틸 ══════════ */
+function fmt(n, d){ if(n===null||n===undefined||isNaN(n)) return '—'; return Number(n).toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function fmtWon(n){ return Math.trunc(n).toLocaleString('ko-KR') + '원'; }
+function parseNum(s){ if(typeof s==='number') return s; s=String(s||'').replace(/[^0-9.\-]/g,''); const v=parseFloat(s); return isNaN(v)?NaN:v; }
+function kstToday(){ const d=new Date(Date.now()+9*3600*1000); return d.toISOString().slice(0,10); }
+function iso(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+async function getJSON(url, ms){
+  const ctl = new AbortController(); const t=setTimeout(()=>ctl.abort(), ms||12000);
+  try{
+    const r = await fetch(url, {signal:ctl.signal, cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return await r.json();
+  } finally { clearTimeout(t); }
+}
+/* 수출입은행 cur_unit("JPY(100)") → 코드·단위 */
+function splitUnit(u){ const m=/^([A-Z]{3})(?:\((\d+)\))?$/.exec(String(u).trim()); return m?{c:m[1],u:m[2]?Number(m[2]):1}:{c:String(u),u:1}; }
+
+/* ══════════ 1. 공식 매매기준율 ══════════ */
+async function loadOfficial(){
+  const body=$('officialBody'), bd=$('bdOfficial');
+  try{
+    const d = await getJSON(DATA_BASE+'latest.json?t='+Date.now());
+    if(!d || !Array.isArray(d.rates) || !d.rates.length) throw new Error('empty');
+    S.official = d;
+    bd.textContent='공식'; bd.className='badge';
+    renderOfficial(body, d, true);
+    setCurrent('official', d);
+  }catch(e){
+    S.official=null;
+    bd.textContent='미연결'; bd.className='badge bad';
+    body.innerHTML = '<div class="note bad"><b>공식 환율 데이터가 아직 연결되지 않았습니다.</b><br>'
+      + '수집 작업(GitHub Actions <code>fx-collect.yml</code>)이 한 번 이상 실행되고 저장소에 <code>fx-data</code> 브랜치가 만들어지면 이 표가 채워집니다. '
+      + '그때까지는 아래 참고환율과 날짜별 조회(ECB)를 시세 확인용으로 쓰고, 신고 환율은 서울외국환중개·수출입은행 고시에서 직접 확인하십시오.</div>';
+  }
+}
+function renderOfficial(el, d, full){
+  const rows = sortExim(d.rates);
+  let h = '<div class="tblwrap"><table><thead><tr><th>통화</th><th>매매기준율</th><th>송금 받을 때<br>(TTB)</th><th>송금 보낼 때<br>(TTS)</th></tr></thead><tbody>';
+  rows.forEach(r=>{
+    const su=splitUnit(r.unit), main = ['USD','JPY','EUR','CNH','CNY'].includes(su.c);
+    h += `<tr class="${main?'main':''}"><td class="l"><span class="cur">${esc(r.unit)}</span><span class="nm">${esc(r.name||'')}</span></td>`
+       + `<td class="r">${fmt(r.base,2)}</td><td class="r">${fmt(r.ttb,2)}</td><td class="r">${fmt(r.tts,2)}</td></tr>`;
+  });
+  h += '</tbody></table></div>';
+  h += `<div class="note">기준일 <b>${esc(d.date)}</b> · 출처 ${esc(d.source||'한국수출입은행 환율 API')} · 수집 ${esc((d.fetched_at||'').replace('T',' ').slice(0,16))} UTC. `
+     + '단위: 원/표시단위(엔·루피아는 100). 비영업일은 직전 영업일 값이 유지됩니다.</div>';
+  el.innerHTML = h;
+}
+function sortExim(rates){
+  const order=['USD','JPY','EUR','CNH','CNY','GBP','HKD','AUD','CAD','CHF','SGD','THB'];
+  return rates.slice().sort((a,b)=>{
+    const ia=order.indexOf(splitUnit(a.unit).c), ib=order.indexOf(splitUnit(b.unit).c);
+    return (ia<0?99:ia)-(ib<0?99:ib) || String(a.unit).localeCompare(String(b.unit));
+  });
+}
+
+/* ══════════ 2. 참고환율 ══════════ */
+async function loadRef(){
+  const body=$('refBody');
+  const [a,b] = await Promise.allSettled([getJSON(ERAPI), getJSON(FRANK+'latest?base=USD&symbols='+[...ECB_SET].join(','))]);
+  const er = a.status==='fulfilled' && a.value && a.value.result==='success' ? a.value : null;
+  const fr = b.status==='fulfilled' && b.value && b.value.rates ? b.value : null;
+  if(!er && !fr){
+    body.innerHTML='<div class="note bad">참고환율 API 두 곳 모두 응답이 없습니다. 네트워크 상태를 확인한 뒤 새로 고침하십시오.</div>';
+    return;
+  }
+  const rates={}, ecb={};
+  CURS.forEach(x=>{
+    if(er && er.rates && er.rates.KRW && er.rates[x.c]) rates[x.c] = er.rates.KRW/er.rates[x.c]*x.u;
+    if(fr && fr.rates.KRW && (x.c==='USD' || fr.rates[x.c])) ecb[x.c] = fr.rates.KRW/(x.c==='USD'?1:fr.rates[x.c])*x.u;
+  });
+  const date = er ? new Date(er.time_last_update_unix*1000).toISOString().slice(0,10) : fr.date;
+  S.ref = {date, rates, ecb, erDate: er?new Date(er.time_last_update_unix*1000):null, frDate: fr?fr.date:null};
+  if(!S.official) setCurrent('ref', S.ref);
+
+  const showAll = LS.get('hbt_fx_showall', false);
+  let h = '<div class="tblwrap"><table><thead><tr><th>통화</th><th>원화 환율<br>(open.er-api)</th><th>ECB 교차확인<br>(frankfurter)</th><th>편차</th></tr></thead><tbody>';
+  CURS.forEach(x=>{
+    if(!showAll && !x.main && !['GBP','HKD','AUD','CAD','CHF','SGD','THB','VND'].includes(x.c)) return;
+    const v=rates[x.c], e=ecb[x.c];
+    let diff='<span class="muted">—</span>';
+    if(v && e){ const p=(v-e)/e*100; const cls=Math.abs(p)<0.3?'diff-ok':Math.abs(p)<1?'diff-warn':'diff-bad'; diff=`<span class="${cls}">${p>0?'+':''}${p.toFixed(2)}%</span>`; }
+    h += `<tr class="${x.main?'main':''}"><td class="l"><span class="cur">${x.c}${x.u>1?'('+x.u+')':''}</span><span class="nm">${x.n}</span></td>`
+       + `<td class="r">${fmt(v,2)}</td><td class="r">${e?fmt(e,2):'<span class="muted">미고시</span>'}</td><td class="c">${diff}</td></tr>`;
+  });
+  h += '</tbody></table></div>';
+  h += `<div class="rowbtns"><button class="btn small" type="button" id="btnShowAll">${showAll?'주요 통화만 보기':'전체 통화 보기'}</button></div>`;
+  h += `<div class="note">open.er-api 갱신 ${er?esc(er.time_last_update_utc):'응답 없음'} · ECB 고시일 ${fr?esc(fr.date):'응답 없음'}. `
+     + '두 출처 모두 하루 한 번 갱신되는 시장 평균값이며 국내 고시 매매기준율과 다를 수 있습니다.</div>';
+  body.innerHTML=h;
+  $('btnShowAll').addEventListener('click', ()=>{ LS.set('hbt_fx_showall', !showAll); loadRef(); });
+}
+
+/* ══════════ 3. 날짜별 조회 ══════════ */
+async function lookupDate(){
+  const d=$('qDate').value, body=$('dateBody');
+  if(!d){ body.innerHTML='<div class="note warn">조회일을 선택하십시오.</div>'; return; }
+  body.innerHTML='<div class="loading">'+esc(d)+' 환율을 찾는 중</div>';
+  /* 1) 공식 수집본 */
+  try{
+    const o = await getJSON(DATA_BASE+'daily/'+d+'.json');
+    if(o && Array.isArray(o.rates) && o.rates.length){
+      const tmp=document.createElement('div'); renderOfficial(tmp, o, false);
+      body.innerHTML = '<div class="note"><b>'+esc(d)+'</b> 공식 매매기준율(수집본)</div>'+tmp.innerHTML;
+      body.querySelector('.note:last-child').insertAdjacentHTML('beforeend', ' <button class="btn small" type="button" id="btnUseDate">이 날짜 환율을 환산기에 적용</button>');
+      $('btnUseDate').addEventListener('click', ()=>{ setCurrent('official', o); $('secConv').scrollIntoView({behavior:'smooth'}); });
+      return;
+    }
+  }catch(e){ /* 없으면 참고환율로 */ }
+  /* 2) ECB 참고환율 (frankfurter: 해당일이 비영업일이면 직전 영업일 값을 date 에 담아 돌려준다) */
+  try{
+    const f = await getJSON(FRANK+d+'?base=USD&symbols='+[...ECB_SET].join(','));
+    if(!f || !f.rates || !f.rates.KRW) throw new Error('no data');
+    const map={};
+    let h = `<div class="note warn"><b>${esc(d)}</b> 의 공식 수집본이 없어 <b>ECB 참고환율</b>(고시일 ${esc(f.date)})을 보여줍니다. 신고에는 서울외국환중개·수출입은행 고시값을 확인하십시오.</div>`;
+    h += '<div class="tblwrap"><table><thead><tr><th>통화</th><th>원화 환율 (ECB 교차)</th></tr></thead><tbody>';
+    CURS.forEach(x=>{
+      if(x.c!=='USD' && !f.rates[x.c]) return;
+      const v = f.rates.KRW/(x.c==='USD'?1:f.rates[x.c])*x.u; map[x.c]={base:v,u:x.u};
+      h += `<tr class="${x.main?'main':''}"><td class="l"><span class="cur">${x.c}${x.u>1?'('+x.u+')':''}</span><span class="nm">${x.n}</span></td><td class="r">${fmt(v,2)}</td></tr>`;
+    });
+    h += '</tbody></table></div><div class="rowbtns"><button class="btn small" type="button" id="btnUseDate">이 날짜 참고환율을 환산기에 적용</button></div>';
+    body.innerHTML=h;
+    $('btnUseDate').addEventListener('click', ()=>{ S.current={kind:'ref', date:f.date, map}; fillRate(); $('secConv').scrollIntoView({behavior:'smooth'}); });
+  }catch(e){
+    body.innerHTML='<div class="note bad">'+esc(d)+' 환율을 찾지 못했습니다. 미래 날짜이거나 API 응답이 없습니다.</div>';
+  }
+}
+function quickDate(kind){
+  const t=new Date(kstToday()+'T00:00:00'); let d;
+  if(kind==='today') d=t;
+  else if(kind==='prevMonthEnd') d=new Date(t.getFullYear(), t.getMonth(), 0);
+  else if(kind==='prevYearEnd') d=new Date(t.getFullYear()-1, 11, 31);
+  else if(kind==='halfEnd') d = t.getMonth()>=6 ? new Date(t.getFullYear(),5,30) : new Date(t.getFullYear()-1,11,31);
+  $('qDate').value=iso(d); lookupDate();
+}
+
+/* ══════════ 4. 환산기 ══════════ */
+function setCurrent(kind, src){
+  const map={};
+  if(kind==='official'){
+    src.rates.forEach(r=>{ const su=splitUnit(r.unit); const code = su.c==='CNH'?'CNY':su.c; map[code]={base:r.base, ttb:r.ttb, tts:r.tts, u:su.u, unit:r.unit}; });
+    S.current={kind, date:src.date, map};
+  }else{
+    CURS.forEach(x=>{ if(src.rates[x.c]) map[x.c]={base:src.rates[x.c], u:x.u}; });
+    S.current={kind, date:src.date, map};
+  }
+  buildCurSelect(); fillRate();
+}
+function buildCurSelect(){
+  const sel=$('cvCur'), prev=sel.value || LS.get('hbt_fx_cur','USD');
+  sel.innerHTML='';
+  CURS.forEach(x=>{
+    const m=S.current && S.current.map[x.c]; if(!m) return;
+    const o=document.createElement('option'); o.value=x.c; o.textContent=`${x.c}${(m.u||x.u)>1?'('+(m.u||x.u)+')':''} ${x.n}`; sel.appendChild(o);
+  });
+  sel.value = [...sel.options].some(o=>o.value===prev) ? prev : (sel.options[0]?sel.options[0].value:'');
+}
+function fillRate(){
+  const cur=$('cvCur').value, basis=$('cvBasis').value, inp=$('cvRate');
+  const m=S.current && S.current.map[cur];
+  if(basis==='manual'){ inp.readOnly=false; inp.placeholder='직접 입력'; if(!inp.dataset.manual){ inp.value=''; } inp.dataset.manual='1'; calc(); return; }
+  inp.readOnly=true; delete inp.dataset.manual;
+  let v = m ? (basis==='base'?m.base: basis==='ttb'?m.ttb : m.tts) : null;
+  if((basis==='ttb'||basis==='tts') && (v===null||v===undefined)){ inp.value=''; inp.placeholder='해당 기준 없음(참고환율)'; calc(); return; }
+  inp.value = v!==null&&v!==undefined ? fmt(v,2) : ''; inp.placeholder='';
+  calc();
+}
+function calc(){
+  const cur=$('cvCur').value, amt=parseNum($('cvAmt').value), rate=parseNum($('cvRate').value);
+  const m=S.current && S.current.map[cur]; const u = m ? (m.u||1) : (CURS.find(x=>x.c===cur)||{u:1}).u;
+  const out=$('cvOut'), sub=$('cvSub');
+  if(isNaN(amt)||isNaN(rate)||!cur){ out.textContent='—'; sub.textContent=''; return; }
+  const won = amt * rate / u;
+  out.textContent = fmtWon(won);
+  const basisTxt = {base:'매매기준율',ttb:'TTB',tts:'TTS',manual:'직접 입력'}[$('cvBasis').value];
+  const srcTxt = $('cvBasis').value==='manual' ? '' : (S.current ? (S.current.kind==='official'?'공식 '+S.current.date:'참고환율 '+S.current.date) : '');
+  sub.textContent = `${fmt(amt, 2)} ${cur} × ${fmt(rate,2)}원${u>1?' ÷ '+u:''} · ${basisTxt}${srcTxt?' · '+srcTxt:''} · 원 미만 절사`;
+}
+
+/* ══════════ 5. 관세청 과세환율 ══════════ */
+async function loadCustoms(){
+  const body=$('customsBody'), bd=$('bdCustoms');
+  try{
+    const c = await getJSON(DATA_BASE+'customs/latest.json?t='+Date.now());
+    if(!c || (!Array.isArray(c.import) && !Array.isArray(c.export))) throw new Error('empty');
+    S.customs=c; bd.textContent='공식'; bd.className='badge';
+    const imp = new Map((c.import||[]).map(r=>[r.unit,r])), exp = new Map((c.export||[]).map(r=>[r.unit,r]));
+    const units=[...new Set([...imp.keys(), ...exp.keys()])].sort((a,b)=>{const o=['USD','JPY','EUR','CNY','CNH'];const ia=o.indexOf(a),ib=o.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib)||a.localeCompare(b);});
+    let h='<div class="tblwrap"><table><thead><tr><th>통화</th><th>과세환율 (수입)</th><th>수출환율</th></tr></thead><tbody>';
+    units.forEach(u=>{ const i=imp.get(u), e=exp.get(u); h+=`<tr class="${['USD','JPY','EUR','CNY'].includes(u)?'main':''}"><td class="l"><span class="cur">${esc(u)}</span><span class="nm">${esc((i||e).name||'')}</span></td><td class="r">${i?fmt(i.rate,2):'—'}</td><td class="r">${e?fmt(e.rate,2):'—'}</td></tr>`; });
+    h+='</tbody></table></div>';
+    h+=`<div class="note">적용기간 <b>${esc(c.week_start||'')} ~ ${esc(c.week_end||'')}</b> · 출처 ${esc(c.source||'관세청 UNI-PASS 환율정보 API')} · 수집 ${esc((c.fetched_at||'').replace('T',' ').slice(0,16))} UTC</div>`;
+    body.innerHTML=h;
+  }catch(e){
+    S.customs=null; bd.textContent='미연결'; bd.className='badge warn';
+    body.innerHTML='<div class="note warn">과세환율 수집본이 없습니다. 관세청 UNI-PASS 환율정보 API 키(선택)를 저장소 비밀값 <code>UNIPASS_KEY</code>로 등록하면 주간 과세환율·수출환율이 이 표에 채워집니다. '
+      +'그 전에는 <a href="https://unipass.customs.go.kr/csp/index.do" target="_blank" rel="noopener">UNI-PASS → 정보조회 → 환율정보</a>에서 확인하십시오.</div>';
+  }
+}
+
+/* ══════════ 상태 표시줄 ══════════ */
+function updateStatus(){
+  const o=S.official, r=S.ref;
+  $('stDate').textContent = o ? o.date+' (공식)' : (r ? r.date+' (참고)' : '—');
+  $('stSrc').textContent = o ? '수출입은행 API' : (r ? 'open.er-api · ECB' : '—');
+  $('stTime').textContent = '화면 갱신 '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+}
+
+/* ══════════ 초기화 ══════════ */
+async function init(){
+  $('qDate').value = kstToday();
+  $('qDate').max = kstToday();
+  $('cvAmt').value = LS.get('hbt_fx_amt','');
+  await Promise.allSettled([loadOfficial(), loadRef(), loadCustoms()]);
+  if(!S.current && S.ref) setCurrent('ref', S.ref);
+  updateStatus();
+}
+$('btnReload').addEventListener('click', ()=>{ $('officialBody').innerHTML='<div class="loading">불러오는 중</div>'; $('refBody').innerHTML='<div class="loading">불러오는 중</div>'; init(); });
+$('btnTheme').addEventListener('click', ()=>{
+  const next = document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme', next); LS.set('hbt_theme', next);
+});
+$('btnDate').addEventListener('click', lookupDate);
+$('qDate').addEventListener('keydown', e=>{ if(e.key==='Enter') lookupDate(); });
+document.querySelectorAll('[data-q]').forEach(b=>b.addEventListener('click', ()=>quickDate(b.dataset.q)));
+$('cvCur').addEventListener('change', ()=>{ LS.set('hbt_fx_cur', $('cvCur').value); fillRate(); });
+$('cvBasis').addEventListener('change', fillRate);
+$('cvRate').addEventListener('input', calc);
+$('cvAmt').addEventListener('input', ()=>{ LS.set('hbt_fx_amt', $('cvAmt').value); calc(); });
+$('cvAmt').addEventListener('blur', ()=>{ const v=parseNum($('cvAmt').value); if(!isNaN(v)){ $('cvAmt').value=fmt(v,2); calc(); } });
+$('btnCopy').addEventListener('click', async ()=>{
+  const t=$('cvOut').textContent; if(t==='—') return;
+  try{ await navigator.clipboard.writeText(t.replace('원','')); $('btnCopy').textContent='복사됨'; setTimeout(()=>$('btnCopy').textContent='복사',1200); }catch(e){}
+});
+init();
+</script>
+</body>
+</html>
