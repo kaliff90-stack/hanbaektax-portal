@@ -42,6 +42,14 @@ on:
         description: '일괄 수집 종료일 (YYYYMMDD)'
         required: false
         default: ''
+      customs_from:
+        description: '관세청 과세환율만 다시 받을 시작일 (YYYYMMDD). 수출입은행 호출 없음, customs_to 와 함께'
+        required: false
+        default: ''
+      customs_to:
+        description: '관세청 과세환율만 다시 받을 종료일 (YYYYMMDD)'
+        required: false
+        default: ''
       ecos_from:
         description: '한국은행 ECOS 과거 매매기준율 수집 시작일 (YYYYMMDD). ECOS_KEY 비밀값 필요, ecos_to 와 함께'
         required: false
@@ -94,6 +102,8 @@ jobs:
           TARGET_DATE: ${{ github.event.inputs.date }}
           RANGE_FROM: ${{ github.event.inputs.from }}
           RANGE_TO: ${{ github.event.inputs.to }}
+          CUSTOMS_FROM: ${{ github.event.inputs.customs_from }}
+          CUSTOMS_TO: ${{ github.event.inputs.customs_to }}
           ECOS_KEY: ${{ secrets.ECOS_KEY }}
           ECOS_FROM: ${{ github.event.inputs.ecos_from }}
           ECOS_TO: ${{ github.event.inputs.ecos_to }}
@@ -114,10 +124,12 @@ jobs:
           const kstToday = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10).replace(/-/g, '');
           const from = (process.env.RANGE_FROM || '').trim(), to = (process.env.RANGE_TO || '').trim();
           const ecosFrom = (process.env.ECOS_FROM || '').trim(), ecosTo = (process.env.ECOS_TO || '').trim();
-          const ecosOnly = !!(ecosFrom && ecosTo && !(from && to) && !(process.env.TARGET_DATE || '').trim());
+          const customsFrom = (process.env.CUSTOMS_FROM || '').trim(), customsTo = (process.env.CUSTOMS_TO || '').trim();
+          const hasTarget = !!(process.env.TARGET_DATE || '').trim();
+          const specialOnly = !(from && to) && !hasTarget && !!((ecosFrom && ecosTo) || (customsFrom && customsTo));
           let days = [];
-          if (ecosOnly) {
-            /* ECOS 만 수집하는 실행: 수출입은행 호출은 하지 않는다 */
+          if (specialOnly) {
+            /* ECOS·과세환율만 수집하는 실행: 수출입은행 호출은 하지 않는다 */
           } else if (from && to) {
             if (!/^\d{8}$/.test(from) || !/^\d{8}$/.test(to) || from > to) { console.error('from/to 형식 오류 (YYYYMMDD, from <= to)'); process.exit(1); }
             for (let d = new Date(toDash(from) + 'T00:00:00Z'); d.toISOString().slice(0, 10).replace(/-/g, '') <= to; d.setUTCDate(d.getUTCDate() + 1)) {
@@ -251,8 +263,15 @@ jobs:
               console.log(`ECOS: 호출 ${calls} · 행 ${rowsTotal} · 저장 ${ecosSaved}일 · 기존 수집본 유지 ${ecosKept}일 (${toDash(ecosFrom)}~${toDash(ecosTo)})`);
             }
 
-            /* 과세환율: 주(일요일 시작)별 한 번씩 (ECOS 전용 실행에서는 생략) */
-            const weeks = [...new Set(days.map(ymd => { const d = new Date(toDash(ymd) + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - d.getUTCDay()); return d.toISOString().slice(0, 10); }))];
+            /* 과세환율: 주(일요일 시작)별 한 번씩. customs_from/customs_to 가 있으면 그 기간의 주만(수출입은행 호출 없이) 받는다 */
+            let weekSrc = days;
+            if (customsFrom && customsTo) {
+              if (!/^\d{8}$/.test(customsFrom) || !/^\d{8}$/.test(customsTo) || customsFrom > customsTo) { console.error('customs_from/customs_to 형식 오류'); process.exit(1); }
+              weekSrc = [];
+              for (let d = new Date(toDash(customsFrom) + 'T00:00:00Z'); d.toISOString().slice(0, 10).replace(/-/g, '') <= customsTo; d.setUTCDate(d.getUTCDate() + 7)) weekSrc.push(d.toISOString().slice(0, 10).replace(/-/g, ''));
+              weekSrc.push(customsTo);
+            }
+            const weeks = [...new Set(weekSrc.map(ymd => { const d = new Date(toDash(ymd) + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - d.getUTCDay()); return d.toISOString().slice(0, 10); }))];
             let cs = 0, cf = 0;
             for (const sunday of weeks) {
               try {
