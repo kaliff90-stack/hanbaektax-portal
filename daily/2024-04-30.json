@@ -1,0 +1,205 @@
+{
+ "date": "2024-04-30",
+ "source": "한국수출입은행 환율 API (AP01) · 매매기준율은 서울외국환중개(KFTC_DEAL_BAS_R) 값",
+ "fetched_at": "2026-09-09T06:22:54.980Z",
+ "rates": [
+  {
+   "unit": "AED",
+   "name": "아랍에미리트 디르함",
+   "base": 375.36,
+   "exim_base": 375.36,
+   "kftc_base": 375.36,
+   "ttb": 371.6,
+   "tts": 379.11
+  },
+  {
+   "unit": "AUD",
+   "name": "호주 달러",
+   "base": 904.98,
+   "exim_base": 904.98,
+   "kftc_base": 904.98,
+   "ttb": 895.93,
+   "tts": 914.02
+  },
+  {
+   "unit": "BHD",
+   "name": "바레인 디나르",
+   "base": 3657.13,
+   "exim_base": 3657.13,
+   "kftc_base": 3657.13,
+   "ttb": 3620.55,
+   "tts": 3693.7
+  },
+  {
+   "unit": "BND",
+   "name": "브루나이 달러",
+   "base": 1013.82,
+   "exim_base": 1013.82,
+   "kftc_base": 1013.82,
+   "ttb": 1003.68,
+   "tts": 1023.95
+  },
+  {
+   "unit": "CAD",
+   "name": "캐나다 달러",
+   "base": 1008.93,
+   "exim_base": 1008.93,
+   "kftc_base": 1008.93,
+   "ttb": 998.84,
+   "tts": 1019.01
+  },
+  {
+   "unit": "CHF",
+   "name": "스위스 프랑",
+   "base": 1513.56,
+   "exim_base": 1513.56,
+   "kftc_base": 1513.56,
+   "ttb": 1498.42,
+   "tts": 1528.69
+  },
+  {
+   "unit": "CNH",
+   "name": "위안화",
+   "base": 190.05,
+   "exim_base": 190.05,
+   "kftc_base": 190.05,
+   "ttb": 188.14,
+   "tts": 191.95
+  },
+  {
+   "unit": "DKK",
+   "name": "덴마아크 크로네",
+   "base": 198.13,
+   "exim_base": 198.13,
+   "kftc_base": 198.13,
+   "ttb": 196.14,
+   "tts": 200.11
+  },
+  {
+   "unit": "EUR",
+   "name": "유로",
+   "base": 1477.48,
+   "exim_base": 1477.48,
+   "kftc_base": 1477.48,
+   "ttb": 1462.7,
+   "tts": 1492.25
+  },
+  {
+   "unit": "GBP",
+   "name": "영국 파운드",
+   "base": 1731.85,
+   "exim_base": 1731.85,
+   "kftc_base": 1731.85,
+   "ttb": 1714.53,
+   "tts": 1749.16
+  },
+  {
+   "unit": "HKD",
+   "name": "홍콩 달러",
+   "base": 176.19,
+   "exim_base": 176.19,
+   "kftc_base": 176.19,
+   "ttb": 174.42,
+   "tts": 177.95
+  },
+  {
+   "unit": "IDR(100)",
+   "name": "인도네시아 루피아",
+   "base": 8.48,
+   "exim_base": 8.48,
+   "kftc_base": 8.48,
+   "ttb": 8.39,
+   "tts": 8.56
+  },
+  {
+   "unit": "JPY(100)",
+   "name": "일본 옌",
+   "base": 882.68,
+   "exim_base": 882.68,
+   "kftc_base": 882.68,
+   "ttb": 873.85,
+   "tts": 891.5
+  },
+  {
+   "unit": "KWD",
+   "name": "쿠웨이트 디나르",
+   "base": 4478.04,
+   "exim_base": 4478.04,
+   "kftc_base": 4478.04,
+   "ttb": 4433.25,
+   "tts": 4522.82
+  },
+  {
+   "unit": "MYR",
+   "name": "말레이지아 링기트",
+   "base": 289.19,
+   "exim_base": 289.19,
+   "kftc_base": 289.19,
+   "ttb": 286.29,
+   "tts": 292.08
+  },
+  {
+   "unit": "NOK",
+   "name": "노르웨이 크로네",
+   "base": 125.37,
+   "exim_base": 125.37,
+   "kftc_base": 125.37,
+   "ttb": 124.11,
+   "tts": 126.62
+  },
+  {
+   "unit": "NZD",
+   "name": "뉴질랜드 달러",
+   "base": 824.19,
+   "exim_base": 824.19,
+   "kftc_base": 824.19,
+   "ttb": 815.94,
+   "tts": 832.43
+  },
+  {
+   "unit": "SAR",
+   "name": "사우디 리얄",
+   "base": 367.59,
+   "exim_base": 367.59,
+   "kftc_base": 367.59,
+   "ttb": 363.91,
+   "tts": 371.26
+  },
+  {
+   "unit": "SEK",
+   "name": "스웨덴 크로나",
+   "base": 126.15,
+   "exim_base": 126.15,
+   "kftc_base": 126.15,
+   "ttb": 124.88,
+   "tts": 127.41
+  },
+  {
+   "unit": "SGD",
+   "name": "싱가포르 달러",
+   "base": 1013.82,
+   "exim_base": 1013.82,
+   "kftc_base": 1013.82,
+   "ttb": 1003.68,
+   "tts": 1023.95
+  },
+  {
+   "unit": "THB",
+   "name": "태국 바트",
+   "base": 37.27,
+   "exim_base": 37.27,
+   "kftc_base": 37.27,
+   "ttb": 36.89,
+   "tts": 37.64
+  },
+  {
+   "unit": "USD",
+   "name": "미국 달러",
+   "base": 1378.7,
+   "exim_base": 1378.7,
+   "kftc_base": 1378.7,
+   "ttb": 1364.91,
+   "tts": 1392.48
+  }
+ ]
+}
