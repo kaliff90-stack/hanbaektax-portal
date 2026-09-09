@@ -236,7 +236,8 @@ tr:hover td{background:color-mix(in srgb,var(--blue) 8%,transparent)}
       <button class="btn small" type="button" data-p="py">전년도</button>
       <span style="flex:1"></span>
       <button class="btn small primary" type="button" id="btnSeries">조회</button>
-      <button class="btn small" type="button" id="btnCsv" disabled>CSV 다운로드</button>
+      <button class="btn small" type="button" id="btnXlsx" disabled>엑셀(.xlsx) 다운로드</button>
+      <button class="btn small" type="button" id="btnCsv" disabled>CSV</button>
     </div>
     <div id="seriesBody" style="margin-top:14px"></div>
   </section>
@@ -611,8 +612,11 @@ async function loadSeries(){
     }
   }
   body.innerHTML=h;
-  SR.rows={header, rows}; SR.csvName=`환율_${code}_${mode}_${from}_${to}.csv`;
-  $('btnCsv').disabled=false;
+  const modeTxt = {daily:'일별', monthly:'월별', weekly:'주간과세환율'}[mode];
+  SR.rows={header, rows, meta:{code, unit:unitTxt, name:s.name||'', mode:modeTxt, from, to,
+    source: mode==='weekly' ? '관세청 UNI-PASS 주간환율 (정보조회 › 신고지원정보 › 주간환율)' : '한국수출입은행 환율 API · 매매기준율은 서울외국환중개(KFTC_DEAL_BAS_R) 값'}};
+  SR.csvName=`환율_${code}_${modeTxt}_${from}_${to}`;
+  $('btnCsv').disabled=false; $('btnXlsx').disabled=false;
 }
 function statsHtml(vals, dates, label, cnt){
   const avg=vals.reduce((p,c)=>p+c,0)/vals.length, mx=Math.max(...vals), mn=Math.min(...vals);
@@ -625,13 +629,59 @@ function statsHtml(vals, dates, label, cnt){
     <div class="stat"><div class="k">기간 변동</div><div class="v ${chg>0?'diff-bad':chg<0?'diff-ok':''}">${chg>0?'+':''}${fmt(chg,2)}</div><div class="s">${fmt(first,2)} → ${fmt(last,2)} (${pct>0?'+':''}${pct.toFixed(2)}%)</div></div>
   </div>`;
 }
+function saveBlob(blob, name){
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 800);
+}
+/* CSV: UTF-8 BOM + CRLF. 한국어 엑셀이 더블클릭으로 열 때 글자 깨짐·행 붙음이 없도록 한다 */
 function downloadCsv(){
   if(!SR.rows) return;
   const esc2 = v => { const s=String(v===null||v===undefined?'':v); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; };
   const lines=[SR.rows.header.map(esc2).join(',')].concat(SR.rows.rows.map(r=>r.map(esc2).join(',')));
-  const blob=new Blob(['﻿'+lines.join('\r\n')], {type:'text/csv;charset=utf-8'}); /* BOM: 엑셀 한글 깨짐 방지 */
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=SR.csvName; document.body.appendChild(a); a.click();
-  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  saveBlob(new Blob(['﻿'+lines.join('\r\n')], {type:'text/csv;charset=utf-8'}), SR.csvName+'.csv');
+}
+/* XLSX: SheetJS(cdnjs)를 누를 때만 불러온다. 숫자는 숫자 셀로 넣어 바로 계산·정렬이 되게 하고, 둘째 시트에 출처를 남긴다 */
+let xlsxReady=null;
+function loadXlsx(){
+  if(window.XLSX) return Promise.resolve();
+  if(xlsxReady) return xlsxReady;
+  xlsxReady = new Promise((res, rej)=>{
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload=()=>res(); s.onerror=()=>{ xlsxReady=null; rej(new Error('xlsx 라이브러리 로드 실패')); };
+    document.head.appendChild(s);
+  });
+  return xlsxReady;
+}
+async function downloadXlsx(){
+  if(!SR.rows) return;
+  const btn=$('btnXlsx'); const old=btn.textContent; btn.disabled=true; btn.textContent='엑셀 만드는 중…';
+  try{
+    await loadXlsx();
+    const m=SR.rows.meta;
+    const aoa=[SR.rows.header].concat(SR.rows.rows.map(r=>r.map(v=> v===null||v===undefined ? '' : v)));
+    const ws=XLSX.utils.aoa_to_sheet(aoa);
+    /* 숫자 셀 서식: 소수 둘째(과세환율은 넷째) 자리, 천 단위 구분 */
+    const range=XLSX.utils.decode_range(ws['!ref']);
+    const fmt = m.mode==='주간과세환율' ? '#,##0.0000' : '#,##0.00';
+    for(let R=1; R<=range.e.r; R++) for(let C=0; C<=range.e.c; C++){
+      const cell=ws[XLSX.utils.encode_cell({r:R,c:C})]; if(cell && cell.t==='n' && !Number.isInteger(cell.v)) cell.z=fmt;
+    }
+    ws['!cols']=SR.rows.header.map((h,i)=>({wch: Math.max(12, String(h).length*2, ...aoa.slice(1,50).map(r=>String(r[i]??'').length+2))}));
+    ws['!freeze']={xSplit:0, ySplit:1};
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, m.mode);
+    const meta=[['항목','내용'],['통화',`${m.unit} ${m.name}`],['보기',m.mode],['기간',`${m.from} ~ ${m.to}`],['건수',SR.rows.rows.length],
+      ['출처',m.source],['단위',m.mode==='주간과세환율'?'원/1통화단위 (엔도 1엔 기준)':'원/표시단위 (엔·루피아는 100단위)'],
+      ['생성',new Date().toLocaleString('ko-KR')],['작성',`세무법인 한백택스 세무환율 조회 (${location.href.split('?')[0]})`],
+      ['유의','평균은 고시일 기준 단순 산술평균. 신고 시 고시 원문을 확인하십시오.']];
+    const ws2=XLSX.utils.aoa_to_sheet(meta); ws2['!cols']=[{wch:8},{wch:90}];
+    XLSX.utils.book_append_sheet(wb, ws2, '출처');
+    wb.Props={Title:`세무환율 ${m.unit} ${m.mode}`, Author:'차재영세무사', Company:'세무법인 한백택스'};
+    XLSX.writeFile(wb, SR.csvName+'.xlsx');
+  }catch(e){
+    alert('엑셀 파일을 만들지 못했습니다. 네트워크를 확인하거나 CSV 를 이용하십시오.\n'+e.message);
+  }finally{ btn.disabled=false; btn.textContent=old; }
 }
 
 /* ══════════ 4. 환산기 ══════════ */
@@ -743,6 +793,7 @@ $('btnSeries').addEventListener('click', loadSeries);
 $('srMode').addEventListener('change', ()=>{ if(SR.rows) loadSeries(); });
 $('srCur').addEventListener('change', ()=>{ if(SR.rows) loadSeries(); });
 $('btnCsv').addEventListener('click', downloadCsv);
+$('btnXlsx').addEventListener('click', downloadXlsx);
 $('qDate').addEventListener('keydown', e=>{ if(e.key==='Enter') lookupDate(); });
 document.querySelectorAll('[data-q]').forEach(b=>b.addEventListener('click', ()=>quickDate(b.dataset.q)));
 $('cvCur').addEventListener('change', ()=>{ LS.set('hbt_fx_cur', $('cvCur').value); fillRate(); });
