@@ -392,6 +392,7 @@ function fmt(n, d){ if(n===null||n===undefined||isNaN(n)) return '—'; return N
 function fmtWon(n){ return Math.trunc(n).toLocaleString('ko-KR') + '원'; }
 function parseNum(s){ if(typeof s==='number') return s; s=String(s||'').replace(/[^0-9.\-]/g,''); const v=parseFloat(s); return isNaN(v)?NaN:v; }
 function kstToday(){ const d=new Date(Date.now()+9*3600*1000); return d.toISOString().slice(0,10); }
+function kstStamp(iso){ if(!iso) return ''; const d=new Date(iso); if(isNaN(d)) return String(iso); const k=new Date(d.getTime()+9*3600*1000); return k.toISOString().slice(0,16).replace('T',' '); }
 function iso(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function esc(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 async function getJSON(url, ms){
@@ -432,8 +433,16 @@ function renderOfficial(el, d, full){
        + `<td class="r">${fmt(r.base,2)}</td><td class="r">${fmt(r.ttb,2)}</td><td class="r">${fmt(r.tts,2)}</td></tr>`;
   });
   h += '</tbody></table></div>';
-  h += `<div class="note">기준일 <b>${esc(d.date)}</b> · 출처 ${esc(d.source||'한국수출입은행 환율 API')} · 수집 ${esc((d.fetched_at||'').replace('T',' ').slice(0,16))} UTC. `
+  h += `<div class="note">기준일 <b>${esc(d.date)}</b> · 출처 ${esc(d.source||'한국수출입은행 환율 API')} · 수집 ${esc(kstStamp(d.fetched_at))} KST. `
      + '단위: 원/표시단위(엔·루피아는 100). 비영업일은 직전 영업일 값이 유지됩니다.</div>';
+  /* 오늘이 평일이고 11:30 KST 가 지났는데 오늘 고시가 아직 없으면 알린다 (수집 지연·미고시) */
+  if(full){
+    const now=new Date(Date.now()+9*3600*1000), today=now.toISOString().slice(0,10), dow=now.getUTCDay(), mins=now.getUTCHours()*60+now.getUTCMinutes();
+    if(d.date<today && dow>=1 && dow<=5 && mins>=11*60+30){
+      h += `<div class="note warn">오늘(${esc(today)}) 고시가 아직 반영되지 않았습니다. 수출입은행은 영업일 11시 전후 고시하고 이 표는 11:00~16:30 사이 30분마다 자동 갱신됩니다. `
+         + '공휴일이면 고시가 없는 것이 정상이며, 급하면 아래 참고환율이나 <a href="https://www.smbs.biz/ExRate/TodayExRate.jsp" target="_blank" rel="noopener">서울외국환중개</a>에서 확인하십시오.</div>';
+    }
+  }
   el.innerHTML = h;
 }
 function sortExim(rates){
