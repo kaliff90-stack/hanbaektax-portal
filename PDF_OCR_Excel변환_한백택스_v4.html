@@ -440,7 +440,7 @@ function fixDateTime(s){const t=String(s).replace(/\s/g,'');const m=t.match(DT_R
 function fixDate(s){let v=String(s).trim().replace(/\.$/,'');let m=v.match(/^(\d{4})(\d{2})(\d{2})$/);if(m)return`${m[1]}-${m[2]}-${m[3]}`;m=v.match(/^(\d{4})[-./년]\s?(\d{1,2})[-./월]\s?(\d{1,2})일?$/);if(m)return`${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;m=v.match(/^(\d{2})[-./](\d{1,2})[-./](\d{1,2})$/);if(m)return`20${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;return v;}
 function fixTime(s){let v=String(s).trim().replace(/[.\s]/g,':').replace(/:+/g,':');let m=v.match(/^(\d{2})(\d{2})(\d{2})$/);if(m)return`${m[1]}:${m[2]}:${m[3]}`;m=v.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);if(m)return`${m[1].padStart(2,'0')}:${m[2]}:${m[3]||'00'}`;return v;}
 function fixHangul(s){const t=String(s).trim().split(/\s+/);if(t.length<2)return t.join(' ');const o=[];for(const w of t){const prev=o[o.length-1];if(prev!=null&&((w.length===1&&/[가-힣]/.test(w))||(prev.length===1&&/[가-힣]/.test(prev)&&/^[가-힣]/.test(w))))o[o.length-1]=prev+w;else o.push(w);}return o.join(' ');}
-function fixAmountText(s){let v=String(s).trim();if(!/\d/.test(v))return v;v=v.replace(/[oO]/g,'0').replace(/[lI|]/g,'1');const n=toNumber(v);if(n==null)return v;/* 원문이 소수 둘째 자리까지 있었으면(25,660.00) 그 형태를 지켜 "25660" 과 구별되게 한다 */return /\.\d{2}\D*$/.test(v)?n.toFixed(2):String(n);}
+function fixAmountText(s){let v=String(s).trim();if(!/\d/.test(v))return v;v=v.replace(/[oO]/g,'0').replace(/[lI|]/g,'1').replace(/^[^\d\-(]+/,'').replace(/[.,'\s]+$/,'');/* 앞뒤 따옴표·점 잡음 제거 */const n=toNumber(v);if(n==null)return v;/* 원문이 소수 둘째 자리까지 있었으면(25,660.00) 그 형태를 지켜 "25660" 과 구별되게 한다 */return /\.\d{2}\D*$/.test(v)?n.toFixed(2):String(n);}
 
 /* 은행 거래명세: 머리글 열 인식 */
 const BANK_HEADS=[
@@ -491,6 +491,17 @@ function parseBank(items,width,opts){
     }
     dataRows.push({cells,conf:confs.length?confs.reduce((s,c)=>s+c,0)/confs.length:100});   /* 행 신뢰도는 평균(최소값은 사진에서 거의 모든 행을 확인 필요로 만든다) */
   }
+  /* 낙오 금액 행: 날짜 없이 금액 칸 하나만 읽힌 행은 사진에서 숫자가 한 줄 위·아래로 밀린 것이다. 같은 칸이 빈 이웃 행(다음 행 우선)에 붙인다 */
+  {
+    const amtLike=cols.map((c,i)=>/거래금액|출금액|입금액|잔액/.test(c.key||'')?i:-1).filter(i=>i>=0);
+    for(let i=dataRows.length-1;i>=0;i--){
+      const cells=dataRows[i].cells;const filled=cells.map((v,ci)=>v?ci:-1).filter(ci=>ci>=0);
+      const dated=dateCol>=0&&isDateTimeLike(cells[dateCol]);
+      if(dated||filled.length!==1||!amtLike.includes(filled[0]))continue;
+      const ci=filled[0];const target=[dataRows[i+1],dataRows[i-1]].find(t=>t&&!t.cells[ci]);
+      if(target){target.cells[ci]=cells[ci];dataRows.splice(i,1);}
+    }
+  }
   const lowRows=new Set();
   const rowsOut=dataRows.map((d,ri)=>{if(d.conf<55)lowRows.add(ri);return d.cells.map((v,ci)=>{const key=cols[ci].key;v=v.trim();if(key==='거래일자')return fixDateTime(v);if(key==='거래시간')return fixTime(v.replace(/\s/g,''));if(/출금액|입금액|잔액|수표|거래금액|환율/.test(key||''))return fixAmountText(v.replace(/\s/g,''));if(key==='상대계좌')return v.replace(/\s/g,'');return fixHangul(v);});});
   const sums=sumRows.map(cells=>cells.map((v,ci)=>/출금액|입금액|잔액|거래금액/.test(cols[ci].key||'')?fixAmountText(v.replace(/\s/g,'')):v.trim()));
@@ -504,20 +515,59 @@ function parseBank(items,width,opts){
   const amtIdx=cols.findIndex(c=>c.key==='거래금액'),balIdx=cols.findIndex(c=>c.key==='잔액');
   const reconciled=new Set();
   if(amtIdx>=0&&balIdx>=0&&rowsOut.length>=3){
-    const cand=s=>{if(!/^-?\d+(\.\d+)?$/.test(s))return null;if(s.includes('.'))return[parseFloat(s)];const n=parseInt(s,10);return Math.abs(n)>=100?[n,n/100]:[n];};
-    /* 사슬이 끊긴 행(잔액 없음·다른 통화·오독)에서는 직전 잔액과 자릿수가 가장 가까운 후보로 이어 간다 */
-    const nearest=(cands,ref)=>ref==null?cands[0]:cands.reduce((p,c)=>Math.abs(Math.log10(Math.max(1e-9,Math.abs(c)))-Math.log10(Math.max(1e-9,Math.abs(ref))))<Math.abs(Math.log10(Math.max(1e-9,Math.abs(p)))-Math.log10(Math.max(1e-9,Math.abs(ref))))?c:p);
-    const chain=(startBal)=>{let prev=startBal,ok=0;const asg=[];for(let i=1;i<rowsOut.length;i++){const A=cand(rowsOut[i][amtIdx]),B=cand(rowsOut[i][balIdx]);if(!B){asg.push(null);continue;}if(!A||prev==null){asg.push(null);prev=nearest(B,prev);continue;}let best=null;for(const a of A)for(const b of B)for(const s of[1,-1]){const d=Math.abs((prev+s*a)-b);if(best===null||d<best.d)best={a,b,d};}if(best&&best.d<0.011){ok++;asg.push(best);prev=best.b;}else{asg.push(null);prev=nearest(B,prev);}}return {ok,asg};};
-    const B0=cand(rowsOut[0][balIdx])||[null];
+    /* 후보: 소수점이 있으면 그대로, 정수면 원값과 ÷100 (OCR 이 "0.95"·"9.41" 의 점을 놓쳐 95·941 로 읽는다) */
+    /* 이 표가 소수 2자리 표(읽힌 값의 30% 이상에 소수점)면, 구분자를 잃은 정수는 ÷100 해석을 우선한다.
+     * 이유: 소수 2자리 표에서 점이 없는 토큰은 구분자를 놓친 것이지 소수가 없는 값이 아니다. 원값 해석은 ÷100 이 안 맞을 때만 쓴다
+     * (OCR 이 "9.41"→41, "19,709.41"→1970041 로 읽으면 41+1970000=1970041 이 우연히 맞아 떨어지는 사고를 막는다). */
+    const decimalTable=(()=>{const vs=[amtIdx,balIdx].flatMap(ci=>rowsOut.map(r=>r[ci]).filter(v=>/^-?\d+(\.\d+)?$/.test(v)));return vs.length>=3&&vs.filter(v=>v.includes('.')).length>=vs.length*0.3;})();
+    const cand=s=>{if(!/^-?\d+(\.\d+)?$/.test(s))return null;if(s.includes('.'))return[{v:parseFloat(s),rank:0}];const n=parseInt(s,10);if(n===0)return[{v:0,rank:0}];return decimalTable?[{v:n/100,rank:0},{v:n,rank:1}]:[{v:n,rank:0},{v:n/100,rank:1}];};
+    /* 사슬: 직전 잔액을 "후보 집합"으로 들고 간다. 잔액이 안 읽힌 행은 (직전 잔액 ± 거래금액 후보)를 다음 행의 후보로 넘기고,
+     * 다음 행이 그 후보로 맞아떨어지면 안 읽힌 행의 금액·잔액을 되채운다(1단계). */
+    const chain=(startBal)=>{
+      let prevs=startBal==null?[]:[{v:startBal}];let ok=0;const asg=[];const fill={};
+      const cap=arr=>arr.slice(0,12);
+      for(let i=1;i<rowsOut.length;i++){
+        const A=cand(rowsOut[i][amtIdx]),B=cand(rowsOut[i][balIdx]);
+        if(!A&&!B){asg.push(null);continue;}
+        if(!B){ /* 잔액 없음: 금액 후보로 다음 잔액 후보를 만든다 */
+          asg.push(null);
+          const next=[];for(const p of prevs)for(const a of A)for(const s of[1,-1])next.push({v:p.v+s*a.v,rank:(p.rank||0)+a.rank,from:{i,a:a.v,p:p.v}});
+          prevs=cap(next.length?next:prevs);continue;
+        }
+        if(!A||!prevs.length){ asg.push(null); prevs=B.map(b=>({v:b.v,rank:b.rank,from:{i,a:null,p:null}})); continue; }
+        let best=null;
+        for(const p of prevs)for(const a of A)for(const b of B)for(const s of[1,-1]){const d=Math.abs((p.v+s*a.v)-b.v);const hit=d<0.011;const rank=(p.rank||0)+a.rank+b.rank;
+          if(best===null||(hit&&!best.hit)||(hit===best.hit&&(hit?rank<best.rank:d<best.d)))best={a:a.v,b:b.v,d,p,hit,rank};}
+        if(best&&best.hit){
+          ok++;asg.push({a:best.a,b:best.b});
+          if(best.p.from){const f=best.p.from;fill[f.i]={a:f.a,b:best.p.v};}   /* 앞 행 되채움: 그 행의 잔액 = 이번에 쓴 직전 잔액 후보 */
+          prevs=[{v:best.b,rank:0}];
+        }else{asg.push(null);prevs=B.map(b=>({v:b.v,rank:b.rank,from:{i,a:null,p:null}}));}
+      }
+      return {ok,asg,fill};
+    };
+    const B0=(cand(rowsOut[0][balIdx])||[{v:null}]).map(b=>b.v);
     let bestChain=null,bestStart=null;for(const b0 of B0){const c=chain(b0);if(!bestChain||c.ok>bestChain.ok){bestChain=c;bestStart=b0;}}
     if(bestChain&&bestChain.ok>=2){
       if(bestStart!=null)rowsOut[0][balIdx]=bestStart.toFixed(2);
       bestChain.asg.forEach((a,k)=>{const i=k+1;if(!a)return;rowsOut[i][amtIdx]=a.a.toFixed(2);rowsOut[i][balIdx]=a.b.toFixed(2);reconciled.add(i);});
+      const ambiguous=[];
+      Object.keys(bestChain.fill).forEach(k=>{const i=+k;if(reconciled.has(i))return;const f=bestChain.fill[k];if(f.a!=null)rowsOut[i][amtIdx]=f.a.toFixed(2);if(f.b!=null)rowsOut[i][balIdx]=f.b.toFixed(2);reconciled.add(i);
+        /* 잔액만 되채워진 행의 금액이 구분자 없는 정수면 자릿수를 확정할 수 없다 → 확인 필요 */
+        if(f.a==null&&decimalTable&&/^-?\d+$/.test(rowsOut[i][amtIdx])&&rowsOut[i][amtIdx]!=='0')ambiguous.push(i);});
       reconciled.add(0);
       const bad=rowsOut.map((r,i)=>i).filter(i=>!reconciled.has(i)&&(rowsOut[i][amtIdx]||rowsOut[i][balIdx]));
       bad.forEach(i=>lowRows.add(i));
       reconciled.forEach(i=>{if(i>0)lowRows.delete(i);});   /* 잔액이 맞아떨어진 행은 숫자가 검증된 것이므로 확인 필요에서 뺀다 */
-      log(`  잔액 정합 검증: ${bestChain.ok}행 일치 · 불일치 ${bad.length}행은 확인 필요로 표시`);
+      ambiguous.forEach(i=>lowRows.add(i));
+      log(`  잔액 정합 검증: ${bestChain.ok}행 일치 · 되채움 ${Object.keys(bestChain.fill).length}행 · 불일치 ${bad.length}행은 확인 필요로 표시`);
+      /* 검증에 걸리지 않은 나머지 정수: 이 표가 소수 2자리 표(검증된 값의 절반 이상이 소수)면 ÷100 으로 맞춘다. 원화 표는 해당 없음 */
+      for(const ci of [amtIdx,balIdx]){
+        const vals=rowsOut.map(r=>r[ci]).filter(v=>/^-?\d+(\.\d+)?$/.test(v));
+        if(vals.length&&vals.filter(v=>v.includes('.')).length>=vals.length*0.5){
+          rowsOut.forEach((r,i)=>{if(reconciled.has(i))return;const v=r[ci];if(/^-?\d+$/.test(v)&&v!=='0')r[ci]=(parseInt(v,10)/100).toFixed(2);});
+        }
+      }
     }
   }
   /* ② 나머지 숫자 열(환율 등): 같은 열의 다른 값이 소수점을 갖고 있으면(2건 이상·10% 이상) 구분자 없는 정수는 끝 두 자리를 소수로 되돌린다. 원화 거래내역은 소수가 없어 걸리지 않는다 */
@@ -532,6 +582,12 @@ function parseBank(items,width,opts){
     }
   }
   if(decFixed)log(`  소수점 복원 ${decFixed}건 (같은 열의 다른 값이 소수점을 가진 것을 기준)`);
+  /* 거래구분 열: 앞뒤 잡음(숫자·기호)을 떼고, 은행이 쓰는 표준 거래구분으로 맞춘다 (줄금→출금 같은 획 오독 포함) */
+  const KIND_MAP=[[/인터넷.?[줄출츌][금급]/,'인터넷출금'],[/인터넷.?입[금급]/,'인터넷입금'],[/무통.?입[금급]/,'무통입금'],[/무통.?[줄출츌][금급]/,'무통출금'],[/유통.?[줄출츌][금급]/,'유통출금'],[/원가.?결산/,'원가결산'],[/해외.?송금/,'해외송금'],[/타행.?이체/,'타행이체'],[/체크.?카드/,'체크카드'],[/자동.?이체/,'자동이체'],[/이자/,'이자']];
+  cols.forEach((c,ci)=>{
+    if(c.key!=='거래내용'||!/구분/.test(c.name))return;
+    rowsOut.forEach(r=>{let v=r[ci];if(!v)return;const k=v.replace(/^[^가-힣A-Za-z]+/,'').replace(/[^가-힣A-Za-z]+$/,'');for(const [re,std] of KIND_MAP){if(re.test(k.replace(/\s/g,''))){r[ci]=std;return;}}r[ci]=/[가-힣]{2,}/.test(k)?k:v;});
+  });
   /* 통화 열: USD 를 "usp·uso·450·050" 으로 읽는 일이 있어, 열에서 가장 많은 정상 통화코드로 통일한다 */
   const curCol=cols.findIndex(c=>c.key==='통화');
   if(curCol>=0){
