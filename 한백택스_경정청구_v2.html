@@ -76,7 +76,7 @@ const HB={ name:'세무법인 한백택스', tel:'02-2277-3101', telHref:'+82222
 /* ── 자료 접수 메일중계 (Google Apps Script 웹 앱) ──
  * 카톡채널 포털 v3 와 같은 설정을 쓴다. url 이 비어 있으면 공유창·메일 앱 방식으로 동작한다.
  * 설정 절차: 04-문서 & 가이드/앱 사용 가이드 - 자료전송 메일중계 설정 */
-const RELAY={ url:'', token:'hbtax-relay', maxTotal:20*1024*1024 };
+const RELAY={ url:'https://script.google.com/macros/s/AKfycbxtBSiGZjkoJEl87cttAm1HUrR4A1D2zyz03S65NOkC6ezSUsHW_8BW5Pq5fkIyBZAK7A/exec', token:'hbtax-relay', maxTotal:20*1024*1024 };
 const relayReady=()=>/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(RELAY.url||'');
 const fileToB64=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]||'');r.onerror=()=>rej(r.error||new Error('read'));r.readAsDataURL(f);});
 async function relaySend(payload){

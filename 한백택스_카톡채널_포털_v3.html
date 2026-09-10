@@ -899,7 +899,7 @@ const COMPANY = {
  * url   : 배포한 웹 앱 주소(…/exec). 비어 있으면 종전 방식(휴대폰 공유창 · 메일 앱)으로 동작한다.
  * token : Apps Script CONFIG.TOKEN 과 같아야 한다.
  * 설정 절차: 04-문서 & 가이드/앱 사용 가이드 - 자료전송 메일중계 설정 */
-const RELAY = { url:'', token:'hbtax-relay', maxTotal:20*1024*1024 };
+const RELAY = { url:'https://script.google.com/macros/s/AKfycbxtBSiGZjkoJEl87cttAm1HUrR4A1D2zyz03S65NOkC6ezSUsHW_8BW5Pq5fkIyBZAK7A/exec', token:'hbtax-relay', maxTotal:20*1024*1024 };
 function relayReady(){ return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(RELAY.url||''); }
 function fileToB64(f){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(',')[1]||''); r.onerror=()=>rej(r.error||new Error('read')); r.readAsDataURL(f); }); }
 async function relaySend(payload){
