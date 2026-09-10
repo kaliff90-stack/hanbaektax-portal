@@ -5,7 +5,7 @@
  *   { type:'SKIP_WAITING' }             → 대기 중인 새 워커를 즉시 활성화
  * 캐시 이름을 올리면 구캐시가 정리되고 새 자산을 다시 받는다.
  */
-const CACHE = 'hanbaektax-v11';
+const CACHE = 'hanbaektax-v12';
 
 /* 앱 셸 — 설치 즉시 확보 */
 const SHELL = [
