@@ -326,6 +326,7 @@ body.is-offline .offbar{display:block}
     </a>
     <nav class="navlinks" id="navlinks" aria-label="분류 바로가기"></nav>
     <div class="acts">
+      <button class="iconbtn" id="refreshBtn" type="button" title="캐시 비우고 새로고침 (최신 버전으로)" aria-label="캐시 비우고 새로고침">🔄</button>
       <button class="iconbtn" id="offlineBtn" type="button" title="도구 전체 오프라인 저장" aria-label="도구 전체 오프라인 저장">📥</button>
       <button class="iconbtn" id="installBtn" type="button" title="홈 화면에 설치" aria-label="홈 화면에 설치" hidden>⬇</button>
       <button class="iconbtn" id="themeBtn" type="button" title="화면 테마 전환" aria-label="화면 테마 전환">🌙</button>
@@ -809,6 +810,27 @@ function setOfflineBtn(state, saved){
   offlineBtn.title = label;
   offlineBtn.setAttribute('aria-label', label);
 }
+
+/* ── 캐시 비우고 새로고침 ──
+ * 오프라인 저장(서비스 워커 캐시)이 옛 화면을 보여줄 때 사용자가 직접 푼다.
+ * 저장된 캐시를 모두 지우고, 대기 중인 새 워커가 있으면 즉시 활성화한 뒤, 주소에 시각을 붙여 브라우저 캐시도 건너뛰어 다시 연다.
+ * 오프라인 저장은 지워지므로 필요하면 📥 로 다시 저장한다. */
+const refreshBtn = document.getElementById('refreshBtn');
+async function hardRefresh(){
+  refreshBtn.disabled = true; refreshBtn.textContent = '⏳';
+  showToast('저장된 캐시를 비우고 최신 버전을 여는 중…', {timeout:6000});
+  try{
+    if('caches' in window){ const keys = await caches.keys(); await Promise.all(keys.map(k => caches.delete(k))); }
+    if(swOK){
+      const reg = await navigator.serviceWorker.getRegistration();
+      if(reg){ if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'}); try{ await reg.update(); }catch(e){} }
+    }
+  }catch(e){}
+  const u = new URL(location.href); u.searchParams.set('r', Date.now()); location.replace(u.toString());
+}
+refreshBtn.addEventListener('click', hardRefresh);
+/* 새로고침 뒤 주소에 남은 r= 를 지운다 */
+if(new URL(location.href).searchParams.has('r')){ const u = new URL(location.href); u.searchParams.delete('r'); history.replaceState(null, '', u.pathname + (u.search || '') + u.hash); }
 
 if(!swOK){
   offlineBtn.hidden = true;

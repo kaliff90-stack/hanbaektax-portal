@@ -65,6 +65,20 @@ a{color:var(--blue)}
 .top-bar h1{font-size:24px;letter-spacing:-.5px;line-height:1.25}
 .top-bar .sub{font-size:14px;color:var(--head-sub);margin-top:3px}
 .top-bar .tag{color:var(--gold);font-weight:800;font-size:12px;text-align:right;white-space:nowrap}
+.head-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex:0 0 auto}
+.head-btn{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:9px 16px;border-radius:12px;cursor:pointer;
+  background:var(--gold);color:#241704;border:1px solid rgba(255,255,255,.35);font-weight:800;font-size:14px;white-space:nowrap;
+  box-shadow:0 2px 8px rgba(0,0,0,.18);transition:transform .12s,filter .15s}
+.head-btn:hover{filter:brightness(1.06)} .head-btn:active{transform:scale(.97)}
+.head-btn:disabled{opacity:.7;cursor:default}
+.head-btn .ico{font-size:18px;line-height:1;display:inline-block}
+.head-btn.busy .ico{animation:spin .8s linear infinite}
+.head-btn:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:50;
+  background:var(--navy);color:#fff;padding:12px 18px;border-radius:12px;font-size:14px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.28);
+  max-width:calc(100vw - 32px);text-align:center;line-height:1.5}
+html[data-theme="dark"] .toast{background:#DCE7F3;color:#101620}
+@media(max-width:700px){ .head-btn .lb{display:none} .head-btn{padding:9px 12px} }
 .brand-bar{background:var(--bar);color:var(--gold);text-align:center;padding:8px 12px;font-size:13px;font-weight:700;border-bottom:3px solid var(--gold)}
 .standalone-back{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;margin:14px 28px 0;transition:opacity .2s}
 .standalone-back:hover{opacity:.85}
@@ -164,8 +178,12 @@ tr:hover td{background:color-mix(in srgb,var(--blue) 8%,transparent)}
     <h1>세무법인 한백택스</h1>
     <div class="sub">대표세무사 차재영 | 서울특별시 중구 동호로 315, 2층</div>
   </div>
-  <div class="tag">세무환율 조회 v1</div>
+  <div class="head-right">
+    <div class="tag">세무환율 조회 v1</div>
+    <button class="head-btn" id="btnHeadReload" type="button" aria-label="환율 새로고침" title="최신 수집본을 다시 읽습니다"><span class="ico">↻</span><span class="lb">환율 새로고침</span></button>
+  </div>
 </div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <div class="brand-bar">HANBAEK TAX — 세무환율 조회 (매매기준율 · 재정환율 · 과세환율 · 원화 환산)</div>
 
 <a class="standalone-back" href="index.html">← 세무 도구 모음</a>
@@ -788,7 +806,29 @@ async function init(){
   if(!S.current && S.ref) setCurrent('ref', S.ref);
   updateStatus();
 }
-$('btnReload').addEventListener('click', ()=>{ $('officialBody').innerHTML='<div class="loading">불러오는 중</div>'; $('refBody').innerHTML='<div class="loading">불러오는 중</div>'; init(); });
+/* ══════════ 새로고침 · 알림 ══════════
+ * 상단바 "환율 새로고침": 수집본(latest·customs·series 목록)과 참고환율을 캐시를 우회해 다시 읽는다.
+ * 앱 파일 자체가 아니라 데이터를 다시 읽는 것이므로 배포와 무관하게 언제든 최신 수집본이 반영된다. */
+let toastTimer=null;
+function toast(msg, ms){ const t=$('toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ t.hidden=true; }, ms||2800); }
+let refreshing=false;
+async function refreshAll(){
+  if(refreshing) return; refreshing=true;
+  const b=$('btnHeadReload'); b.disabled=true; b.classList.add('busy');
+  $('officialBody').innerHTML='<div class="loading">최신 수집본을 읽는 중</div>'; $('refBody').innerHTML='<div class="loading">참고환율을 읽는 중</div>';
+  SR.cache={}; SR.rows=null; $('btnCsv').disabled=true; $('btnXlsx').disabled=true;
+  const before = S.official ? S.official.date : '';
+  try{
+    await init();
+    const now = S.official ? S.official.date : '';
+    if(now && now!==before) toast('새 고시가 반영되었습니다 · 기준일 '+now);
+    else if(now) toast('최신 수집본 확인 · 기준일 '+now+(now<kstToday()?' (오늘 고시는 아직 수집 전)':''));
+    else toast('공식 수집본을 읽지 못해 참고환율만 갱신했습니다');
+  }catch(e){ toast('새로고침 실패: '+e.message); }
+  finally{ refreshing=false; b.disabled=false; b.classList.remove('busy'); }
+}
+$('btnHeadReload').addEventListener('click', refreshAll);
+$('btnReload').addEventListener('click', refreshAll);
 $('btnTheme').addEventListener('click', ()=>{
   const next = document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
   document.documentElement.setAttribute('data-theme', next); LS.set('hbt_theme', next);
