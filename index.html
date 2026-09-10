@@ -90,7 +90,12 @@ html[data-theme="dark"] .brand .logo-d{display:block}
 .names{min-width:0}
 .n1{display:block;font-size:16.5px;font-weight:800;letter-spacing:-.3px;line-height:1.2}
 .n2{display:block;font-size:11px;color:var(--gray);letter-spacing:.3px;margin-top:2px}
-.navlinks{display:flex;gap:2px;margin-left:8px}
+.navlinks{display:flex;gap:2px;margin-left:8px;flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none}
+.navlinks::-webkit-scrollbar{display:none}
+.navlinks button{flex:0 0 auto}
+.top-in .brand{flex:0 0 auto}
+/* 분류 메뉴가 보이는 폭에서는 부제를 숨겨 메뉴·새로고침 버튼이 한 줄에 들어가게 한다 (컨테이너 1080px) */
+@media(min-width:901px){ .brand .n2{display:none} }
 .navlinks button{
   border:none;background:transparent;color:var(--txt-2);font-size:13px;font-weight:700;
   padding:7px 11px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:background .14s,color .14s;
