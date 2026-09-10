@@ -211,6 +211,38 @@ input::placeholder,textarea::placeholder{color:var(--g4)}
 /* Misc */
 .divider{height:8px;background:var(--g0);margin:0 -16px}
 .section{padding:20px 0}
+/* ── 세무대리 수임 신청 마법사 ── */
+.ob-steps{display:flex;gap:6px;margin:4px 0 14px}
+.ob-steps span{flex:1;height:6px;border-radius:3px;background:var(--g2);transition:background .2s}
+.ob-steps span.on{background:var(--p)}
+.ob-steps span.done{background:var(--ok)}
+.ob-step{display:none}
+.ob-step.active{display:block;animation:fadeUp .3s ease}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg input{display:none}
+.seg label{flex:1;min-width:88px;text-align:center;padding:10px 8px;border:1.5px solid var(--g2);border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;background:var(--g0);color:var(--text2);transition:all .15s}
+.seg input:checked+label{border-color:var(--p);background:var(--p1);color:var(--p)}
+.chk-list .chk{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--g2);border-radius:12px;margin-bottom:8px;cursor:pointer;background:var(--g0);transition:all .15s}
+.chk-list .chk input{width:20px;height:20px;accent-color:var(--p);flex-shrink:0}
+.chk-list .chk.on{border-color:var(--p);background:var(--p1)}
+.chk-list .chk .t{font-size:13px;font-weight:800}
+.chk-list .chk .s{font-size:11px;color:var(--text2);margin-top:2px}
+.terms{max-height:200px;overflow-y:auto;font-size:12px;line-height:1.65;color:var(--text2);background:var(--g0);border:1px solid var(--g2);border-radius:12px;padding:12px 14px}
+.terms h4{font-size:12.5px;color:var(--text);margin:10px 0 3px}
+.terms h4:first-child{margin-top:0}
+.sig-wrap{position:relative;border:1.5px dashed var(--g3);border-radius:12px;background:#fff;touch-action:none;overflow:hidden}
+.sig-wrap canvas{width:100%;height:170px;display:block}
+.sig-wrap .hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--g4);font-size:13px;pointer-events:none}
+.sig-wrap.has .hint{display:none}
+.ob-summary .row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px dashed var(--g2);font-size:13px}
+.ob-summary .row:last-child{border-bottom:none}
+.ob-summary .row b{color:var(--text2);font-weight:700;flex:0 0 96px}
+.ob-summary .row span{text-align:right;word-break:break-all;font-weight:700}
+.form-input.err{border-color:var(--ng)}
+.hash{font-family:ui-monospace,Consolas,monospace;font-size:11px;word-break:break-all;color:var(--text3)}
+.ob-next li{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px dashed var(--g2);font-size:13px}
+.ob-next li:last-child{border-bottom:none}
+.ob-next .n{width:26px;height:26px;border-radius:50%;background:var(--p1);color:var(--p);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0}
 .contact-btn{display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;background:var(--g0);margin-bottom:8px;cursor:pointer;transition:background .15s}
 .contact-btn:active{background:var(--g1)}
 .contact-btn i{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff}
@@ -258,7 +290,7 @@ input::placeholder,textarea::placeholder{color:var(--g4)}
 <div class="qm-icon" style="background:var(--p1);color:var(--p)"><i class="fa-solid fa-handshake"></i></div>
 <span>수임동의</span>
 </div>
-<div class="qm-item" onclick="requestService()">
+<div class="qm-item" onclick="obOpen()">
 <div class="qm-icon" style="background:var(--ok1);color:var(--ok)"><i class="fa-solid fa-file-signature"></i></div>
 <span>세무대리신청</span>
 </div>
@@ -618,6 +650,100 @@ Tel 02-2277-3101 / Fax 02-2277-3161
 </div>
 </div>
 
+<!-- ===================== PAGE: ONBOARD (세무대리 수임 신청) ===================== -->
+<div class="page" id="page-onboard">
+<div class="page-header">
+<div class="back-btn" onclick="obBack()"><i class="fa-solid fa-chevron-left"></i></div>
+<h1>세무대리 수임 신청</h1>
+</div>
+<div class="page-body">
+<div class="section" style="padding-top:14px">
+<div class="ob-steps" id="obSteps"><span></span><span></span><span></span><span></span><span></span></div>
+<div class="fs-12 fw-700" id="obStepTitle" style="color:var(--text2);margin-bottom:10px"></div>
+
+<!-- 1 기본 정보 -->
+<div class="ob-step active" data-step="1">
+<div class="card">
+<div class="form-group"><label class="form-label">구분</label>
+<div class="seg">
+<input type="radio" name="obKind" id="obKind1" value="개인사업자" checked><label for="obKind1">개인사업자</label>
+<input type="radio" name="obKind" id="obKind2" value="법인"><label for="obKind2">법인</label>
+<input type="radio" name="obKind" id="obKind3" value="개인(비사업자)"><label for="obKind3">개인</label>
+</div></div>
+<div class="form-group"><label class="form-label">상호 · 법인명 <span id="obBizOpt" class="fs-11" style="color:var(--text3)"></span></label><input class="form-input" id="obBiz" placeholder="예: 한백상사 / (주)한백"></div>
+<div class="form-group"><label class="form-label">대표자 성명 *</label><input class="form-input" id="obName" placeholder="예: 홍길동" autocomplete="name"></div>
+<div class="form-group" id="obBrnGroup"><label class="form-label">사업자등록번호 *</label><input class="form-input" id="obBrn" inputmode="numeric" placeholder="000-00-00000" maxlength="12"><div class="fs-11 mt-8" id="obBrnMsg" style="color:var(--text3)"></div></div>
+<div class="form-group"><label class="form-label">업종 · 주요 사업내용</label><input class="form-input" id="obInd" placeholder="예: 음식점업 / 도소매 / 제조 / 서비스"></div>
+<div class="form-group"><label class="form-label">사업장 주소</label><input class="form-input" id="obAddr" placeholder="예: 서울 중구 동호로 315"></div>
+<div class="form-group"><label class="form-label">휴대폰 *</label><input class="form-input" id="obPhone" type="tel" inputmode="tel" placeholder="010-0000-0000" autocomplete="tel"></div>
+<div class="form-group"><label class="form-label">이메일 <span class="fs-11" style="color:var(--text3)">(접수 확인·연락용)</span></label><input class="form-input" id="obEmail" type="email" inputmode="email" placeholder="example@email.com" autocomplete="email"></div>
+<div class="form-group" style="margin-bottom:0"><label class="form-label">현재 세무대리인</label>
+<div class="seg">
+<input type="radio" name="obPrev" id="obPrev1" value="없음(신규)" checked><label for="obPrev1">없음 (신규)</label>
+<input type="radio" name="obPrev" id="obPrev2" value="있음(변경)"><label for="obPrev2">있음 (변경)</label>
+</div></div>
+</div>
+</div>
+
+<!-- 2 위임 업무 -->
+<div class="ob-step" data-step="2">
+<div class="card">
+<div class="fs-12 fw-700 mb-8" style="color:var(--text2)">위임할 업무를 모두 선택하세요</div>
+<div class="chk-list" id="obScope"></div>
+<div class="form-group mt-12"><label class="form-label">희망 시작 시기</label>
+<div class="seg">
+<input type="radio" name="obStart" id="obStart1" value="즉시" checked><label for="obStart1">즉시</label>
+<input type="radio" name="obStart" id="obStart2" value="다음 달부터"><label for="obStart2">다음 달부터</label>
+<input type="radio" name="obStart" id="obStart3" value="상담 후 결정"><label for="obStart3">상담 후 결정</label>
+</div></div>
+<div class="form-group" style="margin-bottom:0"><label class="form-label">요청사항 · 메모</label><textarea class="form-input" id="obMemo" rows="3" placeholder="예: 직원 3명, 연매출 규모, 급한 신고, 이전 세무사 자료 인수 등" style="resize:vertical"></textarea></div>
+</div>
+</div>
+
+<!-- 3 동의 · 전자서명 -->
+<div class="ob-step" data-step="3">
+<div class="card">
+<div class="flex justify-between items-center mb-8"><div class="fs-12 fw-700" style="color:var(--text2)">세무대리 위임 약정 요지</div><span class="badge badge-wn">초안</span></div>
+<div class="terms" id="obTerms"></div>
+<div class="chk-list mt-12" id="obAgree">
+<label class="chk"><input type="checkbox" id="obA1"><div><div class="t">세무대리 업무 위임에 동의합니다 *</div><div class="s">위 약정 요지를 읽었으며, 세무법인 한백택스(대표세무사 차재영)에 선택한 업무를 위임합니다</div></div></label>
+<label class="chk"><input type="checkbox" id="obA2"><div><div class="t">개인정보 수집·이용에 동의합니다 *</div><div class="s">항목: 성명·연락처·사업자정보·세무자료 / 목적: 세무대리 업무 수행 / 보유: 위임 종료 후 5년</div></div></label>
+<label class="chk"><input type="checkbox" id="obA3"><div><div class="t">홈택스 수임동의 절차를 안내받았습니다 *</div><div class="s">신청 후 홈택스에서 「세무법인 한백택스(차재영)」 정보제공 동의를 마쳐야 대리 업무가 시작됩니다</div></div></label>
+</div>
+<div class="form-group mt-12" style="margin-bottom:0"><label class="form-label">서명 (손가락 또는 마우스로 서명) *</label>
+<div class="sig-wrap" id="sigWrap"><canvas id="sigPad"></canvas><div class="hint">여기에 서명하세요</div></div>
+<div class="flex justify-between items-center mt-8"><span class="fs-11" style="color:var(--text3)">서명자 <b id="obSigner">—</b> · <span id="obSigDate"></span></span><button class="btn btn-sm btn-o" type="button" onclick="sigClear()">지우기</button></div>
+</div>
+</div>
+</div>
+
+<!-- 4 확인 · 제출 -->
+<div class="ob-step" data-step="4">
+<div class="card ob-summary" id="obSummary"></div>
+<div class="fs-11 text-center" style="color:var(--text3);line-height:1.6">제출하면 서명이 들어간 신청서 PDF 가 만들어져 세무법인 한백택스로 접수되고,<br>접수번호와 문서 해시(위변조 확인값)가 표시됩니다.</div>
+</div>
+
+<!-- 5 완료 -->
+<div class="ob-step" data-step="5">
+<div class="card text-center" id="obDone"></div>
+<div class="card">
+<div class="sec-title" style="font-size:15px;margin-bottom:6px"><i class="fa-solid fa-list-check"></i> 다음 절차</div>
+<ul class="ob-next" style="list-style:none">
+<li><span class="n">1</span><div><div class="fw-800">홈택스 수임동의</div><div class="fs-11" style="color:var(--text2)">My홈택스 → 세무대리/납세관리 → 세무법인 한백택스(차재영) 동의. 이 절차가 끝나야 자료 조회·신고 대리가 가능합니다.</div><button class="btn btn-sm btn-o mt-8" onclick="goPage('my');setTimeout(()=>scrollToEl('suim-guide'),300)">단계별 안내 보기</button></div></li>
+<li><span class="n">2</span><div><div class="fw-800">서류 보내기</div><div class="fs-11" style="color:var(--text2)">사업자등록증 · 대표자 신분증 · 사업용 통장 사본 · 직전 신고서(있으면). 자료 전송 화면에서 파일째로 접수됩니다.</div><button class="btn btn-sm btn-o mt-8" onclick="goPage('upload')">자료 전송으로</button></div></li>
+<li><span class="n">3</span><div><div class="fw-800">담당자 연락</div><div class="fs-11" style="color:var(--text2)">영업일 기준 1일 내 담당자가 연락드려 보수·시작일 등 세부 조건을 확정합니다. 급하면 02-2277-3101.</div></div></li>
+</ul>
+</div>
+</div>
+
+<div class="flex mt-12" id="obNav" style="gap:8px">
+<button class="btn btn-o" style="flex:1" id="obPrevBtn" onclick="obPrevStep()">이전</button>
+<button class="btn btn-p" style="flex:2" id="obNextBtn" onclick="obNextStep()">다음</button>
+</div>
+</div>
+</div>
+</div>
+
 <!-- ===================== PAGE: MY ===================== -->
 <div class="page" id="page-my">
 <div class="page-header">
@@ -635,6 +761,12 @@ Tel 02-2277-3101 / Fax 02-2277-3161
 <div class="fs-11" style="color:var(--text3)">세무법인 한백택스 고객</div>
 </div>
 </div>
+</div>
+
+<!-- 수임 신청 현황 -->
+<div class="section" id="obStatusSec" style="display:none">
+<div class="sec-title"><i class="fa-solid fa-file-signature"></i> 세무대리 수임 신청 현황</div>
+<div id="obStatusCard"></div>
 </div>
 
 <!-- 신고 상태 트래커 -->
@@ -1346,6 +1478,284 @@ function notifySuim(){
   openContact(text, '수임동의 완료를 이메일로 알려주세요');
 }
 
+/* ===================== ONBOARD — 세무대리 수임 신청 =====================
+ * 흐름: 기본정보(사업자번호 검증) → 위임 업무 → 약정 요지·동의·전자서명(캔버스) → 확인 → 제출
+ * 제출: 신청서 PDF(서명 포함, 이미지 페이지)를 브라우저에서 만들고 SHA-256 해시를 계산한다.
+ *   RELAY.url 이 설정돼 있으면 메일중계로 사무실 메일·드라이브·접수대장에 자동 접수(type:'onboard').
+ *   아니면 PDF 를 내려받게 하고 메일 앱을 연다. 결과는 localStorage 'onboard' 에 남겨 MY 대시보드에 표시한다.
+ * 약정 요지(obTermsHtml)는 초안이다. 보수·기간·책임 조항은 대표세무사 검토 후 확정한다.
+ */
+const OB_SCOPES=[
+  {id:'book',    t:'기장대리',                s:'장부 작성 · 증빙 관리 · 재무제표'},
+  {id:'vat',     t:'부가가치세 신고',          s:'예정 · 확정신고'},
+  {id:'inc',     t:'종합소득세 · 법인세 신고', s:'연 1회 확정신고 및 세무조정'},
+  {id:'wh',      t:'원천세 · 연말정산',        s:'급여 신고, 4대보험, 지급명세서'},
+  {id:'consult', t:'세무 상담 · 절세 검토',    s:'수시 상담, 세금 예측'},
+  {id:'refund',  t:'경정청구 · 환급',          s:'5년 내 과다 납부 세금 환급'},
+  {id:'audit',   t:'세무조사 · 불복 대리',     s:'조사 입회, 이의신청 · 심판청구'},
+  {id:'etc',     t:'기타 (메모에 기재)',        s:'사업자등록, 폐업, 양도 · 상속 · 증여 등'},
+];
+const OB_TITLES=['','1 / 5  기본 정보','2 / 5  위임 업무','3 / 5  동의 · 전자서명','4 / 5  확인 · 제출','5 / 5  접수 완료'];
+const OB={ step:1, sigHas:false, pdfBytes:null, hash:'', pages:[], inited:false };
+
+function obOpen(){ goPage('onboard'); obInitOnce(); obShow(1); }
+function obInitOnce(){
+  if(OB.inited) return; OB.inited=true;
+  document.getElementById('obScope').innerHTML=OB_SCOPES.map(s=>`<label class="chk"><input type="checkbox" value="${s.id}" ${['book','vat','inc'].includes(s.id)?'checked':''}><div><div class="t">${s.t}</div><div class="s">${s.s}</div></div></label>`).join('');
+  document.querySelectorAll('#obScope .chk input, #obAgree .chk input').forEach(i=>{ const sync=()=>i.closest('.chk').classList.toggle('on', i.checked); i.addEventListener('change',sync); sync(); });
+  const nm=(localStorage.getItem('userName')||'').trim(); if(nm) document.getElementById('obName').value=nm;
+  const ph=(localStorage.getItem('senderPhone')||'').trim(); if(ph) document.getElementById('obPhone').value=ph;
+  const brn=document.getElementById('obBrn');
+  brn.addEventListener('input',()=>{ const d=brn.value.replace(/\D/g,'').slice(0,10); brn.value=d.replace(/^(\d{3})(\d{0,2})(\d{0,5}).*$/,(m,a,b,c)=>a+(b?'-'+b:'')+(c?'-'+c:'')); obBrnCheck(); });
+  document.getElementById('obPhone').addEventListener('input',e=>{ const d=e.target.value.replace(/\D/g,'').slice(0,11); e.target.value=d.replace(/^(\d{3})(\d{0,4})(\d{0,4}).*$/,(m,a,b,c)=>a+(b?'-'+b:'')+(c?'-'+c:'')); });
+  document.querySelectorAll('input[name=obKind]').forEach(r=>r.addEventListener('change',obKindSync)); obKindSync();
+  document.getElementById('obName').addEventListener('input',()=>{ document.getElementById('obSigner').textContent=document.getElementById('obName').value.trim()||'—'; });
+  document.getElementById('obTerms').innerHTML=obTermsHtml();
+  sigInit();
+  window.addEventListener('resize',()=>{ if(OB.step===3) sigResize(); });
+}
+function obKindSync(){
+  const k=obKind();
+  document.getElementById('obBrnGroup').style.display = k==='개인(비사업자)' ? 'none' : '';
+  document.getElementById('obBizOpt').textContent = k==='개인(비사업자)' ? '(해당 시)' : '';
+}
+function obKind(){ return (document.querySelector('input[name=obKind]:checked')||{}).value||'개인사업자'; }
+function obRadio(n){ return (document.querySelector(`input[name=${n}]:checked`)||{}).value||''; }
+/* 사업자등록번호 검증 — 국세청 부여 규칙 (가중치 1,3,7,1,3,7,1,3,5 + 9번째 자리×5÷10 절사) */
+function brnValid(s){
+  const d=String(s).replace(/\D/g,''); if(d.length!==10) return false;
+  const w=[1,3,7,1,3,7,1,3,5]; let sum=0;
+  for(let i=0;i<9;i++) sum+=(+d[i])*w[i];
+  sum+=Math.floor((+d[8])*5/10);
+  return (10-(sum%10))%10===+d[9];
+}
+function obBrnCheck(){
+  const m=document.getElementById('obBrnMsg'), d=document.getElementById('obBrn').value.replace(/\D/g,'');
+  if(!d){ m.textContent=''; return; }
+  if(d.length<10){ m.textContent='10자리를 입력하세요'; m.style.color='var(--text3)'; return; }
+  if(brnValid(d)){ m.textContent='번호 형식 확인됨'; m.style.color='var(--ok)'; }
+  else { m.textContent='검증번호가 맞지 않습니다. 사업자등록증을 다시 확인하세요'; m.style.color='var(--ng)'; }
+}
+function obShow(n){
+  OB.step=n;
+  document.querySelectorAll('.ob-step').forEach(s=>s.classList.toggle('active', +s.dataset.step===n));
+  document.querySelectorAll('#obSteps span').forEach((s,i)=>{ s.className = i+1<n ? 'done' : (i+1===n ? 'on' : ''); });
+  document.getElementById('obStepTitle').textContent=OB_TITLES[n];
+  const prev=document.getElementById('obPrevBtn'), next=document.getElementById('obNextBtn');
+  prev.style.display=(n===1||n===5)?'none':'';
+  next.innerHTML = n===4 ? '<i class="fa-solid fa-file-signature"></i> 서명한 신청서 제출' : (n===5 ? '홈으로' : '다음');
+  if(n===3){ document.getElementById('obSigner').textContent=document.getElementById('obName').value.trim()||'—'; document.getElementById('obSigDate').textContent=new Date().toLocaleDateString('ko-KR'); setTimeout(sigResize,60); }
+  if(n===4) obRenderSummary();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function obBack(){ if(OB.step>1 && OB.step<5) obPrevStep(); else goPage('home'); }
+function obPrevStep(){ if(OB.step>1) obShow(OB.step-1); }
+async function obNextStep(){
+  if(OB.step===1){ if(obValidate1()) obShow(2); }
+  else if(OB.step===2){ if(!obCollect().scope.length){ toast('위임할 업무를 하나 이상 선택하세요'); return; } obShow(3); }
+  else if(OB.step===3){ if(obValidate3()) obShow(4); }
+  else if(OB.step===4){ await obSubmit(); }
+  else { goPage('home'); }
+}
+function obMark(id,bad){ const el=document.getElementById(id); el.classList.toggle('err',!!bad); if(bad) el.focus(); }
+function obValidate1(){
+  const k=obKind();
+  if(!document.getElementById('obName').value.trim()){ toast('대표자 성명을 입력하세요'); obMark('obName',true); return false; } obMark('obName',false);
+  if(k!=='개인(비사업자)'){ if(!brnValid(document.getElementById('obBrn').value)){ toast('사업자등록번호를 확인하세요'); obMark('obBrn',true); return false; } obMark('obBrn',false); }
+  if(document.getElementById('obPhone').value.replace(/\D/g,'').length<10){ toast('휴대폰 번호를 입력하세요'); obMark('obPhone',true); return false; } obMark('obPhone',false);
+  const em=document.getElementById('obEmail').value.trim();
+  if(em && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){ toast('이메일 형식을 확인하세요'); obMark('obEmail',true); return false; } obMark('obEmail',false);
+  return true;
+}
+function obValidate3(){
+  for(const id of ['obA1','obA2','obA3']) if(!document.getElementById(id).checked){ toast('필수 동의 항목을 모두 체크하세요'); return false; }
+  if(!OB.sigHas){ toast('서명을 해주세요'); return false; }
+  return true;
+}
+function obCollect(){
+  const v=id=>document.getElementById(id).value.trim();
+  const scope=[...document.querySelectorAll('#obScope input:checked')].map(i=>i.value);
+  return { kind:obKind(), biz:v('obBiz'), name:v('obName'), brn:obKind()==='개인(비사업자)'?'':v('obBrn'), ind:v('obInd'), addr:v('obAddr'), phone:v('obPhone'), email:v('obEmail'), prev:obRadio('obPrev'),
+           scope, scopeNames:scope.map(id=>(OB_SCOPES.find(s=>s.id===id)||{}).t||id), start:obRadio('obStart'), memo:v('obMemo') };
+}
+function obRenderSummary(){
+  const d=obCollect();
+  const row=(k,val)=>`<div class="row"><b>${k}</b><span>${esc(val||'—')}</span></div>`;
+  document.getElementById('obSummary').innerHTML =
+    row('구분',d.kind)+row('상호',d.biz)+row('대표자',d.name)+(d.brn?row('사업자번호',d.brn):'')+row('업종',d.ind)+row('주소',d.addr)+row('휴대폰',d.phone)+row('이메일',d.email)+row('기존 대리인',d.prev)
+    +row('위임 업무',d.scopeNames.join(', '))+row('시작 시기',d.start)+(d.memo?row('메모',d.memo):'')
+    +`<div class="row"><b>서명</b><span><img src="${document.getElementById('sigPad').toDataURL('image/png')}" alt="서명" style="height:44px;background:#fff;border:1px solid var(--g2);border-radius:6px"></span></div>`;
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* 약정 요지 — 초안. 확정 조건(보수·기간·책임)은 상담 후 별도 계약서로 정한다 */
+function obTermsHtml(){
+  return `<h4>1. 목적과 성격</h4>본 신청서는 신청인이 세무법인 한백택스(대표세무사 차재영, 이하 "한백택스")에 세무대리 업무를 위임할 의사를 확인하고 필요한 사전 동의를 받는 문서입니다. 보수·시작일 등 세부 조건은 담당자 상담 후 확정하며, 확정 조건은 별도 계약서 또는 확인서로 정합니다.
+<h4>2. 위임 업무 범위</h4>신청인이 선택한 업무(기장, 부가가치세·종합소득세·법인세·원천세 신고, 세무조정, 상담, 경정청구, 조사·불복 대리 등)에 한합니다. 범위 밖 업무는 별도 협의합니다.
+<h4>3. 신청인의 의무</h4>신청인은 세금계산서·영수증·통장내역·급여자료 등 신고에 필요한 자료를 기한 내에 제공하고, 사실과 다르지 않게 고지합니다. 자료 누락·지연·허위로 생기는 가산세 등 불이익은 신청인이 부담합니다.
+<h4>4. 한백택스의 의무</h4>한백택스는 세무사법과 관련 법령을 준수하여 위임 업무를 성실히 수행하고, 업무상 알게 된 정보를 비밀로 유지하며, 주요 신고 결과를 신청인에게 알립니다.
+<h4>5. 홈택스 수임동의</h4>세무대리 업무는 신청인이 홈택스에서 "세무법인 한백택스(차재영)"에 대한 정보제공 동의(수임동의)를 마쳐야 시작할 수 있습니다.
+<h4>6. 해지</h4>양 당사자는 상대방에게 통지(서면·전자문서·이메일 포함)하여 위임을 해지할 수 있습니다. 해지 시 진행 중인 업무와 보수는 진행 정도에 따라 정산합니다.
+<h4>7. 개인정보</h4>수집 항목은 성명·연락처·이메일·사업자정보·세무자료이며, 목적은 세무대리 업무 수행과 연락입니다. 위임 종료 후 5년간 보관하고 파기합니다. 신청인은 동의를 거부할 수 있으나 이 경우 세무대리 업무를 시작할 수 없습니다.
+<h4>8. 전자서명의 효력</h4>신청인은 이 화면의 서명이 본인의 전자서명이며 서면 서명과 같은 효력을 가진다는 데 동의합니다. 서명한 신청서는 PDF 로 생성되어 신청인이 내려받을 수 있고, 문서 해시값으로 위변조 여부를 확인할 수 있습니다.`;
+}
+
+/* ── 서명 패드 ── */
+function sigInit(){
+  const c=document.getElementById('sigPad'), wrap=document.getElementById('sigWrap');
+  let drawing=false, last=null;
+  const ctx=()=>c.getContext('2d');
+  const pos=e=>{ const r=c.getBoundingClientRect(); return {x:(e.clientX-r.left)*(c.width/r.width), y:(e.clientY-r.top)*(c.height/r.height)}; };
+  c.addEventListener('pointerdown',e=>{ e.preventDefault(); c.setPointerCapture&&c.setPointerCapture(e.pointerId); drawing=true; last=pos(e); const x=ctx(); x.beginPath(); x.arc(last.x,last.y,2,0,Math.PI*2); x.fill(); OB.sigHas=true; wrap.classList.add('has'); });
+  c.addEventListener('pointermove',e=>{ if(!drawing) return; e.preventDefault(); const p=pos(e), x=ctx(); x.beginPath(); x.moveTo(last.x,last.y); x.lineTo(p.x,p.y); x.stroke(); last=p; });
+  const end=()=>{ drawing=false; };
+  c.addEventListener('pointerup',end); c.addEventListener('pointercancel',end); c.addEventListener('pointerleave',end);
+  sigResize();
+}
+function sigResize(){
+  const c=document.getElementById('sigPad'); const r=c.getBoundingClientRect(); if(r.width<10) return;
+  const keep=OB.sigHas?c.toDataURL():null;
+  c.width=Math.round(r.width*2); c.height=Math.round(r.height*2);
+  const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height);
+  x.lineWidth=4; x.lineCap='round'; x.lineJoin='round'; x.strokeStyle='#111'; x.fillStyle='#111';
+  if(keep){ const im=new Image(); im.onload=()=>x.drawImage(im,0,0,c.width,c.height); im.src=keep; }
+}
+function sigClear(){ OB.sigHas=false; document.getElementById('sigWrap').classList.remove('has'); sigResize(); }
+
+/* ── 신청서 PDF: A4 페이지를 캔버스에 그려 이미지로 넣는다(한글 폰트 임베드 불필요) ── */
+function loadScriptOnce(src, ready){
+  if(ready()) return Promise.resolve();
+  return new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=src; s.onload=()=>ready()?res():rej(new Error('load')); s.onerror=()=>rej(new Error('스크립트 로드 실패')); document.head.appendChild(s); });
+}
+function obRenderPages(d){
+  const W=1240, H=1754, M=90, FONT='"Nanum Gothic","Malgun Gothic","Apple SD Gothic Neo",sans-serif';
+  const pages=[]; let c, x, y;
+  const newPage=()=>{ c=document.createElement('canvas'); c.width=W; c.height=H; x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,W,H); x.textBaseline='top'; pages.push(c); y=M;
+    x.fillStyle='#1B3A5C'; x.fillRect(0,0,W,14); x.font=`800 22px ${FONT}`; x.fillStyle='#1B3A5C'; x.fillText('세무법인 한백택스',M,34); x.font=`400 18px ${FONT}`; x.fillStyle='#6B7A8D'; x.textAlign='right'; x.fillText('세무대리 수임 신청서  ·  '+d.docId,W-M,36); x.textAlign='left'; y=90; };
+  const footer=()=>{ pages.forEach((pc,i)=>{ const px=pc.getContext('2d'); px.font=`400 16px ${FONT}`; px.fillStyle='#6B7A8D'; px.textAlign='center'; px.fillText(`${COMPANY.name} · ${COMPANY.addr} · 전화 ${COMPANY.tel} · 팩스 ${COMPANY.fax} · ${COMPANY.email}      ${i+1} / ${pages.length}`, W/2, H-50); px.textAlign='left'; }); };
+  const wrap=(t,font,maxW)=>{ x.font=font; const out=[]; for(const para of String(t||'').split('\n')){ let line=''; for(const ch of para){ if(x.measureText(line+ch).width>maxW && line){ out.push(line); line=ch; } else line+=ch; } out.push(line); } return out; };
+  const need=h=>{ if(y+h>H-M-40) newPage(); };
+  const text=(t,{size=20,weight=400,color='#22303F',lh=1.5,maxW=W-2*M,left=M}={})=>{ const font=`${weight} ${size}px ${FONT}`; const lines=wrap(t,font,maxW); for(const l of lines){ need(size*lh); x.font=font; x.fillStyle=color; x.fillText(l,left,y); y+=size*lh; } };
+  const gap=n=>{ y+=n; };
+  const hr=()=>{ need(20); x.strokeStyle='#DDE4ED'; x.lineWidth=2; x.beginPath(); x.moveTo(M,y+8); x.lineTo(W-M,y+8); x.stroke(); y+=20; };
+  const h2=t=>{ gap(14); need(60); x.fillStyle='#1B3A5C'; x.fillRect(M,y+4,8,26); x.font=`800 24px ${FONT}`; x.fillStyle='#1B3A5C'; x.fillText(t,M+20,y); y+=44; };
+  const kv=(k,v)=>{ const font=`400 20px ${FONT}`; const lines=wrap(v||'—',font,W-2*M-260); need(lines.length*30+8); x.font=`700 20px ${FONT}`; x.fillStyle='#6B7A8D'; x.fillText(k,M,y); lines.forEach((l,i)=>{ x.font=font; x.fillStyle='#22303F'; x.fillText(l,M+260,y+i*30); }); y+=Math.max(1,lines.length)*30+8; };
+
+  newPage();
+  x.font=`800 44px ${FONT}`; x.fillStyle='#1B3A5C'; x.textAlign='center'; x.fillText('세무대리 수임 신청서',W/2,y); x.textAlign='left'; y+=70;
+  text(`문서번호 ${d.docId}  ·  작성일시 ${new Date(d.signedAt).toLocaleString('ko-KR')}`,{size:18,color:'#6B7A8D'}); gap(6); hr();
+  h2('1. 신청인');
+  kv('구분',d.kind); kv('상호 · 법인명',d.biz); kv('대표자 성명',d.name); if(d.brn) kv('사업자등록번호',d.brn); kv('업종',d.ind); kv('사업장 주소',d.addr); kv('휴대폰',d.phone); kv('이메일',d.email); kv('현재 세무대리인',d.prev);
+  h2('2. 위임 업무');
+  OB_SCOPES.forEach(s=>{ const on=d.scope.includes(s.id); text(`${on?'■':'□'}  ${s.t}${on?'   ('+s.s+')':''}`,{size:20,color:on?'#22303F':'#9AA7B6'}); });
+  gap(6); kv('희망 시작 시기',d.start); if(d.memo) kv('요청사항',d.memo);
+  h2('3. 위임 약정 요지');
+  const tmp=document.createElement('div'); tmp.innerHTML=obTermsHtml();
+  [...tmp.childNodes].forEach(n=>{ if(n.nodeName==='H4'){ gap(6); text(n.textContent,{size:19,weight:800}); } else if(n.textContent.trim()) text(n.textContent.trim(),{size:17,color:'#3A4C60',lh:1.55}); });
+  h2('4. 동의 및 전자서명');
+  ['세무대리 업무 위임에 동의합니다','개인정보 수집·이용에 동의합니다 (항목: 성명·연락처·사업자정보·세무자료 / 목적: 세무대리 업무 수행 / 보유: 위임 종료 후 5년)','홈택스 수임동의 절차를 안내받았습니다'].forEach(t=>text('☑  '+t,{size:19}));
+  gap(16); need(260);
+  x.font=`700 20px ${FONT}`; x.fillStyle='#6B7A8D'; x.fillText('신청인 서명',M,y);
+  x.font=`400 20px ${FONT}`; x.fillStyle='#22303F'; x.fillText(`${d.name}  (서명일시 ${new Date(d.signedAt).toLocaleString('ko-KR')})`,M+260,y); y+=40;
+  x.strokeStyle='#C8D1DE'; x.lineWidth=2; x.strokeRect(M+260,y,520,180);
+  const im=d.sigImg; if(im){ const s=Math.min(500/im.width,170/im.height); const w=im.width*s, h=im.height*s; x.drawImage(im,M+260+(520-w)/2,y+(180-h)/2,w,h); }
+  y+=200;
+  let pageRef=location.href.split('?')[0]; try{ pageRef=decodeURIComponent(pageRef); }catch(e){} if(pageRef.length>90) pageRef='…'+pageRef.slice(-88);
+  text(`기록: 기기 ${navigator.userAgent.slice(0,110)}  ·  화면 ${pageRef}`,{size:14,color:'#9AA7B6'});
+  text('이 문서는 신청인이 한백택스 간편 세무 포털에서 직접 입력·서명하여 생성한 전자문서이며, 생성 직후 계산한 SHA-256 해시값을 접수 메일과 신청인 화면에 함께 표시합니다.',{size:14,color:'#9AA7B6'});
+  footer();
+  return pages.map(pc=>pc.toDataURL('image/png'));
+}
+function b64ToBytes(b64){ const s=atob(b64); const u=new Uint8Array(s.length); for(let i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return u; }
+function bytesToB64(u8){ let s=''; for(let i=0;i<u8.length;i+=0x8000) s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000)); return btoa(s); }
+async function sha256Hex(u8){ const h=await crypto.subtle.digest('SHA-256',u8); return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join(''); }
+async function obBuildPdf(d){
+  await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js', ()=>!!window.PDFLib);
+  try{ await document.fonts.load('800 44px "Nanum Gothic"'); await document.fonts.load('400 20px "Nanum Gothic"'); }catch(e){}
+  d.sigImg = await new Promise(res=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=()=>res(null); im.src=d.sigPng; });
+  OB.pages=obRenderPages(d);
+  const {PDFDocument}=window.PDFLib; const pdf=await PDFDocument.create();
+  pdf.setTitle('세무대리 수임 신청서 - '+(d.biz||d.name)); pdf.setAuthor(d.name); pdf.setSubject(d.docId); pdf.setCreator('세무법인 한백택스 간편 세무 포털'); pdf.setProducer('세무법인 한백택스');
+  for(const png of OB.pages){ const img=await pdf.embedPng(b64ToBytes(png.split(',')[1])); const pg=pdf.addPage([595.28,841.89]); pg.drawImage(img,{x:0,y:0,width:595.28,height:841.89}); }
+  return await pdf.save();
+}
+function obSummaryText(d,hash){
+  return `[한백택스 세무대리 수임 신청]\n문서번호: ${d.docId}\n구분: ${d.kind}\n상호: ${d.biz||'-'}\n대표자: ${d.name}\n사업자번호: ${d.brn||'-'}\n업종: ${d.ind||'-'}\n주소: ${d.addr||'-'}\n휴대폰: ${d.phone}\n이메일: ${d.email||'-'}\n기존 대리인: ${d.prev}\n위임 업무: ${d.scopeNames.join(', ')}\n시작 시기: ${d.start}\n메모: ${d.memo||'-'}\n서명일시: ${new Date(d.signedAt).toLocaleString('ko-KR')}\n동의: 위임 / 개인정보 / 홈택스 수임동의 안내 (모두 동의)\n신청서 SHA-256: ${hash}`;
+}
+function obSavePdf(){
+  if(!OB.pdfBytes) return;
+  const blob=new Blob([OB.pdfBytes],{type:'application/pdf'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`세무대리_수임신청서_${(OB.result||{}).docId||''}.pdf`; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},800);
+}
+async function obSubmit(){
+  const d=obCollect(); const btn=document.getElementById('obNextBtn'); btn.disabled=true;
+  try{
+    btn.textContent='신청서 만드는 중…';
+    d.docId='HB-'+new Date(Date.now()+9*3600*1000).toISOString().slice(0,10).replace(/-/g,'')+'-'+Math.random().toString(36).slice(2,8).toUpperCase();
+    d.signedAt=new Date().toISOString(); d.sigPng=document.getElementById('sigPad').toDataURL('image/png');
+    const bytes=await obBuildPdf(d); const hash=await sha256Hex(bytes); OB.pdfBytes=bytes; OB.hash=hash;
+    const summary=obSummaryText(d,hash);
+    let via='', id='';
+    if(relayReady()){
+      btn.textContent='한백택스로 접수 중…';
+      try{
+        const r=await relaySend({type:'onboard', name:(d.biz?d.biz+' / ':'')+d.name, phone:d.phone, email:d.email, subject:'세무대리 수임 신청', text:summary, docId:d.docId, hash,
+          data:{kind:d.kind,biz:d.biz,name:d.name,brn:d.brn,ind:d.ind,addr:d.addr,phone:d.phone,email:d.email,prev:d.prev,scope:d.scopeNames.join(', '),start:d.start,memo:d.memo,signedAt:d.signedAt},
+          files:[{name:`세무대리_수임신청서_${d.docId}.pdf`, type:'application/pdf', size:bytes.length, data:bytesToB64(bytes)}]});
+        via='메일 접수'; id=r.id||'';
+      }catch(err){
+        if(!confirm('자동 접수에 실패했습니다 ('+err.message+').\n신청서 PDF 를 내려받고 이메일로 보내시겠습니까?')){ btn.disabled=false; obShow(4); return; }
+      }
+    }
+    OB.result={docId:d.docId, id, hash, via, at:d.signedAt, name:d.name, biz:d.biz, scope:d.scopeNames, hometax:false, docs:false};
+    if(!via){
+      obSavePdf();
+      mailTo(COMPANY.email, '[한백택스] 세무대리 수임 신청 - '+(d.biz||d.name), summary+'\n\n※ 방금 내려받은 신청서 PDF 를 이 메일에 첨부해 주세요.');
+      OB.result.via='이메일(수동)';
+    }
+    localStorage.setItem('onboard',JSON.stringify(OB.result));
+    localStorage.setItem('userName',d.name); localStorage.setItem('senderName',d.biz||d.name); localStorage.setItem('senderPhone',d.phone);
+    obRenderDone(OB.result); obShow(5);
+    toast(via ? '한백택스로 접수되었습니다' : '신청서 PDF 를 저장했습니다 — 메일에 첨부해 보내주세요');
+  }catch(e){ toast('오류: '+e.message); obShow(4); }
+  finally{ btn.disabled=false; if(OB.step===5) btn.textContent='홈으로'; }
+}
+function obRenderDone(r){
+  const auto=r.via==='메일 접수';
+  document.getElementById('obDone').innerHTML=
+    `<i class="fa-solid fa-circle-check" style="font-size:46px;color:var(--ok)"></i>
+     <div class="fw-800 fs-16 mt-12">${auto?'수임 신청이 접수되었습니다':'신청서가 만들어졌습니다'}</div>
+     <div class="fs-12 mt-8" style="color:var(--text2)">${auto?'세무법인 한백택스 메일함에 서명된 신청서가 도착했습니다.':'메일 앱에서 내려받은 PDF 를 첨부해 보내주세요.'}</div>
+     <div class="card mt-12" style="text-align:left;padding:12px 14px;background:var(--g0);margin-bottom:0">
+       <div class="fs-12"><b>문서번호</b> ${esc(r.docId)}</div>
+       ${r.id?`<div class="fs-12 mt-8"><b>접수번호</b> ${esc(r.id)}</div>`:''}
+       <div class="fs-12 mt-8"><b>문서 해시(SHA-256)</b><div class="hash">${esc(r.hash)}</div></div>
+     </div>
+     <button class="btn btn-o btn-sm mt-12" onclick="obSavePdf()"><i class="fa-solid fa-file-pdf"></i> 신청서 PDF 저장</button>`;
+}
+function renderOnboardCard(){
+  const sec=document.getElementById('obStatusSec'), c=document.getElementById('obStatusCard'); if(!sec||!c) return;
+  const r=JSON.parse(localStorage.getItem('onboard')||'null');
+  if(!r){ sec.style.display='none'; return; }
+  sec.style.display='';
+  const steps=[{k:'신청 접수',on:true},{k:'홈택스 수임동의',on:!!r.hometax},{k:'서류 제출',on:!!r.docs},{k:'조건 확정',on:false}];
+  const done=steps.filter(s=>s.on).length, pct=Math.round((done-1)/(steps.length-1)*100);
+  c.innerHTML=`<div class="card mb-12">
+    <div class="flex justify-between items-center mb-8"><div class="fw-800 fs-14">${esc(r.biz||r.name)}</div><span class="badge ${done>=3?'badge-ok':'badge-p'}">${done}/${steps.length} 단계</span></div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:var(--p)"></div></div>
+    <div class="flex justify-between mt-8">${steps.map(s=>`<span class="fs-10 fw-700" style="color:${s.on?'var(--p)':'var(--g4)'}">${s.k}</span>`).join('')}</div>
+    <div class="fs-11 mt-12" style="color:var(--text2)">문서번호 ${esc(r.docId)}${r.id?' · 접수번호 '+esc(r.id):''} · ${new Date(r.at).toLocaleDateString('ko-KR')} · ${esc(r.via||'')}</div>
+    <div class="fs-11 mt-8" style="color:var(--text3)">위임 업무: ${esc((r.scope||[]).join(', '))}</div>
+    <div class="flex mt-12" style="gap:8px;flex-wrap:wrap">
+      ${r.hometax?'':'<button class="btn btn-sm btn-p" onclick="obMarkHometax()"><i class="fa-solid fa-check"></i> 홈택스 수임동의 완료</button>'}
+      ${r.docs?'':'<button class="btn btn-sm btn-o" onclick="goPage(\'upload\')"><i class="fa-solid fa-cloud-arrow-up"></i> 서류 보내기</button>'}
+      <button class="btn btn-sm btn-o" onclick="obOpen()"><i class="fa-solid fa-pen"></i> 다시 작성</button>
+    </div></div>`;
+}
+function obMarkHometax(){
+  const r=JSON.parse(localStorage.getItem('onboard')||'null'); if(!r) return;
+  r.hometax=true; localStorage.setItem('onboard',JSON.stringify(r)); renderOnboardCard(); notifySuim();
+}
+
 /* ===================== UPLOAD ===================== */
 function initUpload(){
   const n=document.getElementById('senderName'), p=document.getElementById('senderPhone');
@@ -1388,6 +1798,8 @@ function buildSubmitText(memo){
     `\n\n— 세무법인 한백택스 자료 전송`;
 }
 function saveArchiveAndReset(memo, via){
+  /* 수임 신청 뒤 서류를 보내면 현황의 "서류 제출" 단계를 채운다 */
+  try{ const r=JSON.parse(localStorage.getItem('onboard')||'null'); if(r && !r.docs){ r.docs=true; localStorage.setItem('onboard',JSON.stringify(r)); } }catch(e){}
   const archive=JSON.parse(localStorage.getItem('archive')||'[]');
   archive.unshift({files:uploadedFiles.map(f=>f.name),memo,date:new Date().toLocaleDateString('ko-KR'),count:uploadedFiles.length,via:via||'공유'});
   localStorage.setItem('archive',JSON.stringify(archive.slice(0,20)));
@@ -1470,6 +1882,7 @@ function initMyPage(){
   const name=localStorage.getItem('userName')||'';
   document.getElementById('userName').value=name;
   // Status cards
+  renderOnboardCard();
   renderStatusCards();
   renderArchive();
 }
