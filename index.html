@@ -4,6 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>세무법인 한백택스 · 세무 도구 모음</title>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="세무법인 한백택스">
+<meta property="og:title" content="세무법인 한백택스 | 세무 도구 모음">
+<meta property="og:description" content="대표세무사 차재영 · 양도·증여·상속·종합소득세·연말정산·4대보험 계산기와 간편 세무 포털. 최신 법령을 법제처 원문으로 확인해 반영합니다.">
+<meta property="og:url" content="https://kaliff90-stack.github.io/hanbaektax-portal/">
+<meta property="og:image" content="https://kaliff90-stack.github.io/hanbaektax-portal/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="세무법인 한백택스">
+<meta property="og:locale" content="ko_KR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="세무법인 한백택스 | 세무 도구 모음">
+<meta name="twitter:description" content="대표세무사 차재영 · 양도·증여·상속·종합소득세·연말정산·4대보험 계산기와 간편 세무 포털. 최신 법령을 법제처 원문으로 확인해 반영합니다.">
+<meta name="twitter:image" content="https://kaliff90-stack.github.io/hanbaektax-portal/og-image.png">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -14,10 +28,6 @@
 <meta name="apple-mobile-web-app-title" content="한백택스">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="description" content="세무법인 한백택스 세무 계산기·시뮬레이터 모음 — 양도·증여·상속·종부세·종합소득세·연말정산·4대보험·비상장주식 평가·업종코드 검색">
-<meta property="og:type" content="website">
-<meta property="og:title" content="세무법인 한백택스 · 세무 도구 모음">
-<meta property="og:description" content="양도·증여·상속·종부세·종합소득세·연말정산·4대보험·업종코드 등 세무 계산기 모음">
-<meta property="og:locale" content="ko_KR">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
@@ -837,7 +847,7 @@ window.addEventListener('appinstalled', () => { installBtn.hidden = true; });
 /* ══════════ 서비스 워커 ══════════
  * 캐시 이름은 sw.js 가 홀로 관리한다 — 이 파일과 어긋날 일이 없다.
  */
-const SHELL_URLS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './logo.png', './logo-white.png', './logo-mark.png'];
+const SHELL_URLS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './logo.png', './logo-white.png', './logo-mark.png', './hb-light.css'];
 const TOOL_URLS  = ALL.map(a => './' + encodeURI(a.f));
 const offlineBtn = document.getElementById('offlineBtn');
 const swOK = ('serviceWorker' in navigator) && location.protocol !== 'file:';

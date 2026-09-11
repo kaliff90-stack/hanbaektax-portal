@@ -5,7 +5,7 @@
  *   { type:'SKIP_WAITING' }             → 대기 중인 새 워커를 즉시 활성화
  * 캐시 이름을 올리면 구캐시가 정리되고 새 자산을 다시 받는다.
  */
-const CACHE = 'hanbaektax-v17';
+const CACHE = 'hanbaektax-v18';
 
 /* 앱 셸 — 설치 즉시 확보 */
 const SHELL = [
@@ -17,7 +17,9 @@ const SHELL = [
   './apple-touch-icon.png',
   './logo.png',
   './logo-white.png',
-  './logo-mark.png'
+  './logo-mark.png',
+  './hb-light.css',
+  './og-image.png'
 ];
 
 const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];

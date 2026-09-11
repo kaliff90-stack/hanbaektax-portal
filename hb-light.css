@@ -1,0 +1,79 @@
+/* 세무법인 한백택스 · 공통 밝은 테마 (2026-09-11)
+ * 랜딩(index.html)과 같은 톤으로 계산기·도구의 어두운 머리 부분을 밝게 통일한다.
+ * 각 파일의 <style> 뒤에 <link rel="stylesheet" href="hb-light.css"> 로 붙는다.
+ * 원래 스타일이 인라인이거나 나중에 주입되는 경우가 있어 배경·글자색에는 !important 를 쓴다.
+ * 색: 네이비 #1B3A5C · 골드 #C8963E · 바탕 #F5F8FC · 연한 네이비 #E9F0F8 · 테두리 #DCE5F0
+ */
+:root{
+  --hb-navy:#1B3A5C; --hb-blue:#2E6DA4; --hb-gold:#C8963E;
+  --hb-bg:#F5F8FC; --hb-card:#FFFFFF; --hb-soft:#E9F0F8; --hb-gold-soft:#FBF3E4;
+  --hb-border:#DCE5F0; --hb-txt:#0F2440; --hb-txt2:#35507A; --hb-gray:#6E7F94;
+  --hb-sh:0 1px 2px rgba(15,36,64,.04), 0 4px 14px rgba(15,36,64,.05);
+}
+body{background:var(--hb-bg)!important}
+
+/* ── 상단 바 · 브랜드 바 (계산기 공통 틀) ── */
+.top-bar{background:rgba(255,255,255,.94)!important;color:var(--hb-navy)!important;border-bottom:1px solid var(--hb-border)!important;box-shadow:var(--hb-sh)!important;backdrop-filter:blur(10px)}
+.top-bar h1,.top-bar h2{color:var(--hb-navy)!important}
+.top-bar .sub{color:var(--hb-txt2)!important}
+.top-bar a{color:var(--hb-navy)}
+.brand-bar{background:var(--hb-soft)!important;color:var(--hb-navy)!important;border-bottom:2px solid var(--hb-gold)!important}
+.brand-bar .version-badge{background:var(--hb-gold)!important;color:#fff!important}
+
+/* ── 계산기 제목 · 구역 머리 ── */
+.calc-title{background:var(--hb-card)!important;color:var(--hb-navy)!important;border:1px solid var(--hb-border)!important;border-bottom:none!important;border-top:4px solid var(--hb-gold)!important;box-shadow:var(--hb-sh)}
+.calc-title h2,.calc-title h1{color:var(--hb-navy)!important}
+.calc-title .sub,.calc-title p{color:var(--hb-txt2)!important}
+.section-hdr,.grp-hdr,.sh{background:var(--hb-soft)!important;color:var(--hb-navy)!important;border-bottom:1px solid var(--hb-border)}
+.section-hdr .num{background:var(--hb-navy)!important;color:#fff!important}
+.grp-hdr .b{background:rgba(27,58,92,.10)!important;color:var(--hb-navy)!important}
+.grp-hdr .hint{color:var(--hb-txt2)!important}
+.grp-hdr.pen{background:#FBECEC!important;color:#8B1E1E!important}
+.grp-hdr.minus{background:#F6EEE6!important;color:#6B3F1D!important}
+.grp-hdr.sum{background:var(--hb-gold-soft)!important;color:var(--hb-navy)!important}
+
+/* ── 표 머리행 · 합계행 · 결과 셀 ── */
+table th,thead th{background:var(--hb-soft)!important;color:var(--hb-navy)!important;border-color:var(--hb-border)!important}
+.sub-tot .lbl,.total-row .lbl{background:var(--hb-soft)!important;color:var(--hb-navy)!important}
+.sub-tot .auto-cell,.total-row .auto-cell{background:var(--hb-gold-soft)!important;color:var(--hb-navy)!important;border-color:#EAD9B5!important}
+.auto-cell{color:var(--hb-navy)!important}
+
+/* ── 신고기한 캘린더 「다가오는 신고기한」 ── */
+.upcoming{background:var(--hb-card)!important;color:var(--hb-txt)!important;border:1px solid var(--hb-border);box-shadow:var(--hb-sh)}
+.upcoming h3{color:var(--hb-navy)!important}
+.up-card{background:var(--hb-soft)!important}
+.up-card .ti .dt{color:var(--hb-txt2)!important}
+
+/* ── 「계산 시작」 하단 바 (게이트 스크립트가 주입) ── */
+#hbCalcBar{background:rgba(255,255,255,.96)!important;color:var(--hb-navy)!important;border-top:1px solid var(--hb-border)!important;box-shadow:0 -4px 16px rgba(15,36,64,.08)!important;backdrop-filter:blur(10px)}
+#hbCalcBar span,#hbCalcBar div{color:var(--hb-navy)!important}
+#hbCalcBar #hbCalcGo{background:var(--hb-gold)!important;color:#fff!important}
+
+/* ── Tailwind 계열 (2025 종소세 · 2026 양도 · 2026 증여) ── */
+.gradient-header{background:linear-gradient(135deg,#FFFFFF 0%,#E9F0F8 100%)!important;color:var(--hb-navy)!important;border-bottom:1px solid var(--hb-border)!important;box-shadow:var(--hb-sh)!important}
+.gradient-header .text-white,.gradient-header h1,.gradient-header p,.gradient-header span,.gradient-header a{color:var(--hb-navy)!important}
+.gradient-header .text-blue-100,.gradient-header .text-blue-200,.gradient-header .text-gray-200,.gradient-header .text-gray-300,.gradient-header .opacity-80,.gradient-header .opacity-90{color:var(--hb-txt2)!important;opacity:1!important}
+.gradient-header .bg-white\/10,.gradient-header .bg-white\/20,.gradient-header .bg-white\/15{background:rgba(27,58,92,.08)!important}
+.navy-bg{background:var(--hb-soft)!important;color:var(--hb-navy)!important}
+.navy-bg .text-white,.navy-bg h2,.navy-bg h3,.navy-bg p,.navy-bg span{color:var(--hb-navy)!important}
+.navy-bg .text-gray-300,.navy-bg .text-gray-400,.navy-bg .text-blue-200{color:var(--hb-txt2)!important}
+
+/* ── 업종코드 검색 · 원천징수 연말정산 · 전산매체 · 세법검증 머리 ── */
+header:not([style]),.header{background:var(--hb-card)!important;color:var(--hb-navy)!important;border-bottom:1px solid var(--hb-border);box-shadow:var(--hb-sh)!important}
+header h1,.header h1{color:var(--hb-navy)!important}
+header h1 .sub,header .sub,.header .sub{color:var(--hb-txt2)!important}
+.top{background:var(--hb-card)!important;color:var(--hb-navy)!important;border-bottom:1px solid var(--hb-border)}
+.top h1{color:var(--hb-navy)!important}
+.top .sub,.top .brand{color:var(--hb-txt2)!important;border-top-color:var(--hb-border)!important}
+pre{background:#F4F7FB!important;color:var(--hb-txt)!important;border:1px solid var(--hb-border)}
+
+/* ── 2차 보정 (대비 감사 결과) ── */
+.gradient-header [class*="text-"]{color:var(--hb-txt2)!important}
+.gradient-header h1[class],.gradient-header h2[class]{color:var(--hb-navy)!important}
+tr.sub-tot,.sub-tot td{background:var(--hb-soft)!important;color:var(--hb-navy)!important}
+.auto-cell{background:var(--hb-gold-soft)!important;border-color:#EAD9B5!important}
+header small,header .sub,header .brand small{color:var(--hb-txt2)!important}
+pre .add{color:#0B7A4B!important} pre .del{color:#B42318!important}
+.top b,.top strong{color:var(--hb-navy)!important}
+.sh .rt,.sh small{color:var(--hb-txt2)!important}
+header .meta,header .lead{color:var(--hb-txt2)!important}
