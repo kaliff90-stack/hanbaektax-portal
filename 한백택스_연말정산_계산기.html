@@ -1,6 +1,99 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<!-- ═══════════════ 계산 시작 버튼 (한백택스 공통) ═══════════════
+     값을 고칠 때마다 결과가 즉시 바뀌던 것을 멈추고, 「계산 시작」을 누른 뒤에만 계산되게 한다.
+     계산기마다 계산 함수 이름이 다르므로 함수를 부르지 않는다. input·change 를 캡처 단계에서 붙잡아 두었다가
+     버튼을 누르면 손댄 칸에만 같은 이벤트를 다시 흘려 보낸다. 계산기 본문 코드는 손대지 않는다. -->
+<script>
+(function(){
+  'use strict';
+  if(window.__hbCalcGate)return; window.__hbCalcGate=true;
+  var armed=true, touched=new Set();
+  function isField(el){return el&&(el.tagName==='INPUT'||el.tagName==='SELECT'||el.tagName==='TEXTAREA');}
+  function skip(el){
+    if(!isField(el))return true;
+    var t=(el.type||'').toLowerCase();
+    if(t==='file'||t==='search'||t==='button'||t==='submit'||t==='reset')return true;
+    if(el.closest&&el.closest('[data-nogate],.nogate,#hbCalcBar,.hb-consult,.hbc-wrap,.consult-widget'))return true;
+    return false;
+  }
+  function gate(e){
+    if(!armed||e.__hbPass)return;
+    if(skip(e.target))return;
+    touched.add(e.target);
+    e.stopImmediatePropagation();
+    mark(true);
+  }
+  document.addEventListener('input',gate,true);
+  document.addEventListener('change',gate,true);
+
+  function build(){
+    var css=document.createElement('style');
+    css.textContent='#hbCalcBar{position:fixed;left:0;right:0;bottom:0;z-index:99990;display:flex;align-items:center;'+
+      'gap:12px;padding:10px 16px;background:rgba(27,58,92,.97);box-shadow:0 -4px 18px rgba(0,0,0,.18);'+
+      'font-family:"Nanum Gothic","맑은 고딕",sans-serif}'+
+      '#hbCalcGo{flex:0 0 auto;padding:11px 26px;border:none;border-radius:10px;background:#C8963E;color:#fff;'+
+      'font-size:15px;font-weight:800;cursor:pointer;letter-spacing:.5px}'+
+      '#hbCalcGo:hover{background:#d9a750}'+
+      '#hbCalcGo.dirty{animation:hbPulse 1.4s ease-in-out infinite}'+
+      '@keyframes hbPulse{0%,100%{box-shadow:0 0 0 0 rgba(200,150,62,.65)}50%{box-shadow:0 0 0 8px rgba(200,150,62,0)}}'+
+      '#hbCalcMsg{color:#e8eef5;font-size:12px;font-weight:700;line-height:1.5}'+
+      'body{padding-bottom:66px!important}'+
+      '@media print{#hbCalcBar{display:none}body{padding-bottom:0!important}}';
+    document.head.appendChild(css);
+    var bar=document.createElement('div');
+    bar.id='hbCalcBar';
+    bar.setAttribute('data-nogate','1');
+    bar.innerHTML='<button type="button" id="hbCalcGo">▶ 계산 시작</button><span id="hbCalcMsg"></span>';
+    document.body.appendChild(bar);
+    var go=document.getElementById('hbCalcGo'), msg=document.getElementById('hbCalcMsg');
+    window.__hbMark=function(on){
+      go.classList.toggle('dirty',!!on);
+      msg.textContent=on?'고친 값이 있습니다 — 「계산 시작」을 누르십시오':'계산 결과가 최신입니다';
+    };
+    go.addEventListener('click',function(){
+      var list=touched.size?Array.from(touched):Array.prototype.slice.call(document.querySelectorAll('input,select,textarea'));
+      armed=false;
+      try{
+        list.forEach(function(el){
+          if(skip(el))return;
+          var t=(el.type||'').toLowerCase();
+          var sel=(el.tagName==='SELECT'||t==='checkbox'||t==='radio');
+          if(!sel){var e1=new Event('input',{bubbles:true});e1.__hbPass=true;el.dispatchEvent(e1);}
+          var e2=new Event('change',{bubbles:true});e2.__hbPass=true;el.dispatchEvent(e2);
+        });
+      }finally{armed=true;}
+      /* 이미 자체 「계산하기」 버튼을 둔 계산기(입력만으로는 계산하지 않는 앱)는 그 버튼을 대신 눌러 준다 */
+      var own = nativeBtn();
+      if (own) { try { own.click(); } catch (e) {} }
+      touched.clear();
+      mark(false);
+    });
+    mark(false);
+    msg.textContent='값을 넣은 뒤 「계산 시작」을 누르십시오';
+  }
+  /* 계산기 자체 계산 버튼 찾기 — 복사·저장·초기화 따위는 고르지 않는다 */
+  function nativeBtn(){
+    var list = document.querySelectorAll('button,input[type=button],a[role=button]');
+    for (var i = 0; i < list.length; i++) {
+      var el = list[i];
+      if (el.id === 'hbCalcGo' || (el.closest && el.closest('#hbCalcBar'))) continue;
+      var t = (el.textContent || el.value || '').replace(/\s/g, '');
+      if (!/계산/.test(t)) continue;
+      if (/복사|저장|인쇄|초기화|지우기|다운로드|내려받기|엑셀|검증|설정|닫기/.test(t)) continue;
+      var st = getComputedStyle(el);
+      if (st.display === 'none' || st.visibility === 'hidden') continue;
+      return el;
+    }
+    return null;
+  }
+  function mark(on){ if(window.__hbMark)window.__hbMark(on); }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build);
+  else build();
+})();
+</script>
+
   <meta charset="UTF-8">
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
