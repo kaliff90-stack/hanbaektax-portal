@@ -99,9 +99,9 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>💱 환차손익 계산기 | 한백택스</title>
-<meta name="description" content="외화채권·채무 기말 평가">
+<meta name="description" content="외화채권·채무 기말 평가 · 고시 매매기준율 자동 조회">
 <meta property="og:title" content="💱 환차손익 계산기">
-<meta property="og:description" content="외화채권·채무 기말 평가 · 세무법인 한백택스">
+<meta property="og:description" content="외화채권·채무 기말 평가 · 고시환율 자동 조회 · 세무법인 한백택스">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#1B3A5C">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -170,6 +170,28 @@ body{background:var(--bg);color:#2D3748;min-height:100vh;font-size:17px}
 .total-row .auto-cell{background:var(--navy);color:var(--gold);font-weight:800;font-size:19px}
 .formula-bar{background:#f8fafc;border-top:1px dashed var(--border);padding:14px 28px;font-size:14px;color:var(--gray);line-height:1.8}
 .formula-bar b{color:var(--navy)}
+/* ── HB-FXRATE: 고시환율 자동 조회 ── */
+.fx-hdr-sub{font-size:13px;font-weight:400;opacity:.9;margin-left:6px}
+.fx-btns{flex:1;display:flex;flex-wrap:wrap;gap:8px;padding:8px 12px;background:var(--input-bg);border:1px solid var(--border);min-height:52px;align-items:center}
+.fx-btn{padding:9px 14px;border:none;border-radius:8px;background:var(--blue);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Nanum Gothic',sans-serif;white-space:nowrap}
+.fx-btn:hover{filter:brightness(1.08)}
+.fx-btn.alt{background:#fff;color:var(--navy);border:1.5px solid var(--navy)}
+.fx-btn:disabled{opacity:.55;cursor:wait}
+.fx-btns-note{flex:1 1 100%;font-size:12.5px;color:var(--gray);line-height:1.5}
+.fx-btn.on{background:var(--gold);color:#fff;border-color:var(--gold)}
+.auto-cell.fx-status{font-size:14px;color:var(--navy);line-height:1.6;display:block;white-space:normal}
+.auto-cell.fx-status.warn{color:var(--red)}
+.fx-table{margin:6px 0 4px;overflow-x:auto}
+.fx-table table{width:100%;border-collapse:collapse;font-size:14px}
+.fx-table th{background:var(--light);text-align:center;padding:8px;border:1px solid var(--border);font-weight:700}
+.fx-table td{padding:8px 10px;border:1px solid var(--border)}
+.fx-table td.r{text-align:right;font-variant-numeric:tabular-nums}
+.fx-table tr.on td{background:#FFF8E1;font-weight:700;color:var(--navy)}
+.fx-src{font-size:13px;color:var(--gray);padding:2px 16px 8px;line-height:1.5;min-height:18px}
+.fx-help{font-size:13px;color:var(--gray);line-height:1.7;padding:8px 4px 2px}
+.fx-book{display:flex;gap:8px;align-items:center;background:var(--input-bg);border:1px solid var(--border);padding:6px 10px}
+.fx-book input[type=date]{flex:1;min-width:0;border:1px solid var(--border);padding:9px 10px;font-size:15px;font-family:'Nanum Gothic',sans-serif;color:var(--blue);font-weight:700;background:#fff}
+@media(max-width:700px){.fx-btn{font-size:13px;padding:8px 10px;flex:1 1 45%}.fx-book{flex-wrap:wrap}.fx-book .fx-btn{flex:1 1 100%}}
 .disclaimer{text-align:center;padding:20px;font-size:14px;color:var(--gray);line-height:1.7}
 /* === 데이터 입력 시 시각적 피드백 애니메이션 === */
 @keyframes cellFlash{
@@ -301,14 +323,33 @@ button:active{transform:scale(0.95);transition:transform 0.1s}
 <a class="standalone-back" href="한백택스_세무계산_포털.html">← 전체 세무계산 포털</a>
 
 <div class="page active" id="page-fx">
-  <div class="calc-title"><h2>환차손익 계산기</h2><div class="sub">외화채권·채무 기말 평가 환차손익 계산</div></div>
+  <div class="calc-title"><h2>환차손익 계산기</h2><div class="sub">외화채권·채무 기말 평가 환차손익 계산 · 고시 매매기준율 자동 조회</div></div>
   <div class="calc-body">
+    <!-- HB-FXRATE: 고시환율 자동 조회 -->
+    <div class="section-hdr"><div class="num">0</div>기준환율 자동 조회<span class="fx-hdr-sub">서울외국환중개 매매기준율 · 수출입은행 API 수집본</span></div>
+    <div class="section-body fx-auto" data-nogate="1">
+      <div class="row"><div class="lbl">평가기준일</div><div class="input-cell"><input type="date" id="fx_eval_date"></div><div class="note">비영업일이면 직전 고시일 환율</div></div>
+      <div class="row"><div class="lbl">환율 불러오기</div><div class="fx-btns">
+        <button type="button" class="fx-btn" data-mode="latest" onclick="fxLoad('latest')">최신 고시환율</button>
+        <button type="button" class="fx-btn" data-mode="date" onclick="fxLoad('date')">평가기준일 환율</button>
+        <button type="button" class="fx-btn" data-mode="prevYE" id="fx_btn_ye" onclick="fxLoad('prevYE')">직전 기말(12.31)</button>
+        <button type="button" class="fx-btn alt" data-mode="live" onclick="fxLoad('live')">실시간 참고환율</button>
+      </div></div>
+      <div class="row"><div class="lbl">오늘 환율 수집</div><div class="fx-btns"><button type="button" class="fx-btn alt" id="hbd_btn" onclick="fxDispatch()">오늘 환율 수집 실행</button><button type="button" class="fx-btn alt" onclick="hbdSetToken()">토큰 설정</button><span class="fx-btns-note">오늘 고시분이 아직 없을 때 폰·PC 에서 바로 수집을 실행합니다 (GitHub 토큰 1회 저장)</span></div></div>
+      <div class="row"><div class="lbl">조회 결과</div><div class="auto-cell fx-status" id="fx_status">환율을 불러오는 중…</div></div>
+      <div class="fx-table" id="fx_table"></div>
+      <div class="fx-help">고시환율은 기말·취득일 평가에 쓰는 매매기준율(서울외국환중개 고시, 수출입은행 API 수집본)입니다. 실시간 참고환율(open.er-api 시장 평균)은 참고용이며 세무 평가에는 고시환율을 쓰십시오. 통화를 바꾸면 조회된 날짜의 환율이 다시 적용되고, 환율 칸은 언제든 직접 고칠 수 있습니다. JPY는 100엔 고시를 1엔 단위로 환산하고, CNY는 위안화(CNH) 고시를 씁니다. 「오늘 환율 수집 실행」은 GitHub 수집 작업을 이 기기에서 직접 실행시키며, 토큰은 이 기기에만 저장됩니다(GitHub → Settings → Developer settings → Fine-grained tokens, 저장소 hanbaektax-portal, Actions 읽기·쓰기).</div>
+    </div>
+
     <div class="section-hdr"><div class="num">1</div>외화채권 (외화자산)</div>
     <div class="section-body">
-      <div class="row"><div class="lbl">통화</div><div class="input-cell"><select id="fx_recv_cur" onchange="calcFx()"><option value="USD">USD (미국 달러)</option><option value="EUR">EUR (유로)</option><option value="JPY">JPY (일본 엔)</option><option value="CNY">CNY (중국 위안)</option><option value="GBP">GBP (영국 파운드)</option></select></div></div>
+      <div class="row"><div class="lbl">통화</div><div class="input-cell"><select id="fx_recv_cur" onchange="fxCurChanged('recv')"><option value="USD">USD (미국 달러)</option><option value="EUR">EUR (유로)</option><option value="JPY">JPY (일본 엔)</option><option value="CNY">CNY (중국 위안)</option><option value="GBP">GBP (영국 파운드)</option></select></div></div>
       <div class="row"><div class="lbl">외화금액</div><div class="input-cell"><input type="number" id="fx_recv_amount" value="100000" oninput="calcFx()"></div></div>
-      <div class="row"><div class="lbl">장부환율 (취득시)</div><div class="input-cell"><input type="number" id="fx_recv_book_rate" value="1300" step="0.01" oninput="calcFx()"></div><div class="note">원/외화</div></div>
-      <div class="row"><div class="lbl">기말환율 (12.31)</div><div class="input-cell"><input type="number" id="fx_recv_end_rate" value="1450" step="0.01" oninput="calcFx()"></div><div class="note">원/외화</div></div>
+      <div class="row"><div class="lbl">장부환율 (취득시)</div><div class="input-cell"><input type="number" id="fx_recv_book_rate" value="1300" step="any" oninput="calcFx()"></div><div class="note">원/외화</div></div>
+      <div class="row"><div class="lbl">취득일 고시환율</div><div class="input-cell fx-book" data-nogate="1"><input type="date" id="fx_recv_book_date"><button type="button" class="fx-btn" onclick="fxBookLoad('recv')">장부환율에 적용</button></div></div>
+      <div class="fx-src" id="fx_recv_book_src"></div>
+      <div class="row"><div class="lbl">기말환율 (평가기준일)</div><div class="input-cell"><input type="number" id="fx_recv_end_rate" value="1450" step="any" oninput="calcFx()"></div><div class="note">원/외화 · 자동 조회값, 직접 수정 가능</div></div>
+      <div class="fx-src" id="fx_recv_end_src">고시환율을 불러오면 이 칸에 자동으로 채워집니다.</div>
       <div class="row"><div class="lbl">장부가액 (원화)</div><div class="auto-cell" id="fx_recv_book">130,000,000</div></div>
       <div class="row"><div class="lbl">기말평가액 (원화)</div><div class="auto-cell" id="fx_recv_end">145,000,000</div></div>
       <div class="row total-row"><div class="lbl">외화채권 환차손익</div><div class="auto-cell" id="fx_recv_gl">15,000,000</div></div>
@@ -316,10 +357,13 @@ button:active{transform:scale(0.95);transition:transform 0.1s}
 
     <div class="section-hdr"><div class="num">2</div>외화채무 (외화부채)</div>
     <div class="section-body">
-      <div class="row"><div class="lbl">통화</div><div class="input-cell"><select id="fx_pay_cur" onchange="calcFx()"><option value="USD">USD (미국 달러)</option><option value="EUR">EUR (유로)</option><option value="JPY">JPY (일본 엔)</option><option value="CNY">CNY (중국 위안)</option><option value="GBP">GBP (영국 파운드)</option></select></div></div>
+      <div class="row"><div class="lbl">통화</div><div class="input-cell"><select id="fx_pay_cur" onchange="fxCurChanged('pay')"><option value="USD">USD (미국 달러)</option><option value="EUR">EUR (유로)</option><option value="JPY">JPY (일본 엔)</option><option value="CNY">CNY (중국 위안)</option><option value="GBP">GBP (영국 파운드)</option></select></div></div>
       <div class="row"><div class="lbl">외화금액</div><div class="input-cell"><input type="number" id="fx_pay_amount" value="50000" oninput="calcFx()"></div></div>
-      <div class="row"><div class="lbl">장부환율 (차입시)</div><div class="input-cell"><input type="number" id="fx_pay_book_rate" value="1280" step="0.01" oninput="calcFx()"></div><div class="note">원/외화</div></div>
-      <div class="row"><div class="lbl">기말환율 (12.31)</div><div class="input-cell"><input type="number" id="fx_pay_end_rate" value="1450" step="0.01" oninput="calcFx()"></div><div class="note">원/외화</div></div>
+      <div class="row"><div class="lbl">장부환율 (차입시)</div><div class="input-cell"><input type="number" id="fx_pay_book_rate" value="1280" step="any" oninput="calcFx()"></div><div class="note">원/외화</div></div>
+      <div class="row"><div class="lbl">차입일 고시환율</div><div class="input-cell fx-book" data-nogate="1"><input type="date" id="fx_pay_book_date"><button type="button" class="fx-btn" onclick="fxBookLoad('pay')">장부환율에 적용</button></div></div>
+      <div class="fx-src" id="fx_pay_book_src"></div>
+      <div class="row"><div class="lbl">기말환율 (평가기준일)</div><div class="input-cell"><input type="number" id="fx_pay_end_rate" value="1450" step="any" oninput="calcFx()"></div><div class="note">원/외화 · 자동 조회값, 직접 수정 가능</div></div>
+      <div class="fx-src" id="fx_pay_end_src">고시환율을 불러오면 이 칸에 자동으로 채워집니다.</div>
       <div class="row"><div class="lbl">장부가액 (원화)</div><div class="auto-cell" id="fx_pay_book">64,000,000</div></div>
       <div class="row"><div class="lbl">기말평가액 (원화)</div><div class="auto-cell" id="fx_pay_end">72,500,000</div></div>
       <div class="row total-row"><div class="lbl">외화채무 환차손익</div><div class="auto-cell" id="fx_pay_gl">-8,500,000</div></div>
@@ -1396,6 +1440,222 @@ function calcYearend(){
     s('ye_result_detail','추가납부·환급 없음');
     document.getElementById('ye_result').style.color='var(--gold)';
   }
+}
+
+// ========== 6-1. 고시환율 자동 조회 (HB-FXRATE) ==========
+/* 공식 매매기준율: GitHub Actions(fx-collect.yml)가 fx-data 브랜치에 쌓는 수집본(latest.json, daily/YYYY-MM-DD.json).
+ * 수출입은행·한국은행·관세청 API 는 CORS 를 막아 브라우저가 직접 부를 수 없다(2026-09-09 확인).
+ * 실시간 참고환율: open.er-api.com (CORS 허용, 시장 평균). 참고용이며 세무 평가에는 고시환율을 쓴다. */
+const FX_DATA_BASE='https://raw.githubusercontent.com/kaliff90-stack/hanbaektax-portal/fx-data/';
+const FX_LIVE_URL='https://open.er-api.com/v6/latest/USD';
+const FX_CODES=['USD','EUR','JPY','CNY','GBP'];
+const FX_NAMES={USD:'미국 달러',EUR:'유로',JPY:'일본 엔',CNY:'중국 위안',GBP:'영국 파운드'};
+const FX_UNIT_OF={USD:'USD',EUR:'EUR',JPY:'JPY',CNY:'CNH',GBP:'GBP'};   /* 계산기 통화 → 수출입은행 통화코드(CNY 는 CNH 고시) */
+const FX_LS_KEY='hbt_fxcalc_latest';
+const FX={cur:null,busy:false,bust:false};   /* cur: {kind:'official'|'live', date, want, stamp, rates:{USD:{per,raw,unit}}, offline} */
+
+function fxN(n,d){ return (n===null||n===undefined||isNaN(n))?'—':Number(n).toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function fxDec(x){ return x<100?4:2; }
+function fxToday(){ return new Date(Date.now()+9*3600*1000).toISOString().slice(0,10); }
+function fxIso(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function fxStamp(iso){ const d=new Date(iso); if(isNaN(d)) return String(iso||''); return new Date(d.getTime()+9*3600*1000).toISOString().slice(0,16).replace('T',' ')+' KST'; }
+async function fxGetJSON(url,ms){
+  const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms||12000);
+  try{ const r=await fetch(url,{signal:c.signal,cache:'no-store'}); if(!r.ok) throw new Error('HTTP '+r.status); return await r.json(); }
+  finally{ clearTimeout(t); }
+}
+function fxSplitUnit(u){ const m=/^([A-Z]{3})(?:\((\d+)\))?$/.exec(String(u).trim()); return m?{c:m[1],u:m[2]?Number(m[2]):1}:{c:String(u),u:1}; }
+/* 수집본(rates:[{unit,base}]) → 계산기 통화별 1단위 환율. JPY(100) 은 100 으로 나눈다 */
+function fxFromDoc(doc){
+  const by={}; (doc.rates||[]).forEach(r=>{ const su=fxSplitUnit(r.unit); if(r.base>0) by[su.c]={raw:r.base,u:su.u,unit:r.unit}; });
+  const rates={};
+  FX_CODES.forEach(c=>{ const x=by[FX_UNIT_OF[c]]; if(x) rates[c]={per:x.raw/x.u,raw:x.raw,unit:x.unit}; });
+  return rates;
+}
+/* 선택일 수집본. 비영업일이면 직전 고시일(최대 10일 전)까지 거슬러 찾는다. 주말은 요청하지 않는다 */
+async function fxFindDaily(date){
+  for(let back=0;back<=10;back++){
+    const t=new Date(date+'T00:00:00'); t.setDate(t.getDate()-back);
+    if(t.getDay()===0||t.getDay()===6) continue;
+    const hit=fxIso(t);
+    try{ const d=await fxGetJSON(FX_DATA_BASE+'daily/'+hit+'.json'+(FX.bust?'?t='+Date.now():'')); if(d&&Array.isArray(d.rates)&&d.rates.length) return {doc:d,hit}; }catch(e){}
+  }
+  return null;
+}
+function fxSetStatus(msg,warn){ const el=document.getElementById('fx_status'); if(!el) return; el.innerHTML=msg; el.classList.toggle('warn',!!warn); }
+function fxMarkBtn(mode){ document.querySelectorAll('.fx-auto .fx-btn[data-mode]').forEach(b=>b.classList.toggle('on',b.dataset.mode===mode)); }
+async function fxLoad(mode){
+  if(FX.busy) return; FX.busy=true;
+  const today=fxToday();
+  try{
+    if(mode==='live'){
+      fxSetStatus('실시간 참고환율을 불러오는 중…');
+      const d=await fxGetJSON(FX_LIVE_URL);
+      if(!d||d.result!=='success'||!d.rates||!d.rates.KRW) throw new Error('응답 형식 오류');
+      const rates={}; FX_CODES.forEach(c=>{ const x=c==='USD'?1:d.rates[c]; if(x) rates[c]={per:d.rates.KRW/x,raw:d.rates.KRW/x,unit:c}; });
+      const upd=new Date(d.time_last_update_unix*1000).toISOString();
+      FX.cur={kind:'live',date:upd.slice(0,10),stamp:fxStamp(upd),rates:rates};
+      fxMarkBtn('live');
+      fxSetStatus('<b>실시간 참고환율</b> (open.er-api 시장 평균, 갱신 '+FX.cur.stamp+') — 참고용입니다. 세무 평가에는 고시 매매기준율을 쓰십시오.',true);
+    }else{
+      let doc=null,hit=null,want=null;
+      if(mode==='latest'){
+        fxSetStatus('최신 고시환율을 불러오는 중…');
+        try{ doc=await fxGetJSON(FX_DATA_BASE+'latest.json?t='+Date.now()); try{ localStorage.setItem(FX_LS_KEY,JSON.stringify(doc)); }catch(e){} }
+        catch(e){ try{ doc=JSON.parse(localStorage.getItem(FX_LS_KEY)||'null'); }catch(e2){ doc=null; } if(doc) doc.__offline=true; else throw e; }
+        hit=doc.date;
+      }else{
+        want=mode==='prevYE'?(new Date().getFullYear()-1)+'-12-31':(document.getElementById('fx_eval_date')||{}).value;
+        if(!want){ fxSetStatus('평가기준일을 먼저 선택하십시오.',true); return; }
+        if(want>today){ fxSetStatus('평가기준일이 오늘 이후입니다. 고시가 아직 없는 날짜는 조회할 수 없습니다 — 최신 고시환율을 쓰십시오.',true); return; }
+        fxSetStatus(want+' 고시환율을 찾는 중…');
+        const f=await fxFindDaily(want);
+        if(!f){ fxSetStatus(want+' 전후 10일 안에 수집된 고시환율이 없습니다. 세무환율 조회 앱에서 수집 범위를 확인하거나 직접 입력하십시오.',true); return; }
+        doc=f.doc; hit=f.hit;
+        if(mode==='prevYE'){ const el=document.getElementById('fx_eval_date'); if(el) el.value=want; }
+      }
+      FX.cur={kind:'official',date:hit,want:want,stamp:fxStamp(doc.fetched_at),rates:fxFromDoc(doc),offline:!!doc.__offline};
+      fxMarkBtn(mode);
+      let msg='<b>'+hit+' 고시 매매기준율</b> (서울외국환중개 · 수출입은행 API 수집본, 수집 '+FX.cur.stamp+')';
+      let warn=false;
+      if(want&&want!==hit){ msg+='<br>'+want+' 은 고시가 없는 날(비영업일)이라 직전 고시일 '+hit+' 환율을 적용했습니다.'; }
+      if(doc.__offline){ msg+='<br>환율 서버에 연결하지 못해 이 기기에 저장된 마지막 수집본을 썼습니다.'; warn=true; }
+      else if(mode==='latest'&&hit<today){ const dow=new Date(today+'T00:00:00').getDay(); if(dow>=1&&dow<=5){ msg+='<br>오늘('+today+') 고시분은 아직 수집되지 않았습니다. 최근 고시일 환율을 적용했습니다.'; warn=true; } }
+      fxSetStatus(msg,warn);
+    }
+    fxRenderTable(); fxApply('recv'); fxApply('pay'); if(typeof calcFx==='function') calcFx();
+  }catch(e){
+    fxSetStatus('환율을 불러오지 못했습니다 ('+(e&&e.message?e.message:e)+'). 네트워크를 확인하거나 환율을 직접 입력하십시오.',true);
+  }finally{ FX.busy=false; }
+}
+function fxRenderTable(){
+  const el=document.getElementById('fx_table'); if(!el||!FX.cur) return;
+  const sel=[(document.getElementById('fx_recv_cur')||{}).value,(document.getElementById('fx_pay_cur')||{}).value];
+  const live=FX.cur.kind==='live';
+  let h='<table><thead><tr><th>통화</th><th>'+(live?'참고환율 (원)':'고시 단위 · 매매기준율')+'</th><th>적용 환율 (원/1외화)</th></tr></thead><tbody>';
+  FX_CODES.forEach(c=>{
+    const r=FX.cur.rates[c];
+    h+='<tr class="'+(sel.indexOf(c)>=0?'on':'')+'"><td>'+c+' '+FX_NAMES[c]+(c==='CNY'&&!live?' (CNH 고시)':'')+'</td>'
+      +'<td class="r">'+(r?(live?fxN(r.raw,2):r.unit+' '+fxN(r.raw,2)):'—')+'</td>'
+      +'<td class="r">'+(r?fxN(r.per,fxDec(r.per)):'없음')+'</td></tr>';
+  });
+  el.innerHTML=h+'</tbody></table>';
+}
+function fxApply(sec){
+  if(!FX.cur) return;
+  const cur=(document.getElementById('fx_'+sec+'_cur')||{}).value, inp=document.getElementById('fx_'+sec+'_end_rate'), src=document.getElementById('fx_'+sec+'_end_src');
+  if(!inp) return;
+  const r=FX.cur.rates[cur];
+  if(r){
+    inp.value=Math.round(r.per*10000)/10000;
+    if(src) src.textContent='적용: '+FX.cur.date+' '+(FX.cur.kind==='live'?'실시간 참고환율(시장 평균)':'고시 매매기준율')+' '+cur+' '+fxN(r.per,fxDec(r.per))+' 원'
+      +(FX.cur.kind!=='official'?'':cur==='JPY'?' (100엔 고시 ÷ 100)':cur==='CNY'?' (위안화 CNH 고시)':'');
+  }else if(src){ src.textContent='조회 결과에 '+cur+' 환율이 없습니다 — 직접 입력하십시오.'; }
+}
+function fxCurChanged(sec){ fxApply(sec); fxRenderTable(); const bs=document.getElementById('fx_'+sec+'_book_src'); if(bs&&bs.textContent) bs.textContent='통화가 바뀌었습니다 — 취득일 환율을 다시 불러오거나 장부환율을 직접 입력하십시오.'; if(typeof calcFx==='function') calcFx(); }
+async function fxBookLoad(sec){
+  const d=(document.getElementById('fx_'+sec+'_book_date')||{}).value, src=document.getElementById('fx_'+sec+'_book_src'),
+        inp=document.getElementById('fx_'+sec+'_book_rate'), cur=(document.getElementById('fx_'+sec+'_cur')||{}).value;
+  if(!src||!inp) return;
+  if(!d){ src.textContent='취득일(차입일)을 먼저 선택하십시오.'; return; }
+  if(d>fxToday()){ src.textContent='취득일이 오늘 이후입니다.'; return; }
+  src.textContent=d+' 고시환율을 찾는 중…';
+  try{
+    const f=await fxFindDaily(d);
+    if(!f){ src.textContent=d+' 전후 10일 안에 수집된 고시환율이 없습니다 — 직접 입력하십시오.'; return; }
+    const r=fxFromDoc(f.doc)[cur];
+    if(!r){ src.textContent=f.hit+' 수집본에 '+cur+' 환율이 없습니다 — 직접 입력하십시오.'; return; }
+    inp.value=Math.round(r.per*10000)/10000;
+    src.textContent='적용: '+f.hit+' 고시 매매기준율 '+cur+' '+fxN(r.per,fxDec(r.per))+' 원'
+      +(f.hit!==d?' ('+d+' 은 비영업일 → 직전 고시일)':'')+(cur==='JPY'?' (100엔 고시 ÷ 100)':'');
+    if(typeof calcFx==='function') calcFx();
+  }catch(e){ src.textContent='환율을 불러오지 못했습니다 ('+(e&&e.message?e.message:e)+').'; }
+}
+function fxInit(){
+  if(!document.getElementById('fx_status')) return;
+  const today=fxToday(), ye=(new Date().getFullYear()-1)+'-12-31';
+  const ed=document.getElementById('fx_eval_date'); if(ed){ if(!ed.value) ed.value=today; ed.max=today; }
+  ['fx_recv_book_date','fx_pay_book_date'].forEach(id=>{ const el=document.getElementById(id); if(el) el.max=today; });
+  const b=document.getElementById('fx_btn_ye'); if(b) b.textContent='직전 기말('+ye.replace(/-/g,'.')+')';
+  fxLoad('latest');
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fxInit); else fxInit();
+
+/* ── HB-FXDISPATCH: 폰·PC 어디서든 오늘 환율 수집을 실행 (GitHub Actions workflow_dispatch) ──
+ * GitHub fine-grained 토큰(hanbaektax-portal 저장소, Actions 읽기·쓰기)을 이 기기의 localStorage 에만 저장한다.
+ * 저장소·서버·파일에는 토큰이 남지 않는다. 실행 결과를 확인해 실패하면 30초 뒤 다시 요청한다(최대 3회). */
+const HBD={repo:'kaliff90-stack/hanbaektax-portal', wf:'fx-collect.yml', key:'hbt_gh_dispatch_token', busy:false};
+function hbdToken(){ try{ return localStorage.getItem(HBD.key)||''; }catch(e){ return ''; } }
+function hbdSleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function hbdSetToken(){
+  const has=!!hbdToken();
+  if(has && !confirm('이 기기에 토큰이 이미 저장돼 있습니다. 새 토큰으로 바꾸시겠습니까?\n(취소 후 다음 창에서 빈 칸으로 확인하면 지웁니다)')){
+    if(confirm('저장된 토큰을 지우시겠습니까?')){ try{ localStorage.removeItem(HBD.key); }catch(e){} hbdMsg('토큰을 지웠습니다.'); }
+    return;
+  }
+  const t=prompt('GitHub 토큰을 넣으십시오.\nGitHub → Settings → Developer settings → Fine-grained tokens → 저장소 hanbaektax-portal 만 선택, 권한 Actions: Read and write.\n이 기기(브라우저)에만 저장되며 서버·파일에는 남지 않습니다.','');
+  if(t===null) return;
+  const v=t.trim();
+  if(!v){ try{ localStorage.removeItem(HBD.key); }catch(e){} hbdMsg('토큰을 지웠습니다.'); return; }
+  try{ localStorage.setItem(HBD.key,v); }catch(e){ hbdMsg('이 브라우저는 저장을 막고 있습니다(시크릿 모드 등).',true); return; }
+  hbdMsg('토큰을 이 기기에 저장했습니다. 「오늘 환율 수집 실행」을 누르십시오.');
+}
+async function hbdGh(path,opt){
+  const r=await fetch('https://api.github.com/repos/'+HBD.repo+path, Object.assign({headers:{'Authorization':'Bearer '+hbdToken(),'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}},opt||{}));
+  if(r.status===401||r.status===403) throw new Error('토큰 권한 오류(HTTP '+r.status+') — 「토큰 설정」에서 다시 넣으십시오');
+  if(r.status===404) throw new Error('저장소·워크플로를 찾지 못함(HTTP 404) — 토큰에 hanbaektax-portal 접근 권한이 있는지 확인');
+  if(!r.ok && r.status!==204) throw new Error('GitHub 응답 HTTP '+r.status);
+  return r.status===204?null:r.json();
+}
+async function hbdDispatch(onDone){
+  if(HBD.busy) return;
+  if(!hbdToken()){ hbdMsg('먼저 「토큰 설정」으로 GitHub 토큰을 이 기기에 저장하십시오.',true); return; }
+  const today=new Date(Date.now()+9*3600*1000).toISOString().slice(0,10);
+  const dow=new Date(today+'T00:00:00').getDay();
+  if(dow===0||dow===6){ hbdMsg('오늘('+today+')은 주말이라 고시가 없습니다. 평일 11시 이후에 실행하십시오.',true); return; }
+  HBD.busy=true; const btn=document.getElementById('hbd_btn'); if(btn) btn.disabled=true;
+  const latest=async()=>{ const j=await hbdGh('/actions/workflows/'+HBD.wf+'/runs?per_page=1'); return (j.workflow_runs||[])[0]||null; };
+  const age=r=>Date.now()-new Date(r.created_at).getTime();
+  try{
+    for(let t=1;t<=3;t++){
+      /* 이미 실행 중(10분 이내 시작)인 수집이 있으면 새로 요청하지 않고 그 결과를 기다린다 */
+      let run=await latest();
+      let since;
+      if(run&&run.status!=='completed'&&age(run)<10*60000){ since=new Date(run.created_at).getTime(); hbdMsg('이미 실행 중인 수집(#'+run.run_number+')이 있어 그 결과를 기다립니다…'); }
+      else{
+        since=Date.now()-5000;
+        hbdMsg('GitHub 수집 실행을 요청했습니다 ('+t+'/3). 보통 1분, 관세청 응답이 늦으면 5분까지 걸립니다…');
+        await hbdGh('/actions/workflows/'+HBD.wf+'/dispatches',{method:'POST',body:JSON.stringify({ref:'main'})});
+        await hbdSleep(15000);
+      }
+      /* 최대 6분 확인 */
+      let fresh=false;
+      for(let w=0;w<36;w++){
+        run=await latest(); fresh=!!(run&&new Date(run.created_at).getTime()>=since);
+        hbdMsg('수집 실행 확인 중 ('+Math.round((Date.now()-since)/1000)+'초)… '+(fresh?('#'+run.run_number+' '+(run.status==='completed'?run.conclusion:run.status)):'실행 대기'));
+        if(fresh&&run.status==='completed') break;
+        await hbdSleep(10000);
+      }
+      if(fresh&&run.status==='completed'&&run.conclusion==='success'){
+        hbdMsg('수집 성공 — 오늘('+today+') 환율을 불러옵니다…');
+        HBD.busy=false; if(btn) btn.disabled=false;
+        await onDone(today);
+        return;
+      }
+      if(fresh&&run.status!=='completed'){ hbdMsg('수집이 아직 실행 중입니다(#'+run.run_number+'). 잠시 뒤 새로 고침하거나 다시 누르십시오.',true); return; }
+      hbdMsg('실행 실패('+(run?(run.conclusion||run.status):'확인 불가')+'). GitHub 서버에서 수출입은행 접속이 끊기는 경우가 잦습니다.'+(t<3?' 30초 뒤 다시 요청합니다.':''),true);
+      if(t<3) await hbdSleep(30000);
+    }
+    hbdMsg('3회 모두 실패했습니다. 잠시 뒤 다시 누르거나, 사무실 PC 의 자동 수집(평일 11:10·13:10·15:40)을 기다리십시오.',true);
+  }catch(e){ hbdMsg('수집 요청 실패: '+e.message,true); }
+  finally{ HBD.busy=false; if(btn) btn.disabled=false; }
+}
+function hbdMsg(m,warn){ fxSetStatus(m,warn); }
+async function fxDispatch(){
+  await hbdDispatch(async function(today){
+    const ed=document.getElementById('fx_eval_date'); if(ed) ed.value=today;
+    FX.bust=true; try{ await fxLoad('date'); } finally{ FX.bust=false; }
+  });
 }
 
 // ========== 6. 환차손익 ==========

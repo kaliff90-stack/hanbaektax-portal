@@ -464,6 +464,85 @@ function renderOfficial(el, d, full){
   }
   el.innerHTML = h;
 }
+/* ── HB-FXDISPATCH: 폰·PC 어디서든 오늘 환율 수집을 실행 (GitHub Actions workflow_dispatch) ──
+ * GitHub fine-grained 토큰(hanbaektax-portal 저장소, Actions 읽기·쓰기)을 이 기기의 localStorage 에만 저장한다.
+ * 저장소·서버·파일에는 토큰이 남지 않는다. 실행 결과를 확인해 실패하면 30초 뒤 다시 요청한다(최대 3회). */
+const HBD={repo:'kaliff90-stack/hanbaektax-portal', wf:'fx-collect.yml', key:'hbt_gh_dispatch_token', busy:false};
+function hbdToken(){ try{ return localStorage.getItem(HBD.key)||''; }catch(e){ return ''; } }
+function hbdSleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function hbdSetToken(){
+  const has=!!hbdToken();
+  if(has && !confirm('이 기기에 토큰이 이미 저장돼 있습니다. 새 토큰으로 바꾸시겠습니까?\n(취소 후 다음 창에서 빈 칸으로 확인하면 지웁니다)')){
+    if(confirm('저장된 토큰을 지우시겠습니까?')){ try{ localStorage.removeItem(HBD.key); }catch(e){} hbdMsg('토큰을 지웠습니다.'); }
+    return;
+  }
+  const t=prompt('GitHub 토큰을 넣으십시오.\nGitHub → Settings → Developer settings → Fine-grained tokens → 저장소 hanbaektax-portal 만 선택, 권한 Actions: Read and write.\n이 기기(브라우저)에만 저장되며 서버·파일에는 남지 않습니다.','');
+  if(t===null) return;
+  const v=t.trim();
+  if(!v){ try{ localStorage.removeItem(HBD.key); }catch(e){} hbdMsg('토큰을 지웠습니다.'); return; }
+  try{ localStorage.setItem(HBD.key,v); }catch(e){ hbdMsg('이 브라우저는 저장을 막고 있습니다(시크릿 모드 등).',true); return; }
+  hbdMsg('토큰을 이 기기에 저장했습니다. 「오늘 환율 수집 실행」을 누르십시오.');
+}
+async function hbdGh(path,opt){
+  const r=await fetch('https://api.github.com/repos/'+HBD.repo+path, Object.assign({headers:{'Authorization':'Bearer '+hbdToken(),'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}},opt||{}));
+  if(r.status===401||r.status===403) throw new Error('토큰 권한 오류(HTTP '+r.status+') — 「토큰 설정」에서 다시 넣으십시오');
+  if(r.status===404) throw new Error('저장소·워크플로를 찾지 못함(HTTP 404) — 토큰에 hanbaektax-portal 접근 권한이 있는지 확인');
+  if(!r.ok && r.status!==204) throw new Error('GitHub 응답 HTTP '+r.status);
+  return r.status===204?null:r.json();
+}
+async function hbdDispatch(onDone){
+  if(HBD.busy) return;
+  if(!hbdToken()){ hbdMsg('먼저 「토큰 설정」으로 GitHub 토큰을 이 기기에 저장하십시오.',true); return; }
+  const today=new Date(Date.now()+9*3600*1000).toISOString().slice(0,10);
+  const dow=new Date(today+'T00:00:00').getDay();
+  if(dow===0||dow===6){ hbdMsg('오늘('+today+')은 주말이라 고시가 없습니다. 평일 11시 이후에 실행하십시오.',true); return; }
+  HBD.busy=true; const btn=document.getElementById('hbd_btn'); if(btn) btn.disabled=true;
+  const latest=async()=>{ const j=await hbdGh('/actions/workflows/'+HBD.wf+'/runs?per_page=1'); return (j.workflow_runs||[])[0]||null; };
+  const age=r=>Date.now()-new Date(r.created_at).getTime();
+  try{
+    for(let t=1;t<=3;t++){
+      /* 이미 실행 중(10분 이내 시작)인 수집이 있으면 새로 요청하지 않고 그 결과를 기다린다 */
+      let run=await latest();
+      let since;
+      if(run&&run.status!=='completed'&&age(run)<10*60000){ since=new Date(run.created_at).getTime(); hbdMsg('이미 실행 중인 수집(#'+run.run_number+')이 있어 그 결과를 기다립니다…'); }
+      else{
+        since=Date.now()-5000;
+        hbdMsg('GitHub 수집 실행을 요청했습니다 ('+t+'/3). 보통 1분, 관세청 응답이 늦으면 5분까지 걸립니다…');
+        await hbdGh('/actions/workflows/'+HBD.wf+'/dispatches',{method:'POST',body:JSON.stringify({ref:'main'})});
+        await hbdSleep(15000);
+      }
+      /* 최대 6분 확인 */
+      let fresh=false;
+      for(let w=0;w<36;w++){
+        run=await latest(); fresh=!!(run&&new Date(run.created_at).getTime()>=since);
+        hbdMsg('수집 실행 확인 중 ('+Math.round((Date.now()-since)/1000)+'초)… '+(fresh?('#'+run.run_number+' '+(run.status==='completed'?run.conclusion:run.status)):'실행 대기'));
+        if(fresh&&run.status==='completed') break;
+        await hbdSleep(10000);
+      }
+      if(fresh&&run.status==='completed'&&run.conclusion==='success'){
+        hbdMsg('수집 성공 — 오늘('+today+') 환율을 불러옵니다…');
+        HBD.busy=false; if(btn) btn.disabled=false;
+        await onDone(today);
+        return;
+      }
+      if(fresh&&run.status!=='completed'){ hbdMsg('수집이 아직 실행 중입니다(#'+run.run_number+'). 잠시 뒤 새로 고침하거나 다시 누르십시오.',true); return; }
+      hbdMsg('실행 실패('+(run?(run.conclusion||run.status):'확인 불가')+'). GitHub 서버에서 수출입은행 접속이 끊기는 경우가 잦습니다.'+(t<3?' 30초 뒤 다시 요청합니다.':''),true);
+      if(t<3) await hbdSleep(30000);
+    }
+    hbdMsg('3회 모두 실패했습니다. 잠시 뒤 다시 누르거나, 사무실 PC 의 자동 수집(평일 11:10·13:10·15:40)을 기다리십시오.',true);
+  }catch(e){ hbdMsg('수집 요청 실패: '+e.message,true); }
+  finally{ HBD.busy=false; if(btn) btn.disabled=false; }
+}
+function hbdMsg(m,warn){ const el=$('hbdMsgBox'); if(!el) return; el.textContent=m; el.className='note '+(warn?'warn':''); }
+async function fxDispatch(){
+  await hbdDispatch(async function(today){
+    try{
+      const r=await getJSON(DATA_BASE+'daily/'+today+'.json?t='+Date.now());
+      if(!r||!Array.isArray(r.rates)||!r.rates.length) throw new Error('empty');
+      S.official=r; renderOfficial($('officialBody'), r, true); setCurrent('official', r);
+    }catch(e){ hbdMsg('수집은 끝났지만 오늘 파일을 아직 읽지 못했습니다. 잠시 뒤 새로 고침하십시오.',true); }
+  });
+}
 function sortExim(rates){
   const order=['USD','JPY','EUR','CNH','CNY','GBP','HKD','AUD','CAD','CHF','SGD','THB'];
   return rates.slice().sort((a,b)=>{
@@ -503,6 +582,9 @@ async function loadRef(){
   });
   h += '</tbody></table></div>';
   h += `<div class="rowbtns"><button class="btn small" type="button" id="btnShowAll">${showAll?'주요 통화만 보기':'전체 통화 보기'}</button></div>`;
+      h += '<div class="rowbtns"><button class="btn small" type="button" id="hbd_btn" onclick="fxDispatch()">오늘 환율 수집 실행</button>'
+         + '<button class="btn small" type="button" onclick="hbdSetToken()">토큰 설정</button></div>'
+         + '<div class="note" id="hbdMsgBox">폰·PC 에서 바로 수집을 실행합니다. GitHub 토큰(저장소 hanbaektax-portal, Actions 읽기·쓰기)을 「토큰 설정」으로 이 기기에 한 번 저장하십시오.</div>';
   h += `<div class="note">open.er-api 갱신 ${er?esc(er.time_last_update_utc):'응답 없음'} · ECB 고시일 ${fr?esc(fr.date):'응답 없음'}. `
      + '두 출처 모두 하루 한 번 갱신되는 시장 평균값이며 국내 고시 매매기준율과 다를 수 있습니다.</div>';
   body.innerHTML=h;
