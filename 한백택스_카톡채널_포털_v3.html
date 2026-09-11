@@ -242,6 +242,13 @@ input::placeholder,textarea::placeholder{color:var(--g4)}
 .hash{font-family:ui-monospace,Consolas,monospace;font-size:11px;word-break:break-all;color:var(--text3)}
 .ob-next li{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px dashed var(--g2);font-size:13px}
 .ob-next li:last-child{border-bottom:none}
+.rm-big{display:flex;align-items:center;gap:14px;width:100%;padding:16px 18px;border-radius:16px;border:none;color:#fff;font-size:16px;font-weight:800;cursor:pointer;text-align:left;text-decoration:none;box-shadow:0 6px 18px rgba(2,103,255,.25);transition:transform .15s}
+.rm-big:active{transform:scale(.98)}
+.rm-big i.ic{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.rm-big .sub{display:block;font-size:11.5px;font-weight:600;opacity:.85;margin-top:2px}
+.rm-key{display:inline-block;padding:2px 7px;border:1px solid var(--g3);border-bottom-width:2px;border-radius:6px;background:var(--g0);font-family:inherit;font-size:11.5px;font-weight:800;color:var(--text)}
+.rm-hist li{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px dashed var(--g2);font-size:12px}
+.rm-hist li:last-child{border-bottom:none}
 .ob-next .n{width:26px;height:26px;border-radius:50%;background:var(--p1);color:var(--p);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0}
 .contact-btn{display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;background:var(--g0);margin-bottom:8px;cursor:pointer;transition:background .15s}
 .contact-btn:active{background:var(--g1)}
@@ -302,6 +309,10 @@ input::placeholder,textarea::placeholder{color:var(--g4)}
 <div class="qm-icon" style="background:var(--ac1);color:var(--ac)"><i class="fa-solid fa-cloud-arrow-up"></i></div>
 <span>자료전송</span>
 </div>
+<div class="qm-item" onclick="rmOpen()">
+<div class="qm-icon" style="background:var(--p1);color:var(--p)"><i class="fa-solid fa-display"></i></div>
+<span>원격지원</span>
+</div>
 <div class="qm-item" onclick="goPage('calc')">
 <div class="qm-icon" style="background:var(--wn1);color:var(--wn)"><i class="fa-solid fa-calculator"></i></div>
 <span>세금계산기</span>
@@ -309,6 +320,14 @@ input::placeholder,textarea::placeholder{color:var(--g4)}
 <div class="qm-item" onclick="goPage('my')">
 <div class="qm-icon" style="background:var(--pr1);color:var(--pr)"><i class="fa-solid fa-chart-pie"></i></div>
 <span>내세무현황</span>
+</div>
+<div class="qm-item" onclick="location.href='한백택스_세무환율_조회.html'">
+<div class="qm-icon" style="background:var(--ok1);color:var(--ok)"><i class="fa-solid fa-won-sign"></i></div>
+<span>세무환율</span>
+</div>
+<div class="qm-item" onclick="callTel()">
+<div class="qm-icon" style="background:var(--ng1);color:var(--ng)"><i class="fa-solid fa-phone"></i></div>
+<span>전화문의</span>
 </div>
 </div>
 </div>
@@ -616,6 +635,14 @@ Tel 02-2277-3101 / Fax 02-2277-3161
 </div>
 
 <div class="section">
+<div class="card" style="padding:12px 14px;border-left:4px solid var(--p);cursor:pointer;display:flex;align-items:center;gap:12px" onclick="rmOpen()">
+<i class="fa-solid fa-display" style="font-size:22px;color:var(--p)"></i>
+<div style="flex:1"><div class="fw-800 fs-13">파일 찾기가 어려우세요?</div><div class="fs-11" style="color:var(--text2)">원격지원으로 담당자가 고객님 화면을 보며 홈택스·은행 자료를 대신 내려받아 드립니다</div></div>
+<i class="fa-solid fa-chevron-right" style="color:var(--g4)"></i>
+</div>
+</div>
+
+<div class="section">
 <div class="sec-title"><i class="fa-solid fa-cloud-arrow-up"></i> 파일 업로드</div>
 <input type="file" id="fileInput" multiple style="display:none" onchange="handleFiles(this.files)">
 <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
@@ -645,6 +672,110 @@ Tel 02-2277-3101 / Fax 02-2277-3161
 <div class="fs-11 text-center mt-8" style="color:var(--text3)">버튼을 누르면 휴대폰 공유창이 열려 카카오톡·메일·드라이브 등으로<br>실제 파일을 첨부해 보낼 수 있습니다.</div>
 <div class="text-center mt-12">
 <button class="btn btn-o btn-sm" onclick="openContact()"><i class="fa-solid fa-headset"></i> 전화·이메일로 문의</button>
+</div>
+
+</div>
+</div>
+
+<!-- ===================== PAGE: REMOTE (원격지원) ===================== -->
+<!-- 무료 도구만 쓴다: Windows 빠른 지원(기본 내장) · Chrome 원격 데스크톱. 서버·유료 프로그램 없음.
+     연결은 고객이 코드를 알려주고 화면에서 「허용」을 눌러야만 이루어진다. 요청은 메일중계(type:'remote')로 접수대장에 남긴다. -->
+<div class="page" id="page-remote">
+<div class="page-header">
+<div class="back-btn" onclick="goPage('home')"><i class="fa-solid fa-chevron-left"></i></div>
+<h1>원격지원</h1>
+</div>
+<div class="page-body">
+
+<div class="section" style="padding-top:14px">
+<div class="card" style="border-left:4px solid var(--p)">
+<div class="fw-800 fs-14 mb-8">담당자가 고객님 화면을 보며 자료를 대신 내려받습니다</div>
+<div class="fs-12" style="color:var(--text2);line-height:1.7">홈택스·은행·카드사 자료를 내려받기 어려우실 때, 윈도우에 들어 있는 <b>빠른 지원</b>(무료)으로 담당자가 고객님 PC 화면을 함께 보며 처리합니다. 프로그램을 사거나 설치할 필요가 없고, 고객님이 화면에서 <b>「허용」</b>을 눌러야만 연결되며 창을 닫으면 바로 끊깁니다.</div>
+<div class="grid-3 mt-12" style="gap:8px">
+<div class="card text-center" style="padding:10px 6px;background:var(--g0)"><div class="fw-800 fs-16" style="color:var(--p)">1</div><div class="fs-11 fw-700 mt-8">전화 또는<br>지원 요청</div></div>
+<div class="card text-center" style="padding:10px 6px;background:var(--g0)"><div class="fw-800 fs-16" style="color:var(--p)">2</div><div class="fs-11 fw-700 mt-8">담당자가<br>코드를 알려줌</div></div>
+<div class="card text-center" style="padding:10px 6px;background:var(--g0)"><div class="fw-800 fs-16" style="color:var(--p)">3</div><div class="fs-11 fw-700 mt-8">코드 입력 후<br>「허용」</div></div>
+</div>
+</div>
+</div>
+
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-computer"></i> 1. 고객님 컴퓨터에 맞는 방법</div>
+<div class="seg mb-12">
+<input type="radio" name="rmTool" id="rmToolQA" value="qa" checked onchange="rmTool('qa')"><label for="rmToolQA"><i class="fa-brands fa-windows"></i> 윈도우 PC (추천)</label>
+<input type="radio" name="rmTool" id="rmToolCRD" value="crd" onchange="rmTool('crd')"><label for="rmToolCRD"><i class="fa-brands fa-chrome"></i> 맥 · 그 밖의 PC</label>
+</div>
+
+<!-- A. Windows 빠른 지원 -->
+<div class="card" id="rmCardQA">
+<div class="flex justify-between items-center mb-8"><div class="fw-800 fs-14">Windows 빠른 지원 (Quick Assist)</div><span class="badge badge-ok">무료 · 설치 없음</span></div>
+<div class="fs-11 mb-12" style="color:var(--text2)">윈도우 10·11 에 기본으로 들어 있는 마이크로소프트 공식 원격 도움 기능입니다.</div>
+<a class="rm-big" style="background:linear-gradient(135deg,var(--p),var(--p2))" href="ms-quick-assist:" onclick="return rmOpenQA(event)"><i class="fa-solid fa-display ic"></i><span>빠른 지원 열기<span class="sub">열리지 않으면 키보드 <span class="rm-key" style="color:#fff;background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.4)">Windows</span> + <span class="rm-key" style="color:#fff;background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.4)">Ctrl</span> + <span class="rm-key" style="color:#fff;background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.4)">Q</span></span></span></a>
+<ul class="ob-next mt-12" style="list-style:none">
+<li><span class="n">1</span><div><div class="fw-800">담당자에게 코드 받기</div><div class="fs-11" style="color:var(--text2)">02-2277-3101 로 전화하거나 아래 「지원 요청」을 보내면 담당자가 <b>6자리 보안 코드</b>를 알려드립니다. 코드는 <b>10분</b> 동안만 유효합니다.</div></div></li>
+<li><span class="n">2</span><div><div class="fw-800">코드 입력</div><div class="fs-11" style="color:var(--text2)">「빠른 지원」 창의 <b>도움 받기</b> 아래 칸에 코드 6자리를 넣고 <b>제출</b>을 누릅니다.</div></div></li>
+<li><span class="n">3</span><div><div class="fw-800">화면 공유 허용</div><div class="fs-11" style="color:var(--text2)">도움 주는 사람 이름을 확인한 뒤 <b>허용</b>을 누릅니다. 담당자가 고객님 화면을 볼 수 있게 됩니다.</div></div></li>
+<li><span class="n">4</span><div><div class="fw-800">제어 요청 허용</div><div class="fs-11" style="color:var(--text2)">담당자가 <b>제어 요청</b>을 보내면 <b>허용</b>을 누릅니다. 그때부터 담당자가 마우스·키보드로 자료를 내려받습니다.</div></div></li>
+<li><span class="n">5</span><div><div class="fw-800">비밀번호는 직접 입력</div><div class="fs-11" style="color:var(--text2)">공동인증서·홈택스·은행 비밀번호는 고객님이 직접 입력합니다. 담당자는 비밀번호를 묻지 않으며, 입력하는 동안 화면을 가려도 됩니다.</div></div></li>
+<li><span class="n">6</span><div><div class="fw-800">끝내기</div><div class="fs-11" style="color:var(--text2)">화면 위 <b>나가기</b> 또는 창 닫기. 그 즉시 연결이 끊기고 담당자는 더 이상 화면을 볼 수 없습니다.</div></div></li>
+</ul>
+<div class="fs-11 mt-12" style="color:var(--text3);line-height:1.6">「빠른 지원」이 없는 PC(일부 윈도우 10)는 <a href="ms-windows-store://pdp/?productid=9P7BP5VNWKX5" style="color:var(--p);font-weight:700">Microsoft Store 에서 무료 설치</a> (검색어: 빠른 지원 / Quick Assist)</div>
+</div>
+
+<!-- B. Chrome 원격 데스크톱 -->
+<div class="card" id="rmCardCRD" style="display:none">
+<div class="flex justify-between items-center mb-8"><div class="fw-800 fs-14">Chrome 원격 데스크톱</div><span class="badge badge-ok">무료</span></div>
+<div class="fs-11 mb-12" style="color:var(--text2)">맥이나 빠른 지원이 안 되는 PC 는 구글 크롬의 원격 데스크톱을 씁니다. 크롬 브라우저가 있어야 합니다.</div>
+<a class="rm-big" style="background:linear-gradient(135deg,#1a73e8,#0b57d0)" href="https://remotedesktop.google.com/support" target="_blank" rel="noopener"><i class="fa-brands fa-chrome ic"></i><span>Chrome 원격지원 열기<span class="sub">remotedesktop.google.com/support</span></span></a>
+<ul class="ob-next mt-12" style="list-style:none">
+<li><span class="n">1</span><div><div class="fw-800">최초 1회 설치</div><div class="fs-11" style="color:var(--text2)">위 버튼 → <b>지원 받기</b> 아래 <b>다운로드</b>. 화면 안내대로 확장 프로그램과 호스트 프로그램을 설치합니다(무료). 구글 로그인을 요구하면 로그인합니다.</div></div></li>
+<li><span class="n">2</span><div><div class="fw-800">코드 생성</div><div class="fs-11" style="color:var(--text2)"><b>지원 받기</b> 에서 <b>코드 생성</b>. 숫자 12자리가 나타납니다. 이 코드는 한 번만 쓸 수 있습니다.</div></div></li>
+<li><span class="n">3</span><div><div class="fw-800">코드 전달</div><div class="fs-11" style="color:var(--text2)">코드를 전화(02-2277-3101)로 불러 주거나 아래 「지원 요청」의 접속 코드 칸에 적어 보냅니다.</div></div></li>
+<li><span class="n">4</span><div><div class="fw-800">공유</div><div class="fs-11" style="color:var(--text2)">담당자가 접속하면 이메일 주소가 적힌 창이 뜹니다. <b>공유</b>를 누릅니다. 30분마다 계속 공유할지 다시 묻습니다.</div></div></li>
+<li><span class="n">5</span><div><div class="fw-800">끝내기</div><div class="fs-11" style="color:var(--text2)"><b>공유 중지</b>를 누르면 즉시 끊깁니다.</div></div></li>
+</ul>
+</div>
+</div>
+
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-paper-plane"></i> 2. 지원 요청 보내기</div>
+<div class="card">
+<div class="form-group"><label class="form-label">상호 · 성명 *</label><input class="form-input" id="rmName" placeholder="예: 한백상사 홍길동"></div>
+<div class="form-group"><label class="form-label">휴대폰 * <span class="fs-11" style="color:var(--text3)">(담당자가 이 번호로 코드를 알려드립니다)</span></label><input class="form-input" id="rmPhone" type="tel" inputmode="tel" placeholder="010-0000-0000" autocomplete="tel"></div>
+<div class="form-group"><label class="form-label">필요한 자료</label>
+<div class="chk-list" id="rmItems">
+<label class="chk"><input type="checkbox" value="홈택스 신고자료·세금계산서"><div><div class="t">홈택스</div><div class="s">신고서 · 전자세금계산서 · 현금영수증</div></div></label>
+<label class="chk"><input type="checkbox" value="은행 거래내역"><div><div class="t">은행 거래내역</div><div class="s">사업용 통장 · 외화 통장</div></div></label>
+<label class="chk"><input type="checkbox" value="카드 매출·매입"><div><div class="t">카드 매출 · 매입</div><div class="s">카드사 · 여신금융협회</div></div></label>
+<label class="chk"><input type="checkbox" value="4대보험·급여"><div><div class="t">4대보험 · 급여</div><div class="s">고지서 · 취득상실 · 급여대장</div></div></label>
+<label class="chk"><input type="checkbox" value="기타"><div><div class="t">기타</div><div class="s">아래 메모에 적어 주세요</div></div></label>
+</div></div>
+<div class="form-group"><label class="form-label">희망 시간</label><input class="form-input" id="rmWhen" placeholder="예: 오늘 오후 3시 이후 / 내일 오전"></div>
+<div class="form-group" id="rmCodeGroup" style="display:none"><label class="form-label">Chrome 접속 코드 <span class="fs-11" style="color:var(--text3)">(코드 생성으로 받은 숫자 12자리)</span></label><input class="form-input" id="rmCode" inputmode="numeric" placeholder="0000 0000 0000" maxlength="14"></div>
+<div class="form-group"><label class="form-label">메모</label><textarea class="form-input" id="rmMemo" rows="2" placeholder="예: 2026년 1~6월 거래내역, 홈택스 로그인 방법을 모름 등" style="resize:vertical"></textarea></div>
+<div class="chk-list"><label class="chk"><input type="checkbox" id="rmAgree"><div><div class="t">원격 접속에 동의합니다 *</div><div class="s">세무대리 업무에 필요한 자료 확인·내려받기 목적에 한해, 제가 코드를 알려주고 화면에서 허용한 경우에만 연결되며 언제든 창을 닫아 종료할 수 있음을 확인합니다. 접속 요청·시각은 한백택스 접수대장에 기록됩니다.</div></div></label></div>
+<button class="btn btn-p" style="width:100%;padding:14px" id="rmSubmitBtn" onclick="rmSubmit()"><i class="fa-solid fa-paper-plane"></i> 지원 요청 접수</button>
+<button class="btn btn-o mt-8" style="width:100%" onclick="callTel()"><i class="fa-solid fa-phone"></i> 급하면 바로 전화 02-2277-3101</button>
+</div>
+</div>
+
+<div class="section">
+<div class="sec-title"><i class="fa-solid fa-clock-rotate-left"></i> 3. 나의 요청 이력</div>
+<div class="card" id="rmHist"></div>
+</div>
+
+<div class="section">
+<div class="card" style="padding:14px">
+<div class="fw-800 fs-13 mb-8"><i class="fa-solid fa-shield-halved" style="color:var(--ok)"></i> 원격 접속 안내</div>
+<div class="terms" style="max-height:none">
+<h4>연결 방식</h4>고객님이 코드를 알려주고 화면에서 「허용」을 누른 경우에만 연결됩니다. 한백택스가 고객님 PC 에 먼저 들어갈 수 있는 방법은 없습니다.
+<h4>범위</h4>세무대리 업무에 필요한 자료(홈택스·은행·카드·4대보험 등)의 확인과 내려받기에 한합니다. 그 밖의 파일을 열거나 설정을 바꾸지 않습니다.
+<h4>비밀번호</h4>공동인증서·홈택스·은행 비밀번호는 고객님이 직접 입력합니다. 담당자는 비밀번호를 묻거나 받아 적지 않습니다.
+<h4>종료</h4>고객님이 언제든 창을 닫거나 「나가기」·「공유 중지」로 끝낼 수 있으며, 그 즉시 연결이 끊깁니다. 빠른 지원 코드는 10분, Chrome 코드는 1회만 유효합니다.
+<h4>기록</h4>지원 요청과 접속 시각·목적은 한백택스 접수대장에 남기며, 내려받은 자료는 세무대리 업무에만 사용하고 위임 종료 후 5년 보관 뒤 파기합니다.
+<h4>도구</h4>Windows 빠른 지원(Microsoft)과 Chrome 원격 데스크톱(Google)은 각 회사가 무료로 제공하는 공식 도구이며, 연결 구간은 암호화됩니다.
+</div>
+</div>
 </div>
 
 </div>
@@ -1667,6 +1798,75 @@ function obRenderPages(d){
   return pages.map(pc=>pc.toDataURL('image/png'));
 }
 function b64ToBytes(b64){ const s=atob(b64); const u=new Uint8Array(s.length); for(let i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return u; }
+/* ===================== REMOTE (원격지원) =====================
+ * 무료 도구만 쓴다. 이 페이지는 안내와 요청 접수만 하고, 실제 연결은 빠른 지원·Chrome 원격 데스크톱 프로그램이 한다.
+ *   rmOpen()   빠른 메뉴·자료 전송 화면에서 진입. 저장된 이름·연락처를 채우고 이력을 그린다.
+ *   rmTool(t)  'qa' Windows 빠른 지원 / 'crd' Chrome 원격 데스크톱. 카드와 접속 코드 칸을 바꾼다.
+ *   rmOpenQA() ms-quick-assist: 프로토콜로 빠른 지원을 연다. 윈도우가 아니면 안내만 한다.
+ *   rmSubmit() 요청을 메일중계(type:'remote')로 접수하고 localStorage 'remoteLog' 에 남긴다. 중계가 없거나 실패하면 연락 시트로 넘긴다.
+ */
+const RM={tool:'qa'};
+function rmOpen(){
+  goPage('remote');
+  const n=document.getElementById('rmName'), p=document.getElementById('rmPhone');
+  if(!n.value) n.value=(localStorage.getItem('senderName')||localStorage.getItem('userName')||'');
+  if(!p.value) p.value=(localStorage.getItem('senderPhone')||'');
+  if(!/Windows/i.test(navigator.userAgent) && !/Android|iPhone|iPad/i.test(navigator.userAgent)){ document.getElementById('rmToolCRD').checked=true; rmTool('crd'); }
+  rmRenderHist();
+}
+function rmTool(t){
+  RM.tool=t;
+  document.getElementById('rmCardQA').style.display=(t==='qa')?'':'none';
+  document.getElementById('rmCardCRD').style.display=(t==='crd')?'':'none';
+  document.getElementById('rmCodeGroup').style.display=(t==='crd')?'':'none';
+}
+function rmOpenQA(ev){
+  if(!/Windows/i.test(navigator.userAgent)){
+    if(ev) ev.preventDefault();
+    toast('빠른 지원은 윈도우 PC 에서 열립니다. 이 기기에서는 「맥 · 그 밖의 PC」를 고르세요');
+    return false;
+  }
+  setTimeout(()=>toast('창이 뜨지 않으면 키보드 Windows + Ctrl + Q 를 누르세요'),1200);
+  return true;                     /* href="ms-quick-assist:" 가 실행된다 */
+}
+function rmKst(){ return new Date(Date.now()+9*3600e3).toISOString().replace('T',' ').slice(0,16)+' KST'; }
+function rmLog(){ try{ return JSON.parse(localStorage.getItem('remoteLog')||'[]'); }catch(e){ return []; } }
+function rmRenderHist(){
+  const el=document.getElementById('rmHist'), log=rmLog();
+  if(!log.length){ el.innerHTML='<div class="fs-12 text-center" style="color:var(--text3);padding:6px 0">아직 요청 이력이 없습니다</div>'; return; }
+  el.innerHTML='<ul class="rm-hist" style="list-style:none">'+log.map(r=>'<li><div><b>'+r.when+'</b><div class="fs-11" style="color:var(--text2)">'+r.tool+(r.items?' · '+r.items:'')+'</div></div><div style="text-align:right;flex-shrink:0"><span class="badge '+(r.ok?'badge-ok':'badge-wn')+'">'+(r.ok?'접수':'전화 요청')+'</span>'+(r.id?'<div class="fs-11" style="color:var(--text3)">'+r.id+'</div>':'')+'</div></li>').join('')+'</ul>';
+}
+async function rmSubmit(){
+  const name=document.getElementById('rmName').value.trim(), phone=document.getElementById('rmPhone').value.trim();
+  if(!name||!phone){ toast('상호·성명과 휴대폰을 입력해 주세요'); return; }
+  if(!/^0\d{1,2}-?\d{3,4}-?\d{4}$/.test(phone)){ toast('휴대폰 번호를 다시 확인해 주세요'); return; }
+  if(!document.getElementById('rmAgree').checked){ toast('원격 접속 동의에 체크해 주세요'); return; }
+  const tool=RM.tool==='qa'?'Windows 빠른 지원':'Chrome 원격 데스크톱';
+  const items=[...document.querySelectorAll('#rmItems input:checked')].map(i=>i.value).join(', ');
+  const code=RM.tool==='crd'?document.getElementById('rmCode').value.replace(/\D/g,''):'';
+  if(RM.tool==='crd' && code && code.length!==12){ toast('Chrome 접속 코드는 숫자 12자리입니다'); return; }
+  const when=document.getElementById('rmWhen').value.trim(), memo=document.getElementById('rmMemo').value.trim();
+  const stamp=rmKst();
+  const text=['[원격지원 요청]','도구: '+tool,'필요 자료: '+(items||'(미선택)'),'희망 시간: '+(when||'가능한 빨리'),code?'Chrome 접속 코드: '+code.replace(/(\d{4})(?=\d)/g,'$1 '):'',memo?'메모: '+memo:'','\n원격 접속 동의: '+stamp+' (자료 확인·내려받기 목적 · 고객이 코드 전달·허용한 경우에만 연결 · 언제든 종료 가능)'].filter(Boolean).join('\n');
+  const btn=document.getElementById('rmSubmitBtn'); btn.disabled=true; toast('전송 중…');
+  let r=null, ok=false, errMsg='';
+  if(relayReady()){
+    try{ r=await relaySend({type:'remote', name, phone, subject:'원격지원 요청', text, tool, items, when, code, consent:stamp}); ok=true; }
+    catch(err){ errMsg=err.message; }
+  } else errMsg='중계 미설정';
+  btn.disabled=false;
+  const log=rmLog(); log.unshift({when:stamp, tool, items, ok, id:(r&&r.id)||''}); localStorage.setItem('remoteLog',JSON.stringify(log.slice(0,10)));
+  localStorage.setItem('senderName',name); localStorage.setItem('senderPhone',phone);
+  rmRenderHist();
+  if(ok){
+    toast('접수되었습니다'+(r.id?' · 접수번호 '+r.id:'')+' — 담당자가 전화로 코드를 알려드립니다');
+    document.getElementById('rmMemo').value=''; document.getElementById('rmCode').value=''; document.getElementById('rmAgree').checked=false;
+    scrollToEl('rmHist');
+  } else {
+    openContact(text, '자동 접수가 안 되어('+errMsg+') 전화로 요청해 주세요');
+  }
+}
+
 function bytesToB64(u8){ let s=''; for(let i=0;i<u8.length;i+=0x8000) s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000)); return btoa(s); }
 async function sha256Hex(u8){ const h=await crypto.subtle.digest('SHA-256',u8); return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join(''); }
 async function obBuildPdf(d){
