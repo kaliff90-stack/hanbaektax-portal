@@ -263,6 +263,9 @@ input::placeholder,textarea::placeholder{color:var(--g4)}
 .rm-key{display:inline-block;padding:2px 7px;border:1px solid var(--g3);border-bottom-width:2px;border-radius:6px;background:var(--g0);font-family:inherit;font-size:11.5px;font-weight:800;color:var(--text)}
 .rm-hist li{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px dashed var(--g2);font-size:12px}
 .rm-hist li:last-child{border-bottom:none}
+/* 초대 링크로 들어온 화면의 접속 코드 카드 · 담당자용 링크 생성 결과 */
+.rm-code{display:flex;align-items:center;justify-content:center;gap:8px;font-size:32px;font-weight:800;letter-spacing:4px;color:var(--p);background:var(--p1);border-radius:14px;padding:14px 10px;margin:10px 0}
+.iv-out{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;word-break:break-all;white-space:pre-wrap;background:var(--g0);border:1px solid var(--g2);border-radius:10px;padding:10px;line-height:1.6}
 .ob-next .n{width:26px;height:26px;border-radius:50%;background:var(--p1);color:var(--p);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0}
 .contact-btn{display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;background:var(--g0);margin-bottom:8px;cursor:pointer;transition:background .15s}
 .contact-btn:active{background:var(--g1)}
@@ -700,6 +703,8 @@ Tel 02-2277-3101 / Fax 02-2277-3161
 <h1>원격지원</h1>
 </div>
 <div class="page-body">
+<!-- 초대 링크(?p=remote&c=코드)로 들어오면 rmShowCode() 가 여기에 코드 카드를 그린다 -->
+<div id="rmInvite"></div>
 
 <div class="section" style="padding-top:14px">
 <div class="card" style="border-left:4px solid var(--p)">
@@ -710,7 +715,7 @@ Tel 02-2277-3101 / Fax 02-2277-3161
 <div class="card text-center" style="padding:10px 6px;background:var(--g0)"><div class="fw-800 fs-16" style="color:var(--p)">2</div><div class="fs-11 fw-700 mt-8">담당자가<br>코드를 알려줌</div></div>
 <div class="card text-center" style="padding:10px 6px;background:var(--g0)"><div class="fw-800 fs-16" style="color:var(--p)">3</div><div class="fs-11 fw-700 mt-8">코드 입력 후<br>「허용」</div></div>
 </div>
-<a class="btn btn-o mt-12" style="width:100%" href="원격지원_안내문.pdf" target="_blank" rel="noopener"><i class="fa-solid fa-file-pdf"></i> 안내문 PDF 보기 · 인쇄 (거래처에 보내는 용)</a>
+<a class="btn btn-o mt-12" style="width:100%" href="원격지원_안내문.pdf" target="_blank" rel="noopener"><i class="fa-solid fa-file-pdf"></i> 쉬운 설명 안내문 보기 · 인쇄</a>
 </div>
 </div>
 
@@ -790,6 +795,53 @@ Tel 02-2277-3101 / Fax 02-2277-3161
 <h4>기록</h4>지원 요청과 접속 시각·목적은 한백택스 접수대장에 남기며, 내려받은 자료는 세무대리 업무에만 사용하고 위임 종료 후 5년 보관 뒤 파기합니다.
 <h4>도구</h4>Windows 빠른 지원(Microsoft)과 Chrome 원격 데스크톱(Google)은 각 회사가 무료로 제공하는 공식 도구이며, 연결 구간은 암호화됩니다.
 </div>
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- ===================== PAGE: INVITE (담당자용 원격지원 초대 링크) =====================
+     메뉴에 노출하지 않는다. 주소 뒤에 ?p=invite 를 붙여 담당자만 들어온다.
+     빠른 지원에서 받은 6자리 코드를 넣으면 거래처에 보낼 링크와 카톡·문자 문구를 만든다. -->
+<div class="page" id="page-invite">
+<div class="page-header">
+<div class="back-btn" onclick="goPage('home')"><i class="fa-solid fa-chevron-left"></i></div>
+<h1>원격지원 초대 링크</h1>
+</div>
+<div class="page-body">
+
+<div class="section" style="padding-top:14px">
+<div class="card" style="border-left:4px solid var(--ac)">
+<div class="fw-800 fs-14 mb-8">담당자용 화면입니다</div>
+<div class="fs-12" style="color:var(--text2);line-height:1.7">빠른 지원에서 받은 <b>6자리 코드</b>를 넣으면 거래처에 보낼 링크와 문구가 만들어집니다. 거래처는 링크를 <b>자료를 내려받을 컴퓨터</b>에서 열어 코드를 넣고 「허용」만 누르면 됩니다. 코드는 10분만 유효하므로 만든 뒤 바로 보냅니다.</div>
+</div>
+</div>
+
+<div class="section">
+<div class="card">
+<div class="form-group"><label class="form-label">도구</label>
+<div class="seg">
+<input type="radio" name="ivTool" id="ivToolQA" value="qa" checked><label for="ivToolQA"><i class="fa-brands fa-windows"></i> 빠른 지원</label>
+<input type="radio" name="ivTool" id="ivToolCRD" value="crd"><label for="ivToolCRD"><i class="fa-brands fa-chrome"></i> Chrome</label>
+</div></div>
+<div class="form-group"><label class="form-label">접속 코드 6자리 <span class="fs-11" style="color:var(--text3)">(Chrome 방식은 비워 둡니다)</span></label><input class="form-input" id="ivCode" inputmode="numeric" maxlength="7" placeholder="482913"></div>
+<div class="form-group"><label class="form-label">거래처 호칭 <span class="fs-11" style="color:var(--text3)">(선택)</span></label><input class="form-input" id="ivWho" placeholder="예: 한백상사 홍길동 사장님"></div>
+<button class="btn btn-p" style="width:100%;padding:13px" onclick="ivBuild()"><i class="fa-solid fa-link"></i> 링크 · 문구 만들기</button>
+</div>
+</div>
+
+<div class="section" id="ivResult" style="display:none">
+<div class="sec-title"><i class="fa-solid fa-paper-plane"></i> 거래처에 보낼 내용</div>
+<div class="card">
+<div class="fw-800 fs-12 mb-8">링크</div>
+<div class="iv-out" id="ivLink"></div>
+<button class="btn btn-o mt-8" style="width:100%" onclick="ivCopy('ivLink')"><i class="fa-solid fa-copy"></i> 링크 복사</button>
+<div class="fw-800 fs-12 mb-8 mt-12">카톡 · 문자 문구</div>
+<div class="iv-out" id="ivMsg"></div>
+<button class="btn btn-p mt-8" style="width:100%" onclick="ivCopy('ivMsg')"><i class="fa-solid fa-copy"></i> 문구 복사</button>
+<button class="btn btn-o mt-8" style="width:100%" onclick="ivShare()"><i class="fa-solid fa-share-nodes"></i> 바로 보내기 (카톡 · 문자 선택)</button>
+<div class="fs-11 mt-12" style="color:var(--text3);line-height:1.6">코드가 링크에 들어갑니다. 빠른 지원 코드는 10분 뒤 만료되고 한 번만 쓸 수 있습니다. 만료되면 새 코드로 다시 만드세요.</div>
 </div>
 </div>
 
@@ -2148,6 +2200,77 @@ function clearCache(){
   }
 }
 
+/* ===================== REMOTE 초대 링크 =====================
+ * 사무실에서 링크를 보내고 거래처는 링크만 눌러 진행하는 흐름.
+ *   initDeepLink()   ?p=remote&t=qa&c=482913 → 원격지원 화면을 열고 코드 카드를 그린다. ?p=invite → 담당자용 생성 화면.
+ *   rmShowCode(c,t)  접속 코드 카드. 폰에서 열면 「컴퓨터에서 열어 주세요」 안내를 먼저 띄운다.
+ *   ivBuild()        담당자가 코드를 넣으면 거래처용 링크와 카톡·문자 문구를 만든다.
+ * 빠른 지원은 코드를 링크·명령행으로 미리 채울 수 없다(Microsoft 확인). 코드 6자리 입력 한 단계는 거래처가 직접 한다.
+ */
+function rmCopyText(str, msg){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(str).then(()=>toast(msg||'복사되었습니다'), ()=>toast('복사가 안 됩니다. 길게 눌러 직접 복사해 주세요'));
+  } else toast('복사가 안 됩니다. 길게 눌러 직접 복사해 주세요');
+}
+function rmShowCode(code, tool){
+  const el = document.getElementById('rmInvite'); if(!el) return;
+  const onPhone = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const box = [];
+  if(onPhone) box.push(
+    '<div class="card" style="border-left:4px solid var(--wn)">'+
+    '<div class="fw-800 fs-14 mb-8"><i class="fa-solid fa-desktop" style="color:var(--wn)"></i> 컴퓨터에서 열어 주세요</div>'+
+    '<div class="fs-12" style="color:var(--text2);line-height:1.7">원격지원은 자료를 내려받을 <b>그 컴퓨터</b>에서 해야 합니다. 아래 「링크 복사」로 주소를 복사해 컴퓨터 브라우저에 붙여 넣으시거나, 컴퓨터에서 카톡을 열어 이 링크를 누르세요.</div>'+
+    '<button class="btn btn-o mt-12" style="width:100%" onclick="rmCopyText(location.href,\'링크가 복사되었습니다\')"><i class="fa-solid fa-copy"></i> 링크 복사</button></div>');
+  if(tool==='qa' && code) box.push(
+    '<div class="card">'+
+    '<div class="fw-800 fs-14">담당자가 알려드린 접속 코드</div>'+
+    '<div class="rm-code">'+code.replace(/(\d{3})(?=\d)/g,'$1 ')+'</div>'+
+    '<div class="fs-11 text-center" style="color:var(--text2)">받으신 뒤 <b>10분</b> 안에 넣어야 합니다</div>'+
+    '<button class="btn btn-o mt-12" style="width:100%" onclick="rmCopyText(\''+code+'\',\'코드가 복사되었습니다\')"><i class="fa-solid fa-copy"></i> 코드 복사</button>'+
+    '<a class="rm-big mt-8" style="background:linear-gradient(135deg,var(--p),var(--p2))" href="ms-quick-assist:" onclick="return rmOpenQA(event)"><i class="fa-solid fa-display ic"></i><span>빠른 지원 열기<span class="sub">창이 뜨면 「도움 받기」 칸에 위 6자리를 넣고 제출</span></span></a></div>');
+  if(tool==='crd') box.push(
+    '<div class="card">'+
+    '<div class="fw-800 fs-14 mb-8">Chrome 원격 데스크톱으로 진행합니다</div>'+
+    '<div class="fs-12" style="color:var(--text2);line-height:1.7">아래 버튼 → 「지원 받기」 → 「코드 생성」 으로 나온 <b>숫자 12자리</b>를 이 화면 「2. 지원 요청 보내기」의 접속 코드 칸에 넣어 보내 주세요. 전화(02-2277-3101)로 불러 주셔도 됩니다.</div>'+
+    '<a class="rm-big mt-12" style="background:linear-gradient(135deg,#1a73e8,#0b57d0)" href="https://remotedesktop.google.com/support" target="_blank" rel="noopener"><i class="fa-brands fa-chrome ic"></i><span>Chrome 원격지원 열기<span class="sub">remotedesktop.google.com/support</span></span></a></div>');
+  el.innerHTML = box.length ? '<div class="section" style="padding-top:14px">'+box.join('')+'</div>' : '';
+}
+function initDeepLink(){
+  const q = new URLSearchParams(location.search), p = q.get('p');
+  if(!p) return;
+  if(p==='invite'){ goPage('invite'); return; }
+  if(p!=='remote') return;
+  const tool = (q.get('t')==='crd') ? 'crd' : 'qa';
+  const code = (q.get('c')||'').replace(/\D/g,'').slice(0,6);
+  rmOpen();
+  document.getElementById(tool==='qa' ? 'rmToolQA' : 'rmToolCRD').checked = true;
+  rmTool(tool);
+  rmShowCode(code, tool);
+}
+function ivBuild(){
+  const tool = document.getElementById('ivToolCRD').checked ? 'crd' : 'qa';
+  const code = document.getElementById('ivCode').value.replace(/\D/g,'').slice(0,6);
+  if(tool==='qa' && code.length!==6){ toast('빠른 지원 코드는 숫자 6자리입니다'); return; }
+  const who = document.getElementById('ivWho').value.trim();
+  const link = location.href.split('?')[0].split('#')[0] + '?p=remote&t=' + tool + (code ? '&c='+code : '');
+  const msg = ['[세무법인 한백택스 원격지원]',
+    (who ? who+', ' : '') + '아래 링크를 자료를 내려받을 컴퓨터에서 열어 주세요.',
+    link,
+    tool==='qa' ? '접속 코드 ' + code.replace(/(\d{3})(?=\d)/g,'$1 ') + ' (10분 안에 입력)'
+                : '열린 화면 안내대로 코드를 만들어 보내주시면 연결됩니다.',
+    '연결은 사장님이 화면에서 「허용」을 누르셔야만 됩니다. 문의 02-2277-3101'].join('\n');
+  document.getElementById('ivLink').textContent = link;
+  document.getElementById('ivMsg').textContent = msg;
+  document.getElementById('ivResult').style.display = '';
+  scrollToEl('ivResult');
+}
+function ivCopy(id){ rmCopyText(document.getElementById(id).textContent, '복사되었습니다'); }
+function ivShare(){
+  const msg = document.getElementById('ivMsg').textContent;
+  if(navigator.share) navigator.share({title:'한백택스 원격지원', text:msg}).catch(()=>{});
+  else rmCopyText(msg, '문구가 복사되었습니다 — 카톡에 붙여 넣으세요');
+}
+
 /* ===================== INIT ===================== */
 function init(){
   initTheme();
@@ -2159,6 +2282,7 @@ function init(){
   renderChecklist();
   initMyPage();
   initUpload();
+  initDeepLink();
 }
 init();
 </script>
