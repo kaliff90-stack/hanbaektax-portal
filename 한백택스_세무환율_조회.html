@@ -549,9 +549,13 @@ function renderOfficial(el, d, full){
   h += '</tbody></table></div>';
   h += `<div class="note">기준일 <b>${esc(d.date)}</b> · 출처 ${esc(d.source||'한국수출입은행 환율 API')} · 수집 ${esc(kstStamp(d.fetched_at))} KST. `
      + '단위: 원/표시단위(엔·루피아는 100). 비영업일은 직전 영업일 값이 유지됩니다.</div>';
-  if(d.rates.some(r=>r.src==='ecos')){
-    h += '<div class="note">TTB·TTS 가 비어 있는 통화(브라질 헤알·멕시코 페소 등)는 수출입은행 고시 대상이 아니어서 '
-       + '<b>한국은행 ECOS 재정환율</b>로 채운 값입니다. 매매기준율만 있고 송금 환율은 고시되지 않습니다.</div>';
+  /* 수출입은행 미고시 통화는 재정환율로 채운다. 원천이 둘이라 실제로 쓴 쪽만 적는다 */
+  const srcs=new Set(d.rates.map(r=>r.src).filter(s=>s&&s!=='exim'));
+  if(srcs.size){
+    const nm={ecos:'한국은행 ECOS(731Y001)', kmb:'한국자금중개 재정환율 조회'};
+    h += '<div class="note">TTB·TTS 가 비어 있는 통화(브라질 헤알·대만 달러·멕시코 페소 등)는 수출입은행 고시 대상이 아니어서 '
+       + '<b>' + [...srcs].map(s=>nm[s]||s).join(' · ') + '</b> 의 재정환율로 채운 값입니다. '
+       + '매매기준율(재정환율)만 있고 대고객 송금 환율은 고시되지 않습니다.</div>';
   }
   /* 오늘이 평일이고 11:30 KST 가 지났는데 오늘 고시가 아직 없으면 알린다 (수집 지연·미고시) */
   if(full){

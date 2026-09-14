@@ -193,6 +193,57 @@ jobs:
             try { prev = JSON.parse(fs.readFileSync(file, 'utf8'))[dateKey] || ''; } catch (e) {}
             if (doc[dateKey] >= prev) fs.writeFileSync(file, JSON.stringify(doc, null, 1));
           }
+          /* POST 본문이 필요한 조회(한국자금중개)용. fetch 가 막히면 curl 로 같은 요청을 다시 보낸다 */
+          async function fetchTextPost(url, body) {
+            try {
+              const r = await fetch(url, { method: 'POST', body,
+                headers: { 'User-Agent': 'hanbaektax-fx-collect', 'Content-Type': 'application/x-www-form-urlencoded' },
+                signal: AbortSignal.timeout(25000) });
+              if (!r.ok) throw new Error('HTTP ' + r.status);
+              return await r.text();
+            } catch (e) {
+              return execFileSync('curl', ['-sS', '--fail', '--max-time', '25', '-A', 'hanbaektax-fx-collect',
+                                           '-X', 'POST', url, '--data', body], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+            }
+          }
+
+          /* ── 1-2) 한국자금중개 재정환율 — 수출입은행이 고시하지 않는 통화를 채운다 ──
+           * 인증키가 필요 없고 과거 날짜도 그대로 조회된다(POST search_value=YYYY-MM-DD).
+           * 표기: <td>이름(CODE[단위])</td><td>대미환율</td><td>대원화환율</td>. 엔·루피아·동만 100 단위(JPY100 등).
+           * 2026-09-14 검증: 2023-01-02 · 2023-07-03 · 2024-12-30 · 2025-06-30 의 BRL·MXN·TRY·ZAR·RUB·TWD 24건이
+           * 한국은행 ECOS 731Y001 과 소수점까지 일치. 휴장일은 표가 비어 돌아온다. */
+          const KMB_URL = 'https://www.kmbco.com/kor/rate/financial_rate.do';
+          async function kmb(dash) {
+            const h = await fetchTextPost(KMB_URL, 'search_value=' + encodeURIComponent(dash));
+            const shown = (/id="search_value"[^>]*value="([^"]*)"/.exec(h) || [])[1];
+            if (!shown) throw new Error('한국자금중개 응답에서 기준일자를 찾지 못했습니다(화면 구조 변경?)');
+            if (shown !== dash) return [];                  /* 다른 날짜를 돌려주면 쓰지 않는다 */
+            const out = [];
+            const re = /<td>([^<>]*?)\(([A-Z]{3})(\d*)\)<\/td>\s*<td>([\d.,]+)<\/td>\s*<td>([\d.,]+)<\/td>/g;
+            let m;
+            while ((m = re.exec(h))) {
+              const base = num(m[5]);
+              if (m[2] === 'KRW' || base === null || base <= 0) continue;
+              out.push({ unit: m[2] + (m[3] && +m[3] > 1 ? `(${+m[3]})` : ''), name: m[1].trim(),
+                         base, ttb: null, tts: null, src: 'kmb' });
+            }
+            return out;
+          }
+          /* 그날 파일에 없는 통화만 보탠다. 수출입은행 값은 절대 덮지 않는다 */
+          function kmbFill(dash, rows) {
+            const file = path.join(OUT, 'daily', dash + '.json');
+            if (!fs.existsSync(file) || !rows.length) return 0;
+            let doc; try { doc = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { return 0; }
+            if (!Array.isArray(doc.rates) || !doc.rates.length) return 0;
+            const have = new Set(doc.rates.map(r => String(r.unit).replace(/\(.*\)$/, '')));
+            const add = rows.filter(r => !have.has(String(r.unit).replace(/\(.*\)$/, '')));
+            if (!add.length) return 0;
+            doc.rates = doc.rates.concat(add).sort((a, b) => String(a.unit).localeCompare(String(b.unit)));
+            doc.source_extra = '한국자금중개 재정환율 조회 (외국환중개회사 고시)';
+            fs.writeFileSync(file, JSON.stringify(doc, null, 1));
+            writeIfNewer(path.join(OUT, 'latest.json'), doc, 'date');
+            return add.length;
+          }
 
           /* ── 1) 수출입은행 AP01: 매매기준율 · TTB · TTS ── */
           async function exim(ymd) {
@@ -360,9 +411,28 @@ jobs:
               return { made, added, addedRows, kept };
             }
 
-            /* (1) 정기 실행 보완 — 이번에 받은 날짜의 수출입은행 미고시 통화를 채운다.
+            /* (0) 한국자금중개 재정환율로 먼저 채운다 — 인증키가 없고 ECOS(21개)보다 통화가 넓다(35개).
+             * 여기서 다 채워지면 아래 ECOS 보완은 「이미 있음」으로 호출 0 이 된다. */
+            if (days.length) {
+              let kfill = 0, kdays = 0, kfail = 0;
+              for (const ymd of days) {
+                const dash = toDash(ymd);
+                if (!fs.existsSync(path.join(OUT, 'daily', dash + '.json'))) continue;   /* 고시 없는 날은 만들지 않는다 */
+                try {
+                  const n = kmbFill(dash, await kmb(dash));
+                  if (n) { kfill += n; kdays++; }
+                } catch (e) {
+                  kfail++; console.warn(`한국자금중개 ${dash} 실패 (계속 진행): ${e.message}`);
+                  if (kfail >= 3) { console.warn('한국자금중개 접속이 계속 실패해 이번 실행의 재정환율 보완을 중단합니다.'); break; }
+                }
+                if (days.length > 1) await sleep(250);
+              }
+              console.log(`재정환율(한국자금중개): 보탠 날 ${kdays}일 · 보탠 값 ${kfill}건 · 실패 ${kfail}`);
+            }
+
+            /* (1) 정기 실행 보완 — 위에서 못 채운 수출입은행 미고시 통화를 ECOS 로 마저 채운다.
              * 정기 실행은 평일 30분마다 돌기 때문에, 그날 파일에 이미 들어 있는 통화는 다시 받지 않는다.
-             * 하루 한 번만 실제로 호출되고 그 뒤 실행은 호출 0 이 된다. */
+             * 한국자금중개가 정상이면 여기는 호출 0 이 된다. */
             if (days.length) {
               let want = ECOS_EXTRA;
               if (days.length === 1) {

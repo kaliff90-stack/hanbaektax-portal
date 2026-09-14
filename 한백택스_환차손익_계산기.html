@@ -1566,19 +1566,21 @@ function fxRenderTable(){
   /* 57개를 늘 펼치면 표가 화면을 덮는다. 주요 통화와 지금 고른 통화만 보이고, 나머지는 「전체 보기」로 편다 */
   const show=FX_SHOW_ALL?FX_CODES:FX_CODES.filter(c=>FX_MAIN.indexOf(c)>=0||sel.indexOf(c)>=0);
   let h='<table><thead><tr><th>통화</th><th>'+(live?'참고환율 (원)':'고시 단위 · 매매기준율')+'</th><th>적용 환율 (원/1외화)</th></tr></thead><tbody>';
-  let ecos=0, none=0;
+  const FX_SRC_NM={ecos:'한국은행 ECOS(731Y001)', kmb:'한국자금중개 재정환율 조회'};
+  const isRef=r=>r&&r.src&&r.src!=='exim'&&r.src!=='live';   /* 재정환율로 채운 통화 */
+  const srcs=new Set(); let none=0;
   show.forEach(c=>{
     const r=FX.cur.rates[c];
-    if(!r) none++; else if(r.src==='ecos') ecos++;
+    if(!r) none++; else if(isRef(r)) srcs.add(r.src);
     h+='<tr class="'+(sel.indexOf(c)>=0?'on':'')+'"><td>'+c+' '+FX_NAMES[c]
-      +(c==='CNY'&&!live?' (CNH 고시)':'')+(r&&r.src==='ecos'?' <b>*</b>':'')+'</td>'
+      +(c==='CNY'&&!live?' (CNH 고시)':'')+(isRef(r)?' <b>*</b>':'')+'</td>'
       +'<td class="r">'+(r?(live?fxN(r.raw,2):r.unit+' '+fxN(r.raw,2)):'—')+'</td>'
       +'<td class="r">'+(r?fxN(r.per,fxDec(r.per)):'고시 없음')+'</td></tr>';
   });
   h+='</tbody></table>';
   h+='<div class="fx-tbl-foot"><button type="button" class="fx-btn" onclick="fxToggleAll()">'
     +(FX_SHOW_ALL?'주요 통화만 보기':'전체 통화 보기 ('+FX_CODES.length+')')+'</button>';
-  if(ecos) h+='<span class="fx-note"><b>*</b> 수출입은행 미고시 통화 — 한국은행 ECOS 재정환율(731Y001)</span>';
+  if(srcs.size) h+='<span class="fx-note"><b>*</b> 수출입은행 미고시 통화 — '+[...srcs].map(s=>FX_SRC_NM[s]||s).join(' · ')+' 의 재정환율</span>';
   if(none) h+='<span class="fx-note">「고시 없음」 통화는 일별 기준환율이 없습니다(관세청 주간 과세환율만 존재). 환율을 직접 입력하십시오.</span>';
   el.innerHTML=h+'</div>';
 }
