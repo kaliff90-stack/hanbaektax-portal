@@ -188,6 +188,8 @@ body{background:var(--bg);color:#2D3748;min-height:100vh;font-size:17px}
 .fx-table th{background:var(--light);text-align:center;padding:8px;border:1px solid var(--border);font-weight:700}
 .fx-table td{padding:8px 10px;border:1px solid var(--border)}
 .fx-table td.r{text-align:right;font-variant-numeric:tabular-nums}
+.fx-tbl-foot{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:6px 0 2px}
+.fx-tbl-foot .fx-note{font-size:12px;color:var(--muted,#666);line-height:1.5}
 .fx-table tr.on td{background:#FFF8E1;font-weight:700;color:var(--navy)}
 .fx-src{font-size:13px;color:var(--gray);padding:2px 16px 8px;line-height:1.5;min-height:18px}
 .fx-help{font-size:13px;color:var(--gray);line-height:1.7;padding:8px 4px 2px}
@@ -345,7 +347,7 @@ button:active{transform:scale(0.95);transition:transform 0.1s}
 
     <div class="section-hdr"><div class="num">1</div>외화채권 (외화자산)</div>
     <div class="section-body">
-      <div class="row"><div class="lbl">통화</div><div class="input-cell"><select id="fx_recv_cur" onchange="fxCurChanged('recv')"><option value="USD">USD (미국 달러)</option><option value="EUR">EUR (유로)</option><option value="JPY">JPY (일본 엔)</option><option value="CNY">CNY (중국 위안)</option><option value="GBP">GBP (영국 파운드)</option></select></div></div>
+      <div class="row"><div class="lbl">통화</div><div class="input-cell"><select id="fx_recv_cur" onchange="fxCurChanged('recv')"></select></div></div>
       <div class="row"><div class="lbl">외화금액</div><div class="input-cell"><input type="number" id="fx_recv_amount" value="100000" oninput="calcFx()"></div></div>
       <div class="row"><div class="lbl">장부환율 (취득시)</div><div class="input-cell"><input type="number" id="fx_recv_book_rate" value="1300" step="any" oninput="calcFx()"></div><div class="note">원/외화</div></div>
       <div class="row"><div class="lbl">취득일 고시환율</div><div class="input-cell fx-book" data-nogate="1"><input type="date" id="fx_recv_book_date"><button type="button" class="fx-btn" onclick="fxBookLoad('recv')">장부환율에 적용</button></div></div>
@@ -359,7 +361,7 @@ button:active{transform:scale(0.95);transition:transform 0.1s}
 
     <div class="section-hdr"><div class="num">2</div>외화채무 (외화부채)</div>
     <div class="section-body">
-      <div class="row"><div class="lbl">통화</div><div class="input-cell"><select id="fx_pay_cur" onchange="fxCurChanged('pay')"><option value="USD">USD (미국 달러)</option><option value="EUR">EUR (유로)</option><option value="JPY">JPY (일본 엔)</option><option value="CNY">CNY (중국 위안)</option><option value="GBP">GBP (영국 파운드)</option></select></div></div>
+      <div class="row"><div class="lbl">통화</div><div class="input-cell"><select id="fx_pay_cur" onchange="fxCurChanged('pay')"></select></div></div>
       <div class="row"><div class="lbl">외화금액</div><div class="input-cell"><input type="number" id="fx_pay_amount" value="50000" oninput="calcFx()"></div></div>
       <div class="row"><div class="lbl">장부환율 (차입시)</div><div class="input-cell"><input type="number" id="fx_pay_book_rate" value="1280" step="any" oninput="calcFx()"></div><div class="note">원/외화</div></div>
       <div class="row"><div class="lbl">차입일 고시환율</div><div class="input-cell fx-book" data-nogate="1"><input type="date" id="fx_pay_book_date"><button type="button" class="fx-btn" onclick="fxBookLoad('pay')">장부환율에 적용</button></div></div>
@@ -1450,9 +1452,32 @@ function calcYearend(){
  * 실시간 참고환율: open.er-api.com (CORS 허용, 시장 평균). 참고용이며 세무 평가에는 고시환율을 쓴다. */
 const FX_DATA_BASE='https://raw.githubusercontent.com/kaliff90-stack/hanbaektax-portal/fx-data/';
 const FX_LIVE_URL='https://open.er-api.com/v6/latest/USD';
-const FX_CODES=['USD','EUR','JPY','CNY','GBP'];
-const FX_NAMES={USD:'미국 달러',EUR:'유로',JPY:'일본 엔',CNY:'중국 위안',GBP:'영국 파운드'};
-const FX_UNIT_OF={USD:'USD',EUR:'EUR',JPY:'JPY',CNY:'CNH',GBP:'GBP'};   /* 계산기 통화 → 수출입은행 통화코드(CNY 는 CNH 고시) */
+/* 취급 통화 — 세무환율 조회 앱(fx-data)과 같은 범위.
+ * 앞 5개는 주요 통화로 환율표에 늘 보이고, 나머지는 고르면 보인다.
+ * 일별 매매기준율 원천: 수출입은행 AP01 22개 + 한국은행 ECOS 731Y001 재정환율 21개.
+ * 뒤의 14개(캄보디아 리엘 등)는 관세청 주간 과세환율만 있어 일별 고시가 없다 — 직접 입력해야 한다. */
+const FX_CUR=[
+  ['USD','미국 달러'],['EUR','유로'],['JPY','일본 엔'],['CNY','중국 위안'],['GBP','영국 파운드'],
+  ['HKD','홍콩 달러'],['AUD','호주 달러'],['CAD','캐나다 달러'],['CHF','스위스 프랑'],['SGD','싱가포르 달러'],
+  ['THB','태국 바트'],['VND','베트남 동'],['TWD','대만 달러'],['INR','인도 루피'],['IDR','인도네시아 루피아'],
+  ['MYR','말레이시아 링깃'],['PHP','필리핀 페소'],['NZD','뉴질랜드 달러'],['SEK','스웨덴 크로나'],
+  ['NOK','노르웨이 크로네'],['DKK','덴마크 크로네'],['AED','아랍에미리트 디르함'],['SAR','사우디 리얄'],
+  ['KWD','쿠웨이트 디나르'],['BHD','바레인 디나르'],['BND','브루나이 달러'],
+  ['BRL','브라질 헤알'],['MXN','멕시코 페소'],['ARS','아르헨티나 페소'],['TRY','튀르키예 리라'],
+  ['ZAR','남아프리카공화국 랜드'],['EGP','이집트 파운드'],['RUB','러시아 루블'],['HUF','헝가리 포린트'],
+  ['PLN','폴란드 즈워티'],['CZK','체코 코루나'],['QAR','카타르 리얄'],['ILS','이스라엘 셰켈'],
+  ['JOD','요르단 디나르'],['PKR','파키스탄 루피'],['BDT','방글라데시 타카'],['MNT','몽골 투그릭'],
+  ['KZT','카자흐스탄 텡게'],
+  ['CLP','칠레 페소'],['COP','콜롬비아 페소'],['ETB','에티오피아 비르'],['KES','케냐 실링'],
+  ['LYD','리비아 디나르'],['RON','루마니아 레우'],['OMR','오만 리얄'],['LKR','스리랑카 루피'],
+  ['NPR','네팔 루피'],['KHR','캄보디아 리엘'],['MMK','미얀마 짯'],['MOP','마카오 파타카'],
+  ['UZS','우즈베키스탄 숨'],['FJD','피지 달러'],
+];
+const FX_MAIN=['USD','EUR','JPY','CNY','GBP'];
+const FX_CODES=FX_CUR.map(x=>x[0]);
+const FX_NAMES={}; FX_CUR.forEach(x=>{ FX_NAMES[x[0]]=x[1]; });
+const FX_UNIT_OF={CNY:'CNH'};   /* 계산기 통화 → 고시 통화코드. 위안은 수출입은행이 CNH 로 고시한다 */
+const FX_CODE_OF=c=>FX_UNIT_OF[c]||c;
 const FX_LS_KEY='hbt_fxcalc_latest';
 const FX={cur:null,busy:false,bust:false};   /* cur: {kind:'official'|'live', date, want, stamp, rates:{USD:{per,raw,unit}}, offline} */
 
@@ -1469,9 +1494,9 @@ async function fxGetJSON(url,ms){
 function fxSplitUnit(u){ const m=/^([A-Z]{3})(?:\((\d+)\))?$/.exec(String(u).trim()); return m?{c:m[1],u:m[2]?Number(m[2]):1}:{c:String(u),u:1}; }
 /* 수집본(rates:[{unit,base}]) → 계산기 통화별 1단위 환율. JPY(100) 은 100 으로 나눈다 */
 function fxFromDoc(doc){
-  const by={}; (doc.rates||[]).forEach(r=>{ const su=fxSplitUnit(r.unit); if(r.base>0) by[su.c]={raw:r.base,u:su.u,unit:r.unit}; });
+  const by={}; (doc.rates||[]).forEach(r=>{ const su=fxSplitUnit(r.unit); if(r.base>0) by[su.c]={raw:r.base,u:su.u,unit:r.unit,src:r.src||'exim'}; });
   const rates={};
-  FX_CODES.forEach(c=>{ const x=by[FX_UNIT_OF[c]]; if(x) rates[c]={per:x.raw/x.u,raw:x.raw,unit:x.unit}; });
+  FX_CODES.forEach(c=>{ const x=by[FX_CODE_OF(c)]||by[c]; if(x) rates[c]={per:x.raw/x.u,raw:x.raw,unit:x.unit,src:x.src}; });
   return rates;
 }
 /* 선택일 수집본. 비영업일이면 직전 고시일(최대 10일 전)까지 거슬러 찾는다. 주말은 요청하지 않는다 */
@@ -1496,7 +1521,7 @@ async function fxLoad(mode){
       fxSetStatus('실시간 참고환율을 불러오는 중…');
       const d=await fxGetJSON(FX_LIVE_URL);
       if(!d||d.result!=='success'||!d.rates||!d.rates.KRW) throw new Error('응답 형식 오류');
-      const rates={}; FX_CODES.forEach(c=>{ const x=c==='USD'?1:d.rates[c]; if(x) rates[c]={per:d.rates.KRW/x,raw:d.rates.KRW/x,unit:c}; });
+      const rates={}; FX_CODES.forEach(c=>{ const x=c==='USD'?1:d.rates[c]; if(x) rates[c]={per:d.rates.KRW/x,raw:d.rates.KRW/x,unit:c,src:'live'}; });
       const upd=new Date(d.time_last_update_unix*1000).toISOString();
       FX.cur={kind:'live',date:upd.slice(0,10),stamp:fxStamp(upd),rates:rates};
       fxMarkBtn('live');
@@ -1532,18 +1557,30 @@ async function fxLoad(mode){
     fxSetStatus('환율을 불러오지 못했습니다 ('+(e&&e.message?e.message:e)+'). 네트워크를 확인하거나 환율을 직접 입력하십시오.',true);
   }finally{ FX.busy=false; }
 }
+let FX_SHOW_ALL=false;
+function fxToggleAll(){ FX_SHOW_ALL=!FX_SHOW_ALL; fxRenderTable(); }
 function fxRenderTable(){
   const el=document.getElementById('fx_table'); if(!el||!FX.cur) return;
   const sel=[(document.getElementById('fx_recv_cur')||{}).value,(document.getElementById('fx_pay_cur')||{}).value];
   const live=FX.cur.kind==='live';
+  /* 57개를 늘 펼치면 표가 화면을 덮는다. 주요 통화와 지금 고른 통화만 보이고, 나머지는 「전체 보기」로 편다 */
+  const show=FX_SHOW_ALL?FX_CODES:FX_CODES.filter(c=>FX_MAIN.indexOf(c)>=0||sel.indexOf(c)>=0);
   let h='<table><thead><tr><th>통화</th><th>'+(live?'참고환율 (원)':'고시 단위 · 매매기준율')+'</th><th>적용 환율 (원/1외화)</th></tr></thead><tbody>';
-  FX_CODES.forEach(c=>{
+  let ecos=0, none=0;
+  show.forEach(c=>{
     const r=FX.cur.rates[c];
-    h+='<tr class="'+(sel.indexOf(c)>=0?'on':'')+'"><td>'+c+' '+FX_NAMES[c]+(c==='CNY'&&!live?' (CNH 고시)':'')+'</td>'
+    if(!r) none++; else if(r.src==='ecos') ecos++;
+    h+='<tr class="'+(sel.indexOf(c)>=0?'on':'')+'"><td>'+c+' '+FX_NAMES[c]
+      +(c==='CNY'&&!live?' (CNH 고시)':'')+(r&&r.src==='ecos'?' <b>*</b>':'')+'</td>'
       +'<td class="r">'+(r?(live?fxN(r.raw,2):r.unit+' '+fxN(r.raw,2)):'—')+'</td>'
-      +'<td class="r">'+(r?fxN(r.per,fxDec(r.per)):'없음')+'</td></tr>';
+      +'<td class="r">'+(r?fxN(r.per,fxDec(r.per)):'고시 없음')+'</td></tr>';
   });
-  el.innerHTML=h+'</tbody></table>';
+  h+='</tbody></table>';
+  h+='<div class="fx-tbl-foot"><button type="button" class="fx-btn" onclick="fxToggleAll()">'
+    +(FX_SHOW_ALL?'주요 통화만 보기':'전체 통화 보기 ('+FX_CODES.length+')')+'</button>';
+  if(ecos) h+='<span class="fx-note"><b>*</b> 수출입은행 미고시 통화 — 한국은행 ECOS 재정환율(731Y001)</span>';
+  if(none) h+='<span class="fx-note">「고시 없음」 통화는 일별 기준환율이 없습니다(관세청 주간 과세환율만 존재). 환율을 직접 입력하십시오.</span>';
+  el.innerHTML=h+'</div>';
 }
 function fxApply(sec){
   if(!FX.cur) return;
@@ -1554,9 +1591,23 @@ function fxApply(sec){
     inp.value=Math.round(r.per*10000)/10000;
     if(src) src.textContent='적용: '+FX.cur.date+' '+(FX.cur.kind==='live'?'실시간 참고환율(시장 평균)':'고시 매매기준율')+' '+cur+' '+fxN(r.per,fxDec(r.per))+' 원'
       +(FX.cur.kind!=='official'?'':cur==='JPY'?' (100엔 고시 ÷ 100)':cur==='CNY'?' (위안화 CNH 고시)':'');
-  }else if(src){ src.textContent='조회 결과에 '+cur+' 환율이 없습니다 — 직접 입력하십시오.'; }
+  }else{
+    /* 앞서 고른 통화의 환율이 남아 있으면 그대로 계산돼 틀린 값이 나온다. 반드시 비운다 */
+    inp.value=''; inp.placeholder='직접 입력';
+    if(src) src.textContent=FX.cur.kind==='official'
+      ? cur+' 는 이 날짜의 일별 기준환율 고시가 없습니다(관세청 주간 과세환율만 존재) — 환율을 직접 입력하십시오.'
+      : '조회 결과에 '+cur+' 환율이 없습니다 — 직접 입력하십시오.';
+  }
 }
-function fxCurChanged(sec){ fxApply(sec); fxRenderTable(); const bs=document.getElementById('fx_'+sec+'_book_src'); if(bs&&bs.textContent) bs.textContent='통화가 바뀌었습니다 — 취득일 환율을 다시 불러오거나 장부환율을 직접 입력하십시오.'; if(typeof calcFx==='function') calcFx(); }
+function fxCurChanged(sec){
+  fxApply(sec); fxRenderTable();
+  /* 자동으로 불러온 장부환율은 앞 통화의 값이므로 지운다. 직접 입력한 값은 건드리지 않는다 */
+  const bi=document.getElementById('fx_'+sec+'_book_rate');
+  if(bi&&bi.dataset.auto){ bi.value=''; bi.placeholder='직접 입력'; delete bi.dataset.auto; }
+  const bs=document.getElementById('fx_'+sec+'_book_src');
+  if(bs&&bs.textContent) bs.textContent='통화가 바뀌었습니다 — 취득일 환율을 다시 불러오거나 장부환율을 직접 입력하십시오.';
+  if(typeof calcFx==='function') calcFx();
+}
 async function fxBookLoad(sec){
   const d=(document.getElementById('fx_'+sec+'_book_date')||{}).value, src=document.getElementById('fx_'+sec+'_book_src'),
         inp=document.getElementById('fx_'+sec+'_book_rate'), cur=(document.getElementById('fx_'+sec+'_cur')||{}).value;
@@ -1569,7 +1620,7 @@ async function fxBookLoad(sec){
     if(!f){ src.textContent=d+' 전후 10일 안에 수집된 고시환율이 없습니다 — 직접 입력하십시오.'; return; }
     const r=fxFromDoc(f.doc)[cur];
     if(!r){ src.textContent=f.hit+' 수집본에 '+cur+' 환율이 없습니다 — 직접 입력하십시오.'; return; }
-    inp.value=Math.round(r.per*10000)/10000;
+    inp.value=Math.round(r.per*10000)/10000; inp.dataset.auto='1';   /* 통화가 바뀌면 지울 수 있게 표시 */
     src.textContent='적용: '+f.hit+' 고시 매매기준율 '+cur+' '+fxN(r.per,fxDec(r.per))+' 원'
       +(f.hit!==d?' ('+d+' 은 비영업일 → 직전 고시일)':'')+(cur==='JPY'?' (100엔 고시 ÷ 100)':'');
     if(typeof calcFx==='function') calcFx();
@@ -1615,8 +1666,21 @@ document.addEventListener('visibilitychange', hbaRevisit);
 window.addEventListener('focus', hbaRevisit);
 window.addEventListener('pageshow', e=>{ if(e.persisted) hbaRevisit(); });
 window.addEventListener('online', hbaRevisit);
+/* 통화 select 를 FX_CUR 로 채운다. 기본값은 수취·지급 모두 USD */
+function fxFillCurSelects(){
+  ['fx_recv_cur','fx_pay_cur'].forEach(id=>{
+    const sel=document.getElementById(id); if(!sel||sel.options.length) return;
+    FX_CUR.forEach(function(x){ const o=document.createElement('option'); o.value=x[0]; o.textContent=x[0]+' ('+x[1]+')'; sel.appendChild(o); });
+    sel.value='USD';
+  });
+}
 function fxInit(){
   if(!document.getElementById('fx_status')) return;
+  fxFillCurSelects();
+  /* 장부환율을 직접 고쳐 넣으면 자동 표시를 떼어, 통화를 바꿔도 지우지 않는다 */
+  ['fx_recv_book_rate','fx_pay_book_rate'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.addEventListener('input',()=>{ delete el.dataset.auto; });
+  });
   const today=fxToday(), ye=(new Date().getFullYear()-1)+'-12-31';
   const ed=document.getElementById('fx_eval_date'); if(ed){ if(!ed.value) ed.value=today; ed.max=today; }
   ['fx_recv_book_date','fx_pay_book_date'].forEach(id=>{ const el=document.getElementById(id); if(el) el.max=today; });
