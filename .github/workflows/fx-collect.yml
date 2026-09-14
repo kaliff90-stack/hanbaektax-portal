@@ -97,6 +97,23 @@ jobs:
             || echo "curl 실패 (종료코드 $?) - 러너에서 관세청 접속 불가"
         continue-on-error: true
 
+      - name: 수출입은행 접속 진단 · 중간 인증서 보강
+        run: |
+          curl -sS -o /dev/null --max-time 15 -w 'oapi.koreaexim.go.kr HTTPS 443 → HTTP %{http_code} (%{time_total}s)\n' \
+            "https://oapi.koreaexim.go.kr/site/program/financial/exchangeJSON?authkey=x&searchdate=20260101&data=AP01" \
+            || echo "curl 실패 (종료코드 $?) - 러너에서 수출입은행 접속 불가"
+          # 수출입은행 서버가 중간 인증서(Thawte TLS RSA CA G1)를 빠뜨려 보내는 경우가 있어 Node 의 인증서 검증이 실패한다
+          # (2026-09-11 로그: fetch failed / UNABLE_TO_VERIFY_LEAF_SIGNATURE). 발급기관(AIA)에서 받아 Node 신뢰 목록에 더한다.
+          if curl -sS --max-time 15 -o "$RUNNER_TEMP/thawte-g1.crt" http://cacerts.thawte.com/ThawteTLSRSACAG1.crt \
+             && { openssl x509 -inform DER -in "$RUNNER_TEMP/thawte-g1.crt" -out "$RUNNER_TEMP/extra-ca.pem" 2>/dev/null \
+                  || openssl x509 -inform PEM -in "$RUNNER_TEMP/thawte-g1.crt" -out "$RUNNER_TEMP/extra-ca.pem" 2>/dev/null; }; then
+            echo "NODE_EXTRA_CA_CERTS=$RUNNER_TEMP/extra-ca.pem" >> "$GITHUB_ENV"
+            echo "중간 인증서 보강: $(openssl x509 -in "$RUNNER_TEMP/extra-ca.pem" -noout -subject)"
+          else
+            echo "중간 인증서 내려받기 실패 - 수집 단계의 curl 대체 경로에 의존"
+          fi
+        continue-on-error: true
+
       - name: 환율 수집
         env:
           KOREAEXIM_KEY: ${{ secrets.KOREAEXIM_KEY }}
@@ -143,7 +160,13 @@ jobs:
           }
           if (days.length) console.log(`수집 대상: ${days.length}일 (${toDash(days[0])} ~ ${toDash(days[days.length - 1])})`);
 
-          /* 네트워크 오류(연결 시간초과 등)는 4회까지 재시도한다(5·10·15초 간격). 관세청 UNI-PASS 와 수출입은행 API 모두 러너(해외 IP)에서 간헐적으로 끊긴다(2026-09-11 수출입은행 fetch failed 연속). */
+          /* 네트워크·TLS 오류는 4회까지 재시도한다(5·10·15초 간격). 러너(해외 IP)에서는 수출입은행 서버가 중간 인증서를 빠뜨려
+           * UNABLE_TO_VERIFY_LEAF_SIGNATURE 가 나거나 접속이 끊긴다(2026-09-11 로그). 워크플로가 NODE_EXTRA_CA_CERTS 로 인증서를 보강하고,
+           * 그래도 fetch 가 실패하면 같은 요청을 curl 로 다시 보낸다(같은 시각 curl 은 200 응답). 사무실 PC 에서도 curl.exe 가 있어 그대로 돈다. */
+          const { execFileSync } = require('child_process');
+          function curlText(url) {
+            return execFileSync('curl', ['-sS', '--fail', '--max-time', '25', '-A', 'hanbaektax-fx-collect', url], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+          }
           async function fetchText(url) {
             let lastErr;
             for (let attempt = 1; attempt <= 4; attempt++) {
@@ -154,6 +177,9 @@ jobs:
               } catch (e) {
                 lastErr = e;
                 if (/^HTTP /.test(e.message)) throw e;      /* 서버 응답이 온 오류는 재시도하지 않는다 */
+                const cause = e.cause ? (e.cause.code || e.cause.message || String(e.cause)) : e.message;
+                try { const t = curlText(url); console.warn(`fetch 실패(${cause}) → curl 로 대체 성공`); return t; }
+                catch (ce) { console.warn(`fetch 실패(${cause}) · curl 도 실패(${String(ce.stderr || ce.message || '').trim().slice(0, 120)}) — 시도 ${attempt}/4`); }
                 if (attempt < 4) await sleep(5000 * attempt);
               }
             }
