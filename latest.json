@@ -1,7 +1,7 @@
 {
  "date": "2026-09-14",
  "source": "한국수출입은행 환율 API (AP01) · 매매기준율은 서울외국환중개(KFTC_DEAL_BAS_R) 값",
- "fetched_at": "2026-09-14T07:43:09.329Z",
+ "fetched_at": "2026-09-14T12:00:21.551Z",
  "rates": [
   {
    "unit": "AED",
@@ -200,6 +200,176 @@
    "kftc_base": 1346.4,
    "ttb": 1332.93,
    "tts": 1359.86
+  },
+  {
+   "unit": "BRL",
+   "name": "브라질 헤알",
+   "base": 262.64,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "MXN",
+   "name": "멕시코 페소",
+   "base": 79.26,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "ARS",
+   "name": "아르헨티나 페소",
+   "base": 0.89,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "TRY",
+   "name": "튀르키예 리라",
+   "base": 27.7,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "ZAR",
+   "name": "남아프리카공화국 랜드",
+   "base": 83.29,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "EGP",
+   "name": "이집트 파운드",
+   "base": 26.19,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "RUB",
+   "name": "러시아 루블",
+   "base": 16,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "HUF",
+   "name": "헝가리 포린트",
+   "base": 4.29,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "PLN",
+   "name": "폴란드 즈워티",
+   "base": 360.92,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "CZK",
+   "name": "체코 코루나",
+   "base": 64.43,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "QAR",
+   "name": "카타르 리얄",
+   "base": 369.38,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "ILS",
+   "name": "이스라엘 셰켈",
+   "base": 443.95,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "JOD",
+   "name": "요르단 디나르",
+   "base": 1899.01,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "INR",
+   "name": "인도 루피",
+   "base": 14.09,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "PKR",
+   "name": "파키스탄 루피",
+   "base": 4.85,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "BDT",
+   "name": "방글라데시 타카",
+   "base": 10.91,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "TWD",
+   "name": "대만 달러",
+   "base": 42.58,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "PHP",
+   "name": "필리핀 페소",
+   "base": 21.49,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "VND(100)",
+   "name": "베트남 동",
+   "base": 5.19,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "MNT",
+   "name": "몽골 투그릭",
+   "base": 0.37,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "KZT",
+   "name": "카자흐스탄 텡게",
+   "base": 2.96,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
   }
- ]
+ ],
+ "ecos_note": "한국은행 ECOS 재정환율 21 통화 보완 (TTB/TTS 없음)",
+ "ecos_fetched_at": "2026-09-14T12:00:21.551Z"
 }
