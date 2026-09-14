@@ -140,7 +140,9 @@ tr:hover td{background:color-mix(in srgb,var(--blue) 8%,transparent)}
   display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px}
 .result .big{font-size:26px;font-weight:800;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
 .result .sub{font-size:13.5px;color:var(--gray)}
-.rowbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.rowbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}
+.hba-lbl{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;cursor:pointer;user-select:none}
+.hba-lbl input{margin:0}
 
 /* 가이드 표 */
 .guide td{white-space:normal;vertical-align:top;line-height:1.55}
@@ -537,11 +539,40 @@ function hbdMsg(m,warn){ const el=$('hbdMsgBox'); if(!el) return; el.textContent
 async function fxDispatch(){
   await hbdDispatch(async function(today){
     try{
-      const r=await getJSON(DATA_BASE+'daily/'+today+'.json?t='+Date.now());
+      let r=null;
+      try{ r=await getJSON(DATA_BASE+'daily/'+today+'.json?t='+Date.now()); }catch(e){ r=null; }
+      if(!r||!Array.isArray(r.rates)||!r.rates.length) r=await hbdReadJson('daily/'+today+'.json');
       if(!r||!Array.isArray(r.rates)||!r.rates.length) throw new Error('empty');
       S.official=r; renderOfficial($('officialBody'), r, true); setCurrent('official', r);
     }catch(e){ hbdMsg('수집은 끝났지만 오늘 파일을 아직 읽지 못했습니다. 잠시 뒤 새로 고침하십시오.',true); }
   });
+}
+/* ── HB-FXAUTO: 앱을 열거나 다시 볼 때 자동 갱신 (2026-09-14) ──
+ * 열 때·탭 복귀(5분 경과)·온라인 복귀 때 수집본을 다시 읽는다.
+ * 평일 11:05 KST 이후인데 오늘 고시가 없으면, 이 기기에 토큰이 있을 때 수집을 자동 요청한다(기기당 10분에 1회).
+ * 「열 때 자동 수집」 스위치(localStorage hbt_fx_auto, 기본 켬)로 끌 수 있다. 토큰이 없으면 다시 읽기만 한다. */
+const HBA={key:'hbt_fx_auto', stampKey:'hbt_fx_auto_last', minGapMs:10*60000, staleMs:5*60000, lastLoad:0};
+function hbaOn(){ try{ return localStorage.getItem(HBA.key)!=='0'; }catch(e){ return true; } }
+function hbaSet(on){ try{ localStorage.setItem(HBA.key,on?'1':'0'); }catch(e){} hbdMsg(on?'앱을 열거나 다시 볼 때 오늘 고시가 없으면 자동으로 수집을 요청합니다(토큰 저장 기기, 평일 11시 이후, 10분에 1회).':'자동 수집을 껐습니다. 필요할 때 「오늘 환율 수집 실행」을 누르십시오.'); }
+function hbaNeedToday(dateStr){
+  const now=new Date(Date.now()+9*3600*1000), today=now.toISOString().slice(0,10), dow=now.getUTCDay(), mins=now.getUTCHours()*60+now.getUTCMinutes();
+  return dow>=1&&dow<=5&&mins>=11*60+5&&(!dateStr||dateStr<today);
+}
+async function hbaCheck(dateStr){
+  if(!hbaOn()||!hbdToken()||HBD.busy||!hbaNeedToday(dateStr)) return false;
+  let last=0; try{ last=Number(localStorage.getItem(HBA.stampKey)||0); }catch(e){}
+  if(Date.now()-last<HBA.minGapMs) return false;
+  try{ localStorage.setItem(HBA.stampKey,String(Date.now())); }catch(e){}
+  hbdMsg('오늘 고시가 아직 반영되지 않아 수집을 자동으로 요청합니다…');
+  await fxDispatch();
+  return true;
+}
+/* raw 서버는 5분 캐시라 방금 수집한 파일이 늦게 보일 수 있다. 토큰이 있으면 GitHub API 로 직접 읽는다 */
+async function hbdReadJson(path){
+  const j=await hbdGh('/contents/'+path+'?ref=fx-data');
+  const bin=atob(String(j.content||'').replace(/\s/g,'')), bytes=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  return JSON.parse(new TextDecoder('utf-8').decode(bytes));
 }
 function sortExim(rates){
   const order=['USD','JPY','EUR','CNH','CNY','GBP','HKD','AUD','CAD','CHF','SGD','THB'];
@@ -583,8 +614,11 @@ async function loadRef(){
   h += '</tbody></table></div>';
   h += `<div class="rowbtns"><button class="btn small" type="button" id="btnShowAll">${showAll?'주요 통화만 보기':'전체 통화 보기'}</button></div>`;
       h += '<div class="rowbtns"><button class="btn small" type="button" id="hbd_btn" onclick="fxDispatch()">오늘 환율 수집 실행</button>'
-         + '<button class="btn small" type="button" onclick="hbdSetToken()">토큰 설정</button></div>'
-         + '<div class="note" id="hbdMsgBox">폰·PC 에서 바로 수집을 실행합니다. GitHub 토큰(저장소 hanbaektax-portal, Actions 읽기·쓰기)을 「토큰 설정」으로 이 기기에 한 번 저장하십시오.</div>';
+         + '<button class="btn small" type="button" onclick="hbdSetToken()">토큰 설정</button>'
+         + '<label class="hba-lbl"><input type="checkbox" id="hba_chk"'+(hbaOn()?' checked':'')+' onchange="hbaSet(this.checked)"> 열 때 자동 수집</label></div>'
+         + '<div class="note" id="hbdMsgBox">'+(hbdToken()
+              ? '이 기기에 토큰이 저장돼 있습니다. 앱을 열거나 다시 볼 때 오늘 고시가 없으면 자동으로 수집을 요청합니다(평일 11시 이후, 10분에 1회). 바로 받으려면 「오늘 환율 수집 실행」.'
+              : '폰·PC 에서 바로 수집을 실행합니다. GitHub 토큰(저장소 hanbaektax-portal, Actions 읽기·쓰기)을 「토큰 설정」으로 이 기기에 한 번 저장하면, 이후에는 앱을 열 때 자동으로 요청합니다.')+'</div>';
   h += `<div class="note">open.er-api 갱신 ${er?esc(er.time_last_update_utc):'응답 없음'} · ECB 고시일 ${fr?esc(fr.date):'응답 없음'}. `
      + '두 출처 모두 하루 한 번 갱신되는 시장 평균값이며 국내 고시 매매기준율과 다를 수 있습니다.</div>';
   body.innerHTML=h;
@@ -888,6 +922,8 @@ async function init(){
   await Promise.allSettled([loadOfficial(), loadRef(), loadCustoms(), loadSeriesIndex()]);
   if(!S.current && S.ref) setCurrent('ref', S.ref);
   updateStatus();
+  HBA.lastLoad=Date.now();
+  hbaCheck(S.official?S.official.date:'');   /* 오늘 고시가 없고 토큰이 있으면 자동 수집 요청 */
 }
 /* ══════════ 새로고침 · 알림 ══════════
  * 상단바 "환율 새로고침": 수집본(latest·customs·series 목록)과 참고환율을 캐시를 우회해 다시 읽는다.
@@ -912,6 +948,21 @@ async function refreshAll(){
 }
 $('btnHeadReload').addEventListener('click', refreshAll);
 $('btnReload').addEventListener('click', refreshAll);
+/* HB-FXAUTO: 탭·앱으로 돌아오면(5분 경과) 공식 수집본을 조용히 다시 읽고, 필요하면 자동 수집을 요청한다 */
+async function hbaRevisit(){
+  if(document.visibilityState!=='visible'||refreshing||HBD.busy) return;
+  if(Date.now()-HBA.lastLoad<HBA.staleMs) return;
+  HBA.lastLoad=Date.now();
+  const before=S.official?S.official.date:'';
+  await loadOfficial();
+  const now=S.official?S.official.date:'';
+  if(now&&now!==before) toast('새 고시가 반영되었습니다 · 기준일 '+now);
+  hbaCheck(now);
+}
+document.addEventListener('visibilitychange', hbaRevisit);
+window.addEventListener('focus', hbaRevisit);
+window.addEventListener('pageshow', e=>{ if(e.persisted) hbaRevisit(); });
+window.addEventListener('online', hbaRevisit);
 $('btnTheme').addEventListener('click', ()=>{
   const next = document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
   document.documentElement.setAttribute('data-theme', next); LS.set('hbt_theme', next);

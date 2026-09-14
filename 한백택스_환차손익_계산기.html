@@ -177,6 +177,8 @@ body{background:var(--bg);color:#2D3748;min-height:100vh;font-size:17px}
 .fx-btn:hover{filter:brightness(1.08)}
 .fx-btn.alt{background:#fff;color:var(--navy);border:1.5px solid var(--navy)}
 .fx-btn:disabled{opacity:.55;cursor:wait}
+.hba-lbl{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;cursor:pointer;user-select:none}
+.hba-lbl input{margin:0}
 .fx-btns-note{flex:1 1 100%;font-size:12.5px;color:var(--gray);line-height:1.5}
 .fx-btn.on{background:var(--gold);color:#fff;border-color:var(--gold)}
 .auto-cell.fx-status{font-size:14px;color:var(--navy);line-height:1.6;display:block;white-space:normal}
@@ -335,7 +337,7 @@ button:active{transform:scale(0.95);transition:transform 0.1s}
         <button type="button" class="fx-btn" data-mode="prevYE" id="fx_btn_ye" onclick="fxLoad('prevYE')">직전 기말(12.31)</button>
         <button type="button" class="fx-btn alt" data-mode="live" onclick="fxLoad('live')">실시간 참고환율</button>
       </div></div>
-      <div class="row"><div class="lbl">오늘 환율 수집</div><div class="fx-btns"><button type="button" class="fx-btn alt" id="hbd_btn" onclick="fxDispatch()">오늘 환율 수집 실행</button><button type="button" class="fx-btn alt" onclick="hbdSetToken()">토큰 설정</button><span class="fx-btns-note">오늘 고시분이 아직 없을 때 폰·PC 에서 바로 수집을 실행합니다 (GitHub 토큰 1회 저장)</span></div></div>
+      <div class="row"><div class="lbl">오늘 환율 수집</div><div class="fx-btns"><button type="button" class="fx-btn alt" id="hbd_btn" onclick="fxDispatch()">오늘 환율 수집 실행</button><button type="button" class="fx-btn alt" onclick="hbdSetToken()">토큰 설정</button><label class="hba-lbl"><input type="checkbox" id="hba_chk" onchange="hbaSet(this.checked)"> 열 때 자동 수집</label><span class="fx-btns-note">오늘 고시분이 아직 없을 때 폰·PC 에서 바로 수집을 실행합니다 (GitHub 토큰 1회 저장). 「열 때 자동 수집」이 켜져 있으면 계산기를 열거나 다시 볼 때 자동으로 요청합니다.</span></div></div>
       <div class="row"><div class="lbl">조회 결과</div><div class="auto-cell fx-status" id="fx_status">환율을 불러오는 중…</div></div>
       <div class="fx-table" id="fx_table"></div>
       <div class="fx-help">고시환율은 기말·취득일 평가에 쓰는 매매기준율(서울외국환중개 고시, 수출입은행 API 수집본)입니다. 실시간 참고환율(open.er-api 시장 평균)은 참고용이며 세무 평가에는 고시환율을 쓰십시오. 통화를 바꾸면 조회된 날짜의 환율이 다시 적용되고, 환율 칸은 언제든 직접 고칠 수 있습니다. JPY는 100엔 고시를 1엔 단위로 환산하고, CNY는 위안화(CNH) 고시를 씁니다. 「오늘 환율 수집 실행」은 GitHub 수집 작업을 이 기기에서 직접 실행시키며, 토큰은 이 기기에만 저장됩니다(GitHub → Settings → Developer settings → Fine-grained tokens, 저장소 hanbaektax-portal, Actions 읽기·쓰기).</div>
@@ -1479,6 +1481,8 @@ async function fxFindDaily(date){
     if(t.getDay()===0||t.getDay()===6) continue;
     const hit=fxIso(t);
     try{ const d=await fxGetJSON(FX_DATA_BASE+'daily/'+hit+'.json'+(FX.bust?'?t='+Date.now():'')); if(d&&Array.isArray(d.rates)&&d.rates.length) return {doc:d,hit}; }catch(e){}
+    /* 방금 수집한 당일 파일은 raw 캐시에 늦게 보일 수 있다 — 토큰이 있으면 GitHub API 로 직접 읽는다 */
+    if(FX.bust&&back===0&&typeof hbdReadJson==='function'&&hbdToken()){ try{ const d=await hbdReadJson('daily/'+hit+'.json'); if(d&&Array.isArray(d.rates)&&d.rates.length) return {doc:d,hit}; }catch(e){} }
   }
   return null;
 }
@@ -1571,13 +1575,54 @@ async function fxBookLoad(sec){
     if(typeof calcFx==='function') calcFx();
   }catch(e){ src.textContent='환율을 불러오지 못했습니다 ('+(e&&e.message?e.message:e)+').'; }
 }
+/* ── HB-FXAUTO: 앱을 열거나 다시 볼 때 자동 갱신 (2026-09-14) ──
+ * 열 때·탭 복귀(5분 경과)·온라인 복귀 때 수집본을 다시 읽는다.
+ * 평일 11:05 KST 이후인데 오늘 고시가 없으면, 이 기기에 토큰이 있을 때 수집을 자동 요청한다(기기당 10분에 1회).
+ * 「열 때 자동 수집」 스위치(localStorage hbt_fx_auto, 기본 켬)로 끌 수 있다. 토큰이 없으면 다시 읽기만 한다. */
+const HBA={key:'hbt_fx_auto', stampKey:'hbt_fx_auto_last', minGapMs:10*60000, staleMs:5*60000, lastLoad:0};
+function hbaOn(){ try{ return localStorage.getItem(HBA.key)!=='0'; }catch(e){ return true; } }
+function hbaSet(on){ try{ localStorage.setItem(HBA.key,on?'1':'0'); }catch(e){} hbdMsg(on?'앱을 열거나 다시 볼 때 오늘 고시가 없으면 자동으로 수집을 요청합니다(토큰 저장 기기, 평일 11시 이후, 10분에 1회).':'자동 수집을 껐습니다. 필요할 때 「오늘 환율 수집 실행」을 누르십시오.'); }
+function hbaNeedToday(dateStr){
+  const now=new Date(Date.now()+9*3600*1000), today=now.toISOString().slice(0,10), dow=now.getUTCDay(), mins=now.getUTCHours()*60+now.getUTCMinutes();
+  return dow>=1&&dow<=5&&mins>=11*60+5&&(!dateStr||dateStr<today);
+}
+async function hbaCheck(dateStr){
+  if(!hbaOn()||!hbdToken()||HBD.busy||!hbaNeedToday(dateStr)) return false;
+  let last=0; try{ last=Number(localStorage.getItem(HBA.stampKey)||0); }catch(e){}
+  if(Date.now()-last<HBA.minGapMs) return false;
+  try{ localStorage.setItem(HBA.stampKey,String(Date.now())); }catch(e){}
+  hbdMsg('오늘 고시가 아직 반영되지 않아 수집을 자동으로 요청합니다…');
+  await fxDispatch();
+  return true;
+}
+/* raw 서버는 5분 캐시라 방금 수집한 파일이 늦게 보일 수 있다. 토큰이 있으면 GitHub API 로 직접 읽는다 */
+async function hbdReadJson(path){
+  const j=await hbdGh('/contents/'+path+'?ref=fx-data');
+  const bin=atob(String(j.content||'').replace(/\s/g,'')), bytes=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  return JSON.parse(new TextDecoder('utf-8').decode(bytes));
+}
+/* 탭·앱으로 돌아오면(5분 경과) 최신 고시를 조용히 다시 읽는다. 실시간·특정일 조회 중이면 건드리지 않는다 */
+async function hbaRevisit(){
+  if(document.visibilityState!=='visible'||FX.busy||HBD.busy) return;
+  if(Date.now()-HBA.lastLoad<HBA.staleMs) return;
+  if(FX.cur&&(FX.cur.kind!=='official'||FX.cur.want)) return;
+  HBA.lastLoad=Date.now();
+  await fxLoad('latest');
+  if(FX.cur&&FX.cur.kind==='official'&&!FX.cur.offline) hbaCheck(FX.cur.date);
+}
+document.addEventListener('visibilitychange', hbaRevisit);
+window.addEventListener('focus', hbaRevisit);
+window.addEventListener('pageshow', e=>{ if(e.persisted) hbaRevisit(); });
+window.addEventListener('online', hbaRevisit);
 function fxInit(){
   if(!document.getElementById('fx_status')) return;
   const today=fxToday(), ye=(new Date().getFullYear()-1)+'-12-31';
   const ed=document.getElementById('fx_eval_date'); if(ed){ if(!ed.value) ed.value=today; ed.max=today; }
   ['fx_recv_book_date','fx_pay_book_date'].forEach(id=>{ const el=document.getElementById(id); if(el) el.max=today; });
   const b=document.getElementById('fx_btn_ye'); if(b) b.textContent='직전 기말('+ye.replace(/-/g,'.')+')';
-  fxLoad('latest');
+  const chk=document.getElementById('hba_chk'); if(chk) chk.checked=hbaOn();
+  fxLoad('latest').then(()=>{ HBA.lastLoad=Date.now(); if(FX.cur&&FX.cur.kind==='official'&&!FX.cur.offline) hbaCheck(FX.cur.date); });
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fxInit); else fxInit();
 
