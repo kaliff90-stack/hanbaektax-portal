@@ -102,7 +102,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="종합소득세">
-<title>2025년 귀속 종합소득세 확정신고 계산기 · 한백택스</title>
+<title>종합소득세 확정신고 계산기 (2021~2027 귀속) · 한백택스</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap');
@@ -149,7 +149,11 @@
     <div class="flex items-center justify-between flex-wrap gap-3">
       <div>
         <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">종합소득세 확정신고 계산기</h1>
-        <p class="text-blue-200 text-sm mt-1">2025년 귀속 · 신고기간 2026.05.01~05.31 · 소득세법 §55 (6%~45%)</p>
+        <p class="text-blue-200 text-sm mt-1">
+          <label for="taxYear" class="font-bold mr-1">귀속연도</label>
+          <select id="taxYear" onchange="applyYear()" class="text-gray-900 rounded px-2 py-0.5 text-sm font-bold align-middle"></select>
+          <span id="yearSub" class="ml-2"></span>
+        </p>
       </div>
       <div class="text-right">
         <div class="text-xs text-blue-200">세무법인 한백택스</div>
@@ -223,7 +227,7 @@
             <input type="number" id="cnt_woman" class="input-field calc w-full px-3 py-2 rounded-lg text-right" value="0" min="0" max="1">
           </div>
           <div>
-            <label class="block text-xs font-bold text-gray-600 mb-1">8세이상 자녀</label>
+            <label class="block text-xs font-bold text-gray-600 mb-1" id="childLabel">자녀·손자녀</label>
             <input type="number" id="cnt_child" class="input-field calc w-full px-3 py-2 rounded-lg text-right" value="0" min="0">
           </div>
         </div>
@@ -506,24 +510,16 @@
 
       <!-- 세율표 -->
       <div class="card p-6">
-        <h2 class="text-lg font-extrabold section-title mb-3">📊 2025년 귀속 종합소득세율 (소득세법 §55)</h2>
+        <h2 class="text-lg font-extrabold section-title mb-3">📊 <span id="rateTitle">종합소득세율</span> (소득세법 §55)</h2>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead class="bg-gray-100">
               <tr><th class="p-2 text-center">구간</th><th class="p-2 text-right">세율</th><th class="p-2 text-right">누진공제</th></tr>
             </thead>
-            <tbody>
-              <tr class="border-b"><td class="p-2">1,400만원 이하</td><td class="p-2 text-right">6%</td><td class="p-2 text-right">-</td></tr>
-              <tr class="border-b bg-gray-50"><td class="p-2">1,400만 ~ 5,000만</td><td class="p-2 text-right">15%</td><td class="p-2 text-right">126만</td></tr>
-              <tr class="border-b"><td class="p-2">5,000만 ~ 8,800만</td><td class="p-2 text-right">24%</td><td class="p-2 text-right">576만</td></tr>
-              <tr class="border-b bg-gray-50"><td class="p-2">8,800만 ~ 1.5억</td><td class="p-2 text-right">35%</td><td class="p-2 text-right">1,544만</td></tr>
-              <tr class="border-b"><td class="p-2">1.5억 ~ 3억</td><td class="p-2 text-right">38%</td><td class="p-2 text-right">1,994만</td></tr>
-              <tr class="border-b bg-gray-50"><td class="p-2">3억 ~ 5억</td><td class="p-2 text-right">40%</td><td class="p-2 text-right">2,594만</td></tr>
-              <tr class="border-b"><td class="p-2">5억 ~ 10억</td><td class="p-2 text-right">42%</td><td class="p-2 text-right">3,594만</td></tr>
-              <tr><td class="p-2">10억 초과</td><td class="p-2 text-right">45%</td><td class="p-2 text-right">6,594만</td></tr>
-            </tbody>
+            <tbody id="rateBody"></tbody>
           </table>
         </div>
+        <div id="yearNote" class="mt-3 text-xs leading-relaxed"></div>
       </div>
 
     </div>
@@ -618,6 +614,136 @@
 <script>
 'use strict';
 
+
+// ───── 귀속연도별 파라미터 (2026-09-14 정리) ─────
+// 세율표 두 벌. B = 2023 귀속 이후(현행), A = 2022 귀속 이전.
+//   cut 은 과세표준 상한(원), rate 는 세율, prog 는 누진공제액(원).
+// B 는 소득세법 §55(시행 2026.7.1) 원문으로 확인했다. A 는 과거 시점 조문이라
+// 법제처 Open API 로 확정되지 않는다 — 신고 전 원문 확인이 필요하다.
+const RATE_B = [
+  { cut: 14_000_000,  rate: 6,  prog: 0 },
+  { cut: 50_000_000,  rate: 15, prog: 1_260_000 },
+  { cut: 88_000_000,  rate: 24, prog: 5_760_000 },
+  { cut: 150_000_000, rate: 35, prog: 15_440_000 },
+  { cut: 300_000_000, rate: 38, prog: 19_940_000 },
+  { cut: 500_000_000, rate: 40, prog: 25_940_000 },
+  { cut: 1_000_000_000, rate: 42, prog: 35_940_000 },
+  { cut: Infinity,    rate: 45, prog: 65_940_000 },
+];
+const RATE_A = [
+  { cut: 12_000_000,  rate: 6,  prog: 0 },
+  { cut: 46_000_000,  rate: 15, prog: 1_080_000 },
+  { cut: 88_000_000,  rate: 24, prog: 5_220_000 },
+  { cut: 150_000_000, rate: 35, prog: 14_900_000 },
+  { cut: 300_000_000, rate: 38, prog: 19_400_000 },
+  { cut: 500_000_000, rate: 40, prog: 25_400_000 },
+  { cut: 1_000_000_000, rate: 42, prog: 35_400_000 },
+  { cut: Infinity,    rate: 45, prog: 65_400_000 },
+];
+// child: 세액공제 금액(1명·2명·3명째부터 1명당) 과 연령 요건.
+// 금액은 2025 귀속분부터 25/55/40만으로 올랐다(2024.12 개정, 법제처 원문 확인).
+// 연령은 8세 → 13세 단계 상향 중이며 귀속연도별 적용은 부칙 사항이라 확인되지 않는다.
+//   산식은 자녀 '수'만 쓰므로 연령 표기는 안내용이고 세액에는 영향이 없다.
+const YEARS = {
+  2021: { rate: RATE_A, child: { one: 150000, two: 300000, plus: 300000, age: 7  }, ok: false },
+  2022: { rate: RATE_A, child: { one: 150000, two: 300000, plus: 300000, age: 7  }, ok: false },
+  2023: { rate: RATE_B, child: { one: 150000, two: 300000, plus: 300000, age: 8  }, ok: false },
+  2024: { rate: RATE_B, child: { one: 150000, two: 350000, plus: 300000, age: 8  }, ok: false },
+  2025: { rate: RATE_B, child: { one: 250000, two: 550000, plus: 400000, age: 8  }, ok: false },
+  2026: { rate: RATE_B, child: { one: 250000, two: 550000, plus: 400000, age: 9  }, ok: true  },
+  2027: { rate: RATE_B, child: { one: 250000, two: 550000, plus: 400000, age: 10 }, ok: '예정' },
+};
+const YEAR_MIN = 2021, YEAR_MAX = 2027, YEAR_KEY = 'hbt_jongso_year';
+
+function curYear() {
+  const v = parseInt((document.getElementById('taxYear') || {}).value, 10);
+  return YEARS[v] ? v : 2025;
+}
+function curY() { return YEARS[curYear()]; }
+
+function buildYearSelect() {
+  const sel = document.getElementById('taxYear');
+  if (!sel || sel.options.length) return;
+  let saved = 2025;
+  try { const v = parseInt(localStorage.getItem(YEAR_KEY), 10); if (YEARS[v]) saved = v; } catch (e) {}
+  for (let y = YEAR_MAX; y >= YEAR_MIN; y--) {
+    const o = document.createElement('option');
+    o.value = y; o.textContent = y + '년 귀속';
+    sel.appendChild(o);
+  }
+  sel.value = saved;
+}
+
+// 만원 단위 표기 — 1,544만 / 1.5억 처럼 읽히게
+function won만(v) { return v ? (v / 10000).toLocaleString('ko-KR') + '만' : '-'; }
+function cutLabel(v) {
+  if (v === Infinity) return '';
+  return v >= 100_000_000 ? (v / 100_000_000).toLocaleString('ko-KR') + '억'
+                          : (v / 10_000).toLocaleString('ko-KR') + '만';
+}
+
+function applyYear() {
+  const y = curYear(), Y = YEARS[y];
+  try { localStorage.setItem(YEAR_KEY, y); } catch (e) {}
+
+  // 머리글
+  const sub = document.getElementById('yearSub');
+  if (sub) sub.textContent = `· 신고기간 ${y + 1}.05.01~05.31 · 소득세법 §55 (6%~45%)`;
+
+  // 세율표
+  const t = document.getElementById('rateTitle');
+  if (t) t.textContent = `${y}년 귀속 종합소득세율`;
+  const body = document.getElementById('rateBody');
+  if (body) {
+    let prev = 0, h = '';
+    Y.rate.forEach((b, i) => {
+      const label = b.cut === Infinity ? `${cutLabel(prev)} 초과`
+                  : prev === 0 ? `${cutLabel(b.cut)} 이하`
+                  : `${cutLabel(prev)} ~ ${cutLabel(b.cut)}`;
+      h += `<tr class="${i % 2 ? 'bg-gray-50' : ''} border-b"><td class="p-2">${label}</td>`
+         + `<td class="p-2 text-right">${b.rate}%</td>`
+         + `<td class="p-2 text-right">${won만(b.prog)}</td></tr>`;
+      prev = b.cut;
+    });
+    body.innerHTML = h;
+  }
+
+  // 자녀 입력 라벨
+  const cl = document.getElementById('childLabel');
+  if (cl) cl.textContent = `${Y.child.age}세이상 자녀·손자녀`;
+
+  // 근거·검증 상태
+  const note = document.getElementById('yearNote');
+  if (note) {
+    const 확정 = Y.ok === true, 예정 = Y.ok === '예정';
+    let h = '';
+    if (확정) {
+      h += '<div class="p-2 rounded bg-green-50 text-green-900 border border-green-200">'
+         + '<b>세율·공제액 확인됨</b> — 소득세법 §55·§59의2(시행 2026.7.1) 원문 대조. '
+         + '누진공제액은 조문 금액으로 재계산해 검산했습니다.</div>';
+    } else if (예정) {
+      h += '<div class="p-2 rounded bg-blue-50 text-blue-900 border border-blue-200">'
+         + '<b>시행예정 기준</b> — 소득세법 §55·§59의2(시행 2027.1.1) 원문. '
+         + '신고 시점까지 개정될 수 있으니 그때 원문을 다시 확인하십시오.</div>';
+    } else {
+      h += '<div class="p-2 rounded bg-amber-50 text-amber-900 border border-amber-300">'
+         + `<b>${y}년 귀속은 과거 시점 조문입니다 — 신고 전 원문 확인이 필요합니다.</b><br>`
+         + '법제처 Open API 는 과거 시행일 조문을 안정적으로 돌려주지 않아, 이 연도의 세율·공제액은 '
+         + '원문으로 확정하지 못했습니다. 국세법령정보시스템에서 해당 귀속연도 조문을 확인하십시오.</div>';
+    }
+    h += '<div class="mt-2 p-2 rounded bg-gray-50 text-gray-700 border border-gray-200">'
+       + `<b>자녀세액공제</b> ${y}년 귀속 — 1명 ${won만(Y.child.one)} / 2명 ${won만(Y.child.two)} / `
+       + `3명 이상 ${won만(Y.child.two)} + 2명 초과 1명당 ${won만(Y.child.plus)}. `
+       + '대상은 기본공제대상 <b>자녀 및 손자녀</b>(입양자·위탁아동 포함)입니다.<br>'
+       + `<b>연령 요건 ${Y.child.age}세 이상은 참고값입니다.</b> 소득세법 §59의2① 본문은 13세 이상(시행 2026.7.1)이고, `
+       + '8세 → 13세 단계 상향의 귀속연도별 적용은 <b>부칙 사항이라 확인되지 않았습니다</b>. '
+       + '계산식은 자녀 수만 쓰므로 세액에는 영향이 없습니다.</div>';
+    note.innerHTML = h;
+  }
+
+  if (typeof calculate === 'function') calculate();
+}
+
 // ───── 공통 ─────
 const W = 10000;  // 1만원
 const M = W * 100;  // 1억
@@ -709,37 +835,36 @@ function calcHumanDeduct() {
   return total;
 }
 
-// ───── 자녀세액공제 (2025년 인상) ─────
-// 1명 25만 / 2명 55만(25+30) / 3명 95만(25+30+40) / 이후 명당 +40만
+// ───── 자녀세액공제 (소득세법 §59의2①) ─────
+// 금액은 귀속연도별 YEARS 표를 따른다. 1명 / 2명 / 3명 이상은 2명분 + 초과 1명당 가산.
 function calcChildCredit() {
   const c = Math.max(0, n('cnt_child'));
+  const C = curY().child;
   let v = 0;
-  if (c >= 1) v += 250000;
-  if (c >= 2) v += 300000;
-  if (c >= 3) v += 400000 * (c - 2);
+  if (c === 1) v = C.one;
+  else if (c >= 2) v = C.two + C.plus * (c - 2);
 
+  const man = x => (x / 10000).toLocaleString('ko-KR');
   const detail =
-    c === 0 ? '8세이상 자녀 0명' :
-    c === 1 ? '1명: 25만' :
-    c === 2 ? '2명: 25+30=55만' :
-              `${c}명: 25+30+40×${c-2}=${(v/10000)}만`;
+    c === 0 ? `${C.age}세이상 자녀·손자녀 0명` :
+    c === 1 ? `1명: ${man(C.one)}만` :
+    c === 2 ? `2명: ${man(C.two)}만` :
+              `${c}명: ${man(C.two)}만 + ${man(C.plus)}만×${c-2} = ${man(v)}만`;
 
   document.getElementById('childCredit').textContent = fmt(v);
   document.getElementById('childDetail').textContent = detail;
   return v;
 }
 
-// ───── 8단계 누진세율 (2025년 귀속) ─────
+// ───── 8단계 누진세율 (소득세법 §55) — 귀속연도표를 따른다 ─────
 function calcTax(t) {
   if (t <= 0) return { tax: 0, rate: 0, deduct: 0 };
-  if (t <= 14_000_000) return { tax: t * 0.06, rate: 6, deduct: 0 };
-  if (t <= 50_000_000) return { tax: t * 0.15 - 1_260_000, rate: 15, deduct: 1_260_000 };
-  if (t <= 88_000_000) return { tax: t * 0.24 - 5_760_000, rate: 24, deduct: 5_760_000 };
-  if (t <= 150_000_000) return { tax: t * 0.35 - 15_440_000, rate: 35, deduct: 15_440_000 };
-  if (t <= 300_000_000) return { tax: t * 0.38 - 19_940_000, rate: 38, deduct: 19_940_000 };
-  if (t <= 500_000_000) return { tax: t * 0.40 - 25_940_000, rate: 40, deduct: 25_940_000 };
-  if (t <= 1_000_000_000) return { tax: t * 0.42 - 35_940_000, rate: 42, deduct: 35_940_000 };
-  return { tax: t * 0.45 - 65_940_000, rate: 45, deduct: 65_940_000 };
+  const table = curY().rate;
+  for (const b of table) {
+    if (t <= b.cut) return { tax: t * b.rate / 100 - b.prog, rate: b.rate, deduct: b.prog };
+  }
+  const last = table[table.length - 1];
+  return { tax: t * last.rate / 100 - last.prog, rate: last.rate, deduct: last.prog };
 }
 
 // ───── 소득별 순소득 계산 (총수입 - 필요경비) ─────
@@ -790,8 +915,10 @@ function autoEtcExpense() {
 //   3) 총급여별 한도:
 //      3,300만↓             : 74만
 //      3,300만 ~ 7,000만    : MAX(74만 - (총급여-3,300만)×0.008, 66만)
-//      7,000만 ~ 1.2억      : MAX(66만 - (총급여-7,000만)×0.005, 50만)
-//      1.2억 초과            : MAX(50만 - (총급여-1.2억)×0.005, 20만)
+//      7,000만 ~ 1.2억      : MAX(66만 - (총급여-7,000만)×1/2, 50만)
+//      1.2억 초과            : MAX(50만 - (총급여-1.2억)×1/2, 20만)
+//   ※ 3·4호는 조문이 ×1/2 이다(§59②3·4호, 시행 2026.7.1 원문 확인). 아래 코드가 맞고
+//     예전 주석의 ×0.005 가 오기였다. 한도가 바닥값까지 빠르게 내려가는 구조다.
 function autoLaborCredit() {
   const grossSalary = n('gr_labor');
   const laborInc   = Math.max(0, n('gr_labor') - n('ex_labor'));
@@ -971,15 +1098,16 @@ function exportCSV() {
   const a = document.createElement('a');
   const today = new Date().toISOString().slice(0,10);
   a.href = url;
-  a.download = `2025년_종합소득세_계산결과_${today}.csv`;
+  a.download = `${curYear()}년귀속_종합소득세_계산결과_${today}.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
 
-// 초기 계산
-calculate();
+// 초기화 — 연도 선택을 먼저 채우고(저장된 연도 복원) 그 연도로 표·라벨·계산을 맞춘다
+buildYearSelect();
+applyYear();
 </script>
 
 <!-- HB-CONSULT v1 -->
