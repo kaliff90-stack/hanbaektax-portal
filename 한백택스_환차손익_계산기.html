@@ -1581,7 +1581,9 @@ function fxRenderTable(){
   h+='<div class="fx-tbl-foot"><button type="button" class="fx-btn" onclick="fxToggleAll()">'
     +(FX_SHOW_ALL?'주요 통화만 보기':'전체 통화 보기 ('+FX_CODES.length+')')+'</button>';
   if(srcs.size) h+='<span class="fx-note"><b>*</b> 수출입은행 미고시 통화 — '+[...srcs].map(s=>FX_SRC_NM[s]||s).join(' · ')+' 의 재정환율</span>';
-  if(none) h+='<span class="fx-note">「고시 없음」 통화는 일별 기준환율이 없습니다(관세청 주간 과세환율만 존재). 환율을 직접 입력하십시오.</span>';
+  if(none) h+='<span class="fx-note">「고시 없음」 통화는 이 날짜에 국내 고시가 없습니다'
+    +(FX.cur.kind==='official'&&FX.cur.date<'2022-10-01'?'(브라질·대만 등은 2014년 3월, 그 밖은 2022년 10월 고시부터)':'')
+    +'. 환율을 직접 입력하십시오.</span>';
   el.innerHTML=h+'</div>';
 }
 function fxApply(sec){
@@ -1596,9 +1598,12 @@ function fxApply(sec){
   }else{
     /* 앞서 고른 통화의 환율이 남아 있으면 그대로 계산돼 틀린 값이 나온다. 반드시 비운다 */
     inp.value=''; inp.placeholder='직접 입력';
-    if(src) src.textContent=FX.cur.kind==='official'
-      ? cur+' 는 이 날짜의 일별 기준환율 고시가 없습니다(관세청 주간 과세환율만 존재) — 환율을 직접 입력하십시오.'
-      : '조회 결과에 '+cur+' 환율이 없습니다 — 직접 입력하십시오.';
+    /* 없는 이유가 둘이다 — 그 시점에 아직 고시 대상이 아니었거나, 지금도 일별 고시가 없거나 */
+    if(src) src.textContent = FX.cur.kind!=='official'
+      ? '조회 결과에 '+cur+' 환율이 없습니다 — 직접 입력하십시오.'
+      : FX.cur.date < '2022-10-01'
+        ? cur+' 는 '+FX.cur.date+' 당시 국내 고시 대상이 아니었습니다(브라질·대만 등은 2014년 3월, 그 밖은 2022년 10월 고시부터) — 환율을 직접 입력하십시오.'
+        : cur+' 는 이 날짜의 일별 기준환율 고시가 없습니다 — 환율을 직접 입력하십시오.';
   }
 }
 function fxCurChanged(sec){

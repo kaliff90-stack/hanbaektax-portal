@@ -549,6 +549,15 @@ function renderOfficial(el, d, full){
   h += '</tbody></table></div>';
   h += `<div class="note">기준일 <b>${esc(d.date)}</b> · 출처 ${esc(d.source||'한국수출입은행 환율 API')} · 수집 ${esc(kstStamp(d.fetched_at))} KST. `
      + '단위: 원/표시단위(엔·루피아는 100). 비영업일은 직전 영업일 값이 유지됩니다.</div>';
+  /* 과거로 갈수록 국내 고시 통화 수가 적다. 왜 표가 짧은지 화면에서 알 수 있게 적는다.
+     2014-03 부터 43개(브라질·대만 등 추가), 2022-10 부터 57개 */
+  if(d.rates.length < 50){
+    const 기준 = d.date < '2014-03-01' ? '2014년 3월'
+               : d.date < '2022-10-01' ? '2022년 10월' : null;
+    if(기준) h += `<div class="note warn">이 날짜에 국내 고시된 통화는 <b>${d.rates.length}개</b>입니다. `
+       + `브라질 헤알·대만 달러 등은 <b>${esc(기준)}</b> 고시부터 있어 그 이전 날짜에는 조회되지 않습니다. `
+       + '없는 환율을 만들어 넣지 않습니다 — 그 시점 자료가 필요하면 거래은행 확인서 등 별도 자료로 확인하십시오.</div>';
+  }
   /* 수출입은행 미고시 통화는 재정환율로 채운다. 원천이 둘이라 실제로 쓴 쪽만 적는다 */
   const srcs=new Set(d.rates.map(r=>r.src).filter(s=>s&&s!=='exim'));
   if(srcs.size){
