@@ -136,6 +136,8 @@ th{text-align:center;background:var(--card-2);color:var(--txt-2);font-weight:800
 td.l{text-align:left} td.r{text-align:right;font-variant-numeric:tabular-nums} td.c{text-align:center}
 td .cur{font-weight:800} td .nm{color:var(--gray);font-size:13px;margin-left:6px}
 tr.main td{background:color-mix(in srgb,var(--gold) 7%,transparent)}
+tr.pick{cursor:pointer} tr.pick:hover td,tr.pick:focus-visible td{background:color-mix(in srgb,var(--navy) 9%,transparent)}
+tr.pick td.l::after{content:'›';color:var(--gray);font-weight:400;margin-left:6px}
 tr:hover td{background:color-mix(in srgb,var(--blue) 8%,transparent)}
 .diff-ok{color:var(--ok);font-weight:700} .diff-warn{color:var(--warn);font-weight:700} .diff-bad{color:var(--bad);font-weight:700}
 .muted{color:var(--gray)}
@@ -543,12 +545,13 @@ function renderOfficial(el, d, full){
   let h = '<div class="tblwrap"><table><thead><tr><th>통화</th><th>매매기준율</th><th>송금 받을 때<br>(TTB)</th><th>송금 보낼 때<br>(TTS)</th></tr></thead><tbody>';
   rows.forEach(r=>{
     const su=splitUnit(r.unit), main = ['USD','JPY','EUR','CNH','CNY'].includes(su.c);
-    h += `<tr class="${main?'main':''}"><td class="l"><span class="cur">${esc(r.unit)}</span><span class="nm">${esc(r.name||'')}</span></td>`
+    /* HB-FXROW: 줄을 누르면 기간·통계 탭이 그 통화 최근 6개월로 열린다 (시계열 코드는 JPY(100) → JPY) */
+    h += `<tr class="${main?'main':''} pick" data-code="${esc(su.c)}" tabindex="0" title="${esc(su.c)} 최근 6개월 추이 보기"><td class="l"><span class="cur">${esc(r.unit)}</span><span class="nm">${esc(r.name||'')}</span></td>`
        + `<td class="r">${fmtRate(r.base)}</td><td class="r">${fmtRate(r.ttb)}</td><td class="r">${fmtRate(r.tts)}</td></tr>`;
   });
   h += '</tbody></table></div>';
   h += `<div class="note">기준일 <b>${esc(d.date)}</b> · 출처 ${esc(d.source||'한국수출입은행 환율 API')} · 수집 ${esc(kstStamp(d.fetched_at))} KST. `
-     + '단위: 원/표시단위(엔·루피아는 100). 비영업일은 직전 영업일 값이 유지됩니다.</div>';
+     + '단위: 원/표시단위(엔·루피아는 100). 비영업일은 직전 영업일 값이 유지됩니다. <b>통화 줄을 누르면 최근 6개월 추이가 열립니다.</b></div>';
   /* 과거로 갈수록 국내 고시 통화 수가 적다. 왜 표가 짧은지 화면에서 알 수 있게 적는다.
      2014-03 부터 43개(브라질·대만 등 추가), 2022-10 부터 57개 */
   if(d.rates.length < 50){
@@ -1144,6 +1147,18 @@ document.querySelectorAll('[data-p]').forEach(b=>b.addEventListener('click', ()=
 $('btnSeries').addEventListener('click', loadSeries);
 $('srMode').addEventListener('change', ()=>{ if(SR.rows) loadSeries(); });
 $('srCur').addEventListener('change', ()=>{ if(SR.rows) loadSeries(); });
+/* HB-FXROW: 기준환율 표의 통화 줄 → 기간·통계 탭, 그 통화 최근 6개월(일별) 조회 */
+function openSeriesFor(code){
+  const sel=$('srCur');
+  if(!SR.index || ![...sel.options].some(o=>o.value===code)){ toast(code+' 시계열 자료가 아직 없습니다'); return; }
+  sel.value=code; $('srMode').value='daily';
+  showTab('series');
+  $('secSeries').scrollIntoView({behavior:'smooth', block:'start'});
+  setPreset('6m');
+  toast(code+' 최근 6개월 추이');
+}
+document.addEventListener('click', e=>{ const tr=e.target.closest('tr.pick[data-code]'); if(tr) openSeriesFor(tr.dataset.code); });
+document.addEventListener('keydown', e=>{ if(e.key!=='Enter'&&e.key!==' ') return; const tr=e.target.closest&&e.target.closest('tr.pick[data-code]'); if(tr){ e.preventDefault(); openSeriesFor(tr.dataset.code); } });
 $('btnCsv').addEventListener('click', downloadCsv);
 $('btnXlsx').addEventListener('click', downloadXlsx);
 $('qDate').addEventListener('keydown', e=>{ if(e.key==='Enter') lookupDate(); });
