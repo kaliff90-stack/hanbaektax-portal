@@ -157,7 +157,11 @@ td input.txt{text-align:left}
 .sumbar .box{flex:1;min-width:150px;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;border-radius:12px;padding:16px}
 .sumbar .box .k{font-size:11px;color:#cbd5e1;font-weight:700}
 .sumbar .box .v{font-size:22px;font-weight:800;margin-top:4px}
-.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;padding:10px 12px;background:#f8fafc;border:1px solid var(--line);border-radius:10px}
+.toolbar .fld{flex-direction:row;align-items:center;gap:8px;white-space:nowrap}
+.toolbar .fld input,.toolbar .fld select{background:var(--inbg);padding:6px 9px;font-size:13px}
+.toolbar .hint{color:var(--t2);font-size:12px;flex:1 1 240px}
+.tag-rel{background:#d1fae5;color:#047857}
 /* 신고서 (별지 제21호) */
 .form21{font-size:12px;border:2px solid var(--navy)}
 .form21 th,.form21 td{border:1px solid #94a3b8;padding:6px}
@@ -205,7 +209,7 @@ pre.out{background:#0f172a;color:#a7f3d0;font-family:Consolas,monospace;font-siz
 <a class="standalone-back" id="backPortal" href="한백택스_세무계산_포털.html" style="display:inline-flex;align-items:center;gap:8px;background:#C8963E;color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;margin:12px 16px 0;font-family:'Nanum Gothic',sans-serif">← 전체 세무계산 포털</a><script>if(window.self!==window.top){var _bp=document.getElementById('backPortal');if(_bp)_bp.style.display='none'}</script>
 <div class="header">
   <h1>한백택스 원천징수·연말정산 시스템</h1>
-  <div class="sub">세무법인 한백택스 · 2026 귀속 · 원천징수이행상황신고서(별지 제21호, 2026.5.22)</div>
+  <div class="sub">세무법인 한백택스 · 2026 귀속 · 원천징수이행상황신고서(별지 제21호, 2026.5.22) · 지급명세서 전산매체 제출요령 2026.08.20(근로)·09.14(퇴직·정오표) 정합</div>
 </div>
 <div class="nav" id="nav">
   <button class="active" data-p="biz">① 사업장</button>
@@ -213,72 +217,96 @@ pre.out{background:#0f172a;color:#a7f3d0;font-family:Consolas,monospace;font-siz
   <button data-p="pay">③ 월 급여대장</button>
   <button data-p="ye">④ 연말정산</button>
   <button data-p="rpt">⑤ 원천징수이행상황신고서</button>
-  <button data-p="exp">⑥ 전산매체(원천세·연말정산)</button>
+  <button data-p="exp">⑥ 전산매체(원천세·근로소득)</button>
   <button data-p="psm">⑦ 간이·일용 지급명세서</button>
+  <button data-p="ret">⑧ 퇴직소득</button>
 </div>
 <div class="wrap">
 
 <!-- ① 사업장 -->
 <div class="page active" id="page-biz">
   <div class="card">
-    <h2>사업장(원천징수의무자) 정보 <span class="actions"><button class="btn btn-p btn-sm" onclick="saveBiz()">저장</button></span></h2>
+    <h2>① 사업장(원천징수의무자) <span class="actions"><button class="btn btn-p btn-sm" onclick="saveBiz()">저장</button></span></h2>
+    <div class="toolbar"><span class="pill">사업장 1</span><span class="hint">신고서 상단과 전산매체 A(제출자)·B(원천징수의무자) 레코드에 반영됩니다. 데이터는 이 브라우저에만 저장됩니다.</span></div>
     <div class="grid">
       <label class="fld">법인(상호)명<input id="biz_name" placeholder="세무법인 한백택스"></label>
       <label class="fld">대표자명<input id="biz_ceo" placeholder="차재영"></label>
       <label class="fld">사업자등록번호<input id="biz_no" placeholder="000-00-00000"></label>
+      <label class="fld">법인등록번호(개인은 주민등록번호) — B8<input id="biz_regno" placeholder="13자리"></label>
       <label class="fld">원천징수의무자 구분
         <select id="biz_type"><option value="법인">법인</option><option value="개인">개인</option></select></label>
+      <label class="fld">관할 세무서코드(3자리) — A3·B3·C3<input id="biz_taxOffice" placeholder="예: 201" maxlength="3"></label>
       <label class="fld">사업장 소재지<input id="biz_addr" placeholder="서울특별시 중구 동호로 315, 2층"></label>
       <label class="fld">전화번호<input id="biz_tel" placeholder="02-0000-0000"></label>
+      <label class="fld">E-MAIL (일용 B10)<input id="biz_email" placeholder="hb090@hanbaektax.kr"></label>
       <label class="fld">반기납부 대상 여부
         <select id="biz_half"><option value="N">매월 납부 (일반)</option><option value="Y">반기별 납부 (상시 20인 이하 등)</option></select></label>
+      <label class="fld">전산매체 제출자 구분 — A5
+        <select id="biz_submitter"><option value="2">2 법인(직접 제출)</option><option value="3">3 개인(직접 제출)</option><option value="1">1 세무대리인</option></select></label>
+      <label class="fld">세무대리인 관리번호 — A6(대리인 제출 시)<input id="biz_agentNo" placeholder="6자리, '-' 없이"></label>
+      <label class="fld">홈택스 ID — A7<input id="biz_htxId" placeholder="홈택스 아이디"></label>
+      <label class="fld">담당자 부서 — A11<input id="biz_dept" placeholder="경리"></label>
+      <label class="fld">담당자 성명 — A12<input id="biz_staff" placeholder="담당자"></label>
     </div>
-    <div class="note">※ 이 정보는 원천징수이행상황신고서 상단(징수의무자)에 자동 반영됩니다. 데이터는 이 브라우저에만 저장됩니다(오프라인).</div>
+    <div class="note">세무서코드·법인(주민)등록번호·제출자 구분은 지급명세서 전산매체(근로·퇴직·간이·일용) 공통 필수 항목입니다. 세무대리인이 제출하면 A5=1 과 관리번호(A6)를 넣고, 사업자등록번호(A9)는 대리인 것이 아니라 <b>이 사업장</b> 기준으로 만들어집니다(대리인 제출 시 홈택스에서 제출자 정보를 확인).</div>
   </div>
 </div>
 
 <!-- ② 직원관리 -->
 <div class="page" id="page-emp">
   <div class="card">
-    <h2>직원(소득자) 관리 <span class="actions"><button class="btn btn-g btn-sm" onclick="addEmp()">+ 직원 추가</button></span></h2>
+    <h2>② 직원(소득자) 관리 <span class="actions"><button class="btn btn-g btn-sm" onclick="addEmp()">+ 직원 추가</button></span></h2>
+    <div class="toolbar"><span class="pill" id="emp_cnt">0명</span><span class="hint">구분: <b>일반</b>(매월 간이세액·A01) / <b>일용</b>(A03, 일 단위 세액) / <b>중도퇴사</b>(A02). 퇴사일을 넣으면 근무기간·연말정산 구분(계속/중도)이 지급명세서에 반영됩니다. [상세]는 거주·국적·세대주·임원 등 전산매체 인적사항입니다.</span></div>
     <div style="overflow-x:auto">
     <table id="empTable">
       <thead><tr>
-        <th class="l">성명</th><th>주민등록번호(13자리)</th><th>입사일</th><th>구분</th>
-        <th>공제대상가족수<br>(본인포함)</th><th>9~20세<br>자녀수</th><th class="c">관리</th>
+        <th class="l">성명</th><th>주민등록번호(13자리)</th><th>입사일</th><th>퇴사일</th><th>구분</th>
+        <th>공제대상가족수<br>(본인포함)</th><th>9~20세<br>자녀수</th><th class="c">전산매체<br>인적사항</th><th class="c">관리</th>
       </tr></thead>
       <tbody id="empBody"></tbody>
     </table>
     </div>
-    <div class="note">공제대상가족수 = 본인 + 배우자 + 기본공제 부양가족(9~20세 자녀 포함). 간이세액 자동계산에 사용됩니다.<br>
-    구분: <b>일반</b>(매월 간이세액·A01) / <b>일용</b>(A03) / <b>중도퇴사</b>(A02).</div>
+    <div class="note">공제대상가족수 = 본인 + 배우자 + 기본공제 부양가족(9~20세 자녀 포함). 간이세액 자동계산에 사용됩니다. 주민등록번호는 13자리 형식을 검사합니다(외국인은 외국인등록번호).</div>
+  </div>
+</div>
+
+<!-- 직원 상세(전산매체 인적사항) 모달 -->
+<div class="modal-bg" id="empModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <h3>전산매체 인적사항 <span id="empModalName" style="font-weight:600;color:#cbd5e1;font-size:13px"></span></h3>
+      <button class="x" onclick="closeEmp()">×</button>
+    </div>
+    <div class="modal-bd" id="empModalBody"></div>
+    <div class="nt-foot"><div class="tots"></div>
+      <div style="display:flex;gap:8px"><button class="btn btn-o btn-sm" onclick="closeEmp()">닫기</button><button class="btn btn-p btn-sm" onclick="saveEmp()">저장</button></div>
+    </div>
   </div>
 </div>
 
 <!-- ③ 월 급여대장 -->
 <div class="page" id="page-pay">
   <div class="card">
-    <h2>월 급여대장 <span class="actions">
-      <button class="btn btn-p btn-sm" onclick="recalcAllWithholding()">간이세액 일괄 재계산</button>
+    <h2>③ 월 급여대장 <span class="actions">
+      <button class="btn btn-p btn-sm" onclick="recalcAllWithholding()">원천징수세액 일괄 재계산</button>
     </span></h2>
     <div class="toolbar">
-      <label class="fld" style="flex-direction:row;align-items:center;gap:8px">귀속연월
-        <input type="month" id="payYM" onchange="renderPay()" style="background:var(--inbg)"></label>
+      <label class="fld">귀속연월<input type="month" id="payYM" onchange="renderPay()"></label>
       <span class="pill" id="payCount">0명</span>
-      <span class="muted">소득세는 간이세액 자동값이며 직접 수정 가능합니다(실지급 원천징수액 입력).</span>
+      <span class="hint">급여·상여·인정상여는 열에서, 기타 과세항목·비과세·감면은 [항목 명세]에서 코드별로 입력합니다. 총지급액 = 과세대상 + 비과세. 소득세는 간이세액(감면율 적용) 자동값이며 실지급 원천징수액으로 수정할 수 있습니다. 일용은 근무일수·최종근무일을 넣으면 일 단위로 계산됩니다.</span>
     </div>
     <div style="overflow-x:auto">
     <table id="payTable">
       <thead><tr>
-        <th class="l">성명</th><th>구분</th><th>총지급액</th><th>비과세<br>(기재/비기재)</th><th>과세대상</th>
+        <th class="l">성명</th><th>구분</th><th>급여<br>(C26)</th><th>상여<br>(C27)</th><th>인정상여<br>(C28)</th><th>기타 과세<br>·감면</th><th>비과세<br>(기재/비기재)</th><th>총지급액</th><th>과세대상</th>
         <th>국민연금</th><th>건강보험</th><th>장기요양</th><th>고용보험</th>
-        <th>소득세<br>(간이세액)</th><th>지방소득세<br>(10%)</th><th>실지급액</th>
+        <th>소득세</th><th>지방소득세<br>(10%)</th><th>실지급액</th>
       </tr></thead>
       <tbody id="payBody"></tbody>
       <tfoot id="payFoot"></tfoot>
     </table>
     </div>
-    <div class="note">비과세 <b>합계</b>는 각 직원 행의 <b>[비과세 명세]</b>에서 소득세법 §12 항목별로 입력하면 자동 산출됩니다. 지급명세서 <b>기재(○)</b>·<b>비기재(×)</b>로 구분되며, 과세대상 = 총지급액 − 비과세 합계. 연말정산 정산세액(2월 신고분 등)은 ⑤ 신고서 화면에서 A04(연말정산) 행에 직접 입력합니다(환급은 (-)).</div>
+    <div class="note">열 머리의 C번호는 근로소득 지급명세서 C레코드 항목입니다. 비과세는 지급명세서 <b>기재(○)</b> 33개 코드(C36~C66)와 <b>비기재(×)</b>로 나뉘며 월·연 한도가 자동 적용됩니다. 감면소득(T코드)이 있으면 월 원천징수세액에 감면율(중소기업취업자 70·90%, 외국인기술자 50·70%, 우수인력 50%)을 적용합니다. 연말정산 정산세액은 ⑤ 신고서 A04 행에서 처리합니다.</div>
   </div>
 </div>
 
@@ -286,15 +314,17 @@ pre.out{background:#0f172a;color:#a7f3d0;font-family:Consolas,monospace;font-siz
 <div class="modal-bg" id="ntModal">
   <div class="modal">
     <div class="modal-hd">
-      <h3>근로소득 비과세 항목 명세 <span id="ntModalName" style="font-weight:600;color:#cbd5e1;font-size:13px"></span></h3>
+      <h3>소득항목·비과세·감면 명세 <span id="ntModalName" style="font-weight:600;color:#cbd5e1;font-size:13px"></span></h3>
       <button class="x" onclick="closeNT()">×</button>
     </div>
     <div class="modal-bd" id="ntModalBody"></div>
     <div class="nt-foot">
       <div class="tots">
-        <div class="t">지급명세서 기재(○)<b id="ntTotRep">0</b></div>
+        <div class="t">기타 과세항목<b id="ntTotEx">0</b></div>
+        <div class="t">비과세 기재(○)<b id="ntTotRep">0</b></div>
         <div class="t">비기재(×)<b id="ntTotNon">0</b></div>
         <div class="t">비과세 합계<b id="ntTotAll" style="color:var(--gold)">0</b></div>
+        <div class="t">감면소득<b id="ntTotRl" style="color:var(--green)">0</b></div>
       </div>
       <div style="display:flex;gap:8px">
         <button class="btn btn-o btn-sm" onclick="closeNT()">닫기</button>
@@ -307,16 +337,19 @@ pre.out{background:#0f172a;color:#a7f3d0;font-family:Consolas,monospace;font-siz
 <!-- ④ 연말정산 -->
 <div class="page" id="page-ye">
   <div class="card">
-    <h2>근로소득 연말정산 (2026 귀속) <span class="actions">
+    <h2>④ 연말정산 — 근로소득 <span class="actions">
       <button class="btn btn-o btn-sm" onclick="autofillYE()">급여대장에서 불러오기</button>
       <button class="btn btn-p btn-sm" onclick="calcYE()">정산 계산</button>
     </span></h2>
     <div class="toolbar">
-      <label class="fld" style="flex-direction:row;align-items:center;gap:8px">대상 직원
-        <select id="ye_emp" onchange="loadYE()" style="background:var(--inbg)"></select></label>
-      <label class="fld" style="flex-direction:row;align-items:center;gap:8px">귀속연도
-        <select id="ye_year" onchange="calcYE()" style="background:var(--inbg)">
+      <label class="fld">귀속연도
+        <select id="ye_year" onchange="calcYE()">
           <option value="2026" selected>2026</option><option value="2025">2025</option></select></label>
+      <label class="fld">대상 직원
+        <select id="ye_emp" onchange="loadYE()"></select></label>
+      <span class="pill" id="ye_cnt">0명 정산</span>
+      <span class="hint">총급여·기납부·국민연금·보험료·감면소득은 [급여대장에서 불러오기]로 채워집니다. 계산 결과는 ⑥ 근로소득 지급명세서 C레코드로 나갑니다.</span>
+      <input type="hidden" id="ye_insHealth" value="0"><input type="hidden" id="ye_insEmp" value="0">
     </div>
     <div class="grid">
       <label class="fld">총급여액(비과세 제외) <input type="number" id="ye_gross" value="0" oninput="calcYE()"></label>
@@ -368,7 +401,14 @@ pre.out{background:#0f172a;color:#a7f3d0;font-family:Consolas,monospace;font-siz
     <div class="note">기부유형: 10 특례 · 20 정치자금 · 40 일반(종교외) · 41 종교단체 · 43 고향사랑(일반) · 44 고향사랑(특별재난). 관계: 1본인 2배우자 3직계비속 4직계존속 5형제자매 6그외.</div>
 
     <h3 style="font-size:14px;color:var(--navy);margin:18px 0 6px">⑤ 종(전)근무처 (D레코드, 중도입사자) <button class="btn btn-g btn-sm" onclick="prevAdd()">+ 추가</button></h3>
-    <div style="overflow-x:auto"><table><thead><tr><th>사업자번호</th><th class="l">상호</th><th>근무시작</th><th>근무종료</th><th>총급여<br>(과세)</th><th>비과세</th><th>결정세액<br>(소득세)</th><th class="c">관리</th></tr></thead><tbody id="prevBody"></tbody></table></div>
+    <div style="overflow-x:auto"><table><thead><tr><th>사업자번호</th><th class="l">상호</th><th>근무시작</th><th>근무종료</th><th>총급여<br>(과세)</th><th>비과세</th><th>비과세<br>코드</th><th>결정세액<br>(소득세)</th><th class="c">관리</th></tr></thead><tbody id="prevBody"></tbody></table></div>
+    <h3 style="font-size:14px;color:var(--navy);margin:18px 0 6px">⑥ 출산지원금 (K레코드) — 급여대장 비과세 Q03·Q04 가 있을 때</h3>
+     <div class="grid">
+       <label class="fld">자녀 성명<input id="ye_birthName" oninput="calcYE()"></label>
+       <label class="fld">자녀 주민등록번호<input id="ye_birthRrn" maxlength="14" oninput="calcYE()"></label>
+       <label class="fld">1회차 지급일<input type="date" id="ye_birthPay1" onchange="calcYE()"></label>
+       <label class="fld">2회차 지급일<input type="date" id="ye_birthPay2" onchange="calcYE()"></label>
+     </div>
     <div class="note">종(전)근무처 = 해당 과세기간 중 이전 직장 근로소득(중도입사자). 결정세액(소득세)은 종전 원천징수영수증의 결정세액란 금액. 지방소득세 10%·종전 기납부는 결정세액으로 자동 반영.</div>
   </div>
 </div>
@@ -376,40 +416,46 @@ pre.out{background:#0f172a;color:#a7f3d0;font-family:Consolas,monospace;font-siz
 <!-- ⑤ 원천징수이행상황신고서 -->
 <div class="page" id="page-rpt">
   <div class="card">
-    <h2>원천징수이행상황신고서 (별지 제21호서식) <span class="actions">
+    <h2>⑤ 원천징수이행상황신고서 (별지 제21호서식) <span class="actions">
       <button class="btn btn-o btn-sm no-print" onclick="window.print()">🖨 인쇄/PDF</button>
     </span></h2>
     <div class="toolbar no-print">
-      <label class="fld" style="flex-direction:row;align-items:center;gap:8px">귀속연월
-        <input type="month" id="rptYM" onchange="renderReport()" style="background:var(--inbg)"></label>
-      <label class="fld" style="flex-direction:row;align-items:center;gap:8px">전월 미환급세액
-        <input type="number" id="rptPrevRefund" value="0" onchange="renderReport()" style="background:var(--inbg)"></label>
+      <label class="fld">귀속연월<input type="month" id="rptYM" onchange="renderReport()"></label>
+      <label class="fld">전월 미환급세액<input type="number" id="rptPrevRefund" value="0" onchange="renderReport()" style="width:140px"></label>
+      <span class="hint">근로소득(A01~A04)은 ③ 급여대장·④ 연말정산에서 자동 집계, 퇴직소득(A20)은 ⑧ 퇴직소득 [신고서 반영], 그 외 소득은 아래 표에서 직접 입력합니다.</span>
     </div>
     <div id="reportArea"></div>
   </div>
 </div>
 
-<!-- ⑤ 전산매체 -->
+<!-- ⑥ 전산매체 -->
 <div class="page" id="page-exp">
   <div class="card">
-    <h2>① 원천세 — 원천징수이행상황신고서 (서식코드 C103900)</h2>
+    <h2>⑥ 전산매체 — 원천세 · 근로소득 지급명세서 <span class="actions"></span></h2>
     <div class="toolbar">
-      <span class="muted">⑤ 신고서 탭의 귀속연월(<b id="exp_ym_lbl">-</b>) 기준</span>
+      <span class="pill">2종</span>
+      <span class="hint">파일은 EUC-KR(CP949)로 내려받아 홈택스에 그대로 올립니다. 간이·일용은 ⑦, 퇴직소득은 ⑧ 탭에서 만듭니다. 생성 후 「전산매체 대응지도」 파일 검증 탭으로 제출요령 오류검증을 먼저 거치십시오.</span>
+    </div>
+  </div>
+  <div class="card">
+    <h2>원천세 — 원천징수이행상황신고서 (서식코드 C103900) <span class="actions">
       <button class="btn btn-g btn-sm" onclick="genMediaFile()">전산매체 생성</button>
       <button class="btn btn-p btn-sm" onclick="downloadMedia()">📥 다운로드</button>
-    </div>
-    <div class="note">제출요령(2026.5.16) 정확 레이아웃: Header(자료구분 21, 400B) + 명세(자료구분 23, 150B). 숫자 우측0채움·음수부호, 한글 2Byte(KSC-5601), 파일명 YYYYMMC103900.01. 저장 시 EUC-KR 인코딩 권장.</div>
+    </span></h2>
+    <div class="toolbar"><span class="muted">⑤ 신고서 탭의 귀속연월(<b id="exp_ym_lbl">-</b>) 기준</span></div>
+    <div class="note">제출요령(2026.5.16) 레이아웃: Header(자료구분 21, 400B) + 명세(자료구분 23, 150B). 숫자 우측 0채움·음수부호, 한글 2Byte(KSC-5601), 파일명 YYYYMMC103900.01.</div>
     <pre class="out" id="mediaOut">「전산매체 생성」을 누르면 여기에 출력됩니다.</pre>
   </div>
   <div class="card">
-    <h2>② 연말정산 — 근로소득 지급명세서 (소득자별)</h2>
-    <div class="toolbar">
-      <label class="fld" style="flex-direction:row;align-items:center;gap:8px">귀속연도
-        <select id="exp_ye_year" style="background:var(--inbg)"><option value="2026">2026</option><option value="2025">2025</option></select></label>
+    <h2>근로소득 지급명세서 (연 1회 · 소득자별) <span class="actions">
       <button class="btn btn-g btn-sm" onclick="genYearEndMedia()">전산매체 생성</button>
       <button class="btn btn-p btn-sm" onclick="downloadYearEndMedia()">📥 다운로드</button>
+    </span></h2>
+    <div class="toolbar">
+      <label class="fld">귀속연도<select id="exp_ye_year"><option value="2026">2026</option><option value="2025">2025</option></select></label>
+      <span class="muted">④ 연말정산에서 계산·저장된 소득자 기준</span>
     </div>
-    <div class="note">④ 연말정산 탭에서 계산·저장된 소득자별 결과를 근로소득 지급명세서 레코드로 출력합니다. <b>핵심항목 고정폭 레코드</b>(귀속연도·원천징수의무자·소득자·총급여·과세표준·산출/결정세액·기납부·차감징수)로 구성하며, 홈택스 지급명세서 전산매체 파일레이아웃(별도 NTS 규격)은 해당 규격 확보 시 정밀화합니다.</div>
+    <div class="note">2026 귀속 제출요령(2026.08.20, 정오표 09.14) 레이아웃 · 레코드 2,010 byte · 자료구분 20. 인적사항(C7~C19)은 ② 직원 [상세], 소득항목·비과세·감면(C26~C74)은 ③ 급여대장 연간 집계, 공제·세액(C76~C156)은 ④ 연말정산 계산값, 부양가족·연금계좌·월세·기부금·종전근무처·출산지원금(D~K)은 ④ 상세명세를 씁니다.</div>
     <pre class="out" id="yeMediaOut">「전산매체 생성」을 누르면 여기에 출력됩니다.</pre>
   </div>
 </div>
@@ -417,34 +463,96 @@ pre.out{background:#0f172a;color:#a7f3d0;font-family:Consolas,monospace;font-siz
 <!-- ⑦ 간이·일용 지급명세서 -->
 <div class="page" id="page-psm">
   <div class="card">
-    <h2>간이지급명세서 · 일용근로소득 지급명세서 <span class="actions">
-      <button class="btn btn-o btn-sm" onclick="psmAutofill()">근로/일용 직원 불러오기</button>
-      <button class="btn btn-g btn-sm" onclick="psmAddRow()">+ 소득자 추가</button>
-    </span></h2>
-    <div class="toolbar">
-      <label class="fld" style="flex-direction:row;align-items:center;gap:8px">지급명세 유형
-        <select id="psm_type" onchange="renderPSM()" style="background:var(--inbg)">
-          <option value="WORK">간이지급명세서(근로소득)</option>
-          <option value="BIZ">간이지급명세서(사업소득)</option>
-          <option value="ETC">간이지급명세서(기타소득)</option>
-          <option value="DAY">일용근로소득 지급명세서</option>
-        </select></label>
-      <label class="fld" style="flex-direction:row;align-items:center;gap:8px">귀속연월
-        <input type="month" id="psm_ym" onchange="renderPSM()" style="background:var(--inbg)"></label>
-      <span class="pill" id="psm_cnt">0건</span>
-    </div>
-    <div style="overflow-x:auto">
-      <table id="psmTable"><thead id="psmHead"></thead><tbody id="psmBody"></tbody><tfoot id="psmFoot"></tfoot></table>
-    </div>
-    <div class="note" id="psm_note"></div>
-  </div>
-  <div class="card">
-    <h2>전산매체 출력 <span class="actions">
+    <h2>⑦ 간이지급명세서 · 일용근로소득 지급명세서 <span class="actions">
+      <button class="btn btn-g btn-sm" onclick="psmAddRow()">+ 소득자 추가(사업·기타)</button>
       <button class="btn btn-g btn-sm" onclick="genPSM()">전산매체 생성</button>
       <button class="btn btn-p btn-sm" onclick="downloadPSM()">📥 다운로드</button>
     </span></h2>
-    <div class="note">근로·일용은 [근로/일용 직원 불러오기]로 ② 직원·③ 급여대장에서 자동 채움(해당 귀속연월). 사업·기타는 소득자를 직접 추가하세요. <b>핵심항목 고정폭 레코드</b>로 출력하며, 홈택스 각 서식의 정확 byte 파일레이아웃(제출요령)은 한글 텍스트 추출 가능 규격 확보 시 정밀화합니다.</div>
+    <div class="toolbar">
+      <label class="fld">지급명세 유형
+        <select id="psm_type" onchange="renderPSM()">
+          <option value="WORK">간이지급명세서(근로소득)</option>
+          <option value="DAY">일용근로소득 지급명세서</option>
+          <option value="BIZ">간이지급명세서(사업소득)</option>
+          <option value="ETC">간이지급명세서(기타소득)</option>
+        </select></label>
+      <span id="psm_half_wrap" style="display:flex;gap:10px;align-items:center">
+        <label class="fld">귀속연도<select id="psm_year" onchange="renderPSM()"><option value="2026">2026</option><option value="2025">2025</option></select></label>
+        <label class="fld">반기<select id="psm_half" onchange="renderPSM()"><option value="1">상반기(1~6월)</option><option value="2">하반기(7~12월)</option></select></label>
+      </span>
+      <span id="psm_ym_wrap"><label class="fld">귀속(지급)연월<input type="month" id="psm_ym" onchange="renderPSM()"></label></span>
+      <span class="pill" id="psm_cnt">0건</span>
+    </div>
+    <div class="note" id="psm_note"></div>
+    <div style="overflow-x:auto">
+      <table id="psmTable"><thead id="psmHead"></thead><tbody id="psmBody"></tbody><tfoot id="psmFoot"></tfoot></table>
+    </div>
     <pre class="out" id="psmOut">「전산매체 생성」을 누르면 여기에 출력됩니다.</pre>
+  </div>
+</div>
+
+<!-- ⑧ 퇴직소득 -->
+<div class="page" id="page-ret">
+  <div class="card">
+    <h2>⑧ 퇴직소득 — 세액계산 · 지급명세서 <span class="actions">
+      <button class="btn btn-o btn-sm" onclick="retApplyReport()">신고서 A20 반영</button>
+      <button class="btn btn-p btn-sm" onclick="calcRet()">계산·저장</button>
+    </span></h2>
+    <div class="toolbar">
+      <label class="fld">귀속연도<select id="ret_year" onchange="initRet()"><option value="2026">2026</option><option value="2025">2025</option></select></label>
+      <label class="fld">소득자<select id="ret_emp" onchange="loadRet()"></select></label>
+      <span class="pill" id="ret_cnt">0명 계산됨</span>
+      <span class="hint">별지 제24호서식(2) 퇴직소득원천징수영수증·지급명세서. 근속연수·환산급여·세율·이연퇴직소득세를 국세청 세액계산 프로그램(2026 하반기)과 같은 순서로 계산합니다.</span>
+    </div>
+    <div id="ret_emp_info" class="muted" style="margin-bottom:10px"></div>
+    <div id="ret_form">
+      <h3 style="font-size:14px;color:var(--navy);margin:8px 0 6px">최종(퇴직) 근무처 — 이 사업장</h3>
+      <div class="grid">
+        <label class="fld">퇴직사유 (C18)<select id="ret_reason"><option value="1">1 정년퇴직</option><option value="2">2 정리해고</option><option value="3">3 자발적 퇴직</option><option value="4">4 임원퇴직</option><option value="5">5 중간정산</option><option value="6">6 기타</option></select></label>
+        <label class="fld">입사일 (C42)<input type="date" id="ret_f_join"></label>
+        <label class="fld">기산일 (C43)<input type="date" id="ret_f_start"></label>
+        <label class="fld">퇴사일 (C44)<input type="date" id="ret_f_leave"></label>
+        <label class="fld">지급일 (C45)<input type="date" id="ret_f_payDate"></label>
+        <label class="fld">제외월수 (C47)<input type="number" id="ret_f_excl" value="0" min="0"></label>
+        <label class="fld">가산월수 (C48)<input type="number" id="ret_f_add" value="0" min="0"></label>
+        <label class="fld">퇴직급여 (C27, 임원 한도초과분 제외)<input id="ret_f_pay" value="0"></label>
+        <label class="fld">비과세 퇴직급여 (C28)<input id="ret_f_nontax" value="0"></label>
+        <label class="fld">세액공제 — 외국납부 (C67)<input id="ret_credit" value="0"></label>
+      </div>
+      <h3 style="font-size:14px;color:var(--navy);margin:16px 0 6px"><label style="cursor:pointer"><input type="checkbox" id="ret_mid_on" onchange="readRet();calcRet(false)"> 중간지급 등 합산 (C19~C24·C33~C41)</label></h3>
+      <div id="ret_mid_box" class="grid" style="display:none">
+        <label class="fld">근무처명 (C19)<input id="ret_m_name"></label>
+        <label class="fld">근무처 사업자등록번호 (C20)<input id="ret_m_bizno"></label>
+        <label class="fld">입사일 (C33)<input type="date" id="ret_m_join"></label>
+        <label class="fld">기산일 (C34)<input type="date" id="ret_m_start"></label>
+        <label class="fld">퇴사일 (C35)<input type="date" id="ret_m_leave"></label>
+        <label class="fld">지급일 (C36)<input type="date" id="ret_m_payDate"></label>
+        <label class="fld">제외월수 (C38)<input type="number" id="ret_m_excl" value="0" min="0"></label>
+        <label class="fld">가산월수 (C39)<input type="number" id="ret_m_add" value="0" min="0"></label>
+        <label class="fld">퇴직급여 (C21)<input id="ret_m_pay" value="0"></label>
+        <label class="fld">비과세 퇴직급여 (C22)<input id="ret_m_nontax" value="0"></label>
+        <label class="fld">기납부(기과세이연) 세액 (C68)<input id="ret_m_prepaid" value="0"></label>
+        <label class="fld">과세이연 여부 (C24)<select id="ret_m_defer"><option value="2">부</option><option value="1">여</option></select></label>
+        <label class="fld">중복월수 (C58, 비우면 자동)<input type="number" id="ret_dup" placeholder="자동" min="0"></label>
+      </div>
+      <h3 style="font-size:14px;color:var(--navy);margin:16px 0 6px">과세이연 연금계좌 (D레코드) <button class="btn btn-g btn-sm" onclick="retAcctAdd()">+ 추가</button></h3>
+      <div style="overflow-x:auto"><table><thead><tr><th class="l">연금계좌취급자</th><th>사업자등록번호</th><th class="l">계좌번호</th><th>입금일</th><th>입금금액</th><th class="c">관리</th></tr></thead><tbody id="retAcctBody"></tbody></table></div>
+      <h3 style="font-size:14px;color:var(--navy);margin:16px 0 6px">중간지급 등 상세내역 — 기납부(기과세이연)세액 명세 (E레코드, 부표) <button class="btn btn-g btn-sm" onclick="retRowAdd()">+ 추가</button></h3>
+      <div style="overflow-x:auto"><table style="font-size:12px"><thead><tr><th>회차</th><th>귀속연도</th><th class="l">근무처</th><th>사업자번호</th><th>퇴직급여</th><th>차감징수세액</th><th>과세이연</th><th class="l">연금계좌취급자</th><th>사업자번호</th><th class="l">계좌번호</th><th>입금금액</th><th>인출금액</th><th>이연퇴직소득 잔액</th><th>원천징수세액</th><th>이연퇴직소득세 잔액</th><th>정산후 차감액</th><th class="c">관리</th></tr></thead><tbody id="retRowBody"></tbody></table></div>
+      <div class="note">부표는 「귀속연도 종료일이 2026.7.1 이후 · 중간지급분 과세이연 · 신고대상세액 음수」인 경우 필수(정오표 2026.09.14). 이때 차감원천징수세액 = MAX(신고대상세액 − 이연퇴직소득세, −기납부원천징수세액).</div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>세액계산 결과 (별지 제24호서식(2)) <span class="actions"></span></h2>
+    <div id="ret_result"><div class="empty">소득자를 선택하고 퇴직급여·기산일·퇴사일을 입력한 뒤 [계산·저장]을 누르십시오.</div></div>
+  </div>
+  <div class="card">
+    <h2>퇴직소득 지급명세서 전산매체 (900 byte · 자료구분 25) <span class="actions">
+      <button class="btn btn-g btn-sm" onclick="genRetMedia()">전산매체 생성</button>
+      <button class="btn btn-p btn-sm" onclick="downloadRetMedia()">📥 다운로드</button>
+    </span></h2>
+    <div class="toolbar"><span class="muted">귀속연도의 계산·저장된 퇴직소득자 전체(A → B → C → D → E)</span></div>
+    <pre class="out" id="retMediaOut">「전산매체 생성」을 누르면 여기에 출력됩니다.</pre>
   </div>
 </div>
 
@@ -461,10 +569,10 @@ const todayYM=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMon
 // ===== 데이터 모델 (localStorage) =====
 const DB={
   biz:{}, emps:[], pays:{}, // pays[ 'YYYY-MM' ] = { empId: {gross,nontax,np,hi,ltc,ei,tax,...} }
-  load(){try{const d=JSON.parse(localStorage.getItem('hbtax-wht')||'{}');this.biz=d.biz||{};this.emps=d.emps||[];this.pays=d.pays||{};this.reports=d.reports||{};this.ye=d.ye||{};this.psm=d.psm||{};}catch(e){}},
-  save(){localStorage.setItem('hbtax-wht',JSON.stringify({biz:this.biz,emps:this.emps,pays:this.pays,reports:this.reports,ye:this.ye,psm:this.psm}));}
+  load(){try{const d=JSON.parse(localStorage.getItem('hbtax-wht')||'{}');this.biz=d.biz||{};this.emps=d.emps||[];this.pays=d.pays||{};this.reports=d.reports||{};this.ye=d.ye||{};this.psm=d.psm||{};this.ret=d.ret||{};}catch(e){}},
+  save(){localStorage.setItem('hbtax-wht',JSON.stringify({biz:this.biz,emps:this.emps,pays:this.pays,reports:this.reports,ye:this.ye,psm:this.psm,ret:this.ret}));}
 };
-DB.reports={};DB.ye={};DB.psm={};
+DB.reports={};DB.ye={};DB.psm={};DB.ret={};
 DB.load();
 
 // ===== 세율 (2026 귀속) =====
@@ -550,68 +658,118 @@ document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{
   if(b.dataset.p==='rpt')renderReport();
   if(b.dataset.p==='exp'){const el=$('exp_ym_lbl');if(el)el.textContent=$('rptYM').value||todayYM();}
   if(b.dataset.p==='psm'){if(!$('psm_ym').value)$('psm_ym').value=todayYM();renderPSM();}
+  if(b.dataset.p==='ret')initRet();
+  if(b.dataset.p==='emp')renderEmp();
 });
 
 // ===== ① 사업장 =====
-function loadBiz(){const b=DB.biz;['name','ceo','no','type','addr','tel','half'].forEach(k=>{if($('biz_'+k))$('biz_'+k).value=b[k]||(k==='half'?'N':'');});}
-function saveBiz(){const b={};['name','ceo','no','type','addr','tel','half'].forEach(k=>b[k]=$('biz_'+k).value);DB.biz=b;DB.save();alert('사업장 정보가 저장되었습니다.');}
+function loadBiz(){const b=DB.biz;['name','ceo','no','type','addr','tel','half','regno','taxOffice','email','submitter','agentNo','htxId','dept','staff'].forEach(k=>{if($('biz_'+k))$('biz_'+k).value=b[k]||(k==='half'?'N':'');});}
+function saveBiz(){const b={};['name','ceo','no','type','addr','tel','half','regno','taxOffice','email','submitter','agentNo','htxId','dept','staff'].forEach(k=>b[k]=$('biz_'+k).value);DB.biz=b;DB.save();alert('사업장 정보가 저장되었습니다.');}
 
-// ===== ② 직원관리 =====
-function addEmp(){DB.emps.push({id:'e'+Date.now()+Math.floor(Math.random()*1000),name:'',rrn:'',join:'',type:'일반',family:1,children:0});DB.save();renderEmp();}
+// ===== ② 직원관리 — 지급명세서 인적사항(근로 C7~C19 · 퇴직 C7~C15 · 간이 C9~C10 · 일용 C8~C9) =====
+const EMP_DEF={name:'',rrn:'',join:'',leave:'',type:'일반',family:1,children:0,resident:'1',foreigner:'1',nation:'',country:'',flat:'2',dispatch:'2',householder:'1',religious:'2',exec:'2',dbDate:'',ret2011:0,tel:'',reliefFrom:'',reliefTo:''};
+function addEmp(){DB.emps.push(Object.assign({id:'e'+Date.now()+Math.floor(Math.random()*1000)},EMP_DEF));DB.save();renderEmp();}
 function delEmp(id){if(!confirm('이 직원을 삭제할까요? (관련 급여 데이터는 유지)'))return;DB.emps=DB.emps.filter(e=>e.id!==id);DB.save();renderEmp();}
-function updEmp(id,k,v){const e=DB.emps.find(x=>x.id===id);if(!e)return;e[k]=(k==='family'||k==='children')?num(v):v;DB.save();}
+function updEmp(id,k,v){const e=DB.emps.find(x=>x.id===id);if(!e)return;e[k]=(k==='family'||k==='children'||k==='ret2011')?num(v):v;
+  if(k==='rrn'){const d=String(v).replace(/[^0-9]/g,'');if(d.length&&d.length!==13)alert('주민등록번호는 13자리여야 합니다: '+v);}
+  DB.save();if(k==='leave'||k==='type')renderEmp();}
+function empBadge(e){const b=[];if(e.foreigner==='9')b.push('외국인');if(e.resident==='2')b.push('비거주자');if(e.exec==='1')b.push('임원');if(e.religious==='1')b.push('종교');if(e.reliefFrom)b.push('감면기간');return b.length?'<div class="nt-split">'+b.join('·')+'</div>':'';}
 function renderEmp(){
-  const tb=$('empBody');
-  if(!DB.emps.length){tb.innerHTML='<tr><td colspan="7" class="empty">등록된 직원이 없습니다. [+ 직원 추가]를 누르세요.</td></tr>';return;}
+  const tb=$('empBody');$('emp_cnt').textContent=DB.emps.length+'명';
+  if(!DB.emps.length){tb.innerHTML='<tr><td colspan="9" class="empty">등록된 직원이 없습니다. [+ 직원 추가]를 누르세요.</td></tr>';return;}
   tb.innerHTML=DB.emps.map(e=>`<tr>
     <td class="l"><input class="txt" value="${e.name||''}" onchange="updEmp('${e.id}','name',this.value)" placeholder="홍길동"></td>
     <td><input class="txt" value="${e.rrn||''}" onchange="updEmp('${e.id}','rrn',this.value)" placeholder="900101-1234567" maxlength="14" style="text-align:center"></td>
     <td><input type="date" value="${e.join||''}" onchange="updEmp('${e.id}','join',this.value)" style="text-align:center"></td>
+    <td><input type="date" value="${e.leave||''}" onchange="updEmp('${e.id}','leave',this.value)" style="text-align:center"></td>
     <td><select onchange="updEmp('${e.id}','type',this.value)" style="border:1px solid var(--line);border-radius:5px;padding:5px;font-weight:700;color:var(--blue)">
       ${['일반','일용','중도퇴사'].map(t=>`<option ${e.type===t?'selected':''}>${t}</option>`).join('')}</select></td>
     <td><input type="number" value="${e.family||1}" min="1" onchange="updEmp('${e.id}','family',this.value)"></td>
     <td><input type="number" value="${e.children||0}" min="0" onchange="updEmp('${e.id}','children',this.value)"></td>
+    <td class="c"><button class="btn btn-o btn-sm" onclick="openEmp('${e.id}')">상세</button>${empBadge(e)}</td>
     <td class="c"><button class="btn btn-d btn-sm" onclick="delEmp('${e.id}')">삭제</button></td>
   </tr>`).join('');
 }
-
+// 상세 모달 — 전산매체 인적사항
+const CTRY=[['KR','한국'],['US','미국'],['CN','중국'],['JP','일본'],['VN','베트남'],['PH','필리핀'],['ID','인도네시아'],['TH','태국'],['UZ','우즈베키스탄'],['NP','네팔'],['KH','캄보디아'],['MM','미얀마'],['LK','스리랑카'],['BD','방글라데시'],['MN','몽골'],['RU','러시아'],['KZ','카자흐스탄'],['IN','인도'],['PK','파키스탄'],['GB','영국'],['DE','독일'],['FR','프랑스'],['CA','캐나다'],['AU','호주'],['TW','대만'],['HK','홍콩'],['SG','싱가포르'],['MY','말레이시아']];
+let _empCtx=null;
+function openEmp(id){const e=DB.emps.find(x=>x.id===id);if(!e)return;_empCtx=id;$('empModalName').textContent='· '+(e.name||'(이름없음)');
+  const sel=(k,opts)=>`<select id="em_${k}">${opts.map(([v,t])=>`<option value="${v}" ${String(e[k]||EMP_DEF[k])===v?'selected':''}>${t}</option>`).join('')}</select>`;
+  const cty=(k)=>`<select id="em_${k}"><option value="">(해당 없음)</option>${CTRY.map(([v,t])=>`<option value="${v}" ${e[k]===v?'selected':''}>${v} ${t}</option>`).join('')}</select>`;
+  $('empModalBody').innerHTML=`
+    <div class="nt-sec-hd"><span class="tag tag-rep">근로 C7~C19</span>거주·국적·세대·종교 (근로소득 지급명세서 · 간이 · 일용 공통)</div>
+    <div class="grid">
+      <label class="fld">거주구분 (C7)${sel('resident',[['1','거주자'],['2','비거주자']])}</label>
+      <label class="fld">거주지국 코드 (C8, 비거주자만)${cty('country')}</label>
+      <label class="fld">내·외국인 (C12)${sel('foreigner',[['1','내국인'],['9','외국인']])}</label>
+      <label class="fld">국적 코드 (C14, 외국인만)${cty('nation')}</label>
+      <label class="fld">외국인 단일세율 적용 (C9)${sel('flat',[['2','미적용'],['1','적용(19%)']])}</label>
+      <label class="fld">외국법인 소속 파견근로자 (C10)${sel('dispatch',[['2','부'],['1','여']])}</label>
+      <label class="fld">세대주 여부 (C15)${sel('householder',[['1','세대주'],['2','세대원'],['3','세대주의 배우자']])}</label>
+      <label class="fld">종교관련종사자 (C19)${sel('religious',[['2','부'],['1','여']])}</label>
+      <label class="fld">전화번호 (일용 C9)<input id="em_tel" value="${e.tel||''}" placeholder="010-0000-0000"></label>
+    </div>
+    <div class="nt-sec-hd"><span class="tag tag-rep">근로 C24~C25</span>감면기간 — 급여대장에 감면소득(T코드)을 입력한 경우</div>
+    <div class="grid">
+      <label class="fld">감면기간 시작일<input type="date" id="em_reliefFrom" value="${e.reliefFrom||''}"></label>
+      <label class="fld">감면기간 종료일<input type="date" id="em_reliefTo" value="${e.reliefTo||''}"></label>
+    </div>
+    <div class="nt-sec-hd"><span class="tag tag-rep">퇴직 C13~C15</span>퇴직소득 지급명세서용</div>
+    <div class="grid">
+      <label class="fld">임원 여부 (C13)${sel('exec',[['2','부'],['1','여']])}</label>
+      <label class="fld">확정급여형(DB) 퇴직연금 가입일 (C14)<input type="date" id="em_dbDate" value="${e.dbDate||''}"></label>
+      <label class="fld">2011.12.31 퇴직 가정 퇴직소득금액 (C15, 임원만)<input id="em_ret2011" value="${won(e.ret2011||0)}"></label>
+    </div>
+    <div class="note">비워 두면 내국인·거주자·세대주·비임원 등 기본값으로 수록됩니다. 외국인은 주민등록번호란에 외국인등록번호를 넣고 국적 코드를 고르십시오.</div>`;
+  $('empModal').classList.add('on');}
+function closeEmp(){$('empModal').classList.remove('on');}
+function saveEmp(){const e=DB.emps.find(x=>x.id===_empCtx);if(!e)return;
+  ['resident','country','foreigner','nation','flat','dispatch','householder','religious','exec'].forEach(k=>{const el=$('em_'+k);if(el)e[k]=el.value;});
+  e.tel=$('em_tel').value;e.reliefFrom=$('em_reliefFrom').value;e.reliefTo=$('em_reliefTo').value;e.dbDate=$('em_dbDate').value;e.ret2011=num($('em_ret2011').value);
+  if(e.resident==='1')e.country='';if(e.foreigner==='1')e.nation='';
+  DB.save();closeEmp();renderEmp();}
 // ===== ③ 월 급여대장 =====
-// ── 근로소득 비과세 항목표 (소득세법 §12 3호·시행령 §11·§12·§16·§17의3) ──
-//   official NTS '비과세 및 감면 소득코드' 기준. report:true = 지급명세서 기재(○), false = 비기재(×)
-//   cap: 한도(원), per:'m'=월한도·'y'=연한도·null=한도없음(실비·전액). 한도는 2026 귀속 기준.
-//   ※ 근로소득 원천징수영수증 비과세코드 전체. 월 급여대장이므로 cap은 '월 한도'(연한도 항목은 per:'y').
+// ── 소득항목·비과세·감면 코드표 — 2026 귀속 근로소득 지급명세서 전산매체 제출요령(2026.08.20) C레코드 항목 기준 ──
+//   과세 소득항목 : C26 급여 · C27 상여 · C28 인정상여 · C29 주식매수선택권행사이익 · C30 우리사주조합인출금 · C31 임원퇴직소득한도초과액 · C32 직무발명보상금(비과세 한도 초과분)
+//   비과세(기재 ○): C36~C66 의 코드 33종. 이 코드에 없는 비과세는 지급명세서 작성 제외(×)이며 급여대장에서만 관리한다.
+//   감면소득     : C67~C72 의 T코드 11종(조특법 감면). 월 원천징수 시 감면율을 적용한다(조특령 §27⑤ 등 — 중소기업취업자·외국인기술자·우수인력).
+//   cap: 한도(원), per:'m'=월한도·'y'=연한도·null=한도없음. 한도는 2026 귀속 기준. 월 대장이므로 연한도 항목은 연 한도 내에서 입력한다.
 const NT_ITEMS=[
-  // ── 지급명세서 기재 대상 (○) ──
-  {code:'G01',rep:true ,per:null,cap:null   ,name:'비과세 학자금(업무관련 교육·훈련)',law:'§12 3아·령§11'},
-  {code:'H01',rep:true ,per:null,cap:null   ,name:'법령·조례 위원 등이 받는 수당',law:'령§12 1'},
-  {code:'H05',rep:true ,per:null,cap:null   ,name:'경호수당·승선수당·항공수당 등',law:'령§12 9~11'},
-  {code:'H06',rep:true ,per:'m',cap:200000 ,name:'연구보조비(유아·초·중등 교원)',law:'령§12 12가 · 월 20만'},
-  {code:'H07',rep:true ,per:'m',cap:200000 ,name:'연구보조비(고등교육법 교원)',law:'령§12 12가 · 월 20만'},
-  {code:'H08',rep:true ,per:'m',cap:200000 ,name:'연구보조비(특별법 교육기관)',law:'령§12 12가 · 월 20만'},
-  {code:'H09',rep:true ,per:'m',cap:200000 ,name:'연구보조비(§12 12나)',law:'령§12 12나 · 월 20만'},
-  {code:'H10',rep:true ,per:'m',cap:200000 ,name:'연구보조비(중소·벤처기업부설연구소 등)',law:'령§12 12다 · 월 20만'},
-  {code:'H14',rep:true ,per:null,cap:null   ,name:'보육교사 근무환경개선비',law:'령§12 13가'},
-  {code:'H15',rep:true ,per:null,cap:null   ,name:'사립유치원 수석교사·교사 인건비',law:'령§12 13나'},
-  {code:'H11',rep:true ,per:'m',cap:200000 ,name:'취재수당(기자)',law:'령§12 14 · 월 20만'},
-  {code:'H12',rep:true ,per:'m',cap:200000 ,name:'벽지수당',law:'령§12 15 · 월 20만'},
-  {code:'H13',rep:true ,per:null,cap:null   ,name:'천재·지변 등 재해로 받는 급여',law:'령§12 16'},
-  {code:'H16',rep:true ,per:'m',cap:200000 ,name:'지방이전기관 종사자 이주수당',law:'령§12 17 · 월 20만'},
-  {code:'H17',rep:true ,per:null,cap:null   ,name:'종교인 종교활동비',law:'령§12 18'},
-  {code:'I01',rep:true ,per:null,cap:null   ,name:'외국정부·국제기관 근무자 비과세',law:'§12 3차'},
-  {code:'K01',rep:true ,per:null,cap:null   ,name:'작전임무 외국주둔 군인 등 급여',law:'§12 3파'},
-  {code:'M01',rep:true ,per:'m',cap:1000000,name:'국외근로소득(일반)',law:'§12 3거·령§16①1 · 월 100만'},
-  {code:'M04',rep:true ,per:'m',cap:5000000,name:'국외근로(외항선·원양어선·해외건설)',law:'령§16①1 · 월 500만(지급명세서 코드 M04)'},
-  {code:'M03',rep:true ,per:null,cap:null   ,name:'국외근로(공무원 등 §16①2)',law:'령§16①2'},
-  {code:'O01',rep:true ,per:'y',cap:2400000,name:'생산직 등 연장·야간·휴일근로수당',law:'§12 3더·령§17 · 연 240만(월정액급여 260만↓·직전총급여 3,700만↓, 개정 반영)'},
-  {code:'Q03',rep:true ,per:null,cap:null   ,name:'출산지원금(1회차) — 출생 2년내',law:'§12 3머1) · 전액 비과세, 최대 2회(2024 신설)'},
-  {code:'Q04',rep:true ,per:null,cap:null   ,name:'출산지원금(2회차) — 출생 2년내',law:'§12 3머1) · 전액 비과세, 2회차'},
-  {code:'Q02',rep:true ,per:'m',cap:200000 ,name:'6세 이하 자녀 보육수당',law:'§12 3머2) · 자녀1명당 월 20만(2024~)'},
-  {code:'R10',rep:true ,per:null,cap:null   ,name:'교육기본법 §28 장학금',law:'§12 3서'},
-  {code:'R11',rep:true ,per:'y',cap:7000000,name:'직무발명보상금',law:'§12 3어·령§17의3 · 연 700만(2024~)'},
-  {code:'W01',rep:true ,per:null,cap:null   ,name:'임원 등 할인금액(자사·계열사 재화·용역)',law:'§12 3처 · MAX(시가20%·연240만) 한도(2025 신설)'},
-  {code:'Y22',rep:true ,per:null,cap:null   ,name:'전공의 수련보조수당',law:'령§12 13다'},
-  {code:'NTR',rep:true ,per:null,cap:null  ,name:'기타 비과세(기재 대상) 직접입력',law:'해당 코드 · 지급명세서 기재'},
-  // ── 지급명세서 비기재 대상 (×) ──
+  // ── 지급명세서 기재 대상 (○) — C레코드 슬롯 순서 ──
+  {code:'G01',rep:true ,per:null,cap:null   ,name:'비과세 학자금(업무관련 교육·훈련)',law:'§12 3아·령§11 · C36'},
+  {code:'H05',rep:true ,per:null,cap:null   ,name:'경호수당·승선수당·항공수당 등',law:'령§12 9~11 · C37'},
+  {code:'H06',rep:true ,per:'m',cap:200000 ,name:'연구보조비(유아·초·중등 교원)',law:'령§12 12가 · 월 20만 · C38'},
+  {code:'H07',rep:true ,per:'m',cap:200000 ,name:'연구보조비(고등교육법 교원)',law:'령§12 12가 · 월 20만 · C39'},
+  {code:'H08',rep:true ,per:'m',cap:200000 ,name:'연구보조비(특별법 교육기관)',law:'령§12 12가 · 월 20만 · C40'},
+  {code:'H09',rep:true ,per:'m',cap:200000 ,name:'연구보조비(연구기관 등)',law:'령§12 12나 · 월 20만 · C41'},
+  {code:'H10',rep:true ,per:'m',cap:200000 ,name:'연구보조비(기업부설연구소 등)',law:'령§12 12다 · 월 20만 · C42'},
+  {code:'H14',rep:true ,per:null,cap:null   ,name:'보육교사 근무환경개선비',law:'령§12 13가 · C43'},
+  {code:'H15',rep:true ,per:null,cap:null   ,name:'사립유치원 수석교사·교사 인건비',law:'령§12 13나 · C44'},
+  {code:'H11',rep:true ,per:'m',cap:200000 ,name:'취재수당(기자)',law:'령§12 14 · 월 20만 · C45'},
+  {code:'H12',rep:true ,per:'m',cap:200000 ,name:'벽지수당',law:'령§12 15 · 월 20만 · C46'},
+  {code:'H13',rep:true ,per:null,cap:null   ,name:'천재·지변 등 재해로 받는 급여',law:'령§12 16 · C47'},
+  {code:'H16',rep:true ,per:'m',cap:200000 ,name:'정부·공공기관 지방이전기관 종사자 이주수당',law:'령§12 17 · 월 20만 · C48'},
+  {code:'H17',rep:true ,per:null,cap:null   ,name:'종교인 종교활동비',law:'령§12 18 · C49'},
+  {code:'I01',rep:true ,per:null,cap:null   ,name:'외국정부·국제기관 근무자 비과세',law:'§12 3차 · C50'},
+  {code:'K01',rep:true ,per:null,cap:null   ,name:'작전임무 외국주둔 군인 등 급여',law:'§12 3파 · C51'},
+  {code:'M01',rep:true ,per:'m',cap:1000000,name:'국외근로소득(일반)',law:'령§16①1 · 월 100만 · C52'},
+  {code:'M04',rep:true ,per:'m',cap:5000000,name:'국외근로(외항선·원양어선·해외건설)',law:'령§16①1 · 월 500만 · C53'},
+  {code:'M03',rep:true ,per:null,cap:null   ,name:'국외근로(공무원 등 령§16①2)',law:'령§16①2 · C54'},
+  {code:'O01',rep:true ,per:'y',cap:2400000,name:'생산직 등 연장·야간·휴일근로수당',law:'§12 3더·령§17 · 연 240만(월정액급여 260만↓·직전총급여 3,700만↓) · C55'},
+  {code:'P01',rep:true ,per:'m',cap:200000 ,name:'식대(현금 식사대)',law:'§12 3러·령§17의2 · 월 20만 · C56'},
+  {code:'Q02',rep:true ,per:'m',cap:200000 ,name:'6세 이하 자녀 보육수당',law:'§12 3머2) · 자녀 1명당 월 20만 · C57'},
+  {code:'Q03',rep:true ,per:null,cap:null   ,name:'출산지원금(1회차) — 출생 2년 내',law:'§12 3머1) · 전액 · C58 (K레코드 병행)'},
+  {code:'Q04',rep:true ,per:null,cap:null   ,name:'출산지원금(2회차) — 출생 2년 내',law:'§12 3머1) · 전액 · C59 (K레코드 병행)'},
+  {code:'W01',rep:true ,per:null,cap:null   ,name:'임원 등 할인금액(자사·계열사 재화·용역)',law:'§12 3처 · MAX(시가 20%·연 240만) · C60'},
+  {code:'R10',rep:true ,per:null,cap:null   ,name:'교육기본법 §28 장학금(근로장학금)',law:'§12 3서 · C61'},
+  {code:'R11',rep:true ,per:'y',cap:7000000,name:'직무발명보상금(비과세분)',law:'§12 3어·령§17의3 · 연 700만 · C62 (초과분은 과세 항목 직무발명보상금)'},
+  {code:'S01',rep:true ,per:'y',cap:30000000,name:'주식매수선택권 행사이익 비과세(구 조특§15)',law:'구 조특§15 · 연 3,000만 · C63'},
+  {code:'U01',rep:true ,per:'y',cap:200000000,name:'벤처기업 주식매수선택권 행사이익 비과세',law:'조특§16의2 · 연 2억(누적 5억) · C64'},
+  {code:'Y02',rep:true ,per:null,cap:null   ,name:'우리사주조합인출금 비과세(50%)',law:'조특§88의4⑥ · 인출금의 50% · C65'},
+  {code:'Y03',rep:true ,per:null,cap:null   ,name:'우리사주조합인출금 비과세(75%)',law:'조특§88의4⑥ · 인출금의 75% · C65'},
+  {code:'Y04',rep:true ,per:null,cap:null   ,name:'우리사주조합인출금 비과세(100%)',law:'조특§88의4⑥ · 인출금의 100% · C65'},
+  {code:'Y22',rep:true ,per:null,cap:null   ,name:'전공의 수련보조수당',law:'령§12 13다 · C66'},
+  // ── 지급명세서 비기재 대상 (×) — 급여대장 관리용 ──
   {code:'A01',rep:false,per:null,cap:null   ,name:'복무 중인 병(兵)이 받는 급여',law:'§12 3가'},
   {code:'B01',rep:false,per:null,cap:null   ,name:'법률에 따라 동원 직장에서 받는 급여',law:'§12 3나'},
   {code:'C01',rep:false,per:null,cap:null   ,name:'산재보험법 요양급여 등',law:'§12 3다'},
@@ -620,6 +778,7 @@ const NT_ITEMS=[
   {code:'E02',rep:false,per:null,cap:null   ,name:'육아휴직수당 등(국가공무원법 등)',law:'§12 3마'},
   {code:'E10',rep:false,per:null,cap:null   ,name:'국민연금 반환일시금(사망)·사망일시금',law:'§12 3바'},
   {code:'F01',rep:false,per:null,cap:null   ,name:'공무원연금법 등 요양비 등',law:'§12 3사'},
+  {code:'H01',rep:false,per:null,cap:null   ,name:'법령·조례 위원 등이 받는 수당',law:'령§12 1 · 지급명세서 코드 슬롯 없음(작성 제외)'},
   {code:'H02',rep:false,per:null,cap:null   ,name:'일직료·숙직료·여비 등 실비변상',law:'령§12 2~3'},
   {code:'H03',rep:false,per:'m',cap:200000 ,name:'자가운전보조금(본인차량 업무사용)',law:'령§12 3 · 월 20만'},
   {code:'H04',rep:false,per:null,cap:null   ,name:'제복·제모·작업복(법령에 따른 착용)',law:'령§12 4·8'},
@@ -627,35 +786,78 @@ const NT_ITEMS=[
   {code:'J10',rep:false,per:null,cap:null   ,name:'전직대통령 예우법에 따른 연금',law:'§12 3타'},
   {code:'L01',rep:false,per:null,cap:null   ,name:'종군 군인 전사 시 해당 과세기간 급여',law:'§12 3하'},
   {code:'N01',rep:false,per:null,cap:null   ,name:'사용자 부담 4대보험료(건강·고용·국민연금 등)',law:'§12 3너'},
-  {code:'P01',rep:true ,per:'m',cap:200000 ,name:'식대(현금 식사대)',law:'§12 3러·령§17의2 · 월 20만 · 지급명세서 기재 ⑱-40(2023.2.28 개정 작성대상)'},
   {code:'P02',rep:false,per:null,cap:null   ,name:'현물 급식(사내급식 등)',law:'§12 3러'},
   {code:'R01',rep:false,per:null,cap:null   ,name:'국군포로가 지급받는 보수 등',law:'§12 3버'},
-  {code:'NTN',rep:false,per:null,cap:null  ,name:'기타 비과세(비기재 대상) 직접입력',law:'전액 비과세 · 지급명세서 작성 제외'}
+  {code:'NTN',rep:false,per:null,cap:null   ,name:'기타 비과세(비기재 대상) 직접입력',law:'전액 비과세 · 지급명세서 작성 제외'}
 ];
 const NT_MAP=Object.fromEntries(NT_ITEMS.map(it=>[it.code,it]));
-// 항목값에 법정 한도 적용(clamp). 월대장 기준: 월한도는 그대로, 연한도는 연 한도 내로 제한.
+// 지급명세서 C레코드 비과세 슬롯 → 코드 (C36~C66, C65 는 Y02·Y03·Y04 세 칸)
+const NT_SLOT=[['C36','G01'],['C37','H05'],['C38','H06'],['C39','H07'],['C40','H08'],['C41','H09'],['C42','H10'],['C43','H14'],['C44','H15'],['C45','H11'],['C46','H12'],['C47','H13'],['C48','H16'],['C49','H17'],['C50','I01'],['C51','K01'],['C52','M01'],['C53','M04'],['C54','M03'],['C55','O01'],['C56','P01'],['C57','Q02'],['C58','Q03'],['C59','Q04'],['C60','W01'],['C61','R10'],['C62','R11'],['C63','S01'],['C64','U01'],['C65@0','Y02'],['C65@1','Y03'],['C65@2','Y04'],['C66','Y22']];
+// 과세 소득항목 상세 (C29~C32). 급여·상여·인정상여는 대장 열에서 직접 입력
+const EX_ITEMS=[
+  {key:'stock',   slot:'C29',name:'주식매수선택권 행사이익',law:'근무기간 중 행사이익(비과세분 S01·U01 제외)'},
+  {key:'esop',    slot:'C30',name:'우리사주조합인출금',law:'조특§88의4⑤ (비과세분 Y02~Y04 제외)'},
+  {key:'execOver',slot:'C31',name:'임원 퇴직소득금액 한도초과액',law:'§22③ 한도초과분(근로소득 과세)'},
+  {key:'invent',  slot:'C32',name:'직무발명보상금(과세분)',law:'§17 3호 · 비과세 한도(연 700만) 초과분'}
+];
+// 감면소득 (C67~C72). wh: 월 원천징수 시 적용할 감면율(간이세액에서 감면). null 이면 연말정산에서만 정산
+const RL_ITEMS=[
+  {code:'T12',slot:'C71@0',wh:0.70,name:'중소기업 취업자 소득세 감면 70%',law:'조특§30 · 고령자·장애인·경력단절여성 · 연 200만 한도'},
+  {code:'T13',slot:'C71@1',wh:0.90,name:'중소기업 취업자 소득세 감면 90%',law:'조특§30 · 청년(15~34세) · 연 200만 한도'},
+  {code:'T01',slot:'C67@0',wh:0.50,name:'외국인기술자 소득세 감면 50%',law:'조특§18'},
+  {code:'T02',slot:'C67@1',wh:0.70,name:'외국인기술자 소득세 감면 70%',law:'조특§18 · 소재·부품·장비 등'},
+  {code:'T50',slot:'C70',   wh:0.50,name:'내국인 우수인력 국내복귀 소득세 감면 50%',law:'조특§18의3'},
+  {code:'T30',slot:'C68',   wh:null,name:'성과공유 중소기업 경영성과급',law:'조특§19 · 연말정산 시 감면'},
+  {code:'T40',slot:'C69@0', wh:null,name:'중소기업 청년근로자·핵심인력 성과보상기금 수령액(유형1)',law:'조특§29의6'},
+  {code:'T41',slot:'C69@1', wh:null,name:'중견기업 청년근로자·핵심인력 성과보상기금 수령액(유형1)',law:'조특§29의6'},
+  {code:'T42',slot:'C69@2', wh:null,name:'중소기업 청년근로자·핵심인력 성과보상기금 수령액(유형2)',law:'조특§29의6'},
+  {code:'T43',slot:'C69@3', wh:null,name:'중견기업 청년근로자·핵심인력 성과보상기금 수령액(유형2)',law:'조특§29의6'},
+  {code:'T20',slot:'C72',   wh:null,name:'조세조약상 교직자 감면',law:'조세조약 교직자 조항'}
+];
+const RL_MAP=Object.fromEntries(RL_ITEMS.map(it=>[it.code,it]));
+// 항목값에 법정 한도 적용(clamp)
 function ntClamp(code,v){const it=NT_MAP[code];if(!it||it.cap==null)return Math.max(v,0);return Math.min(Math.max(v,0),it.cap);}
 // 급여대장 한 행(p)의 비과세 합계(기재/비기재/전체). p.nt = {code:입력액}
 function ntSum(p){let rep=0,non=0;const nt=(p&&p.nt)||{};Object.keys(nt).forEach(c=>{const it=NT_MAP[c];if(!it)return;const amt=ntClamp(c,num(nt[c]));if(it.rep)rep+=amt;else non+=amt;});
   return {rep,non,all:rep+non};}
-function getPay(ym,id){if(!DB.pays[ym])DB.pays[ym]={};if(!DB.pays[ym][id])DB.pays[ym][id]={gross:0,nontax:0,nt:{},tax:null};
+function exSum(p){const ex=(p&&p.ex)||{};return EX_ITEMS.reduce((s,it)=>s+Math.max(num(ex[it.key]),0),0);}
+function rlSum(p){const rl=(p&&p.rl)||{};return Object.keys(rl).reduce((s,c)=>s+(RL_MAP[c]?Math.max(num(rl[c]),0):0),0);}
+// 과세대상(비과세 제외) = 급여+상여+인정상여+기타 과세항목 (지급명세서 C35 계)
+function payTaxable(p){return Math.max(num(p.pay)+num(p.bonus)+num(p.recog)+exSum(p),0);}
+// 총지급액 = 과세대상 + 비과세 합계
+function payGross(p){return payTaxable(p)+ntSum(p).all;}
+// 월 원천징수 감면율(간이세액 × (1-율)). 여러 코드가 있으면 가장 큰 율
+function rlWithholdRate(p){let r=0;const rl=(p&&p.rl)||{};Object.keys(rl).forEach(c=>{const it=RL_MAP[c];if(it&&it.wh&&num(rl[c])>0)r=Math.max(r,it.wh);});return r;}
+function getPay(ym,id){if(!DB.pays[ym])DB.pays[ym]={};if(!DB.pays[ym][id])DB.pays[ym][id]={pay:0,bonus:0,recog:0,ex:{},nt:{},rl:{},gross:0,nontax:0,tax:null};
   const p=DB.pays[ym][id];
-  if(!p.nt){p.nt={};if(num(p.nontax)>0)p.nt.NTN=num(p.nontax);} // 구버전 단일 nontax → 기타(비기재) 마이그레이션
+  if(!p.nt){p.nt={};if(num(p.nontax)>0)p.nt.NTN=num(p.nontax);}            // v1 단일 nontax → 기타(비기재)
+  if(p.nt.NTR){p.nt.NTN=num(p.nt.NTN)+num(p.nt.NTR);delete p.nt.NTR;}       // v2 NTR(슬롯 없음) → 비기재
+  if(!p.ex)p.ex={}; if(!p.rl)p.rl={};
+  if(p.pay===undefined){p.pay=Math.max(num(p.gross)-ntSum(p).all,0);p.bonus=0;p.recog=0;} // v2 총지급액 → 급여
   return p;}
-function syncNontax(p){p.nontax=ntSum(p).all;} // p.nontax = 비과세 합계(downstream 호환 유지)
-function updPay(ym,id,k,v){const p=getPay(ym,id);p[k]=(k==='taxManual')?v:num(v);
-  if(k==='gross'||k==='nontax'){p.tax=null;} // 지급액 변경시 간이세액 자동 재계산
-  DB.save();renderPay();}
+function syncNontax(p){p.nontax=ntSum(p).all;p.gross=payGross(p);} // downstream 호환(gross·nontax 유지)
+function updPay(ym,id,k,v){const p=getPay(ym,id);
+  if(k==='workYM'||k==='taxManual')p[k]=v; else p[k]=num(v);
+  if(k!=='tax')p.tax=null; // 지급액·근무일수 변경 시 세액 자동 재계산
+  syncNontax(p);DB.save();renderPay();}
+// 월 원천징수 소득세: 일용은 일 단위(§47②·§129①4·§59③), 일반은 간이세액 × (1-감면율)
+function payTax(e,p){
+  const taxable=payTaxable(p);
+  if(e.type==='일용'){return (p.tax==null)?dayWorkerTax(taxable,num(p.days)):num(p.tax);}
+  if(p.tax!=null)return num(p.tax);
+  const base=simpleTax(taxable,e.family,e.children);const r=rlWithholdRate(p);
+  return r?fl(base*(1-r),10):base;
+}
 
-// ── 비과세 명세 모달 (draft 편집 → 저장 시에만 반영, 닫기는 취소) ──
-let _ntCtx={ym:null,id:null,draft:{}};
-function openNT(ym,id){const p=getPay(ym,id);_ntCtx={ym,id,draft:Object.assign({},p.nt)};
+// ── 소득항목·비과세·감면 명세 모달 (draft 편집 → 저장 시에만 반영, 닫기는 취소) ──
+let _ntCtx={ym:null,id:null,draft:{},ex:{},rl:{}};
+function openNT(ym,id){const p=getPay(ym,id);_ntCtx={ym,id,draft:Object.assign({},p.nt),ex:Object.assign({},p.ex),rl:Object.assign({},p.rl)};
   const e=DB.emps.find(x=>x.id===id)||{};
   $('ntModalName').textContent='· '+(e.name||'(이름없음)')+' / '+ym;
   renderNTBody();$('ntModal').classList.add('on');}
 function closeNT(){$('ntModal').classList.remove('on');}
 function renderNTBody(){
-  const nt=_ntCtx.draft;
+  const nt=_ntCtx.draft,ex=_ntCtx.ex,rl=_ntCtx.rl;
   const row=it=>{
     const raw=num(nt[it.code]);const capd=ntClamp(it.code,raw);const over=it.cap!=null&&raw>it.cap;
     const capTxt=it.cap==null?(it.per==='y'?'연 한도없음':'한도없음'):(it.per==='y'?'연 '+won(it.cap):'월 '+won(it.cap));
@@ -665,43 +867,70 @@ function renderNTBody(){
       <input value="${raw?won(raw):''}" placeholder="0" oninput="onNTInput('${it.code}',this.value)">
       <div class="cap ${over?'over':''}">${capTxt}${over?'<br>→ 적용 '+won(capd):''}</div>
     </div>`;};
-  const sec=(title,tag,tagCls,list)=>`<div class="nt-sec-hd"><span class="tag ${tagCls}">${tag}</span>${title}</div>`+list.map(row).join('');
+  const exRow=it=>`<div class="nt-item">
+      <div class="code">${it.slot}</div>
+      <div class="nm">${it.name}<small>${it.law}</small></div>
+      <input value="${num(ex[it.key])?won(num(ex[it.key])):''}" placeholder="0" oninput="onEXInput('${it.key}',this.value)">
+      <div class="cap">과세 · 지급명세서 기재</div>
+    </div>`;
+  const rlRow=it=>`<div class="nt-item">
+      <div class="code">${it.code}</div>
+      <div class="nm">${it.name}<small>${it.law} · ${it.slot}</small></div>
+      <input value="${num(rl[it.code])?won(num(rl[it.code])):''}" placeholder="0" oninput="onRLInput('${it.code}',this.value)">
+      <div class="cap">${it.wh?'월 원천징수 '+Math.round(it.wh*100)+'% 감면':'연말정산 시 정산'}</div>
+    </div>`;
+  const sec=(title,tag,tagCls,html)=>`<div class="nt-sec-hd"><span class="tag ${tagCls}">${tag}</span>${title}</div>`+html;
   $('ntModalBody').innerHTML=
-    sec('지급명세서 기재 대상 — 근로소득 지급명세서에 코드별로 기재','지급명세서 기재 ○','tag-rep',NT_ITEMS.filter(i=>i.rep))+
-    sec('지급명세서 비기재 대상 — 작성 제외(전액 비과세·실비변상)','지급명세서 비기재 ×','tag-non',NT_ITEMS.filter(i=>!i.rep));
+    sec('과세 소득항목 상세 — 급여·상여·인정상여 외의 과세 근로소득(지급명세서 C29~C32)','과세 ○','tag-rep',EX_ITEMS.map(exRow).join(''))+
+    sec('지급명세서 기재 대상 비과세 — 근로소득 지급명세서 C36~C66 코드별 기재','지급명세서 기재 ○','tag-rep',NT_ITEMS.filter(i=>i.rep).map(row).join(''))+
+    sec('지급명세서 비기재 대상 비과세 — 작성 제외(전액 비과세·실비변상)','지급명세서 비기재 ×','tag-non',NT_ITEMS.filter(i=>!i.rep).map(row).join(''))+
+    sec('감면소득 — 조세특례제한법 감면 대상 급여(지급명세서 C67~C72, 감면기간은 ② 직원 상세)','감면 T코드','tag-rep',RL_ITEMS.map(rlRow).join(''));
   refreshNTTotals();
 }
 function onNTInput(code,val){_ntCtx.draft[code]=num(val);refreshNTTotals();}
+function onEXInput(key,val){_ntCtx.ex[key]=num(val);refreshNTTotals();}
+function onRLInput(code,val){_ntCtx.rl[code]=num(val);refreshNTTotals();}
 function refreshNTTotals(){const s=ntSum({nt:_ntCtx.draft});
-  $('ntTotRep').textContent=won(s.rep);$('ntTotNon').textContent=won(s.non);$('ntTotAll').textContent=won(s.all);}
+  $('ntTotRep').textContent=won(s.rep);$('ntTotNon').textContent=won(s.non);$('ntTotAll').textContent=won(s.all);
+  const ex=$('ntTotEx');if(ex)ex.textContent=won(exSum({ex:_ntCtx.ex}));const rl=$('ntTotRl');if(rl)rl.textContent=won(rlSum({rl:_ntCtx.rl}));}
 function saveNT(){const p=getPay(_ntCtx.ym,_ntCtx.id);const out={};
-  // 한도초과분 clamp 반영하여 저장(0 이하 제거)
   Object.keys(_ntCtx.draft).forEach(c=>{const v=ntClamp(c,num(_ntCtx.draft[c]));if(v>0)out[c]=v;});
-  p.nt=out;syncNontax(p);p.tax=null; // 비과세 변동 → 간이세액 재계산
+  p.nt=out;
+  const ex={};EX_ITEMS.forEach(it=>{const v=num(_ntCtx.ex[it.key]);if(v>0)ex[it.key]=v;});p.ex=ex;
+  const rl={};RL_ITEMS.forEach(it=>{const v=num(_ntCtx.rl[it.code]);if(v>0)rl[it.code]=v;});p.rl=rl;
+  syncNontax(p);p.tax=null;
   DB.save();closeNT();renderPay();}
-function recalcAllWithholding(){const ym=$('payYM').value;if(!ym)return;DB.emps.forEach(e=>{const p=getPay(ym,e.id);p.tax=null;});DB.save();renderPay();alert('간이세액을 일괄 재계산했습니다.');}
+function recalcAllWithholding(){const ym=$('payYM').value;if(!ym)return;DB.emps.forEach(e=>{const p=getPay(ym,e.id);p.tax=null;});DB.save();renderPay();alert('원천징수세액을 일괄 재계산했습니다.');}
 function renderPay(){
   const ym=$('payYM').value||todayYM();$('payYM').value=ym;
   $('payCount').textContent=DB.emps.length+'명';
   const tb=$('payBody');
-  if(!DB.emps.length){tb.innerHTML='<tr><td colspan="12" class="empty">먼저 ② 직원관리에서 직원을 등록하세요.</td></tr>';$('payFoot').innerHTML='';return;}
-  let T={gross:0,nontax:0,ntRep:0,ntNon:0,taxable:0,np:0,hi:0,ltc:0,ei:0,tax:0,local:0,net:0};
+  if(!DB.emps.length){tb.innerHTML='<tr><td colspan="16" class="empty">먼저 ② 직원관리에서 직원을 등록하세요.</td></tr>';$('payFoot').innerHTML='';return;}
+  let T={pay:0,bonus:0,recog:0,ex:0,gross:0,nontax:0,ntRep:0,ntNon:0,rl:0,taxable:0,np:0,hi:0,ltc:0,ei:0,tax:0,local:0,net:0};
   tb.innerHTML=DB.emps.map(e=>{
     const p=getPay(ym,e.id);syncNontax(p);
-    const gross=num(p.gross),s=ntSum(p),nontax=s.all;
-    const taxable=Math.max(gross-nontax,0);
-    const ins=calcInsurance(taxable);
-    // 일용은 1일 단위 계산(근로일수 필요)이라 급여대장에선 수기입력(기본 0). 일반 근로는 간이세액 자동.
-    let tax=(e.type==='일용')?(p.tax==null?0:num(p.tax)):((p.tax==null)?simpleTax(taxable,e.family,e.children):num(p.tax));
+    const s=ntSum(p),nontax=s.all,ex=exSum(p),rl=rlSum(p),taxable=payTaxable(p),gross=payGross(p);
+    const day=e.type==='일용';
+    const ins=day?{np:0,hi:0,ltc:0,ei:0}:calcInsurance(taxable);   // 일용: 4대보험 월 대장 미적용(일용 취득 요건은 별도 관리)
+    const tax=payTax(e,p);
     const local=fl(tax*0.1,10);
     const net=gross-ins.np-ins.hi-ins.ltc-ins.ei-tax-local;
-    T.gross+=gross;T.nontax+=nontax;T.ntRep+=s.rep;T.ntNon+=s.non;T.taxable+=taxable;T.np+=ins.np;T.hi+=ins.hi;T.ltc+=ins.ltc;T.ei+=ins.ei;T.tax+=tax;T.local+=local;T.net+=net;
+    T.pay+=num(p.pay);T.bonus+=num(p.bonus);T.recog+=num(p.recog);T.ex+=ex;T.gross+=gross;T.nontax+=nontax;T.ntRep+=s.rep;T.ntNon+=s.non;T.rl+=rl;T.taxable+=taxable;T.np+=ins.np;T.hi+=ins.hi;T.ltc+=ins.ltc;T.ei+=ins.ei;T.tax+=tax;T.local+=local;T.net+=net;
     const split=(s.rep||s.non)?`<div class="nt-split">기재 ${won(s.rep)} · 비기재 ${won(s.non)}</div>`:'';
+    const rlTxt=rl?`<div class="nt-split" style="color:var(--green)">감면 ${Object.keys(p.rl).filter(c=>RL_MAP[c]).join('·')} ${won(rl)}</div>`:'';
+    const col2=day
+      ?`<td><input value="${num(p.days)}" title="근무일수" onchange="updPay('${ym}','${e.id}','days',this.value)" style="text-align:center"><div class="nt-split">근무일수</div></td>
+        <td><input value="${num(p.lastDay)}" title="최종근무일(일)" onchange="updPay('${ym}','${e.id}','lastDay',this.value)" style="text-align:center"><div class="nt-split">최종근무일</div></td>`
+      :`<td><input value="${won(num(p.bonus))}" onchange="updPay('${ym}','${e.id}','bonus',this.value)"></td>
+        <td><input value="${won(num(p.recog))}" onchange="updPay('${ym}','${e.id}','recog',this.value)"></td>`;
     return `<tr>
       <td class="l">${e.name||'(이름없음)'}</td>
       <td class="c">${e.type}</td>
-      <td><input value="${won(gross)}" onchange="updPay('${ym}','${e.id}','gross',this.value)"></td>
-      <td><div class="nt-cell"><span class="nt-total">${won(nontax)}</span>${split}<button class="nt-btn" onclick="openNT('${ym}','${e.id}')">＋ 비과세 명세</button></div></td>
+      <td><input value="${won(num(p.pay))}" onchange="updPay('${ym}','${e.id}','pay',this.value)"></td>
+      ${col2}
+      <td><div class="nt-cell"><span class="nt-total">${won(ex)}</span>${rlTxt}<button class="nt-btn" onclick="openNT('${ym}','${e.id}')">＋ 항목 명세</button></div></td>
+      <td><div class="nt-cell"><span class="nt-total">${won(nontax)}</span>${split}</div></td>
+      <td>${won(gross)}</td>
       <td>${won(taxable)}</td>
       <td>${won(ins.np)}</td><td>${won(ins.hi)}</td><td>${won(ins.ltc)}</td><td>${won(ins.ei)}</td>
       <td><input value="${won(tax)}" onchange="updPay('${ym}','${e.id}','tax',this.value)" style="color:var(--rose)"></td>
@@ -712,9 +941,10 @@ function renderPay(){
   DB.save();
   $('payFoot').innerHTML=`<tr class="totrow">
     <td class="l" colspan="2">합계 ${DB.emps.length}명</td>
-    <td>${won(T.gross)}</td>
+    <td>${won(T.pay)}</td><td>${won(T.bonus)}</td><td>${won(T.recog)}</td>
+    <td><div class="nt-cell"><span>${won(T.ex)}</span>${T.rl?`<div class="nt-split" style="color:#a7f3d0">감면 ${won(T.rl)}</div>`:''}</div></td>
     <td><div class="nt-cell"><span>${won(T.nontax)}</span><div class="nt-split" style="color:#cbd5e1">기재 ${won(T.ntRep)} · 비기재 ${won(T.ntNon)}</div></div></td>
-    <td>${won(T.taxable)}</td>
+    <td>${won(T.gross)}</td><td>${won(T.taxable)}</td>
     <td>${won(T.np)}</td><td>${won(T.hi)}</td><td>${won(T.ltc)}</td><td>${won(T.ei)}</td>
     <td>${won(T.tax)}</td><td>${won(T.local)}</td><td>${won(T.net)}</td></tr>`;
 }
@@ -735,12 +965,10 @@ function aggregate(ym){
   const acc={A01:{n:0,pay:0,tax:0},A02:{n:0,pay:0,tax:0},A03:{n:0,pay:0,tax:0},A04:{n:0,pay:0,tax:0}};
   DB.emps.forEach(e=>{
     const p=(DB.pays[ym]||{})[e.id];if(!p)return;
-    const gross=num(p.gross),nontax=(p.nt?ntSum(p).all:num(p.nontax)),taxable=Math.max(gross-nontax,0);
-    if(gross<=0&&p.tax==null)return;
-    let code='A01';
-    let tax;
-    if(e.type==='일용'){code='A03';tax=(p.tax==null)?0:num(p.tax);}        // 일용: 수기/일단위(⑦탭)
-    else {tax=(p.tax==null)?simpleTax(taxable,e.family,e.children):num(p.tax); if(e.type==='중도퇴사')code='A02';}
+    const pp=getPay(ym,e.id);const gross=payGross(pp);
+    if(gross<=0&&pp.tax==null)return;
+    let code='A01';const tax=payTax(e,pp);                       // 일용: 일 단위 · 일반: 간이세액(감면율 적용)
+    if(e.type==='일용')code='A03';else if(e.type==='중도퇴사')code='A02';
     acc[code].n+=1;acc[code].pay+=gross;acc[code].tax+=tax;
   });
   const m=getReportMeta(ym);
@@ -869,164 +1097,209 @@ function downloadMedia(){
   a.href=url;a.download=ym+'C103900.01';a.click();URL.revokeObjectURL(url);
 }
 
-// ── 급여대장 기준 소득자별·연간 비과세 코드별 집계(지급명세서 기재 항목) ──
-function ntAnnualByCode(id,year){
-  const rep={},non={};let repT=0,nonT=0;
-  for(let m=1;m<=12;m++){
-    const ym=year+'-'+String(m).padStart(2,'0');const p=(DB.pays[ym]||{})[id];if(!p||!p.nt)continue;
-    Object.keys(p.nt).forEach(c=>{const it=NT_MAP[c];if(!it)return;const amt=ntClamp(c,num(p.nt[c]));if(amt<=0)return;
-      if(it.rep){rep[c]=(rep[c]||0)+amt;repT+=amt;}else{non[c]=(non[c]||0)+amt;nonT+=amt;}});
+// ── 레코드 생성기: 항목번호로 값을 지정한다. 지정하지 않은 칸은 숫자 0채움·문자 공백 ──
+//   vals 의 키: 'C26' / 같은 번호가 여러 칸이면 'C65@1' / 부호·금액 칸은 'C156#부호@0','C156#금액@0'
+function mlBuild(kind,rec,vals){
+  const lay=MEDIA_LAYOUT[kind][rec];const out=[];const seen={};
+  for(const [no,t,len] of lay){
+    const k=(seen[no]=(seen[no]||0)+1)-1;
+    let v=vals[no+'@'+k]; if(v===undefined&&k===0)v=vals[no];
+    out.push(t==='9'?N(v==null?0:v,len):C(v==null?'':v,len));
   }
-  return {rep,non,repT,nonT};
+  return out.join('');
 }
+function mlLen(kind){return MEDIA_LAYOUT[kind].A.reduce((s,f)=>s+f[2],0);}
+// 부호(양수 0·음수 1)+금액(절대값) 두 칸에 나눠 넣는다
+function mlSigned(vals,no,v,k){const s=(k==null)?'':'@'+k;vals[no+'#부호'+s]=(v<0)?1:0;vals[no+'#금액'+s]=Math.abs(Math.round(num(v)));}
+const D8=s=>{const d=String(s||'').replace(/[^0-9]/g,'');return d.length===8?d:'00000000';};
+const DIG=s=>String(s||'').replace(/[^0-9]/g,'');
+const todayYMD=()=>{const d=new Date();return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');};
+// 급여대장 월별 순회
+function payMonths(year){const a=[];for(let m=1;m<=12;m++)a.push(year+'-'+String(m).padStart(2,'0'));return a;}
+function empPay(id,ym){const p=(DB.pays[ym]||{})[id];return p?getPay(ym,id):null;}
+// ── 급여대장 연간 집계(소득자별): 소득항목·비과세 코드별·감면 코드별·원천징수·4대보험 ──
+function payAnnual(id,year){
+  const e=DB.emps.find(x=>x.id===id)||{};
+  const a={pay:0,bonus:0,recog:0,ex:{},nt:{},rl:{},rep:{},non:{},repT:0,nonT:0,rlT:0,taxable:0,gross:0,tax:0,np:0,hi:0,ltc:0,ei:0,months:0};
+  payMonths(year).forEach(ym=>{const p=empPay(id,ym);if(!p)return;
+    const tx=payTaxable(p);if(tx<=0&&ntSum(p).all<=0)return;a.months++;
+    a.pay+=num(p.pay);a.bonus+=num(p.bonus);a.recog+=num(p.recog);
+    EX_ITEMS.forEach(it=>{const v=num((p.ex||{})[it.key]);if(v>0)a.ex[it.key]=(a.ex[it.key]||0)+v;});
+    Object.keys(p.nt||{}).forEach(c=>{const it=NT_MAP[c];if(!it)return;const amt=ntClamp(c,num(p.nt[c]));if(amt<=0)return;a.nt[c]=(a.nt[c]||0)+amt;if(it.rep){a.rep[c]=(a.rep[c]||0)+amt;a.repT+=amt;}else{a.non[c]=(a.non[c]||0)+amt;a.nonT+=amt;}});
+    Object.keys(p.rl||{}).forEach(c=>{if(!RL_MAP[c])return;const v=num(p.rl[c]);if(v>0){a.rl[c]=(a.rl[c]||0)+v;a.rlT+=v;}});
+    a.taxable+=tx;a.gross+=payGross(p);a.tax+=payTax(e,p);
+    if(e.type!=='일용'){const i=calcInsurance(tx);a.np+=i.np;a.hi+=i.hi;a.ltc+=i.ltc;a.ei+=i.ei;}
+  });
+  // 연 한도 항목(O01 240만·R11 700만 등)은 연 집계에서 한 번 더 한도 적용
+  Object.keys(a.rep).forEach(c=>{const it=NT_MAP[c];if(it&&it.per==='y'&&it.cap!=null&&a.rep[c]>it.cap){a.repT-=a.rep[c]-it.cap;a.rep[c]=it.cap;a.nt[c]=it.cap;}});
+  return a;
+}
+function ntAnnualByCode(id,year){const a=payAnnual(id,year);return {rep:a.rep,non:a.non,repT:a.repT,nonT:a.nonT};}
 // 근로소득 지급명세서 '비과세·감면소득 명세' — 소득자별 연간 코드별(급여대장 1~12월 집계)
 function ntMyeongseHTML(id,year){
-  const a=ntAnnualByCode(id,year);
+  const a=payAnnual(id,year);
   const codes=NT_ITEMS.map(it=>it.code).filter(c=>(a.rep[c]||a.non[c]));
   const rows=codes.map(c=>{const it=NT_MAP[c];const amt=(a.rep[c]||a.non[c]);
     return `<tr><td class="c"><b>${c}</b></td><td class="l">${it.name}</td><td>${won(amt)}</td>
       <td class="c">${it.rep?'<span class="pill" style="background:#dbeafe;color:#1d4ed8">기재 ○</span>':'<span class="pill" style="background:#f1f5f9;color:#64748b">비기재 ×</span>'}</td>
       <td class="l muted">${it.law}</td></tr>`;}).join('');
+  const rlRows=Object.keys(a.rl).map(c=>`<tr><td class="c"><b>${c}</b></td><td class="l">${RL_MAP[c].name}</td><td>${won(a.rl[c])}</td><td class="c"><span class="pill" style="background:#d1fae5;color:#047857">감면</span></td><td class="l muted">${RL_MAP[c].law}</td></tr>`).join('');
   return `<div class="card" style="margin-top:16px">
     <h2>비과세·감면소득 명세 — 근로소득 지급명세서 기재내용 (${year} 귀속, 급여대장 집계)</h2>
-    ${codes.length?`<div style="overflow-x:auto"><table>
-      <thead><tr><th>코드</th><th class="l">비과세 항목</th><th>연 금액</th><th>지급명세서</th><th class="l">법조문</th></tr></thead>
-      <tbody>${rows}</tbody>
-      <tfoot><tr class="totrow"><td class="l" colspan="2">지급명세서 기재(○) 비과세 합계</td><td>${won(a.repT)}</td><td colspan="2" class="l">원천징수영수증 ⑱ 비과세소득란 코드별 기재</td></tr>
-      <tr class="totrow" style="background:#475569"><td class="l" colspan="2">비기재(×) 비과세 합계</td><td>${won(a.nonT)}</td><td colspan="2" class="l">지급명세서 작성 제외(전액 비과세·실비변상)</td></tr></tbody></table></div>`
-    :'<div class="empty">③ 급여대장의 [비과세 명세]에 입력된 항목이 없습니다. 급여대장에서 비과세 항목을 입력하면 여기에 코드별로 집계됩니다.</div>'}
-    <div class="note">지급명세서 <b>기재(○)</b> 항목은 누락 시 가산세 대상입니다(근로소득원천징수영수증 비과세코드표 기준). 한도(식대·자가운전 월20만, 출산보육 월20만, 직무발명 연700만, 생산직 야간수당 연240만 등)는 자동 적용됩니다.</div>
+    ${(codes.length||rlRows)?`<div style="overflow-x:auto"><table>
+      <thead><tr><th>코드</th><th class="l">항목</th><th>연 금액</th><th>지급명세서</th><th class="l">근거</th></tr></thead>
+      <tbody>${rows}${rlRows}</tbody>
+      <tfoot><tr class="totrow"><td class="l" colspan="2">지급명세서 기재(○) 비과세 계 (C73)</td><td>${won(a.repT)}</td><td colspan="2" class="l">C36~C66 코드별 기재</td></tr>
+      <tr class="totrow" style="background:#475569"><td class="l" colspan="2">비기재(×) 비과세 계</td><td>${won(a.nonT)}</td><td colspan="2" class="l">지급명세서 작성 제외</td></tr>
+      <tr class="totrow" style="background:#047857"><td class="l" colspan="2">감면소득 계 (C74)</td><td>${won(a.rlT)}</td><td colspan="2" class="l">C67~C72 코드별 기재</td></tr></tfoot></table></div>`
+    :'<div class="empty">③ 급여대장의 [항목 명세]에 입력된 비과세·감면 항목이 없습니다.</div>'}
+    <div class="note">지급명세서 <b>기재(○)</b> 항목은 누락 시 가산세 대상입니다. 월 한도(식대·연구보조비 20만 등)는 월별로, 연 한도(생산직 야간수당 240만·직무발명 700만 등)는 연 집계에서 자동 적용됩니다.</div>
   </div>`;
 }
-// ── 연말정산 전산매체: 근로소득 지급명세서(소득자별) ──
 /* CP949(EUC-KR) 한글 인코딩표: U+AC00~U+D7A3 → 2바이트 (홈택스 전산매체 제출 인코딩) */
 const CP949_HANGUL_B64="sKGwooFBgUKwo4FDgUSwpLClsKawp4FFgUaBR4FIgUmwqLCpsKqwq7CssK2wrrCvgUqwsLCxsLKws7C0gUuBTLC1gU2BToFPsLaBUIFRgVKBU4FUgVWBVrC3sLiBV7C5sLqwu4FYgVmBWoFhgWKBY7C8sL2BZIFlsL6BZoFngWiwv4FpgWqBa4FsgW2BboFvgXCBcYFysMCBc7DBgXSBdYF2gXeBeIF5sMKBeoGBgYKww4GDgYSBhbDEgYaBh4GIgYmBioGLgYyBjYGOgY+BkIGRgZKBk4GUgZWBloGXgZiwxbDGgZmBmrDHgZuBnLDIsMmBnbDKgZ6Bn4GggaGBorDLsMyBo7DNsM6wz7DQgaSBpbDRsNKw07DUgaaBp4GosNWBqYGqgauw1oGsga2BroGvgbCBsYGysNew2IGzsNmw2rDbgbSBtYG2gbeBuIG5sNyw3bDegbqw34G7gbyw4LDhgb2BvoG/gcCBwYHCgcOw4rDjgcSw5LDlsOaBxYHGgcew54HIgcmw6IHKgcuBzLDpgc2BzoHPsOqB0IHRgdKB04HUgdWB1oHXsOuB2LDsgdmB2oHbgdyB3YHegd+B4LDtsO6B4YHisO+B44HksPCw8YHlsPKB5rDzgeeB6LD0sPWw9oHpsPeB6rD4sPmB64Hsge2B7oHvsPqw+4HwgfGw/IHygfOB9LD9gfWw/oH2gfeB+IH5gfqxobGigfuxo4H8saSB/YH+gkGCQoJDgkSxpYJFgkaCR7GmgkiCSYJKsaeCS4JMgk2CToJPglCCUYJSsaiCU4JUsamxqoJVglaCV4JYglmCWrGrsayCYYJisa2CY4JkgmWxroJmgmeCaIJpgmqCa4Jssa+xsIJtsbGCbrGygm+CcIJxgnKCc4J0sbOCdYJ2gnextIJ4gnmCerG1goGCgoKDgoSChYKGgoeCiLG2gomxt4KKgouCjIKNgo6Cj4KQgpGxuLG5gpKCk7G6gpSClbG7sbyxvbG+gpaCl4KYgpmxv7HAscGCmrHCgpuxw7HEgpyCnYKegp+CoLHFscaCoYKisceCo4KkgqWxyIKmgqeCqIKpgqqCq4Ksgq2CroKvgrCxybHKgrGCsoKzgrSCtYK2scuCt4K4grmCuoK7gryCvYK+gr+CwILBgsKCw4LEgsWCxoLHgsixzILJgsqCy4LMgs2CzoLPgtCxzbHOgtGC0rHPgtOC1ILVsdCC1oLXgtiC2YLagtuC3LHRsdKC3bHTgt6C34LgguGC4oLjguSC5bHUguaC54LosdWC6YLqguux1oLsgu2C7oLvgvCC8YLygvOC9IL1gvaC94L4gvmC+oL7gvyC/YL+sdex2INBg0Kx2YNDg0Sx2rHbsdyDRYNGg0eDSINJg0qx3bHeg0ux34NMseCDTYNOg0+DUINRg1Kx4YNTg1SDVYNWg1eDWINZg1qDYYNig2ODZINlg2aDZ4Nog2mDaoNrg2yDbYNug2+DcINxg3KDc7HiseODdIN1seSDdoN3seWx5oN4seeDeYN6g4GDgoODseix6YOEseqDhbHrseyDhoOHg4ix7YOJse6x77Hwg4qx8YOLg4yDjbHyg46x84OPg5CDkYOSg5Ox9LH1g5Sx9rH3sfiDlYOWg5ex+YOYg5mx+rH7g5qDm7H8g5yDnYOesf2Dn4Ogg6GDooOjg6SDpbH+sqGDprKisqOypIOng6iDqYOqg6uDrLKlsqaDrYOug6+DsIOxg7Kyp4Ozg7SDtYO2g7eDuIO5g7qDu4O8g72DvoO/g8CDwYPCg8ODxIPFg8aDx4PIg8mDyoPLg8yDzYPOg8+D0IPRg9KD04PUg9WD1oPXg9iD2YPag9uD3IPdg96D34Pgg+GyqLKpsqqD4rKrg+OD5IPlsqyD5oPng+iD6YPqg+uD7LKtsq6D7bKvsrCysYPug++D8IPxg/KD87KysrOD9IP1srSD9oP3g/iD+YP6g/uD/IP9g/6EQYRCsrWEQ4REsraERbK3hEaER4RIhEmESoRLsriETIRNhE6yuYRPhFCEUbK6hFKEU4RUhFWEVoRXhFiEWYRahGGyu7K8hGKEY4RkhGWyvYRmhGeyvoRohGmEaoRrhGyEbYRuhG+EcIRxhHKEc4R0hHWEdoR3hHiEeYR6hIGEgoSDhISEhYSGhIeEiLK/ssCEiYSKssGEi7LChIyyw4SNhI6Ej4SQhJGEkoSTssSyxYSUssaElbLHssiyyYSWhJeEmISZssqyy4SahJuEnISdhJ6En7LMhKCEoYSihKOEpISlhKaEp4SohKmEqrLNss6Eq4SshK2EroSvhLCyz7LQhLGEsoSzhLSEtYS2hLeEuIS5hLqEu4S8hL2EvoS/hMCEwYTChMOy0YTEhMWExoTHhMiEybLShMqEy4TMstOEzYTOhM+y1ITQhNGE0oTThNSE1YTWstWy1oTXhNiE2bLXhNqE24TchN2E3oTfstiE4IThhOKE44TkhOWE5oTnhOiE6YTqhOuE7ITthO6E74TwhPGE8oTzhPSE9YT2hPeE+IT5hPqy2bLahPuE/LLbhP2E/oVBstyFQoVDhUSFRYVGhUey3bLest+FSLLghUmy4bLihUqFS4VMhU2FTrLjhU+FUIVRhVKFU4VUhVWy5IVWhVeFWIVZhVqFYYVihWOFZIVlhWay5bLmhWeFaIVphWqFa4Vssuey6IVthW6y6YVvhXCFcbLqhXKFc4V0hXWFdoV3hXiy67LshXmFerLthYGFgoWDhYSFhYWGhYey7oWIhYmFirLvhYuFjIWNsvCFjoWPhZCFkYWShZOFlLLxsvKFlYWWhZeFmIWZhZqFm4WchZ2FnrLzhZ+FoIWhhaKFo4WkhaWFpoWnhaiFqYWqhauFrIWtha6Fr4WwhbGFsoWzhbSFtYW2hbeFuIW5svSy9YW6hbuy9oW8sveFvbL4hb6y+YW/hcCFwYXCsvqy+7L8hcOy/YXEsv6FxYXGhcezoYXIhcmFyoXLhcyFzYXOhc+F0IXRhdKF04XUhdWF1oXXhdiF2YXahduF3IXdhd6F34XgheGF4oXjheSF5bOis6OF5oXns6SF6IXpheqzpYXrheyF7YXuhe+F8IXxs6azp4Xys6iF87OphfSF9YX2hfeF+IX5s6qzq7OshfqzrYX7hfyzrrOvs7CzsYX9hf6GQYZChkOzsrOzhkSztLO1s7azt7O4hkWzuYZGs7qzu7O8hkeGSLO9hkmGSoZLs76GTIZNhk6GT4ZQhlGGUrO/s8CGU7PBs8Kzw4ZUhlWGVoZXhliGWbPEs8WGWoZhs8aGYoZjhmSzx4ZlhmaGZ4ZohmmGaoZrs8iGbIZthm6Gb7PJhnCGcYZyhnOGdIZ1hnaGd4Z4hnmGeoaBhoKGg4aEhoWGhoaHhoiGiYaKhouGjIaNho6Gj4aQhpGGkoaThpSGlYaWhpezyrPLhpizzLPNhpmGmoabs86GnLPPs9CGnYaehp+GoLPRs9KGobPTs9Sz1YaihqOGpIalhqaz1rPXs9iGp4aos9mGqYaqhquz2oashq2GroavhrCGsYays9uz3Iazs92z3rPfhrSGtYa2hreGuIa5s+Cz4Ya6hruz4oa8hr2GvrPjhr+GwIbBhsKGw4bEhsWz5LPlhsaGx7Pms+eGyIbJs+iGyobLhsyz6YbNhs6Gz7PqhtCG0YbShtOG1IbVhtaG14bYhtmG2obbhtyG3Ybeht+G4IbhhuKG44bkhuWG5rPrs+yG54bos+2G6Ybqhuuz7obss++G7Ybuhu+G8Ibxs/Cz8Ybys/KG87PzhvSG9Yb2hvez9LP1s/aG+Ib5hvqz94b7hvyG/bP4hv6HQYdCh0OHRIdFh0aHR4dIh0mHSrP5h0uHTIdNh06HT4dQh1GHUodTh1SHVYdWh1eHWIdZh1qHYYdih2OHZIdlh2aHZ4doh2mHaodrh2yHbYduh2+HcIdxh3KHc7P6h3SHdYd2s/uHd4d4h3mz/Id6h4GHgoeDh4SHhYeGs/2z/oeHtKGHiIeJh4qHi4eMh42HjoePtKK0o4eQh5G0pIeSh5OHlLSlh5WHloeXh5iHmYeah5uHnLSmh520p4eetKiHn4egh6GHooejh6S0qbSqh6WHprSrh6eHqLSstK2HqYeqh6uHrIeth66Hr7SutK+HsLSwh7G0sYeyh7OHtIe1h7aHt7Syh7iHuYe6h7uHvIe9h76Hv4fAh8GHwofDh8SHxYfGh8eHyIfJh8q0s4fLh8yHzYfOh8+H0IfRtLSH0ofTh9SH1YfWh9eH2IfZh9qH24fch92H3offh+CH4Yfih+OH5Iflh+aH54foh+mH6ofrh+y0tYfth+6H77S2h/CH8YfytLeH84f0h/WH9of3h/iH+bS4tLmH+of7h/yH/Yf+iEGIQohDiESIRbS6tLuIRohHiEiISYhKiEu0vIhMiE2ITohPiFCIUYhStL20vohTiFSIVbS/iFaIV4hYiFmIWohhtMC0wYhiiGO0wohkiGWIZrTDtMS0xYhniGiIaYhqiGu0xrTHiGy0yIhttMm0yohuiG+IcLTLiHG0zIhyiHOIdLTNiHWIdoh3tM6IeIh5iHqIgYiCiIOIhIiFiIaIh4iIiImIioiLiIyIjYiOiI+IkLTPtNCIkYiStNGIk4iUiJW00oiWtNOIl4iYiJmImoibtNS01YictNaInbTXiJ6In4igiKG02IiitNm02rTbiKO03IikiKW03bTetN+04LThiKaIp4iotOK047TkiKm05bTmtOe06LTpiKqIq4istOq067TsiK2IrrTtiK+IsIixtO6IsoiziLSItYi2iLeIuLTvtPCIubTxtPK084i6iLuIvIi9iL6Iv7T0iMCIwYjCiMOIxIjFiMaIx4jIiMmIyojLiMyIzYjOiM+I0IjRiNKI04jUiNWI1ojXiNiI2YjaiNuI3IjdiN6I34jgiOGI4ojjiOSI5YjmiOeI6IjpiOqI64jsiO2I7ojviPCI8YjyiPOI9Ij1iPa09bT2tPeI97T4iPiI+bT5tPqI+rT7tPyI+4j8iP2I/rT9tP6JQbWhiUK1oolDtaOJRIlFtaSJRrWltaaJR4lItaeJSYlKiUu1qIlMiU2JTolPiVCJUYlStam1qolTtau1rLWtiVSJVYlWiVeJWIlZta6JWolhiWK1r4ljiWSJZbWwiWaJZ4loiWmJaolriWyJbYluiW+JcLWxtbKJcYlyiXOJdIl1iXa1s4l3iXiJebW0iXqJgYmCiYOJhImFiYaJh4mIiYmJiomLiYyJjYmOiY+JkImRiZKJk4mUiZWJlrW1tbaJl4mYtbeJmYmatbi1uYmbtbqJnLW7iZ2Jnomftby1vYmgtb6JobW/iaK1wImjtcGJpImltcKJpomniai1w4mpiaqJq7XEiayJrYmuia+JsImxibKJs4m0ibWJtom3ibiJuYm6ibuJvIm9ib61xYm/icCJwYnCicOJxInFicaJx4nIicmJyonLicyJzYnOic+J0InRtcaJ0onTidSJ1YnWideJ2LXHidmJ2onbtciJ3Indid61yYnfieCJ4YniieOJ5Inltcq1y4nmtcyJ54noiemJ6onrieyJ7Ynutc2J74nwifGJ8onzifSJ9Yn2ifeJ+In5ifqJ+4n8if2J/opBikKKQ4pEikWKRopHikiKSYpKiku1zrXPikyKTbXQik6KT4pQtdGKUYpSilOKVIpVilaKV7XStdOKWLXUilm11YpaimGKYopjimSKZbXWimaKZ4poimmKaoprimyKbYpuim+KcIpxinKKc4p0inWKdop3ini114p5inqKgYqCioOKhIqFtdiKhoqHioiKiYqKiouKjIqNio6Kj4qQipGKkoqTipSKlYqWipeKmIqZtdmKmoqbipyKnYqeip+12oqgiqGKorXbiqOKpIqltdyKpoqniqiKqYqqiquKrIqttd2KrrXeiq+134qwirGKsoqzirSKtbXgiraKt4q4teGKuYq6iru14oq8ir2Kvoq/isCKwYrCteOKw4rEisWKxrXkiseKyIrJisqKy4rMteW15orNis6154rPitC16LXpitG16orSitOK1IrVita167Xsite17YrYte6K2YraituK3Irdit6174rfiuCK4YriiuOK5IrliuaK54roiumK6orriuyK7Yruiu+K8IrxivKK84r0ivWK9or3iviK+bXwtfGK+or7tfKK/Ir9tfO19Ir+i0GLQotDi0SLRYtGtfW19otHtfe1+LX5tfqLSItJi0qLS4tMtfu1/ItNi061/YtPi1CLUbX+i1KLU4tUi1WLVotXi1i2obaii1m2o7aktqWLWothi2KLY4tktqa2p7aoi2WLZrapi2eLaItptqqLaotri2yLbYtui2+LcLartqyLcbattq62r4tyi3OLdIt1i3aLd4t4i3mLeouBi4KLg4uEi4WLhouHi4iLiYuKi4uLjIuNi46Lj4uQi5GLkouTi5SLlYuWi5eLmIuZi5qLm4uci52Lnoufi6CLoYuii6OLpIuli6aLp4uoi6mLqouri6yLrYuui6+LsIuxi7KLs4u0i7W2sLaxi7aLt7ayi7iLuYu6trOLu7a0trWLvIu9i76Lv7a2treLwLa4trm2uovBi8KLw4vEi8W2u7a8tr2LxovHtr6LyIvJi8q2v4vLi8yLzYvOi8+L0IvRtsC2wYvStsK2w7bEi9OL1IvVi9aL14vYtsWL2Yvai9uL3Ivdi96L34vgi+GL4ovji+SL5Yvmi+eL6Ivpi+qL67bGi+yL7Yvui++L8Ivxi/KL84v0i/WL9ov3i/iL+Yv6i/uL/Iv9i/6MQYxCjEOMRIxFjEaMR4xIjEmMSoxLjEyMTYxOjE+MULbHtsiMUYxStsmMU4xUjFW2yoxWjFeMWIxZjFqMYYxijGOMZIxljGaMZ7bLjGiMaYxqjGuMbIxttsyMboxvjHCMcYxyjHOMdLbNjHWMdox3jHiMeYx6jIGMgoyDjISMhYyGjIeMiIyJjIqMi4yMjI22zoyOjI+MkIyRjJKMk4yUjJWMloyXjJiMmYyajJuMnIydjJ6Mn4ygjKGMooyjjKSMpYymjKeMqLbPjKmMqoyrttCMrIytjK6Mr4ywjLGMsoyzjLSMtYy2jLeMuIy5jLqMu4y8jL2Mvoy/jMCMwYzCjMOMxIzFjMaMx4zIjMmMyozLjMyMzYzOjM+M0IzRjNKM04zUjNWM1ozXjNiM2YzajNuM3IzdjN620bbSjN+M4LbTjOGM4ozjttSM5IzljOaM54zojOm21bbWjOqM64zsjO2214zujO+M8IzxjPKM84z0jPWM9oz3jPiM+Yz6jPuM/Iz9jP6NQY1CjUONRI1FjUaNR41IjUmNSo1LjUyNTY1OjU+NUI1RttiNUo1TjVSNVY1WjVeNWI1ZjVqNYY1ijWONZI1ljWaNZ41ojWmNao1rjWyNbY1ujW+NcI1xjXK22Y1zjXSNdbbajXaNd414ttuNeY16jYGNgo2DjYSNhbbctt2Nho2HjYi23o2JjYqNi42MjY2Njo2PjZCNkY2SjZONlI2VjZaNl42YjZmNmo2bjZyNnY2ejZ+NoI2hjaKNo42kjaWNpo2njaiNqY2qtt+24I2rjay24Y2tja624rbjja+NsI2xjbKNs420jbW25Lbljba25o23jbiNuY26jbuNvI29jb62542/jcCNwbbojcKNw43EtumNxY3GjceNyI3JjcqNy7bqtuuNzI3Njc6Nz43QjdGN0o3TjdSN1bbsjdaN143Ytu2N2Y3ajdu27o3cjd2N3o3fjeCN4Y3itu+28I3jtvGN5LbyjeWN5o3njeiN6Y3qtvO29I3rjey29Y3tje6N77b2jfCN8Y3yjfON9I31jfa297b4jfe2+bb6tvu2/I34jfmN+rb9tv63obeijfuN/Lejjf2N/o5Bt6SOQo5DjkSORY5GjkeOSLelt6aOSbent6i3qY5KjkuOTI5Njk6OT7eqt6uOUI5Rt6yOUo5TjlSOVY5WjleOWI5ZjlqOYY5ijmOOZI5lt62OZreujmeOaI5pjmqOa45sjm2Obo5vjnCOcY5yjnOOdI51jnaOd454jnmOeo6BjoKOg46EjoWOho6HjoiOiY6KjouOjI6Njo63r7ewjo+OkLexjpGOko6Tt7KOlI6VjpaOl46YjpmOmrezt7SOm7e1t7a3t46cjp2Ono6fjqC3uLe5t7qOoY6it7uOo46kjqW3vI6mjqeOqI6pjqqOq46st723vo6tt7+OrrfAjq+OsI6xjrKOs460t8G3wo61jra3w463jriOubfEjrqOu468jr2Ovo6/jsC3xbfGjsG3x7fIt8mOwo7DjsSOxY7Gjse3yo7IjsmOyrfLjsuOzI7Njs6Oz47QjtGO0o7TjtSO1Y7Wt8yO17fNjtiO2Y7ajtuO3I7djt6O37fOt8+O4I7ht9CO4o7jjuS30Y7ljuaO547ojumO6o7rt9K3047st9SO7bfVju6O747wjvGO8o7zt9aO9I71jva31473jviO+Y76jvuO/I79jv6PQY9Cj0OPRI9Fj0aPR49It9iPSY9Kj0uPTI9Nj06PT49Qj1GPUo9Tj1SPVY9Wj1ePWI9Zj1qPYY9ij2OPZI9lj2aPZ49ot9mPaY9qj2uPbI9tj26Pb7faj3CPcY9yt9uPc490j3W33I92j3ePeI95j3qPgY+Ct9233o+Dt9+PhLfgj4WPho+Hj4iPiY+Kt+GPi4+Mj4234o+Oj4+PkLfjj5GPko+Tj5SPlY+Wj5ePmLfkj5m35Y+at+aPm4+cj52Pno+fj6C357foj6GPorfpj6OPpI+lt+qPpo+nj6iPqY+qj6uPrLfrt+yPrbftj6637o+vj7CPsY+yj7OPtLfvj7WPto+3j7iPuY+6j7uPvI+9j76Pv4/Aj8GPwo/Dj8SPxY/Gj8e38I/Ij8mPyo/Lj8yPzY/Ot/GPz4/Qj9GP0o/Tj9SP1Y/Wj9eP2I/Zj9qP24/cj92P3o/fj+CP4Y/ij+OP5I/lj+aP54/oj+m38rfzj+qP67f0j+yP7Y/ut/WP74/wj/GP8o/zj/SP9bf2j/aP97f3j/i3+I/5j/qP+4/8j/2P/rf5t/qQQZBCt/uQQ5BEkEW3/JBGkEeQSJBJkEqQS5BMt/23/pBNuKGQTriikE+QUJBRkFKQU5BUuKO4pJBVkFa4pZBXkFiQWbimkFqQYZBikGOQZJBlkGa4p7iokGe4qZBouKq4q5BpkGq4rLitkGuQbJBtkG6Qb5BwkHGQcpBzkHSQdZB2kHeQeJB5kHqQgZCCkIOQhJCFkIaQh5CIkImQipCLkIyQjbiuuK+QjpCPuLCQkJCRkJK4sZCTkJSQlZCWkJeQmJCZuLK4s5CauLSQm7i1kJyQnZCekJ+QoJChuLa4t5CikKO4uJCkuLm4uri7uLy4vZClkKaQp5CokKm4vri/kKq4wJCruMG4wpCskK24w5CuuMS4xbjGkK+QsLjHkLGQspCzuMiQtJC1kLaQt5C4kLmQurjJuMqQu7jLuMy4zbjOkLyQvZC+kL+QwLjPuNCQwZDCkMOQxJDFkMa40ZDHkMiQyZDKkMuQzJDNkM6Qz5DQkNGQ0rjSkNOQ1JDVkNaQ15DYkNmQ2pDbkNyQ3ZDekN+Q4JDhkOKQ45DkkOWQ5pDnkOiQ6ZDqkOuQ7JDtkO6Q75DwkPGQ8pDzkPS407jUkPWQ9rjVkPeQ+JD5uNaQ+rjXkPuQ/JD9kP6RQbjYuNmRQrjakUO427jckUSRRZFGkUe43bjeuN+RSJFJuOCRSpFLkUy44ZFNkU6RT5FQkVGRUpFTuOK445FUuOS45bjmkVWRVpFXkViRWZFauOe46JFhkWK46ZFjkWSRZbjqkWaRZ5FokWmRapFrkWyRbZFukW+467jsuO2RcLjukXGRcpFzkXS475F1kXaRd5F4kXmRepGBkYKRg5GEkYWRhpGHkYiRiZGKkYuRjJGNkY6Rj5GQkZGRkpGTkZSRlbjwuPGRlrjyuPORl5GYkZm49JGauPWRm5GckZ2RnpGfuPa495GguPiRobj5kaKRo5GkkaWRppGnuPqRqJGpkaq4+5GrkayRrZGuka+RsJGxkbKRs5G0kbWRtpG3kbiRubj8uP2RupG7kbyRvZG+kb+RwJHBkcKRw5HEkcWRxpHHkciRyZHKkcuRzJHNkc6Rz5HQkdGR0pHTkdSR1ZHWkdeR2JHZkdqR27j+kdyR3ZHeuaGR35HgkeG5opHikeOR5JHlkeaR55Hokem5o5HquaSR67mlkeyR7ZHuke+R8JHxuaaR8pHzkfS5p5H1kfaR97mokfiR+ZH6kfuR/JH9kf6SQbmpkkK5qpJDkkSSRZJGkkeSSJJJkkq5q7msua2SS7mukkySTbmvubC5sbmykk6ST5JQklGSUrmzubSSU7m1klS5tpJVklaSV7m3kli5uLm5klmSWpJhubqSYpJjkmS5u5JlkmaSZ5JokmmSapJrkmy5vJJtub2SbpJvknCScZJyknOSdJJ1ub6SdpJ3kniSeZJ6koGSgpKDkoSShZKGkoeSiJKJkoqSi5KMko2SjpKPkpCSkZKSkpOSlJKVkpa5v5KXkpiSmbnAkpqSm5KcucGSnZKekp+SoJKhkqKSo5KkkqWSppKnkqiSqZKqkquSrJKtkq6Sr7nCkrCSsZKyucOSs5K0krW5xJK2kreSuJK5krqSu5K8ucWSvZK+ucaSv5LAksGSwpLDksSSxZLGuceSx5LIksm5yJLKksuSzLnJks2SzpLPktCS0ZLSktO5ypLUktW5y5LWkteS2JLZktqS25Lckt2S3pLfkuCS4ZLikuOS5JLlkuaS55LokumS6pLrkuyS7ZLuku+S8JLxkvKS85L0kvWS9pL3kviS+bnMuc2S+pL7uc6S/JL9uc+50JL+udGTQZNCk0OTRJNFudK505NGudS51bnWk0e515NIudiTSZNKudm52rnbudy53ZNLk0y53rnfueC54bnik02TTpNPk1C547nkk1G55ZNSueaTU5NUk1W555NWk1e56Lnpk1iTWbnqk1qTYZNiueuTY5Nkk2WTZpNnk2iTabnsue2Tarnuue+58JNrk2yTbbnxk26Tb7nyufOTcJNxufSTcpNzk3STdZN2k3eTeJN5k3qTgZOCk4O59ZOEk4WThpOHk4iTiZOKk4uTjJONk46Tj5OQk5GTkpOTk5STlZOWk5eTmJOZk5qTm5Ock52TnpOfk6CToZOik6OTpJOlk6aTp5Ook6m59rn3k6qTq7n4k6yTrbn5ufqTrrn7k6+TsJOxk7KTs7n8uf2TtLn+k7W6obqik7aTt5O4k7mTurqjuqSTu5O8uqWTvZO+uqa6p5O/k8CTwZPCk8OTxJPFuqi6qZPGuqq6q7qsk8eTyJPJk8qTy5PMuq26rpPNk866r5PPk9CT0bqwk9KT05PUk9WT1pPXk9iT2bqxk9q6srqzurST25Pck926tZPek9+6tpPgk+GT4rq3k+OT5JPlk+aT55Pok+mT6pPrk+yT7ZPuk++T8JPxk/KT85P0k/WT9pP3k/iT+bq4urm6upP6uruT+5P8k/26vJP+lEGUQpRDlESURZRGur26vpRHur+USLrAlEmUSpRLlEyUTZROusGUT5RQlFG6wpRSlFOUVJRVlFaUV5RYlFmUWpRhlGKUY5RklGWUZrrDlGeUaJRplGqUa5RslG26xJRulG+UcJRxlHKUc5R0lHWUdpR3lHiUeZR6lIGUgpSDlISUhZSGusWUh5SIlImUipSLlIyUjbrGuseUjpSPusiUkJSRlJK6yZSTlJSUlZSWlJeUmJSZusq6y5SalJuUnJSdlJ6Un5SglKGUopSjusyUpJSllKa6zZSnlKiUqZSqlKuUrJStlK6Ur5SwlLGUspSzlLSUtZS2lLeUuJS5lLqUu5S8lL26zrrPlL6Uv7rQlMCUwbrRutK607rUlMKUw5TElMWUxrrVutaUx7rXlMi62JTJlMqUy7rZutqUzLrblM2UzpTPlNCU0ZTSlNO63JTUlNWU1pTXlNiU2ZTalNuU3JTdlN663ZTflOCU4ZTilOOU5JTlut6U5pTnlOiU6ZTqlOuU7JTtlO6U75TwlPGU8pTzlPSU9ZT2lPeU+JT5lPqU+5T8lP2U/pVBlUK637rglUOVRLrhlUWVRpVHuuKVSJVJlUqVS5VMlU2VTpVPlVCVUZVSlVO645VUlVWVVpVXlViVWbrklVqVYZViuuWVY5VklWW65pVmlWeVaJVplWqVa5VsuueVbZVuuuiVb7rplXCVcZVylXOVdJV1uuq665V2lXe67JV4lXmVerrtlYGVgpWDlYSVhZWGlYe67rrvlYi68JWJlYqVi5WMlY2VjpWPlZCVkZWSlZOVlJWVlZaVl5WYlZmVmpWblZyVnZWelZ+VoJWhlaKVo5WklaWVppWnlaiVqZWqlauVrLrxuvKVrZWuuvOVr5WwlbG69JWyuvWVs5W0lbWVtpW3uva695W4uviVubr5uvq6+5W6lbuVvJW9uvy6/ZW+lb+6/pXAlcGVwruhlcO7opXElcWVxpXHlci7o7uklcm7pbumu6eVypXLlcyVzZXOu6i7qbuqlc+V0LurldGV0pXTu6yV1JXVldaV15XYldmV2rutu66V27uvu7C7sZXcld2V3pXfleCV4buyu7OV4pXjleSV5ZXmleeV6JXpleqV65Xsle2V7pXvu7SV8JXxlfKV85X0lfWV9pX3lfiV+ZX6lfuV/JX9lf6WQZZClkOWRJZFlkaWR5ZIlkmWSpZLlkyWTZZOlk+WUJZRllKWU5ZUllWWVpZXlli7tbu2llmWWru3lmGWYru4u7mWY5ZklmWWZpZnlmiWabu6lmqWa7u7u7y7vZZslm2WbpZvlnCWcbu+lnKWc5Z0lnWWdpZ3lniWeZZ6loGWgpaDloSWhZaGloeWiJaJloqWi7u/loyWjZaOlo+WkJaRu8C7wZaSlpOWlJaVlpaWl5aYlpmWmpablpyWnZaelp+7wrvDlqC7xLvFu8aWoZailqOWpJallqaWp5aolqmWqparlqyWrZaulq+WsJaxlrKWs5a0lrWWtpa3lriWuZa6lruWvJa9lr6Wv5bAlsGWwrvHu8iWw5bEu8mWxZbGlse7ypbIlsmWypbLlsyWzZbOu8u7zJbPltCW0bvNltKW05bUltWW1pbXltiW2ZbaltuW3Jbdlt6W35bgluGW4pbjluSW5ZbmlueW6JbpluqW65bslu2W7pbvlvCW8ZbylvOW9Jb1lvaW95b4lvmW+pb7lvyW/Zb+l0GXQpdDl0SXRZdGl0eXSJdJl0qXS5dMl02XTpdPl1CXUbvOl1KXU5dUl1WXVpdXl1iXWZdal2GXYpdjl2SXZZdml2eXaJdpl2qXa5dsl22Xbpdvl3CXcZdyu8+Xc5d0l3WXdpd3l3iXeZd6l4GXgpeDl4SXhZeGl4eXiJeJl4qXi5eMu9CXjZeOl4+XkJeRl5K70bvSl5OXlLvTl5WXlpeXu9SXmJeZl5qXm5ecl52XnrvVl5+XoLvWl6G715eil6OXpJell6aXp5eol6mXqperl6yXrZeul6+XsJexl7KXs5e0l7WXtpe3l7iXuZe6l7uXvJe9l76Xv5fAl8GXwpfDl8SXxZfGl8eXyJfJl8qXy5fMl82XzpfPl9CX0ZfSl9OX1JfVl9aX15fYl9mX2pfbl9yX3Zfel9+X4Jfhl+KX45fkl+WX5pfnl+iX6Zfql+uX7Jftl+6X75fwl/GX8pfzl/SX9Zf2l/eX+Jf5l/qX+7vYl/yX/Zf+mEGYQphDmESYRZhGmEeYSJhJmEqYS5hMmE2YTphPmFCYUbvZmFKYU5hUmFWYVphXu9qYWJhZmFq725hhmGKYY7vcmGSYZZhmmGeYaJhpmGq73bvemGuYbJhtmG6Yb5hwmHGYcphzmHSYdZh2mHeYeJh5mHqYgZiCmIOYhJiFmIaYh5iImImYipiLmIyYjZiOmI+YkJiRmJKYk5iUmJWYlrvfu+CYl5iYu+GYmZiamJu74picmJ2YnpifmKCYoZiiu+O75Jiju+WYpLvmmKWYppinmKiYqZiqu+e76Jiru+m76pismK2767vsu+277piumK+YsJixmLK777vwmLO78bvyu/OYtJi1mLa79Ji3mLi79bv2mLmYurv3mLuYvJi9u/iYvpi/mMCYwZjCmMOYxLv5u/qYxbv7u/y7/ZjGmMeYyJjJmMqYy7v+vKGYzJjNvKKYzpjPmNC8o5jRmNKY05jUmNWY1pjXvKS8pZjYvKaY2bynmNqY25jcmN2Y3pjfvKiY4JjhmOK8qZjjmOSY5byqmOaY55jomOmY6pjrmOy8q5jtmO6Y75jwvKyY8ZjymPOY9Jj1mPa8rbyuvK+8sLyxmPeY+LyyvLOY+by0vLWY+pj7mPyY/by2vLeY/ry4vLm8uplBmUKZQ5lEvLuZRby8vL2ZRplHvL6ZSJlJmUq8v5lLmUyZTZlOmU+ZUJlRvMC8wZlSvMK8w7zEmVOZVJlVmVaZV5lYvMW8xplZmVq8x5lhmWKZY7zImWSZZZlmmWeZaJlpmWq8ybzKmWu8y7zMvM2ZbJltmW6Zb5lwmXG8zplymXOZdLzPmXWZdpl3vNCZeJl5mXqZgZmCmYOZhJmFmYaZh5mImYm80ZmKmYuZjJmNmY6Zj7zSvNO81JmQvNWZkZmSmZO81pmUvNeZlZmWmZeZmJmZvNi82ZmavNqZm7zbmZyZnZmevNyZn5mgvN283pmhmaK835mjmaSZpbzgmaaZp5momamZqpmrmayZrZmuma+ZsJmxvOGZspmzmbSZtZm2mbe84pm4mbmZurzjmbuZvJm9vOSZvpm/mcCZwZnCmcOZxLzlmcWZxrzmvOeZx5nImcmZypnLmcyZzbzomc6Zz5nQvOmZ0ZnSmdO86pnUmdWZ1pnXmdiZ2ZnavOu87JnbvO2Z3Jndmd6Z35ngmeGZ4pnjvO6875nkmeW88JnmmeeZ6LzxmemZ6pnrmeyZ7Znume+88rzzmfC89JnxvPWZ8pnzmfSZ9Zn2mfe89rz3mfiZ+bz4mfqZ+7z5vPqZ/Jn9mf6aQZpCmkOaRLz7vPyaRbz9mka8/ppHvaGaSL2ivaOaSb2kmkqaS5pMmk2aTppPmlCaUZpSmlOaVJpVmlaaV5pYmlmaWpphmmK9pZpjmmSaZZpmmmeaaJppvaa9p5pqmmu9qJpsmm2abr2pmm+acJpxmnKac5p0mnW9qpp2mneaeJp5vauaepqBmoKag5qEmoW9rL2tmoaah72umoiaiZqKva+ai5qMmo2ajpqPmpCakb2wvbGakr2ympO9s5qUmpWalpqXmpiamb20vbWampqbmpyanZqemp+9tpqgmqGaopqjmqSapZqmvbeap5qovbiaqb25mqqaq5qsmq2arpqvvbq9u5qwmrG9vJqymrOatL29vb6atZq2mreauJq5mrq9v73Amru9wZq8vcKavZq+mr+awJrBmsKaw5rEmsWaxprHmsiayZrKmsuazJrNms6az5rQmtGa0prTmtSa1ZrWmtea2JrZmtqa25rcmt2a3r3DvcSa35rgvcWa4Zrivca9x5rjmuSa5Zrmmuea6L3Ivcm9yprpvcua6r3Mmuua7Jrtmu69zZrvvc69z5rwvdC90ZrxmvKa873SmvSa9Zr2mvea+Jr5mvq9073Umvua/L3Vvdaa/Zr+m0GbQptDvde92L3Zm0SbRb3am0abR5tIvdubSZtKm0ubTJtNm06bT73cvd2bUJtRvd6935tSm1ObVJtVm1abV5tYm1mbWpthm2KbY5tkm2WbZptnm2ibaZtqm2ubbJttm26bb5twm3Gbcr3gm3ObdJt1m3abd5t4m3mbepuBm4Kbg5uEm4WbhpuHm4ibiZuKm4ubjJuNm46bj5uQm5GbkpuTm5SblZuWm5ebmJuZm5q94b3im5ubnL3jm52bnpufveSboL3lm6Gbopujm6Sbpb3mveebppunvei96Zuom6mbqpurm6ybrb3qm66br5uwveubsZuym7O97Ju0m7Wbtpu3m7ibuZu6m7ubvJu9m76bv5vAm8GbwpvDm8SbxZvGm8ebyJvJm8qby5vMm82bzpvPm9Cb0ZvSm9Ob1JvVm9ab15vYm9mb2pvbm9yb3Zvem9+b4Jvhm+Kb45vkm+Wb5r3tm+eb6Jvpm+qb65vsm+2b7pvvm/Cb8Zvym/Ob9Jv1m/ab95v4m/mb+pv7m/yb/b3uve+b/pxBvfCcQpxDvfG98pxEvfOcRZxGnEecSJxJvfS99ZxKnEucTL32nE2cTpxPnFCcUZxSvfe9+JxTnFS9+ZxVnFacV5xYnFmcWpxhnGKcY5xknGWcZpxnnGicab36nGqca5xsnG2cbpxvnHC9+5xxnHKcc5x0nHWcdpx3nHiceZx6nIGcgpyDnISchZyGnIeciJyJvfycipyLnIycjZyOnI+ckL39nJGckpyTvf6clJyVnJa+oZyXnJicmZyanJucnJydvqK+o5yenJ+coJyhnKKco5yknKWcppynvqScqJypnKqcq5ysnK2crpyvnLCcsZyynLOctJy1nLact5y4nLmcupy7nLycvZy+nL+cwJzBnMK+pb6mnMOcxL6nnMWcxpzHvqicyJzJnMqcy5zMnM2czr6pvqqcz5zQnNG+q5zSnNOc1JzVnNac176snNic2ZzanNuc3JzdnN6c35zgnOGc4pzjnOSc5ZzmnOec6JzpnOq+rZzrnOyc7ZzunO+c8Jzxvq6c8pzznPSc9Zz2nPec+Jz5nPqc+5z8nP2c/p1BnUKdQ51EnUWdRp1HnUidSZ1KnUudTJ1NnU6+r51PnVCdUb6wnVKdU51UnVWdVp1XnVidWZ1anWGdYp1jnWSdZZ1mnWedaJ1pnWqda51snW2dbp1vnXCdcZ1ynXOddJ11nXadd514nXmdep2BnYKdg52EnYWdhp2HnYidib6xnYqdi52MnY2djp2PvrK+s52QnZG+tJ2SnZOdlL61nZW+tp2WnZedmJ2Zvre+uL65nZqdm52cnZ2dnp2fnaCdoZ2inaO+up2knaWdpr67naedqJ2pvrydqp2rnaydrZ2una+dsL69nbGdsp2znbSdtZ22nbeduJ25nbqdu76+vr+dvJ29vsCdvp2/ncC+wZ3BncKdw53EncWdxp3HvsK+w53IvsSdyb7Fncqdy53Mnc2dzp3Pvsa+x53QndG+yL7Jvsqd0r7Lvsy+zZ3TndSd1Z3Wvs6+z77Qnde+0b7SvtOd2J3Zndq+1L7Vndu+1r7Xndyd3b7Ynd6d353gvtmd4Z3ineOd5J3lnead577avtud6L7cvt2+3p3pneqd653sne2d7r7fvuCd753wvuGd8Z3ynfO+4p30nfW+4532nfed+J35vuS+5Z36vuad+77nnfyd/Z3+vuieQb7pvuqeQp5DnkS+655FnkaeR77snkieSZ5KnkueTJ5Nnk6eT77tnlCeUZ5SnlOeVJ5VnlaeV55Ynlm+7r7vnlqeYb7wvvGeYr7yvvO+9L71nmOeZJ5lnmaeZ772vve++L75vvq++778nmi+/Z5pvv6ear+hv6Kea55sv6OebZ5unm+/pJ5wnnGecp5znnSedZ52v6W/pp53v6eeeL+onnmeep6BnoKeg56Ev6m/qr+rnoW/rJ6GnoeeiL+tnom/rr+vnoqei56Mno2/sL+xv7K/s7+0v7Wejp6PnpC/tr+3v7i/uZ6RnpKek7+6npSelZ6Wv7uel56Ynpmemp6bnpyenb+8v72enr++v7+en56gnqGeop6jnqSepb/Av8Gepp6nv8KeqJ6pnqq/w7/Ev8Weq7/Gnqyerb/Hv8i/yZ6uv8qer7/LnrC/zJ6xnrKes560v82/zp61nra/z563nrieub/Qnrqeu568nr2evp6/nsC/0b/SnsG/07/Uv9Wewp7DnsSexZ7Gnse/1r/Xnsieyb/Ynsqey57Mns2ezp7PntCe0Z7SntOe1L/ZntWe1r/ante/257Yntme2p7bntye3b/cv92e3p7fv96e4J7hnuK/357jnuSe5Z7mnuee6J7pv+C/4Z7qv+Ke67/jnuye7Z7unu+e8J7xv+S/5Z7ynvO/5p70nvWe9r/nnvee+J75nvqe+578nv2/6L/pnv6/6p9Bv+ufQp9Dn0SfRZ9Gn0e/7L/tn0ifSb/un0qfS59Mv++/8L/xn02fTp9Pn1CfUb/yv/OfUr/0n1O/9Z9Un1WfVp9Xn1ifWb/2v/efWp9hv/ifYp9jn2S/+Z9ln2afZ59on2mfap9rv/q/+59sn22//L/9n26fb59wn3Gfcp9zv/7AoZ90n3XAop92n3efeMCjn3mfep+Bn4Kfg5+En4XApMCln4afh5+IwKafiZ+Kn4ufjJ+Nn47Ap8Con4+fkMCpn5Gfkp+TwKqflJ+Vn5afl5+Yn5mfmsCrwKyfm8Ctn5zArp+dn56fn5+gn6GfosCvwLCfo5+kwLGfpZ+mn6fAsp+on6mfqp+rn6yfrZ+uwLPAtJ+vwLWfsMC2n7HAt5+yn7OftJ+1wLjAuZ+2n7fAup+4n7mfusC7n7ufvJ+9n76fv8C8n8DAvcC+n8HAv5/CwMDAwcDCwMPAxMDFwMbAx5/Dn8SfxcDIn8afx5/IwMmfyZ/Kn8ufzJ/Nn86fz8DKn9Cf0cDLn9Kf05/Un9Wf1p/Xn9if2cDMwM2f2p/bwM6f3J/dn97Az8DQwNGf35/gn+Gf4sDSwNPA1J/jwNXA1sDXwNif5J/ln+bA2Z/nwNrA25/on+nA3J/qwN3A3sDfn+vA4J/sn+2f7p/vn/DA4cDin/HA48DkwOXA5p/yn/Of9J/1n/bA58Don/ef+MDpn/mf+p/7wOqf/J/9n/6gQaBCoEOgRMDrwOygRcDtwO7A76BGoEegSKBJoEqgS8DwwPGgTKBNwPKgTsDzoE/A9KBQoFGgUqBToFSgVaBWwPWgV6BYoFmgWsD2oGGgYqBjoGSgZaBmwPegZ6BooGnA+KBqoGugbMD5oG2gbqBvoHCgcaByoHOgdKB1oHagd6B4oHmgeqCBoIKgg6CEoIXA+sD7oIagh8D8oIigiaCKwP2gi8D+oIygjaCOoI+gkMGhwaKgkcGjoJLBpMGloJOglKCVoJagl8GmwaegmKCZwaigmqCboJzBqaCdoJ6gn6CgoKGgoqCjwarBq6CkwaygpcGtoKagp6CooKmgqqCrwa6grKCtoK7Br6CvoLCgscGwoLKgs6C0oLWgtqC3oLjBscGyoLmgusGzwbSgu6C8oL2gvqC/oMDBtaDBoMKgw6DEoMWgxqDHoMigyaDKoMugzKDNoM6gz6DQoNGg0qDToNSg1aDWoNeg2KDZoNqg28G2wbeg3KDdwbig3qDfoODBuaDhwbqg4qDjoOSg5aDmwbvBvKDnwb2g6MG+wb/BwKDpoOqg68HBwcLBw6DsoO2g7qDvoPCg8cHEoPKg86D0oPWg9qD3oPig+cHFoPrBxqD7wceg/KD9oP6hQaFCoUPByKFEoUWhRqFHoUihSaFKoUuhTKFNoU6hT6FQoVGhUqFToVShVaFWwcnByqFXoVihWaFaoWGhYsHLoWOhZKFlwcyhZqFnoWjBzaFpoWqha6FsoW2hbqFvwc7Bz6FwwdChccHRoXKhc6F0oXWhdqF3wdLB06F4oXnB1KF6oYGhgqGDoYShhaGGoYehiKGJoYqhi6GMoY2hjqGPwdWhkKGRoZKhk6GUoZXB1sHXoZahl8HYoZihmaGawdnB2sHboZuhnKGdoZ6hn8Hcwd2hoMHeokHB36JCokOiRKJFokaiR8HgokiiSaJKokuiTKJNok6iT6JQolGiUqJTolSiVaJWoleiWKJZolrB4aJhomKiY6JkomWiZqJnweKiaKJpomqia6Jsom2ibqJvonCicaJyonOidKJ1onaid6J4onmieqKBooKig6KEooWihqKHoojB48HkoomiisHloouijKKNweaijqKPopCikaKSopOilMHnweiilcHpopail6KYopmimqKbopyincHqop6in6KgweujQaNCo0PB7KNEo0WjRqNHo0ijSaNKwe2jS6NMo02jTqNPo1CjUaNSo1OjVKNVwe7B76NWo1fB8KNYo1mjWsHxo2GjYqNjo2SjZaNmo2fB8sHzo2jB9KNpwfWjaqNro2yjbaNuo2+jcKNxo3Kjc6N0o3WjdqN3o3ijeaN6o4GjgqODo4SjhaOGo4ejiKOJo4qji6OMo42jjqOPo5CjkcH2wfejkqOTwfijlKOVwfnB+qOWwfujl6OYo5mjmqObwfzB/aOcwf6jncKhwqKjnqOfwqPCpKOgwqXCpqRBpELCp6RDwqikRMKppEWkRsKqpEekSKRJpErCq8KspEvCrcKuwq+kTKRNpE6kT6RQpFHCsMKxpFKkU8KypFSkVaRWwrOkV6RYpFmkWqRhpGKkY8K0wrWkZMK2wrfCuKRlpGakZ6RopGmkasK5pGukbKRtwrqkbqRvpHCkcaRypHOkdKR1pHakd6R4pHmkeqSBpIKkg8K7pISkhaSGpIekiKSJpIqki6SMpI2kjqSPpJCkkaSSpJOklKSVpJakl6SYpJmkmqSbpJyknaSepJ+koKVBpUKlQ6VEpUXCvMK9pUalR8K+pUilSaVKwr+lS6VMpU2lTqVPpVClUcLAwsGlUsLCwsPCxKVTpVSlVaVWpVelWMLFpVmlWqVhpWKlY6VkpWWlZqVnpWilaaVqpWulbKVtpW6lb6VwpXGlcsLGpXOldKV1pXald6V4wseleaV6pYGlgqWDpYSlhaWGpYeliKWJpYqli6WMpY2ljqWPpZClkcLIpZKlk6WUpZWllqWXpZilmaWapZulnKWdpZ6ln6WgpkGmQqZDpkSmRaZGpkemSKZJpkqmS6ZMpk2mTqZPplCmUaZSplOmVMLJwsqmVaZWwsumV6ZYplnCzKZapmGmYqZjpmSmZaZmws3CzqZnws+maMLQpmnC0aZqpmumbKZtwtLC06Zupm+mcKZxpnKmc8LUpnSmdaZ2pnemeKZ5pnqmgaaCpoOmhMLVpoWmhqaHpoimiaaKpovC1qaMpo2mjqaPppCmkaaSppOmlKaVppaml6aYppmmmqabppymnaaewtemn6agp0GnQqdDp0SnRcLYp0anR6dIwtmnSadKp0vC2qdMp02nTqdPp1CnUadSwtvC3KdTp1SnVadWp1enWKdZp1qnYadip2OnZKdlp2anZ6dop2mnaqdrp2ynbadup2+ncKdxp3Knc6d0p3Wndqd3wt2neKd5p3qngaeCp4PC3sLfp4SnhcLgp4anh6eIwuGniaeKp4unjKeNp46nj8LiwuOnkKeRp5LC5KeTp5SnlaeWp5enmMLlp5mnmqebp5ynnaeep5+noKhBqEKoQ6hEqEWoRqhHqEioSahKqEvC5sLnqEyoTahOqE+oUKhRqFKoU6hUqFWoVqhXqFioWahaqGGoYqhjqGSoZahmqGeoaKhpqGqoa6hsqG2obqhvqHCocahyqHPC6Kh0qHWodqh3qHioeah6qIGogqiDqISohaiGqIeoiKiJqIqoi6iMqI2ojqiPqJCokaiSqJOolMLpqJWolqiXqJiomaiaqJuonKidqJ6on6igqUGpQqlDqUSpRalGqUepSKlJqUqpS6lMqU2pTqlPwuqpUKlRqVKpU6lUqVWpVqlXqVipWalaqWGpYqljqWTC66llqWbC7Klnwu2paKlpqWqpa6lsqW2pbqlvqXCpcalyqXOpdKl1qXapd6l4qXmpeqmBqYKpg6mEqYWphqmHqYipiamKqYupjKmNqY6pj8Luwu+pkKmRwvCpkqmTqZTC8amVqZapl6mYqZmpmqmbwvLC86mcqZ2pnsL0wvWpn6mgqkGqQsL2wvfC+KpDqkTC+apFwvqqRsL7qkeqSKpJqkqqS6pMqk3C/ML9qk7C/sOhw6LDo6pPqlCqUapSqlPDpMOlqlSqVcOmqlaqV6pYw6eqWapaqmGqYqpjqmSqZcOow6mqZsOqw6vDrKpnqmiqaapqqmuqbMOtqm2qbqpvw66qcMOvqnHDsKpyqnOqdKp1qnaqd6p4w7Gqeap6qoGqgsOyqoOqhKqFqoaqh6qIqomqiqqLqoyqjaqOqo+qkKqRqpKqk6qUqpWqlqqXqpiqmaqaqpuqnKqdqp6qn6qgq0GrQqtDq0TDs8O0q0WrRsO1q0erSKtJw7arSqtLq0yrTatOq0+rUMO3w7irUcO5w7rDu6tSq1OrVKtVq1arV8O8w72rWKtZw76rWqthq2LDv6tjq2SrZatmq2eraKtpw8DDwatqw8Kra8PDq2yrbatuq2+rcKtxw8Srcqtzq3TDxat1q3ard6t4q3mrequBq4Krg6uEq4WrhquHq4iricPGq4qri6uMq42rjquPq5DDx6uRq5Krk8PIq5SrlauWq5ermKuZq5qrm6ucq52rnqufq6CsQaxCrEPDyaxErEWsRqxHrEisScPKw8usSqxLw8ysTKxNrE7DzaxPrFCsUaxSrFOsVKxVw87Dz6xWw9CsV8PRrFisWaxarGGsYqxjw9KsZKxlrGbD06xnrGisacPUrGqsa6xsrG2sbqxvrHCscaxyrHOsdKx1w9Wsdqx3rHiseax6rIGsgqyDrISshayGrIesiKyJrIqsi6yMrI2sjqyPrJCskaySrJOslKyVrJasl6yYrJmsmqybrJysncPWrJ6sn6ygw9etQa1CrUPD2K1ErUWtRq1HrUitSa1Kw9nD2q1Lw9utTMPcrU2tTq1PrVCtUa1Sw92tU61UrVWtVq1XrVitWa1arWGtYq1jrWStZa1mrWfD3q1orWmtaq1rrWytba1urW+tcK1xrXLD38PgrXOtdMPhrXWtdq13w+KteK15rXqtga2CrYOthMPjw+SthcPlrYbD5q2HrYitia2KrYutjMPnrY2tjq2PrZCtka2SrZOtlK2VrZatl62YrZmtmq2brZytna2erZ/D6K2grkGuQq5DrkSuRa5Gw+muR65IrknD6q5KrkuuTK5Nrk6uT65QrlGuUq5TrlSuVa5WrleuWK5ZrlquYa5irmOuZK5lrmbD665nrmiuacPsrmqua65sw+2uba5urm+ucK5xrnKuc8Puw++udMPwrnXD8a52rneueK55rnqugcPyroKug66Ew/Ouha6GrofD9K6Iromuiq6Lroyuja6Ow/Wuj66QrpGuksP2rpOulK6Vrpaul66Yw/fD+K6ZrprD+a6brpyuncP6rp6un66gr0GvQq9Dr0TD+8P8r0XD/a9Gw/6vR69Ir0mvSq9Lr0yvTa9Or0+vUK9Rr1KvU69Ur1WvVq9Xr1ivWa9ar2GvYq9jr2SvZa9mr2evaK9pr2qva69sr22vbsShxKKvb69wxKOvca9yxKTEpcSmr3OvdK91r3avd694xKfEqK95xKmvesSqr4Gvgq+Dr4Svha+GxKvErK+Hr4jEra+Jr4qvi8Sur4yvja+Or4+vkK+Rr5LEr8Swr5PEsa+UxLKvla+Wr5evmK+Zr5rEs8S0r5uvnMS1r52vnq+fxLavoLBBsEKwQ7BEsEWwRsS3xLiwR8S5xLrEu7BIsEmwSrBLsEywTcS8xL2wTrBPsFCwUbBSsFOwVLBVsFawV7BYsFmwWrBhsGKwY7BksGWwZsS+sGewaLBpsGqwa7BssG2wbrBvsHCwcbBysHOwdLB1sHawd7B4sHmwerCBsIKwg7CEsIWwhrCHsIiwibCKsIuwjLCNsI7Ev8TAsI+wkMTBsJGwksTCxMOwk7CUsJWwlrCXsJiwmcTExMWwmsTGxMfEyLCbsJywnbCesJ+woMTJxMqxQbFCxMuxQ7FEsUXEzLFGsUexSLFJsUqxS7FMxM3EzrFNxM+xTsTQsU+xULFRsVKxU7FUxNGxVbFWsVfE0rFYsVmxWsTTsWGxYrFjsWSxZbFmsWfE1MTVsWjE1sTXxNixabFqsWuxbLFtsW7E2bFvsXCxcbFysXOxdLF1sXaxd7F4sXmxerGBsYKxg7GEsYWxhrGHsYixibGKsYuxjLGNsY6xj8TaxNuxkLGRxNyxkrGTsZTE3bGVsZaxl7GYsZmxmrGbxN7E37GcxOCxncThsZ6xn7GgskGyQrJDxOLE47JEskXE5LJGskeySMTlskmySrJLskyyTbJOsk/E5rJQslGyUrJTxOeyVLJVslayV7JYslnE6LJasmGyYrJjsmSyZbJmsmeyaLJpsmqya7Jssm2ybrJvsnCycbJysnPE6bJ0snWydrJ3sniyecTqsnqygbKCsoOyhLKFsobE67KHsoiyibKKsouyjLKNso6yj7KQspGykrKTspSylbKWspeymLKZxOyymrKbspyynbKesp+yoLNBs0KzQ7NEs0WzRrNHs0izSbNKs0uzTLNNs06zT7NQs1GzUrNTs1TE7cTus1WzVsTvs1ezWLNZxPCzWrNhs2KzY7Nks2WzZsTxxPKzZ8Tzs2jE9LNps2qza7Nss22zbsT1s2+zcLNxxPazcrNzs3TE97N1s3azd7N4s3mzerOBs4Kzg7OEs4WzhsT4s4eziLOJs4qzi7OMxPmzjbOOs4+zkLORs5Kzk7OUs5WzlrOXs5izmbOas5uznLOds56zn7OgxPq0QbRCtEO0RLRFtEbE+8T8tEe0SMT9tEm0SrRLxP60TLRNtE60T7RQtFG0UsWhxaK0U8WjtFTFpLRVtFa0V7RYtFm0WsWltGG0YrRjxaa0ZLRltGbFp7RntGi0abRqtGu0bLRtxai0brRvtHC0cbRytHO0dLR1tHa0d7R4xanFqrR5tHrFq7SBtIK0g8WstIS0hbSGtIe0iLSJtIrFrcWutIu0jLSNxa+0jrSPtJC0kbSStJO0lLSVtJa0l7SYtJm0mrSbtJy0nbSetJ+0oLVBtUK1Q7VEtUW1RrVHtUi1SbVKtUu1TLVNtU61T8WwxbG1ULVRxbK1UrVTtVTFs7VVtVa1V7VYtVm1WrVhxbTFtbVixba1Y8W3tWS1ZbVmtWe1aLVpxbjFubVqtWvFurVstW21bsW7xby1b7VwtXG1crVztXTFvcW+tXXFv8XAxcG1drV3tXi1ebV6tYHFwsXDtYK1g8XEtYS1hbWGxcW1h7WItYm1irWLtYy1jcXGxce1jsXIxcnFyrWPtZC1kbWStZO1lMXLtZW1lrWXtZi1mbWatZu1nLWdtZ61n7WgtkG2QrZDtkS2RbZGtke2SMXMtkm2SrZLtky2TbZOtk+2ULZRtlK2U7ZUtlW2VrZXtli2WbZatmG2YrZjtmS2ZbZmtme2aLZptmq2a7Zstm22brZvtnDFzcXOtnG2csXPtnO2dLZ1xdC2dsXRtne2eLZ5tnq2gcXSxdO2gsXUxdXF1raDtoS2hbaGtoe2iMXXxdi2ibaKxdm2i7aMto3F2raOto+2kLaRtpK2k7aUxdvF3LaVxd22lsXetpe2mLaZtpq2m7acxd+2nbaetp/F4Lagt0G3QrdDt0S3RbdGt0e3SLdJt0q3S7dMt023TsXht0+3ULdRt1K3U7dUt1XF4rdWt1e3WMXjt1m3Wrdht2K3Y7dkt2W3Zrdnt2i3abdqt2u3bLdtt263b7dwt3G3crdzt3S3dcXkxeW3drd3xea3eLd5t3rF57eBt4K3g7eEt4W3hreHxejF6beIxeq3icXrt4q3i7eMt43F7LeOxe23j7eQt5HF7reSt5O3lLeVt5a3l7eYt5m3mrebt5y3nbeet5+3oLhBuEK4Q7hEuEW4RrhHuEjF77hJuEq4S7hMuE24TrhPuFC4UbhSuFO4VLhVuFa4V7hYuFm4WrhhuGK4Y7hkuGW4ZrhnuGi4acXwuGq4a7hsxfG4bbhuuG+4cLhxuHK4c7h0uHW4drh3uHi4ebh6xfK4gcXzuIK4g7iEuIW4hriHxfS4iLiJuIq4i7iMuI24jriPuJC4kbiSuJO4lLiVuJa4l7iYuJm4mribuJy4nbieuJ+4oLlBuULF9cX2uUO5RMX3uUW5RrlHxfi5SLlJuUq5S7lMuU25TsX5xfq5T8X7uVDF/LlRuVK5U7lUuVW5VsX9uVe5WLlZuVq5YbliuWO5ZLlluWa5Z7louWm5arlruWy5bbluuW/F/rlwuXG5crlzuXS5dbl2xqG5d7l4uXm5ermBuYK5g7mEuYW5hrmHuYi5ibmKuYu5jLmNuY65j7mQuZG5krmTuZS5lbmWuZfGosajuZi5mcakuZq5m7mcxqW5nbmeuZ+5oLpBukK6Q8amxqe6RLpFukbGqLpHuki6SbpKuku6TMapuk26TrpPxqq6ULpRulLGq7pTulS6VbpWule6WLpZxqy6WrphumK6Y8atumS6Zbpmume6aLppxq7Gr7pqumvGsLpsum3Gscayum7Gs7pvunC6cbpyunPGtMa1unTGtrp1una6d7p4unm6erqBuoLGt7qDuoS6hca4uoa6h7qIxrm6ibqKuou6jLqNuo66j8a6xru6kLqRupK6k7qUupW6lrqXupi6mca8xr26mrqbxr66nLqdup7Gv7qfuqC7QbtCu0O7RLtFxsDGwbtGxsK7R8bDu0i7SbtKu0u7TLtNxsTGxcbGu07Gx7tPu1C7UcbIu1LGybtTu1S7VbtWu1fGysbLu1jGzMbNxs67Wbtau2HGz7tiu2PG0MbRu2S7ZcbSu2a7Z7toxtO7abtqu2u7bLttu267b8bUxtW7cMbWxtfG2Ltxu3K7c7t0u3W7dsbZxtq7d7t4u3m7eruBu4K7g7uEu4W7hruHu4i7ibuKu4u7jLuNu467j7uQu5G7kruTu5S7lbuWu5e7mLuZu5q7m7ucu527nrufu6C8QbxCvEO8RLxFvEa8R7xIvEm8SrxLvEy8TbxOvE+8ULxRvFLG28bcvFO8VMbdvFW8VrxXxt68WLxZvFq8YbxivGO8ZMbfxuC8ZcbhxuLG47xmvGe8aLxpvGq8a8bkxuW8bLxtxua8brxvvHDG57xxvHK8c7x0vHW8drx3xujG6bx4xuq8ecbrvHq8gbyCvIO8hLyFxuy8hryHvIjG7byJvIq8i8buvIy8jbyOvI+8kLyRvJLG78bwvJO8lMbxxvK8lbyWvJe8mLyZvJrG87ybvJy8nbyevJ+8oL1BxvS9Qr1DvUS9Rb1GvUe9SL1JxvW9Ssb2vUu9TL1NvU69T71QvVG9Usb3xvi9U71Uxvm9Vb1WvVfG+r1YvVm9Wr1hvWK9Y71kxvvG/L1lxv29Zsb+vWe9aL1pvWq9a71sx6G9bb1uvW+9cL1xvXK9c710vXW9dr13vXi9eb16vYG9gr2DvYS9hb2Gx6K9h72IvYm9ir2LvYy9jb2OvY+9kL2RvZK9k72UvZW9lr2XvZi9mb2avZu9nL2dvZ69n72gvkG+Qr5DvkS+Rb5Gvke+SMejvkm+Sr5Lx6S+TL5Nvk6+T75QvlG+Ur5TvlS+Vb5Wvle+WL5Zvlq+Yb5ivmO+ZL5lvma+Z75ox6W+ab5qvmvHpr5svm2+bsenvm++cL5xvnK+c750vnW+dseovnfHqb54vnm+er6BvoK+g76EvoXHqservoa+h8esvoi+icetx66+isevvou+jL6Nvo6+j8ewx7G+kMeyvpHHs76SvpO+lL6Vvpa+l8e0vpi+mb6avpu+nL6dvp6+n76gv0G/Qr9Dv0S/Rb9Gv0e/SL9Jv0q/S8e1v0y/Tb9Ov0+/UL9Rv1K/U79Uv1W/Vr9Xv1i/Wb9av2G/Yr9jv2S/Zb9mv2e/aL9pv2q/a79sv22/br9vv3C/cb9yv3PHtr90v3W/dse3v3e/eL95x7i/er+Bv4K/g7+Ev4W/hse5v4e/iMe6v4m/ir+Lv4y/jb+Ov4+/kMe7v5G/kr+Tx7y/lL+Vv5bHvb+Xv5i/mb+av5u/nL+dx76/nr+fx7+/oMfAwEHAQsBDwETARcBGx8HAR8BIwEnHwsBKwEvATMfDwE3ATsBPwFDAUcBSwFPHxMfFwFTHxsBVwFbAV8BYwFnAWsBhwGLAY8BkwGXAZsBnwGjAacBqwGvAbMBtwG7Ab8BwwHHAcsBzwHTAdcB2wHfAeMB5wHrAgcCCwIPAhMfHx8jAhcCGx8nAh8CIwInHysCKwIvAjMCNwI7Aj8CQx8vHzMCRx83AksfOwJPAlMCVwJbAl8CYx8/H0MCZwJrH0cCbwJzAncfSwJ7An8CgwUHH08FCwUPH1MfVwUTH1sFFx9fBRsFHwUjBScFKwUvH2MfZwUzBTcfawU7BT8FQx9vBUcFSwVPBVMFVwVbBV8fcx93BWMfex9/H4MFZwVrBYcFiwWPBZMfhwWXBZsFnwWjBacFqwWvBbMFtwW7Bb8FwwXHBcsFzwXTBdcF2wXfBeMfiwXnBesGBwYLBg8GEwYXBhsGHwYjBicGKwYvBjMGNwY7Bj8GQwZHBksGTwZTBlcGWwZfBmMGZwZrBm8GcwZ3BnsGfwaDH48fkwkHCQsflwkPCRMJFx+bCRsfnwkfCSMJJwkrCS8fox+nCTMfqwk3H68JOwk/CUMJRwlLCU8fsx+3CVMJVx+7CVsJXwljH78JZwlrCYcJiwmPCZMJlx/DH8cJmx/LCZ8fzwmjCacJqwmvCbMJtx/TH9cJuwm/H9sJwwnHCcsf3wnPCdMJ1wnbCd8J4wnnH+Mf5wnrH+sf7x/zCgcKCwoPChMKFwobH/cKHwojCicf+worCi8KMyKHCjcKOwo/CkMKRwpLCk8KUyKLClcKWwpfCmMKZwprCm8Kcwp3CnsijyKTCn8KgyKXDQcNCw0PIpsNEw0XDRsNHyKfDSMNJyKjIqcNKyKrDS8irw0zDTcNOyKzDT8NQyK3IrsNRw1LIr8NTw1TDVciww1bDV8NYw1nDWsNhw2LDY8Nkw2XIscNmyLLDZ8Now2nDasNrw2zIs8i0w23Dbsi1w2/DcMNxw3LDc8N0w3XDdsN3w3jDecN6w4HDgsi2w4PIt8OEw4XDhsOHw4jDici4yLnDisOLyLrDjMONw47Iu8OPw5DDkcOSw5PDlMOVw5bIvMOXyL3DmMi+w5nDmsObw5zDncOeyL/Dn8OgxEHIwMRCxEPERMjBxEXERsRHxEjEScRKxEvETMjCxE3Iw8ROxE/EUMRRxFLEU8RUxFXIxMjFxFbEV8jGxFjEWcRayMfEYcRixGPEZMjIxGXEZsjJxGfEaMjKxGnIy8RqxGvEbMRtxG7Eb8jMxHDEccRyyM3Ec8R0xHXIzsR2xHfEeMR5xHrEgcSCyM/Eg8SExIXEhsjQxIfEiMSJxIrEi8SMyNHI0sSNxI7I08SPxJDEkcjUxJLEk8SUxJXElsSXxJjEmcSaxJvEnMSdyNXEnsSfxKDFQcVCxUPI1sjXxUTFRcjYxUbFR8VIyNnFScVKxUvFTMVNxU7FT8jayNvFUMjcxVHI3cVSxVPFVMVVxVbFV8jeyN/FWMVZyODFWsVhxWLI4cVjxWTFZcVmxWfFaMVpyOLFasVryOPFbMjkxW3FbsVvxXDFccVyyOXI5sVzxXTI58V1yOjI6cjqyOvFdsV3xXjFecV6xYHI7MjtxYLI7sWDyO/FhMWFxYbI8MWHxYjI8cWJxYrFi8jyxYzFjcWOyPPFj8WQxZHFksWTxZTFlcj0yPXFlsWXxZjI9sWZxZrFm8WcxZ3Fnsj3yPjFn8WgyPnGQcZCxkPI+sZExkXGRsZHxkjGScZKyPvI/MZLyP3GTMj+xk3GTsZPxlDGUcZS";
 let _cp949=null;
 function cp949tab(){if(_cp949)return _cp949;const s=atob(CP949_HANGUL_B64),a=new Uint8Array(s.length);for(let i=0;i<s.length;i++)a[i]=s.charCodeAt(i);_cp949=a;return a;}
 function toCP949(str){const t=cp949tab(),out=[];for(const ch of str){const cp=ch.codePointAt(0);if(cp<128){out.push(cp);}else if(cp>=0xAC00&&cp<=0xD7A3){const i=(cp-0xAC00)*2;out.push(t[i],t[i+1]);}else{out.push(0x3F);}}return new Uint8Array(out);}
-let _yeMediaText='';
-// ── 2025 귀속 근로소득 지급명세서 전산매체 규격(제출요령 2026.03.26) ──
-//   각 레코드 2,010 byte 고정. 슬롯 = [type('9'|'X'), len]을 누적위치 순으로 배열(공식 제출요령 파싱).
-const WT_SLOTS={
-  A:[['X',1],['9',2],['X',3],['9',8],['9',1],['X',6],['X',20],['X',4],['X',10],['X',60],['X',30],['X',30],['X',15],['X',4],['9',5],['9',3],['X',1808]],
-  B:[['X',1],['9',2],['X',3],['9',6],['X',10],['X',60],['X',30],['X',13],['X',4],['9',7],['9',7],['9',14],['9',13],['9',13],['9',13],['9',13],['9',1],['X',1800]],
-  C:[['X',1],['9',2],['X',3],['9',6],['X',10],['9',2],['9',1],['X',2],['9',1],['X',1],['X',30],['9',1],['X',13],['X',2],['X',1],['X',1],['X',1],['X',4],['X',1],['X',10],['X',60],['9',8],['9',8],['9',8],['9',8],['9',11],['9',11],['9',11],['9',11],['9',11],['9',11],['9',11],['9',11],['9',11],['9',11],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',30],['9',10],['9',10],['9',10],['9',20],['9',30],['9',20],['9',30],['9',30],['9',30],['9',10],['9',31],['9',10],['9',11],['9',8],['9',8],['9',38],['9',10],['9',110],['9',20],['9',109],['9',11],['9',11],['9',11],['9',8],['9',10],['9',10],['9',10],['9',10],['9',10],['9',8],['9',10],['9',10],['9',10],['9',10],['9',10],['9',11],['9',11],['9',11],['9',11],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',204],['9',188],['9',10],['9',10],['9',10],['9',10],['9',28],['9',34],['X',153]],
-  D:[['X',1],['9',2],['X',3],['9',6],['X',10],['X',13],['X',1],['X',1],['X',60],['X',10],['9',8],['9',8],['9',8],['9',8],['9',11],['9',11],['9',11],['9',11],['9',11],['9',11],['9',11],['9',11],['9',11],['9',11],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',30],['9',30],['9',50],['9',30],['9',50],['9',30],['9',10],['9',43],['X',1268]],
-  E:[['X',1],['9',2],['X',3],['9',6],['X',10],['X',13],['X',1],['X',1],['X',30],['X',13],['X',1],['X',1],['X',1],['X',1],['X',1],['X',1],['9',14],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',13],['9',40],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',1],['9',20],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['X',44],['X',1],['X',30],['X',13],['X',1],['X',1],['X',1],['X',1],['X',1],['X',1],['X',2],['X',1],['9',11],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',13],['9',40],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',1],['9',20],['9',10],['9',10],['9',10],['9',10],['9',10],['9',23],['X',31],['X',1],['X',30],['X',13],['X',1],['X',1],['X',1],['X',1],['X',1],['X',1],['X',2],['X',1],['9',11],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',23],['9',40],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',1],['9',20],['9',10],['9',10],['9',10],['9',10],['9',10],['9',10],['9',13],['9',32],['X',557]],
-  F:[['X',1],['9',2],['X',3],['9',6],['X',10],['X',13],['X',2],['X',3],['X',60],['X',20],['9',10],['9',10],['9',4],['X',1],['9',8],['9',2],['X',2],['X',3],['X',60],['X',20],['9',10],['9',10],['9',4],['X',1],['9',8],['9',2],['X',2],['X',3],['X',60],['X',20],['9',10],['9',10],['9',4],['X',1],['9',8],['9',2],['X',2],['X',3],['X',60],['X',20],['9',10],['9',10],['9',4],['X',1],['9',8],['9',2],['X',2],['X',3],['X',60],['X',20],['9',10],['9',10],['9',4],['X',1],['9',8],['9',2],['X',2],['X',3],['X',60],['X',20],['9',10],['9',10],['9',4],['X',1],['9',8],['9',2],['X',2],['X',3],['X',60],['X',20],['9',10],['9',10],['9',4],['X',1],['9',8],['9',2],['X',2],['X',3],['X',60],['X',20],['9',10],['9',10],['9',4],['X',1],['9',8],['9',2],['X',2],['X',3],['X',60],['X',20],['9',10],['9',10],['9',4],['X',1],['9',8],['9',2],['X',2],['X',3],['X',60],['X',20],['9',10],['9',10],['9',4],['X',1],['9',8],['9',2],['X',2],['X',3],['X',60],['X',20],['9',10],['9',10],['9',4],['X',1],['9',8],['9',2],['X',2],['X',3],['X',60],['X',20],['9',10],['9',10],['9',4],['X',1],['9',8],['9',2],['X',2],['X',3],['X',60],['X',20],['9',10],['9',10],['9',4],['X',1],['9',8],['9',2],['X',2],['X',3],['X',60],['X',20],['9',10],['9',10],['9',4],['X',1],['9',8],['9',2],['X',2],['X',3],['X',60],['X',20],['9',10],['9',10],['9',4],['X',1],['9',8],['9',2],['9',2],['X',173]],
-  G:[['X',1],['9',2],['X',3],['9',6],['X',10],['X',13],['X',2],['X',60],['X',13],['X',1],['9',5],['X',150],['9',8],['9',8],['9',10],['9',10],['X',60],['X',13],['9',8],['9',8],['9',4],['9',10],['9',10],['9',10],['9',10],['X',60],['X',13],['X',1],['9',5],['X',150],['9',8],['9',8],['9',10],['X',60],['X',13],['X',1],['9',5],['X',150],['9',8],['9',8],['9',10],['9',10],['X',60],['X',13],['9',8],['9',8],['9',4],['9',10],['9',10],['9',10],['9',10],['X',60],['X',13],['X',1],['9',5],['X',150],['9',8],['9',8],['9',10],['X',60],['X',13],['X',1],['9',5],['X',150],['9',8],['9',8],['9',10],['9',10],['X',60],['X',13],['9',8],['9',8],['9',4],['9',10],['9',10],['9',10],['9',10],['X',60],['X',13],['X',1],['9',5],['X',150],['9',8],['9',8],['9',10],['9',2],['X',12]],
-  H:[['X',1],['9',2],['X',3],['9',6],['X',10],['X',13],['9',1],['X',30],['X',2],['9',4],['9',13],['9',13],['9',13],['9',13],['9',13],['9',13],['9',13],['9',5],['X',1842]],
-  I:[['X',1],['9',2],['X',3],['9',6],['X',10],['X',13],['X',2],['X',1],['X',13],['X',60],['X',1],['X',1],['X',30],['X',13],['9',5],['9',13],['9',13],['9',13],['9',13],['9',5],['X',1792]],
-  K:[['X',1],['9',2],['X',3],['9',6],['X',10],['X',13],['X',43],['9',8],['9',10],['X',1],['X',10],['X',43],['9',8],['9',10],['X',1],['X',10],['X',43],['9',8],['9',10],['X',1],['X',10],['X',43],['9',8],['9',10],['X',1],['X',10],['X',43],['9',8],['9',10],['X',1],['X',10],['X',43],['9',8],['9',10],['X',1],['X',10],['9',2],['X',1541]]
-};
-// C레코드 비과세 슬롯(35~56) 코드 순서 + Q03/Q04/W01(병합슬롯 57)
-const WT_C_NTORDER=['G01','H05','H06','H07','H08','H09','H10','H14','H15','H11','H12','H13','H16','H17','I01','K01','M01','M04','M03','O01','P01','Q02'];
-// 슬롯 기본값(9→0채움, X→공백)으로 레코드 생성 후 ov[슬롯index]=완성문자열 덮어쓰기
-function wtRec(rec, ov){
-  const sl=WT_SLOTS[rec]; let out='';
-  for(let i=0;i<sl.length;i++){
-    const [t,l]=sl[i];
-    out += (ov && ov[i]!=null) ? ov[i] : (t==='9'?N(0,l):C('',l));
-  }
-  return out;
-}
 function bytLen(s){let n=0;for(const c of s)n+=c.charCodeAt(0)>127?2:1;return n;}
-
+// ===== 전산매체 레이아웃 (제출요령 원문 파싱: 근로소득 2026.08.20 / 퇴직소득 2026.09.14 / 간이(근로) 반기 280B / 일용 2023.07.01 240B) =====
+//   [항목번호, 형식(9=숫자 우측0채움 · X=문자 좌측공백), 길이]. 같은 항목번호가 여러 칸이면(예 C65·C69 부호/금액) 순서대로 '@0','@1'… 로 지정한다.
+const MEDIA_LAYOUT={"WT":{"A":[["A1","X",1],["A2","9",2],["A3","X",3],["A4","9",8],["A5","9",1],["A6","X",6],["A7","X",20],["A8","X",4],["A9","X",10],["A10","X",60],["A11","X",30],["A12","X",30],["A13","X",15],["A14","X",4],["A15","9",5],["A16","9",3],["A17","X",1808]],"B":[["B1","X",1],["B2","9",2],["B3","X",3],["B4","9",6],["B5","X",10],["B6","X",60],["B7","X",30],["B8","X",13],["B9","X",4],["B10","9",7],["B11","9",7],["B12","9",14],["B13","9",13],["B14","9",13],["B15","9",13],["B16","9",13],["B17","9",1],["B18","X",1800]],"C":[["C1","X",1],["C2","9",2],["C3","X",3],["C4","9",6],["C5","X",10],["C6","9",2],["C7","9",1],["C8","X",2],["C9","9",1],["C10","X",1],["C11","X",30],["C12","9",1],["C13","X",13],["C14","X",2],["C15","X",1],["C16","X",1],["C17","X",1],["C18","X",4],["C19","X",1],["C20","X",10],["C21","X",60],["C22","9",8],["C23","9",8],["C24","9",8],["C25","9",8],["C26","9",11],["C27","9",11],["C28","9",11],["C29","9",11],["C30","9",11],["C31","9",11],["C32","9",11],["C33","9",11],["C34","9",11],["C35","9",11],["C36","9",10],["C37","9",10],["C38","9",10],["C39","9",10],["C40","9",10],["C41","9",10],["C42","9",10],["C43","9",10],["C44","9",10],["C45","9",10],["C46","9",10],["C47","9",10],["C48","9",10],["C49","9",10],["C50","9",10],["C51","9",10],["C52","9",10],["C53","9",10],["C54","9",10],["C55","9",10],["C56","9",10],["C57","9",10],["C58","9",10],["C59","9",10],["C60","9",10],["C61","9",10],["C62","9",10],["C63","9",10],["C64","9",10],["C65","9",10],["C65","9",10],["C65","9",10],["C66","9",10],["C67","9",10],["C67","9",10],["C68","9",10],["C69","9",10],["C69","9",10],["C69","9",10],["C69","9",10],["C70","9",10],["C71","9",10],["C71","9",10],["C72","9",10],["C73","9",10],["C74","9",10],["C75","9",10],["C76","9",11],["C77","9",10],["C78","9",11],["C79","9",8],["C80","9",8],["C81","9",2],["C81","9",8],["C82","9",2],["C82","9",8],["C83","9",2],["C83","9",8],["C84","9",8],["C85","9",10],["C86","9",10],["C86","9",10],["C87","9",10],["C87","9",10],["C88","9",10],["C88","9",10],["C89","9",10],["C89","9",10],["C90","9",10],["C90","9",10],["C91","9",10],["C91","9",10],["C92","9",10],["C92","9",10],["C93","9",8],["C93","9",8],["C94","9",8],["C94","9",8],["C94","9",8],["C95","9",8],["C95","9",8],["C96","9",8],["C96","9",8],["C96","9",8],["C96","9",8],["C97","9",11],["C98","9",11],["C99","9",11],["C100","9",11],["C101","9",8],["C102","9",10],["C103","9",10],["C104","9",10],["C105","9",10],["C106","9",10],["C107","9",8],["C108","9",10],["C109","9",10],["C110","9",10],["C111","9",10],["C112","9",10],["C113","9",11],["C114","9",11],["C115","9",11],["C116","9",11],["C117","9",10],["C118","9",10],["C119","9",10],["C120","9",10],["C121","9",10],["C122","9",10],["C123","9",10],["C124","9",10],["C125","9",2],["C125","9",10],["C126","9",2],["C126","9",10],["C127","9",10],["C127","9",10],["C128","9",10],["C128","9",10],["C129","9",10],["C129","9",10],["C130","9",10],["C130","9",10],["C131","9",10],["C131","9",10],["C132","9",10],["C132","9",10],["C133","9",10],["C133","9",10],["C134","9",10],["C134","9",10],["C135","9",10],["C135","9",10],["C136","9",11],["C136","9",10],["C137","9",11],["C137","9",10],["C138","9",11],["C138","9",10],["C139","9",11],["C139","9",10],["C140","9",11],["C140","9",10],["C141","9",11],["C141","9",10],["C142","9",11],["C142","9",10],["C143","9",11],["C143","9",10],["C144","9",11],["C144","9",10],["C145","9",10],["C146","9",10],["C147","9",10],["C148","9",10],["C149","9",10],["C150","9",10],["C150","9",8],["C151","9",10],["C152","9",11],["C152","9",10],["C152","9",10],["C153","9",3],["C154","9",11],["C154","9",10],["C154","9",10],["C155","9",11],["C155","9",10],["C155","9",10],["C156#부호","9",1],["C156#금액","9",11],["C156#부호","9",1],["C156#금액","9",10],["C156#부호","9",1],["C156#금액","9",10],["C157","X",36]],"D":[["D1","X",1],["D2","9",2],["D3","X",3],["D4","9",6],["D5","X",10],["D6","X",13],["D7","X",1],["D8","X",1],["D9","X",60],["D10","X",10],["D11","9",8],["D12","9",8],["D13","9",8],["D14","9",8],["D15","9",11],["D16","9",11],["D17","9",11],["D18","9",11],["D19","9",11],["D20","9",11],["D21","9",11],["D22","9",11],["D23","9",11],["D24","9",11],["D25","9",10],["D26","9",10],["D27","9",10],["D28","9",10],["D29","9",10],["D30","9",10],["D31","9",10],["D32","9",10],["D33","9",10],["D34","9",10],["D35","9",10],["D36","9",10],["D37","9",10],["D38","9",10],["D39","9",10],["D40","9",10],["D41","9",10],["D42","9",10],["D43","9",10],["D44","9",10],["D45","9",10],["D46","9",10],["D47","9",10],["D48","9",10],["D49","9",10],["D50","9",10],["D51","9",10],["D52","9",10],["D53","9",10],["D54","9",10],["D54","9",10],["D54","9",10],["D55","9",10],["D56","9",10],["D56","9",10],["D57","9",10],["D58","9",10],["D58","9",10],["D58","9",10],["D58","9",10],["D59","9",10],["D60","9",10],["D60","9",10],["D61","9",10],["D62","9",10],["D63","9",10],["D64","9",11],["D64","9",10],["D64","9",10],["D65","9",2],["D66","X",1268]],"E":[["E1","X",1],["E2","9",2],["E3","X",3],["E4","9",6],["E5","X",10],["E6","X",13],["E7","X",1],["E8","X",1],["E9","X",30],["E10","X",13],["E11","X",1],["E12","X",1],["E13","X",1],["E14","X",1],["E15","X",1],["E16","X",1],["E17","X",1],["E18","X",1],["E19","X",1],["E20","X",1],["E21","9",10],["E22","9",10],["E23","9",10],["E24","9",10],["E25","9",10],["E26","9",10],["E27","9",10],["E28","9",10],["E29","9",10],["E30","9",10],["E31","9",10],["E32","9",10],["E33","9",10],["E34","9",10],["E35","9",10],["E36","9",10],["E37","9",10],["E38","9",13],["E39","9",10],["E40","9",10],["E41","9",10],["E42","9",10],["E43","9",10],["E44","9",10],["E45","9",10],["E46","9",10],["E47","9",10],["E48","9",10],["E49","9",10],["E50#부호","9",1],["E50#금액","9",10],["E51","9",10],["E52","9",10],["E53","9",10],["E54","9",10],["E55","9",10],["E56","9",10],["E57","9",10],["E58","9",13],["E59","9",10],["E60","9",10],["E61","9",10],["E62","X",1],["E63","X",1],["E64","X",30],["E65","X",13],["E66","X",1],["E67","X",1],["E68","X",1],["E69","X",1],["E70","X",1],["E71","X",1],["E72","X",1],["E73","X",1],["E74","X",1],["E75","X",1],["E76","9",10],["E77","9",10],["E78","9",10],["E79","9",10],["E80","9",10],["E81","9",10],["E82","9",10],["E83","9",10],["E84","9",10],["E85","9",10],["E86","9",10],["E87","9",10],["E88","9",10],["E89","9",10],["E90","9",10],["E91","9",10],["E92","9",10],["E93","9",13],["E94","9",10],["E95","9",10],["E96","9",10],["E97","9",10],["E98","9",10],["E99","9",10],["E100","9",10],["E101","9",10],["E102","9",10],["E103","9",10],["E104","9",10],["E105#부호","9",1],["E105#금액","9",10],["E106","9",10],["E107","9",10],["E108","9",10],["E109","9",10],["E110","9",10],["E111","9",10],["E112","9",10],["E113","9",13],["E114","9",10],["E115","9",10],["E116","9",10],["E117","X",1],["E118","X",1],["E119","X",30],["E120","X",13],["E121","X",1],["E122","X",1],["E123","X",1],["E124","X",1],["E125","X",1],["E126","X",1],["E127","X",1],["E128","X",1],["E129","X",1],["E130","X",1],["E131","9",10],["E132","9",10],["E133","9",10],["E134","9",10],["E135","9",10],["E136","9",10],["E137","9",10],["E138","9",10],["E139","9",10],["E140","9",10],["E141","9",10],["E142","9",10],["E143","9",10],["E144","9",10],["E145","9",10],["E146","9",10],["E147","9",10],["E148","9",13],["E149","9",10],["E150","9",10],["E151","9",10],["E152","9",10],["E153","9",10],["E154","9",10],["E155","9",10],["E156","9",10],["E157","9",10],["E158","9",10],["E159","9",10],["E160#부호","9",1],["E160#금액","9",10],["E161","9",10],["E162","9",10],["E163","9",10],["E164","9",10],["E165","9",10],["E166","9",10],["E167","9",10],["E168","9",13],["E169","9",10],["E170","9",10],["E171","9",10],["E172","9",2],["E173","X",557]],"F":[["F1","X",1],["F2","9",2],["F3","X",3],["F4","9",6],["F5","X",10],["F6","X",13],["F7","X",2],["F8","X",3],["F9","X",60],["F10","X",20],["F11","9",10],["F12","9",10],["F13","9",4],["F14","X",1],["F15","9",8],["F16","9",2],["F17","X",2],["F18","X",3],["F19","X",60],["F20","X",20],["F21","9",10],["F22","9",10],["F23","9",4],["F24","X",1],["F25","9",8],["F26","9",2],["F27","X",2],["F28","X",3],["F29","X",60],["F30","X",20],["F31","9",10],["F32","9",10],["F33","9",4],["F34","X",1],["F35","9",8],["F36","9",2],["F37","X",2],["F38","X",3],["F39","X",60],["F40","X",20],["F41","9",10],["F42","9",10],["F43","9",4],["F44","X",1],["F45","9",8],["F46","9",2],["F47","X",2],["F48","X",3],["F49","X",60],["F50","X",20],["F51","9",10],["F52","9",10],["F53","9",4],["F54","X",1],["F55","9",8],["F56","9",2],["F57","X",2],["F58","X",3],["F59","X",60],["F60","X",20],["F61","9",10],["F62","9",10],["F63","9",4],["F64","X",1],["F65","9",8],["F66","9",2],["F67","X",2],["F68","X",3],["F69","X",60],["F70","X",20],["F71","9",10],["F72","9",10],["F73","9",4],["F74","X",1],["F75","9",8],["F76","9",2],["F77","X",2],["F78","X",3],["F79","X",60],["F80","X",20],["F81","9",10],["F82","9",10],["F83","9",4],["F84","X",1],["F85","9",8],["F86","9",2],["F87","X",2],["F88","X",3],["F89","X",60],["F90","X",20],["F91","9",10],["F92","9",10],["F93","9",4],["F94","X",1],["F95","9",8],["F96","9",2],["F97","X",2],["F98","X",3],["F99","X",60],["F100","X",20],["F101","9",10],["F102","9",10],["F103","9",4],["F104","X",1],["F105","9",8],["F106","9",2],["F107","X",2],["F108","X",3],["F109","X",60],["F110","X",20],["F111","9",10],["F112","9",10],["F113","9",4],["F114","X",1],["F115","9",8],["F116","9",2],["F117","X",2],["F118","X",3],["F119","X",60],["F120","X",20],["F121","9",10],["F122","9",10],["F123","9",4],["F124","X",1],["F125","9",8],["F126","9",2],["F127","X",2],["F128","X",3],["F129","X",60],["F130","X",20],["F131","9",10],["F132","9",10],["F133","9",4],["F134","X",1],["F135","9",8],["F136","9",2],["F137","X",2],["F138","X",3],["F139","X",60],["F140","X",20],["F141","9",10],["F142","9",10],["F143","9",4],["F144","X",1],["F145","9",8],["F146","9",2],["F147","X",2],["F148","X",3],["F149","X",60],["F150","X",20],["F151","9",10],["F152","9",10],["F153","9",4],["F154","X",1],["F155","9",8],["F156","9",2],["F157","9",2],["F158","X",173]],"G":[["G1","X",1],["G2","9",2],["G3","X",3],["G4","9",6],["G5","X",10],["G6","X",13],["G7","X",2],["G8","X",60],["G9","X",13],["G10","X",1],["G11","9",5],["G12","X",150],["G13","9",8],["G14","9",8],["G15","9",10],["G16","9",10],["G17","X",60],["G18","X",13],["G19","9",8],["G20","9",8],["G21","9",4],["G22","9",10],["G23","9",10],["G24","9",10],["G25","9",10],["G26","X",60],["G27","X",13],["G28","X",1],["G29","9",5],["G30","X",150],["G31","9",8],["G32","9",8],["G33","9",10],["G34","X",60],["G35","X",13],["G36","X",1],["G37","9",5],["G38","X",150],["G39","9",8],["G40","9",8],["G41","9",10],["G42","9",10],["G43","X",60],["G44","X",13],["G45","9",8],["G46","9",8],["G47","9",4],["G48","9",10],["G49","9",10],["G50","9",10],["G51","9",10],["G52","X",60],["G53","X",13],["G54","X",1],["G55","9",5],["G56","X",150],["G57","9",8],["G58","9",8],["G59","9",10],["G60","X",60],["G61","X",13],["G62","X",1],["G63","9",5],["G64","X",150],["G65","9",8],["G66","9",8],["G67","9",10],["G68","9",10],["G69","X",60],["G70","X",13],["G71","9",8],["G72","9",8],["G73","9",4],["G74","9",10],["G75","9",10],["G76","9",10],["G77","9",10],["G78","X",60],["G79","X",13],["G80","X",1],["G81","9",5],["G82","X",150],["G83","9",8],["G84","9",8],["G85","9",10],["G86","9",2],["G87","X",12]],"H":[["H1","X",1],["H2","9",2],["H3","X",3],["H4","9",6],["H5","X",10],["H6","X",13],["H7","9",1],["H8","X",30],["H9","X",2],["H10","9",4],["H11","9",13],["H12","9",13],["H13","9",13],["H14","9",13],["H15","9",13],["H16","9",13],["H17","9",13],["H18","9",5],["H19","X",1842]],"I":[["I1","X",1],["I2","9",2],["I3","X",3],["I4","9",6],["I5","X",10],["I6","X",13],["I7","X",2],["I8","X",1],["I9","X",13],["I10","X",60],["I11","X",1],["I12","X",1],["I13","X",30],["I14","X",13],["I15","9",5],["I16","9",13],["I17","9",13],["I18","9",13],["I19","9",13],["I20","9",5],["I21","X",1792]],"K":[["K1","X",1],["K2","9",2],["K3","X",3],["K4","9",6],["K5","X",10],["K6","X",13],["K7","X",30],["K8","X",13],["K9","9",8],["K10","9",10],["K11","X",1],["K12","X",10],["K13","X",30],["K14","X",13],["K15","9",8],["K16","9",10],["K17","X",1],["K18","X",10],["K19","X",30],["K20","X",13],["K21","9",8],["K22","9",10],["K23","X",1],["K24","X",10],["K25","X",30],["K26","X",13],["K27","9",8],["K28","9",10],["K29","X",1],["K30","X",10],["K31","X",30],["K32","X",13],["K33","9",8],["K34","9",10],["K35","X",1],["K36","X",10],["K37","X",30],["K38","X",13],["K39","9",8],["K40","9",10],["K41","X",1],["K42","X",10],["K43","9",2],["K44","X",1541]]},"RT":{"A":[["A1","X",1],["A2","9",2],["A3","X",3],["A4","9",8],["A5","9",1],["A6","X",6],["A7","X",20],["A8","X",4],["A9","X",10],["A10","X",40],["A11","X",30],["A12","X",30],["A13","X",15],["A14","9",5],["A15","9",3],["A16","X",722]],"B":[["B1","X",1],["B2","9",2],["B3","X",3],["B4","9",6],["B5","X",10],["B6","X",40],["B7","X",30],["B8","X",13],["B9","9",1],["B10","9",7],["B11","X",7],["B12","9",14],["B13#부호","9",1],["B13#금액","9",13],["B14","9",13],["B15","9",13],["B16#부호","9",1],["B16#금액","9",13],["B17#부호","9",1],["B17#금액","9",13],["B18#부호","9",1],["B18#금액","9",13],["B19#부호","9",1],["B19#금액","9",13],["B20","X",670]],"C":[["C1","X",1],["C2","9",2],["C3","X",3],["C4","9",6],["C5","X",10],["C6","9",1],["C7","9",1],["C8","9",1],["C9","9",1],["C10","X",2],["C11","X",30],["C12","X",13],["C13","9",1],["C14","9",8],["C15","9",11],["C16","9",8],["C17","9",8],["C18","9",1],["C19","X",40],["C20","X",10],["C21","9",11],["C22","9",11],["C23","9",11],["C24","X",1],["C25","X",40],["C26","X",10],["C27","9",11],["C28","9",11],["C29","9",11],["C30","9",11],["C31","9",11],["C32","9",11],["C33","9",8],["C34","9",8],["C35","9",8],["C36","9",8],["C37","9",4],["C38","9",4],["C39","9",4],["C40","9",4],["C41","9",4],["C42","9",8],["C43","9",8],["C44","9",8],["C45","9",8],["C46","9",4],["C47","9",4],["C48","9",4],["C49","9",4],["C50","9",4],["C51","9",8],["C52","9",8],["C53","9",8],["C54","9",8],["C55","9",4],["C56","9",4],["C57","9",4],["C58","9",4],["C59","9",4],["C60","9",11],["C61","9",11],["C62","9",11],["C63","9",11],["C64","9",11],["C65","9",11],["C66","9",11],["C67","9",11],["C68","9",11],["C69#부호","9",1],["C69#금액","9",11],["C70#부호","9",1],["C70#금액","9",11],["C71","9",11],["C72","9",11],["C73","9",11],["C74#부호","9",1],["C74#금액","9",11],["C75#부호","9",1],["C75#금액","9",11],["C76#부호","9",1],["C76#금액","9",11],["C77#부호","9",1],["C77#금액","9",11],["C78","9",11],["C79","9",11],["C80","9",11],["C81","9",11],["C82","9",11],["C83","9",11],["C84","9",11],["C85","9",11],["C86#부호","9",1],["C86#금액","9",11],["C87#부호","9",1],["C87#금액","9",11],["C88#부호","9",1],["C88#금액","9",11],["C89#부호","9",1],["C89#금액","9",11],["C90","X",1],["C91","X",95]],"D":[["D1","X",1],["D2","9",2],["D3","X",3],["D4","9",6],["D5","X",10],["D6","X",50],["D7","X",13],["D8","9",2],["D9","X",30],["D10","X",10],["D11","X",20],["D12","9",8],["D13","9",11],["D14","X",734]],"E":[["E1","X",1],["E2","9",2],["E3","X",3],["E4","9",6],["E5","X",10],["E6","X",50],["E7","X",13],["E8","9",2],["E9","9",4],["E10","X",30],["E11","X",10],["E12","9",11],["E13#부호","9",1],["E13#금액","9",11],["E14","9",1],["E15","9",2],["E16","X",30],["E17","X",10],["E18","X",20],["E19","9",11],["E20","9",11],["E21","9",11],["E22","9",11],["E23","9",11],["E24","9",11],["E25","X",617]]},"GW":{"A":[["A1","X",1],["A2","9",2],["A3","X",3],["A4","9",8],["A5","9",1],["A6","X",6],["A7","X",20],["A8","X",4],["A9","X",10],["A10","X",30],["A11","X",30],["A12","X",30],["A13","X",15],["A14","9",5],["A15","X",115]],"B":[["B1","X",1],["B2","9",2],["B3","X",3],["B4","9",6],["B5","X",40],["B6","X",30],["B7","X",10],["B8","X",13],["B9","9",4],["B10","9",1],["B11","9",10],["B12","9",13],["B13","9",13],["B14","X",134]],"C":[["C1","X",1],["C2","9",2],["C3","X",3],["C4","9",7],["C5","X",10],["C6","X",13],["C7","X",30],["C8","X",20],["C9","X",1],["C10","X",1],["C11","X",2],["C12","X",8],["C13","X",8],["C14","9",13],["C15","9",13],["C16","9",13],["C17","9",13],["C18","9",13],["C19","9",13],["C20","9",13],["C21","9",13],["C22","9",13],["C23","9",13],["C24","9",13],["C25","9",13],["C26","X",18]]},"DAY":{"A":[["A1","X",1],["A2","9",2],["A3","X",3],["A4","9",8],["A5","9",1],["A6","X",6],["A7","X",20],["A8","X",4],["A9","X",10],["A10","X",40],["A11","X",30],["A12","X",30],["A13","X",15],["A14","9",5],["A15","9",1],["A16","9",2],["A17","X",62]],"B":[["B1","X",1],["B2","9",2],["B3","X",3],["B4","9",6],["B5","X",10],["B6","X",40],["B7","X",30],["B8","X",13],["B9","X",15],["B10","X",40],["B11","X",4],["B12","X",1],["B13","9",6],["B14","9",6],["B15","9",15],["B16","9",15],["B17","9",15],["B18","9",15],["B19","9",2],["B20","X",1]],"C":[["C1","X",1],["C2","9",2],["C3","X",3],["C4","9",6],["C5","X",10],["C6","X",13],["C7","X",30],["C8","9",1],["C9","X",15],["C10","9",2],["C11","9",2],["C12","9",2],["C13","9",13],["C14","9",13],["C15","9",13],["C16","9",13],["C17","9",2],["C18","X",99]]}};
+let _yeMediaText='';
+// ── 근로소득 지급명세서 전산매체 — 2026 귀속 제출요령(2026.08.20, 정오표 2026.09.14) · 레코드 2,010 byte · 자료구분 20 ──
+//   수록순서 A → B → 소득자별(C → D종전근무처 → E공제명세 → F연금저축 → G월세 → H·I기부금 → K출산지원금)
+//   값은 항목번호로 채운다(MEDIA_LAYOUT.WT). 근무기간·소득항목·비과세·감면은 ③ 급여대장 연간 집계, 공제·세액은 ④ 연말정산 계산값.
+function bizHead(){const b=DB.biz;return {no:DIG(b.no),office:(b.taxOffice||'').trim(),regno:DIG(b.regno),name:b.name||'',ceo:b.ceo||'',
+  submitter:b.submitter||(b.type==='개인'?'3':'2'),agent:b.agentNo||'',htx:b.htxId||'',dept:b.dept||'',staff:b.staff||b.ceo||'',tel:(b.tel||'').replace(/[^0-9]/g,'')};}
+function empYsType(e,year){return (e.type==='중도퇴사'||(e.leave&&e.leave.slice(0,4)===String(year)))?'2':'1';}
+function empWorkPeriod(e,year){const s=(e.join&&e.join.slice(0,4)===String(year))?DIG(e.join):year+'0101';
+  const en=(e.leave&&e.leave.slice(0,4)===String(year))?DIG(e.leave):year+'1231';return [s,en];}
 function genYearEndMedia(){
-  const year=$('exp_ye_year').value;const data=DB.ye[year]||{};const b=DB.biz;
-  const ids=Object.keys(data);const bizNo=(b.no||'').replace(/[^0-9]/g,'');
+  const year=$('exp_ye_year').value;const data=DB.ye[year]||{};const H=bizHead();
+  const ids=Object.keys(data).filter(id=>DB.emps.some(e=>e.id===id));
   if(!ids.length){$('yeMediaOut').textContent='④ 연말정산 탭에서 먼저 소득자별 정산을 계산·저장하세요.';_yeMediaText='';return;}
-  const L=[];const warn=[];
-  // A레코드(제출자)
-  L.push(wtRec('A',{0:C('A',1),1:N('20',2),3:N(year+'0310',8),4:N('2',1),8:C(bizNo,10),9:C(b.name,60),13:C(year,4),14:N(ids.length,5),15:N('101',3)}));
-  // 집계
-  let tGross=0,tDecS=0,tDecL=0;let cseq=0;
-  const body=[];const cnt={D:0,E:0,F:0,G:0,H:0,I:0,K:0};   // 수록순서: 소득자별 C→D→E→F→G→H→I→K
-  const D8=s=>N((String(s||'').replace(/[^0-9]/g,''))||0,8); // 날짜 yyyymmdd
+  const RL=mlLen('WT');const L=[];const warn=[];const note=[];
+  if(!H.office)warn.push('① 사업장의 관할세무서코드(3자리)가 비어 있습니다 — A3·B3·C3 필수');
+  if(!H.regno)warn.push('① 사업장의 법인(주민)등록번호가 비어 있습니다 — B8 필수');
+  const put=(rec,vals,who)=>{const s=mlBuild('WT',rec,vals);if(bytLen(s)!==RL)warn.push(rec+'['+(who||'')+'] 길이 '+bytLen(s));return s;};
+  const body=[];const cnt={C:0,D:0,E:0,F:0,G:0,H:0,I:0,K:0};
+  let tGross=0,tDecS=0,tDecL=0,tDecF=0,cseq=0;
   ids.forEach(id=>{
-    const inp=data[id];const e=DB.emps.find(x=>x.id===id)||{};const r=yearEnd(inp);const a=ntAnnualByCode(id,year);
-    tGross+=r.gross;tDecS+=r.decided;tDecL+=r.localTax;cseq++;
-    const rrn=(e.rrn||'').replace(/[^0-9]/g,'');
-    const put=(rec,ov)=>{const s=wtRec(rec,ov);if(bytLen(s)!==2010)warn.push(rec+'['+(e.name||id)+'] '+bytLen(s));body.push(s);};
-    const prevs=(inp.prevs||[]).filter(x=>num(x.gross)>0||x.name);
-    // C레코드(주현근무처)
-    const ov={0:C('C',1),1:N('20',2),3:N(cseq,6),4:C(bizNo,10),5:N(prevs.length,2),6:N('1',1),8:N('2',1),
-      10:C(e.name,30),11:N('1',1),12:C(rrn,13),14:C('1',1),15:C(e.type==='중도퇴사'?'2':'1',1),18:C('2',1),
-      19:C(bizNo,10),20:C(b.name,60),21:N(year+'0101',8),22:N(year+'1231',8),
-      25:N(r.gross,11),34:N(r.gross,11),67:N(a.repT,10),
-      68:N(r.gross,31),69:N(r.ded,10),70:N(r.earnedInc,11),71:N(1500000,8),
-      95:N(r.taxBase,11),96:N(r.calcTax,11),103:N(r.eitc,10),110:N(r.credits,28)};
-    // C151 결정세액(소득세11·지방10·농특10)+C152 실효세율(3) = 병합슬롯111(34)
-    const effRate=r.gross>0?Math.round(r.decided/r.gross*1000):0;
-    ov[111]=N(r.decided,11)+N(r.localTax,10)+N(0,10)+N(effRate,3);
-    // 병합슬롯112(153): C153기납부(11+10+10)+C154납부특례(11+10+10)+C155차감징수[부호1+금액11,1+10,1+10]+C156공란(57)
-    const prepLoc=fl(r.prepaid*0.1,10),sS=r.decided-r.prepaid,sL=r.localTax-prepLoc;
-    ov[112]=N(r.prepaid,11)+N(prepLoc,10)+N(0,10)+N(0,11)+N(0,10)+N(0,10)
-      +(sS<0?'1':'0')+N(Math.abs(fl(sS,10)),11)+(sL<0?'1':'0')+N(Math.abs(fl(sL,10)),10)+'0'+N(0,10)+C('',57);
-    WT_C_NTORDER.forEach((code,k)=>{ if(a.rep[code]) ov[35+k]=N(a.rep[code],10); });
-    const q3=a.rep['Q03']||0,q4=a.rep['Q04']||0,w01=a.rep['W01']||0;
-    if(q3||q4||w01) ov[57]=N(q3,10)+N(q4,10)+N(w01,10);
-    put('C',ov);
-    // D레코드 — 종(전)근무처(중도입사자). 수록순서 C→D→E
-    prevs.forEach((x,k)=>{ const dLoc=fl(num(x.decided)*0.1,10);
-      put('D',{0:C('D',1),1:N('20',2),3:N(cseq,6),4:C(bizNo,10),5:C(rrn,13),6:C('2',1),
-        8:C(x.name,60),9:C((x.bizno||'').replace(/[^0-9]/g,''),10),10:D8(x.start),11:D8(x.end),
-        14:N(x.gross,11),23:N(x.gross,11),52:N(x.nontax,10),
-        53:N(0,11)+N(x.decided,10)+N(dLoc,10)+N(0,10)+N(k+1,2)});  // 감면계+결정세액(소득세·지방·농특)+종전일련번호
-      cnt.D=(cnt.D||0)+1; });
-    // E레코드 — 본인 블록(공제 대상금액 집계) + 부양가족(1인 1레코드, block1)
-    put('E',{0:C('E',1),1:N('20',2),3:N(cseq,6),4:C(bizNo,10),5:C(rrn,13),6:C('0',1),7:C('1',1),8:C(e.name,30),9:C(rrn,13),10:C('1',1),
-      16:N(inp.insPrem||0,14),18:N(inp.protIns||0,10),20:N(inp.medical||0,10),25:N(inp.education||0,10),33:N(inp.donation||0,13)});cnt.E++;
-    (inp.deps||[]).forEach(d=>{ if(!d.name&&!d.rrn)return;
-      put('E',{0:C('E',1),1:N('20',2),3:N(cseq,6),4:C(bizNo,10),5:C(rrn,13),
-        6:C(d.rel||'4',1),7:C('1',1),8:C(d.name,30),9:C((d.rrn||'').replace(/[^0-9]/g,''),13),10:C(d.basic||'1',1),
-        11:C(d.disabled||'0',1),12:C(d.woman||'0',1),13:C(d.elder||'0',1),14:C(d.single||'0',1)});cnt.E++; });
-    // F레코드 — 연금계좌·저축(계좌별 블록, 레코드당 14)
+    const inp=data[id];const e=DB.emps.find(x=>x.id===id)||{};const A=payAnnual(id,year);
+    cseq++;const rrn=DIG(e.rrn);const prevs=(inp.prevs||[]).filter(x=>num(x.gross)>0||x.name);
+    const [ws,we]=empWorkPeriod(e,year);
+    const exA=A.ex;const c35=A.pay+A.bonus+A.recog+num(exA.stock)+num(exA.esop)+num(exA.execOver)+num(exA.invent);
+    const prevGross=prevs.reduce((s,x)=>s+num(x.gross),0);const prevDec=prevs.reduce((s,x)=>s+num(x.decided),0);const prevDecL=prevs.reduce((s,x)=>s+Math.floor(num(x.decided)*0.1),0);
+    const gross=c35+prevGross;
+    const inpR=Object.assign({},inp,{relief:A.rl,reliefT:A.rlT,gross:gross});const r=yearEnd(inpR);   // 총급여는 급여대장·종전근무처 합계로 확정
+    if(Math.round(inp.gross||0)!==Math.round(gross))note.push((e.name||id)+': ④ 총급여 입력 '+won(inp.gross)+' ≠ 급여대장 과세소득 '+won(c35)+(prevGross?' + 종전 '+won(prevGross):'')+' → 전산매체는 급여대장·종전근무처 합계('+won(gross)+')로 기재');
+    tGross+=gross;tDecS+=r.decided;tDecL+=r.localTax;
+    const isStd=r.mode==='표준세액공제';
+    const v={C1:'C',C2:'20',C3:H.office,C4:cseq,C5:H.no,C6:prevs.length,C7:e.resident||'1',C8:(e.resident==='2')?(e.country||''):'',
+      C9:e.flat||'2',C10:e.dispatch||'2',C11:e.name,C12:e.foreigner||'1',C13:rrn,C14:(e.foreigner==='9')?(e.nation||''):'',
+      C15:e.householder||'1',C16:empYsType(e,year),C17:'2',C18:'',C19:e.religious||'2',C20:H.no,C21:H.name,C22:ws,C23:we,
+      C24:A.rlT?D8(e.reliefFrom)!=='00000000'?D8(e.reliefFrom):ws:0,C25:A.rlT?D8(e.reliefTo)!=='00000000'?D8(e.reliefTo):we:0,
+      C26:A.pay,C27:A.bonus,C28:A.recog,C29:num(exA.stock),C30:num(exA.esop),C31:num(exA.execOver),C32:num(exA.invent),C35:c35};
+    NT_SLOT.forEach(([slot,code])=>{if(A.rep[code])v[slot]=A.rep[code];});
+    RL_ITEMS.forEach(it=>{if(A.rl[it.code])v[it.slot]=A.rl[it.code];});
+    v.C73=A.repT;v.C74=A.rlT;
+    v.C76=gross;v.C77=r.ded;v.C78=r.earnedInc;v.C79=1500000;v.C80=inp.spouse?1500000:0;
+    v['C81@0']=inp.family||0;v['C81@1']=(inp.family||0)*1500000;v['C82@0']=inp.elder||0;v['C82@1']=(inp.elder||0)*1000000;
+    v['C83@0']=inp.disabled||0;v['C83@1']=(inp.disabled||0)*2000000;v.C84=inp.womanType==='woman'?500000:0;v.C85=inp.womanType==='single'?1000000:0;
+    v['C86@0']=inp.pension||0;v['C86@1']=inp.pension||0;
+    const insH=num(inp.insHealth)||(num(inp.insPrem)-num(inp.insEmp)),insE=num(inp.insEmp);
+    if(!isStd){v['C91@0']=insH;v['C91@1']=insH;v['C92@0']=insE;v['C92@1']=insE;v['C93@0']=inp.housing||0;v.C99=insH+insE+num(inp.housing);}
+    else v.C99=0;
+    v.C100=Math.max(r.earnedInc-r.personal-(inp.pension||0)-(isStd?0:(insH+insE+num(inp.housing))),0);
+    v.C107=inp.otherInc||0;v.C113=inp.otherInc||0;v.C114=0;v.C115=r.taxBase;v.C116=r.calcTax;
+    // 세액감면(C117~C122): 급여대장 감면 코드로 계산(yearEnd.reliefTax) — 조특§30 은 C119, 외국인기술자·우수인력은 C118, 조세조약은 C120
+    if(r.reliefTax){const rt=r.reliefBy||{};v.C118=num(rt.T01)+num(rt.T02)+num(rt.T50)+num(rt.T30)+num(rt.T40)+num(rt.T41)+num(rt.T42)+num(rt.T43);v.C119=num(rt.T12)+num(rt.T13);v.C120=num(rt.T20);}
+    v.C122=r.reliefTax||0;
+    v.C123=r.eitc;v['C125@0']=inp.children||0;v['C125@1']=childTaxCredit(inp.children||0,parseInt(year));
+    v['C126@0']=(inp.birthOrder||0)?1:0;v['C126@1']=birthCredit(inp.birthOrder||0);
+    const pa=Math.min(inp.pa||0,6000000),paRet=Math.max(Math.min(pa+(inp.paRet||0),9000000)-pa,0),paRate=(gross<=55000000)?0.15:0.12;
+    v['C128@0']=paRet;v['C128@1']=Math.round(paRet*paRate);v['C129@0']=pa;v['C129@1']=Math.round(pa*paRate);
+    if(!isStd){
+      v['C131@0']=Math.min(inp.protIns||0,1000000);v['C131@1']=r.insCredit;
+      v['C133@0']=Math.max((inp.medical||0)-gross*0.03,0);v['C133@1']=r.medCredit;
+      v['C134@0']=inp.education||0;v['C134@1']=r.eduCredit;
+      v['C143@0']=inp.donation||0;v['C143@1']=r.donCredit;
+      v.C145=r.specialCredit;v.C146=0;
+      const rentRate=(gross<=55000000)?0.17:0.15;v['C150@0']=r.rentCredit?Math.round(r.rentCredit/rentRate):0;v['C150@1']=r.rentCredit;
+    } else {v.C145=0;v.C146=130000;}
+    /* 세액공제는 산출세액−세액감면 범위 안에서 C123→C150 순으로 절단(제출요령 오류검증: 각 항목 ≤ C116−C122−앞선 공제). 특별세액공제계 C145 는 소계 */
+    {let rem=Math.max(num(v.C116)-num(v.C122),0);const order=['C123','C124','C125@1','C126@1','C127@1','C128@1','C129@1','C130@1','C131@1','C132@1','C133@1','C134@1','C135@1','C136@1','C137@1','C138@1','C139@1','C140@1','C141@1','C142@1','C143@1','C144@1','C146','C147','C148','C149','C150@1'];
+      let sum=0;order.forEach(k=>{let x=Math.max(num(v[k]),0);if(x>rem)x=rem;rem-=x;if(x||v[k]!==undefined)v[k]=x;sum+=x;});
+      v.C145=['C131@1','C132@1','C133@1','C134@1','C135@1','C136@1','C137@1','C138@1','C139@1','C140@1','C141@1','C142@1','C143@1','C144@1'].reduce((a,k)=>a+num(v[k]),0);
+      v.C151=sum;}
+    v['C152@0']=Math.max(num(v.C116)-num(v.C122)-num(v.C151),0);v['C152@1']=Math.floor(num(v['C152@0'])*0.1);v['C152@2']=0;   // 지방소득세 = 결정세액 × 10% (원 미만 절사)
+    if(Math.round(v['C152@0'])!==Math.round(r.decided))note.push((e.name||id)+': 결정세액 순차 한도 적용 후 '+won(v['C152@0'])+' (④ 계산 '+won(r.decided)+')');
+    v.C153=gross>0?Math.round(num(v['C152@0'])/gross*1000):0;
+    if(num(exA.invent)>0&&(A.rep.R11||0)!==7000000)warn.push((e.name||id)+': 직무발명보상금 과세분(C32)이 있으면 비과세 R11(C62)은 연 한도 700만원이어야 합니다 — 급여대장 비과세 R11 확인');
+    const preMain=Math.max(r.prepaid-prevDec,0),preL=fl(preMain*0.1,10);   // ④ 기납부 입력 = 주(현) 원천징수 + 종전 결정세액 → 주(현)분만 C154, 종전분은 D64
+    v['C154@0']=preMain;v['C154@1']=preL;v['C154@2']=0;v['C155@0']=0;v['C155@1']=0;v['C155@2']=0;
+    mlSigned(v,'C156',num(v['C152@0'])-preMain-prevDec,0);mlSigned(v,'C156',num(v['C152@1'])-preL-prevDecL,1);mlSigned(v,'C156',0,2);   // 차감징수 = 결정 − 기납부(주현) − 종전 결정 (절사 없음)
+    tDecS+=num(v['C152@0'])-r.decided;tDecL+=num(v['C152@1'])-r.localTax;
+    body.push(put('C',v,e.name));cnt.C++;
+    // D — 종(전)근무처(중도입사자). 비과세는 코드가 없으면 계(D62)에만 기재하고 경고
+    prevs.forEach((x,k)=>{const d={D1:'D',D2:'20',D3:H.office,D4:cseq,D5:H.no,D6:rrn,D7:e.religious||'2',D8:'2',D9:x.name,D10:DIG(x.bizno),D11:D8(x.start),D12:D8(x.end),
+        D15:num(x.gross),D24:num(x.gross),D62:num(x.nontax),'D64@0':num(x.decided),'D64@1':Math.floor(num(x.decided)*0.1),'D64@2':0,D65:k+1};
+      if(x.ntcode&&NT_MAP[x.ntcode]&&NT_MAP[x.ntcode].rep){const slot=NT_SLOT.find(s=>s[1]===x.ntcode);if(slot){const dslot=slot[0].replace(/^C(\d+)/,(m,n)=>'D'+(parseInt(n)-11));d[dslot]=num(x.nontax);}}
+      else if(num(x.nontax)>0)warn.push((e.name||id)+' 종전근무처 '+(x.name||'')+': 비과세 코드 미지정 — D62 계만 기재(홈택스 검증 시 코드별 기재 필요)');
+      body.push(put('D',d,e.name));cnt.D++;});
+    // E — 본인(관계 0) + 부양가족. 한 레코드에 3명(블록 55항목)
+    const Y=x=>(String(x)==='1'?'1':'');   // 여부 칸은 '1' 또는 공란
+    const persons=[{rel:'0',name:e.name,rrn:rrn,foreigner:e.foreigner||'1',basic:'1',disabled:'',woman:Y(inp.womanType==='woman'),elder:'',single:Y(inp.womanType==='single'),edu:num(inp.education)>0?'1':'',
+      amt:{E21:insH,E22:insE,E23:inp.protIns||0,E25:inp.medical||0,E30:inp.education||0,E38:inp.donation||0}}]
+      .concat((inp.deps||[]).filter(d=>d.name||d.rrn).map(d=>({rel:d.rel||'4',name:d.name,rrn:DIG(d.rrn),foreigner:'1',basic:Y(d.basic||'1'),disabled:Y(d.disabled),woman:Y(d.woman),elder:Y(d.elder),single:Y(d.single),child:Y(d.child),edu:'',amt:{}})));
+    for(let i=0;i<persons.length;i+=3){
+      const ev={E1:'E',E2:'20',E3:H.office,E4:cseq,E5:H.no,E6:rrn,E172:Math.floor(i/3)+1};
+      persons.slice(i,i+3).forEach((p,j)=>{const b=7+55*j;const F=off=>'E'+(b+off);
+        ev[F(0)]=p.rel;ev[F(1)]=p.foreigner;ev[F(2)]=p.name;ev[F(3)]=p.rrn;ev[F(4)]=p.basic;ev[F(5)]=p.disabled;ev[F(6)]=p.woman;ev[F(7)]=p.elder;ev[F(8)]=p.single;
+        ev[F(9)]='';ev[F(10)]=p.child||'';ev[F(11)]=p.edu||'';ev[F(12)]='';
+        Object.keys(p.amt).forEach(k=>{const off=parseInt(k.slice(1))-7;if(num(p.amt[k])>0)ev[F(off)]=num(p.amt[k]);});});
+      body.push(put('E',ev,e.name));cnt.E++;}
+    // F — 연금계좌·저축 (레코드당 15계좌)
     const fins=(inp.fins||[]).filter(x=>num(x.amt)>0);
-    for(let fi=0;fi<fins.length;fi+=14){ const fov={0:C('F',1),1:N('20',2),3:N(cseq,6),4:C(bizNo,10),5:C(rrn,13),156:N(Math.floor(fi/14)+1,2)};
-      fins.slice(fi,fi+14).forEach((x,k)=>{const bz=6+k*10;fov[bz]=C(x.gubun,2);fov[bz+1]=C(x.fcode,3);fov[bz+2]=C(x.fname,60);fov[bz+3]=C(x.acct,20);fov[bz+4]=N(x.amt,10);});
-      put('F',fov);cnt.F++; }
-    // G레코드 — 월세(1건 1레코드)
-    (inp.rents||[]).forEach((x,k)=>{ if(num(x.amt)<=0)return;
-      put('G',{0:C('G',1),1:N('20',2),3:N(cseq,6),4:C(bizNo,10),5:C(rrn,13),6:C(x.nohouse||'01',2),7:C(x.lname,60),
-        8:C((x.lrrn||'').replace(/[^0-9]/g,''),13),9:C(x.htype||'5',1),12:D8(x.start),13:D8(x.end),14:N(x.amt,10),85:N(k+1,2)});cnt.G++; });
-    // H·I레코드 — 기부금(기부처별)
-    (inp.dons||[]).forEach((x,k)=>{ if(num(x.amt)<=0)return;
-      put('H',{0:C('H',1),1:N('20',2),3:N(cseq,6),4:C(bizNo,10),5:C(rrn,13),6:N('1',1),7:C(e.name,30),8:C(x.gtype,2),9:N(year,4),10:N(x.amt,13),12:N(x.amt,13),14:N(0,13),17:N(k+1,5)});cnt.H++;
-      put('I',{0:C('I',1),1:N('20',2),3:N(cseq,6),4:C(bizNo,10),5:C(rrn,13),6:C(x.gtype,2),7:C(x.gcontent||'1',1),8:C((x.brrn||'').replace(/[^0-9]/g,''),13),9:C(x.bname,60),
-        10:C(x.rel||'1',1),11:C('1',1),12:C(x.rel==='1'?e.name:x.bname,30),13:C(x.rel==='1'?rrn:(x.brrn||'').replace(/[^0-9]/g,''),13),14:N(x.cnt||1,5),15:N(x.amt,13),16:N(x.amt,13),19:N(k+1,5)});cnt.I++; });
-    // K레코드 — 출산지원금
-    if(q3||q4){ const kov={0:C('K',1),1:N('20',2),3:N(cseq,6),4:C(bizNo,10),5:C(rrn,13),36:N(1,2)};
-      if(q3){kov[8]=N(q3,10);kov[9]=C('1',1);kov[10]=C(bizNo,10);}
-      if(q4){kov[13]=N(q4,10);kov[14]=C('2',1);kov[15]=C(bizNo,10);}
-      put('K',kov);cnt.K++; }
+    for(let fi=0;fi<fins.length;fi+=15){const fv={F1:'F',F2:'20',F3:H.office,F4:cseq,F5:H.no,F6:rrn,F157:Math.floor(fi/15)+1};
+      fins.slice(fi,fi+15).forEach((x,k)=>{const b=7+10*k;fv['F'+b]=x.gubun;fv['F'+(b+1)]=x.fcode;fv['F'+(b+2)]=x.fname;fv['F'+(b+3)]=x.acct;fv['F'+(b+4)]=num(x.amt);fv['F'+(b+5)]=num(x.credit||0);});
+      body.push(put('F',fv,e.name));cnt.F++;}
+    // G — 월세 (레코드당 1건: 첫 블록)
+    (inp.rents||[]).filter(x=>num(x.amt)>0).forEach((x,k)=>{
+      body.push(put('G',{G1:'G',G2:'20',G3:H.office,G4:cseq,G5:H.no,G6:rrn,G7:x.nohouse||'01',G8:x.lname,G9:DIG(x.lrrn),G10:x.htype||'5',G11:num(x.area||0),G12:x.addr||'',
+        G13:D8(x.start),G14:D8(x.end),G15:num(x.amt),G16:num(x.credit||0),G86:k+1},e.name));cnt.G++;});
+    // H·I — 기부금 조정명세·기부명세
+    (inp.dons||[]).filter(x=>num(x.amt)>0).forEach((x,k)=>{
+      body.push(put('H',{H1:'H',H2:'20',H3:H.office,H4:cseq,H5:H.no,H6:rrn,H7:e.foreigner||'1',H8:e.name,H9:x.gtype,H10:year,H11:num(x.amt),H12:0,H13:num(x.amt),H14:0,H15:num(x.amt),H16:0,H17:0,H18:k+1},e.name));cnt.H++;
+      body.push(put('I',{I1:'I',I2:'20',I3:H.office,I4:cseq,I5:H.no,I6:rrn,I7:x.gtype,I8:x.gcontent||'1',I9:DIG(x.brrn),I10:x.bname,I11:x.rel||'1',I12:'1',
+        I13:x.rel==='1'?e.name:(x.dname||x.bname),I14:x.rel==='1'?rrn:DIG(x.drrn||x.brrn),I15:num(x.cnt||1),I16:num(x.amt),I17:num(x.amt),I18:0,I19:0,I20:k+1},e.name));cnt.I++;});
+    // K — 출산지원금(Q03·Q04). 자녀 인적사항·지급일은 ④ 상세명세에 없으면 공란(홈택스에서 보완)
+    const q3=A.rep.Q03||0,q4=A.rep.Q04||0;
+    if(q3||q4){const kv={K1:'K',K2:'20',K3:H.office,K4:cseq,K5:H.no,K6:rrn,K43:1};let k=0;
+      if(q3){const b=7+6*k;kv['K'+b]=inp.birthName||'';kv['K'+(b+1)]=DIG(inp.birthRrn);kv['K'+(b+2)]=D8(inp.birthPay1);kv['K'+(b+3)]=q3;kv['K'+(b+4)]='1';kv['K'+(b+5)]=H.no;k++;}
+      if(q4){const b=7+6*k;kv['K'+b]=inp.birthName||'';kv['K'+(b+1)]=DIG(inp.birthRrn);kv['K'+(b+2)]=D8(inp.birthPay2);kv['K'+(b+3)]=q4;kv['K'+(b+4)]='2';kv['K'+(b+5)]=H.no;}
+      body.push(put('K',kv,e.name));cnt.K++;
+      if(!inp.birthName)warn.push((e.name||id)+': 출산지원금 K레코드의 자녀 성명·주민번호·지급일이 비어 있습니다(④ 상세명세 ⑥ 출산지원금)');}
   });
-  // B레코드(원천징수의무자 집계)
-  const Brec=wtRec('B',{0:C('B',1),1:N('20',2),3:N(1,6),4:C(bizNo,10),5:C(b.name,60),6:C(b.ceo,30),
-    8:C(year,4),9:N(cseq,7),10:N(0,7),11:N(tGross,14),12:N(tDecS,13),13:N(tDecL,13),14:N(0,13),15:N(tDecS+tDecL,13),16:N('1',1)});
-  // 수록순서 A → B → 소득자별(C→E→F→G→H→I→K)
-  L.push(Brec); body.forEach(rc=>L.push(rc));
-  const ki=cnt.K;
-  [L[0],Brec].forEach((rc,i)=>{ if(bytLen(rc)!==2010)warn.push((i?'B':'A')+' 길이 '+bytLen(rc)); });
+  L.push(put('A',{A1:'A',A2:'20',A3:H.office,A4:todayYMD(),A5:H.submitter,A6:H.agent,A7:H.htx,A8:'9000',A9:H.no,A10:H.name,A11:H.dept||'경리',A12:H.staff,A13:H.tel,A14:year,A15:1,A16:101}));
+  L.push(put('B',{B1:'B',B2:'20',B3:H.office,B4:1,B5:H.no,B6:H.name,B7:H.ceo,B8:H.regno,B9:year,B10:cnt.C,B11:cnt.D,B12:tGross,B13:tDecS,B14:tDecL,B15:tDecF,B16:tDecS+tDecL+tDecF,B17:'1'}));
+  body.forEach(rc=>L.push(rc));
   _yeMediaText=L.join('\r\n')+'\r\n';
-  // 화면 출력: 검증결과 + 비과세 명세 + 규격 안내
-  let head='[2025 귀속 근로소득 지급명세서 전산매체 — '+year+' 귀속]\n';
-  head+='· 레코드 2,010 byte 고정 · 수록순서 A → B → 소득자별(C→D→E→F→G→H→I→K)\n';
-  head+='· 소득자 '+cseq+'명 · 레코드: C '+cseq+' / D '+cnt.D+' / E '+cnt.E+' / F '+cnt.F+' / G '+cnt.G+' / H '+cnt.H+' / I '+cnt.I+' / K '+cnt.K+'\n';
-  head+='· 레코드 길이 검증: '+(warn.length?('⚠ '+warn.join(' / ')):'전 레코드 2,010 byte 정합 ✔')+'\n';
-  let ntBlock='\n[비과세소득 명세 — 급여대장 '+year+'년 1~12월 집계, C레코드 비과세소득란]\n';let anyNt=false;
-  ids.forEach(id=>{const e=DB.emps.find(x=>x.id===id)||{};const a=ntAnnualByCode(id,year);
-    const repCodes=Object.keys(a.rep);if(!repCodes.length&&a.nonT===0)return;anyNt=true;
-    ntBlock+=' · '+(e.name||id)+' [기재○] '+(repCodes.length?repCodes.map(c=>c+' '+won(a.rep[c])).join(', '):'없음')+
-      '  [기재계 '+won(a.repT)+'/비기재계 '+won(a.nonT)+']\n';});
-  if(!anyNt)ntBlock+=' (③ 급여대장에 입력된 비과세 항목이 없습니다)\n';
+  let head='[근로소득 지급명세서 전산매체 — '+year+' 귀속 · 제출요령 2026.08.20(정오표 09.14) · 자료구분 20 · 레코드 '+RL+' byte]\n';
+  head+='· 수록순서 A → B → 소득자별(C→D→E→F→G→H→I→K) · 소득자 '+cnt.C+'명 · 레코드 C '+cnt.C+' / D '+cnt.D+' / E '+cnt.E+' / F '+cnt.F+' / G '+cnt.G+' / H '+cnt.H+' / I '+cnt.I+' / K '+cnt.K+'\n';
+  head+='· 총급여 총계(B12) '+won(tGross)+' · 결정세액 소득세(B13) '+won(tDecS)+' · 지방소득세(B14) '+won(tDecL)+'\n';
+  head+='· 레코드 길이 검증: '+(warn.filter(w=>/길이/.test(w)).length?'⚠ 불일치':'전 레코드 '+RL+' byte 정합 ✔')+'\n';
+  if(warn.length)head+='\n[확인 필요]\n'+warn.map(w=>' ⚠ '+w).join('\n')+'\n';
+  if(note.length)head+='\n[참고]\n'+note.map(w=>' · '+w).join('\n')+'\n';
+  let ntBlock='\n[소득자별 급여대장 집계 → C레코드]\n';
+  ids.forEach(id=>{const e=DB.emps.find(x=>x.id===id)||{};const A=payAnnual(id,year);
+    ntBlock+=' · '+(e.name||id)+' 급여 '+won(A.pay)+' 상여 '+won(A.bonus)+' 인정상여 '+won(A.recog)+' 기타 '+won(EX_ITEMS.reduce((s,it)=>s+num(A.ex[it.key]),0))
+      +' | 비과세(기재) '+(Object.keys(A.rep).length?Object.keys(A.rep).map(c=>c+' '+won(A.rep[c])).join(', '):'없음')+' | 감면 '+(Object.keys(A.rl).length?Object.keys(A.rl).map(c=>c+' '+won(A.rl[c])).join(', '):'없음')+'\n';});
   $('yeMediaOut').textContent=head+ntBlock+
-    '\n[레코드 구조 — 공식 제출요령(2026.03.26)]\n'+
-    '· A(제출자) B(의무자집계) C(주현근무처:소득·비과세·세액) D(종전근무처) E(공제명세·부양가족) F(연금·저축) G(월세) H(기부금조정) I(기부명세) K(출산지원금)\n'+
-    '· C레코드 비과세 코드·누적위치: G01(305) H05(315) H06~H10(325·335·345·355·365) H14(375) H15(385) H11(395) H12(405) H13(415) H16(425) H17(435) I01(445) K01(455) M01(465) M04국외500만(475) M03(485) O01야간(495) P01식대(505) Q02보육(515) Q03출산1회(525) Q04출산2회(535) W01임원할인(545) … 각 9(10)\n'+
-    '· 숫자 우측0채움 / 문자 좌측Space / 한글 2Byte\n'+
-    '· 다운로드 파일은 EUC-KR(CP949)로 인코딩되어 홈택스에 그대로 제출 가능(화면 미리보기는 UTF-8).\n'+
-    '※ 전체 레코드(A·B·C·E·F·G·H·I·K) 생성 — ④ 합계 입력 + [전산매체용 상세명세](부양가족·연금저축·월세·기부금) 기준. C레코드 결정세액·기납부·차감징수(소득세/지방)까지 반영. 상세명세 미입력 항목은 해당 레코드 미생성. 제출 전 홈택스 형식검증 권장.';
+    '\n[레코드 구조]\n· A 제출자 · B 원천징수의무자 집계 · C 주(현)근무처(인적사항·소득항목 C26~C35·비과세 C36~C66·감면 C67~C72·공제·세액 C76~C156)\n'+
+    '· D 종(전)근무처 · E 소득·세액공제 명세(본인·부양가족, 레코드당 3명) · F 연금계좌·저축(레코드당 15건) · G 월세 · H 기부금 조정명세 · I 기부명세 · K 출산지원금\n'+
+    '· 숫자 우측 0채움 / 문자 좌측 Space / 한글 2Byte · 다운로드 파일은 EUC-KR(CP949) 인코딩\n'+
+    '※ 생성 파일은 「전산매체 대응지도」 파일 검증 탭에서 제출요령 오류검증 규칙으로 점검한 뒤 홈택스에 올리십시오.';
 }
 function downloadYearEndMedia(){
   if(!_yeMediaText)genYearEndMedia();
@@ -1046,6 +1319,14 @@ function childTaxCredit(n,year){ // §59의2① (2025~ 인상: 25/55/40만)
   if(n===1)return 150000;if(n===2)return 300000;return 300000+(n-2)*300000;
 }
 function birthCredit(o){return o===1?300000:o===2?500000:o>=3?700000:0;} // §59의2③
+// 조특법 세액감면: 산출세액 × (감면대상 급여 ÷ 총급여) × 감면율. 중소기업취업자(T12 70%·T13 90%)는 합산 연 200만 한도(조특§30③).
+//   T01 50%·T02 70%(외국인기술자 §18) · T50 50%(우수인력 §18의3) · T30 50%(성과공유 경영성과급 §19) · T40~T43 50%(성과보상기금 §29의6, 세부 유형별 율은 요령 확인) · T20 100%(조세조약 교직자)
+const RELIEF_RATE={T12:0.7,T13:0.9,T01:0.5,T02:0.7,T50:0.5,T30:0.5,T40:0.5,T41:0.5,T42:0.5,T43:0.5,T20:1.0};
+function reliefCalc(calc,gross,relief){const by={};let total=0,sme=0;if(!gross||!relief)return {total:0,by};
+  Object.keys(relief).forEach(c=>{const rate=RELIEF_RATE[c];const amt=num(relief[c]);if(!rate||amt<=0)return;let t=Math.round(calc*Math.min(amt/gross,1)*rate);
+    if(c==='T12'||c==='T13'){const room=Math.max(2000000-sme,0);t=Math.min(t,room);sme+=t;}
+    if(t>0){by[c]=t;total+=t;}});
+  return {total:Math.min(total,calc),by};}
 
 function yearEnd(inp){
   const year=inp.year||2026, gross=inp.gross||0;
@@ -1078,10 +1359,11 @@ function yearEnd(inp){
     const tb=useStd ? Math.max(earnedInc-personal-pension-otherInc,0)              // 표준: 특별소득공제 제외
                     : Math.max(earnedInc-personal-pension-sIns-housing-otherInc,0); // 항목별
     const calc=incomeTax(tb);                        // §55 기본세율
+    const rel=reliefCalc(Math.round(calc),gross,inp.relief||{});   // 조특법 세액감면(급여대장 감면소득 T코드)
     const eitc=earnedTaxCredit(calc,gross);          // §59 근로소득세액공제
     const credits=useStd ? eitc+childC+pensionAcctCredit+130000               // §59의4⑨ 표준 13만
                          : eitc+childC+pensionAcctCredit+specialCredit+rentCredit;
-    return {tb,calc:Math.round(calc),eitc:Math.round(eitc),credits:Math.round(credits),decided:Math.max(Math.round(calc)-Math.round(credits),0)};
+    return {tb,calc:Math.round(calc),eitc:Math.round(eitc),credits:Math.round(credits),reliefTax:rel.total,reliefBy:rel.by,decided:Math.max(Math.round(calc)-rel.total-Math.round(credits),0)};
   }
   const A=run(false),B=run(true);
   const useStd=B.decided<A.decided;
@@ -1089,7 +1371,7 @@ function yearEnd(inp){
   const prepaid=inp.prepaid||0;
   return {gross,ded,earnedInc,personal,basic,add,pension,sIns,housing,otherInc,
     pensionAcctCredit,childC,insCredit,medCredit,eduCredit,donCredit,rentCredit,specialCredit,
-    mode:useStd?'표준세액공제':'항목별공제',taxBase:r.tb,calcTax:r.calc,eitc:r.eitc,credits:r.credits,
+    mode:useStd?'표준세액공제':'항목별공제',taxBase:r.tb,calcTax:r.calc,eitc:r.eitc,credits:r.credits,reliefTax:r.reliefTax,reliefBy:r.reliefBy,
     decided:r.decided,localTax:Math.round(r.decided*0.1),prepaid,settle:r.decided-prepaid};
 }
 
@@ -1105,6 +1387,7 @@ function loadYE(){
     ye_pension:'pension',ye_insprem:'insPrem',ye_housing:'housing',ye_othinc:'otherInc',ye_pa:'pa',ye_pa_ret:'paRet',
     ye_protins:'protIns',ye_medical:'medical',ye_edu:'education',ye_donation:'donation',ye_rent:'rent',ye_children:'children'};
   for(const k in map){if($(k))$(k).value=d[map[k]]!=null?d[map[k]]:(($(k).type==='number')?0:'');}
+  ['insHealth','insEmp','birthName','birthRrn','birthPay1','birthPay2'].forEach(k=>{const el=$('ye_'+k);if(el)el.value=d[k]!=null?d[k]:(k.startsWith('ins')?0:'');});
   $('ye_spouse').value=d.spouse?'1':'0';
   $('ye_woman').value=d.womanType||'0';
   $('ye_birth').value=d.birthOrder||'0';
@@ -1187,23 +1470,17 @@ function renderPrevs(){const tb=$('prevBody');if(!tb)return;const a=yeArr('prevs
     <td><input type="date" value="${d.end||''}" onchange="prevUpd(${i},'end',this.value)" style="text-align:center"></td>
     <td><input value="${won(d.gross)}" onchange="prevUpd(${i},'gross',this.value)"></td>
     <td><input value="${won(d.nontax)}" onchange="prevUpd(${i},'nontax',this.value)"></td>
+    <td><select onchange="prevUpd(${i},'ntcode',this.value)" style="border:1px solid var(--line);border-radius:5px;padding:4px"><option value="">(코드)</option>${_sel(NT_ITEMS.filter(x=>x.rep).map(x=>[x.code,x.code+' '+x.name.slice(0,10)]),d.ntcode||'')}</select></td>
     <td><input value="${won(d.decided)}" onchange="prevUpd(${i},'decided',this.value)"></td>
-    <td class="c"><button class="btn btn-d btn-sm" onclick="prevDel(${i})">×</button></td></tr>`).join(''):'<tr><td colspan="8" class="empty">종(전)근무처가 없습니다.</td></tr>';}
+    <td class="c"><button class="btn btn-d btn-sm" onclick="prevDel(${i})">×</button></td></tr>`).join(''):'<tr><td colspan="9" class="empty">종(전)근무처가 없습니다.</td></tr>';}
 
 function autofillYE(){
   const id=$('ye_emp').value;const year=$('ye_year').value;if(!id){alert('직원을 선택하세요.');return;}
-  let gross=0,prepaid=0,np=0,ins=0;
-  for(let m=1;m<=12;m++){
-    const ym=year+'-'+String(m).padStart(2,'0');const p=(DB.pays[ym]||{})[id];if(!p)continue;
-    const ntv=p.nt?ntSum(p).all:num(p.nontax);
-    const taxable=Math.max(num(p.gross)-ntv,0);
-    const i=calcInsurance(taxable);
-    const tax=(p.tax==null)?simpleTax(taxable,(DB.emps.find(x=>x.id===id)||{}).family||1,(DB.emps.find(x=>x.id===id)||{}).children||0):num(p.tax);
-    gross+=taxable;prepaid+=tax;np+=i.np;ins+=i.hi+i.ltc+i.ei;
-  }
-  $('ye_gross').value=Math.round(gross);$('ye_prepaid').value=Math.round(prepaid);
-  $('ye_pension').value=Math.round(np);$('ye_insprem').value=Math.round(ins);
-  calcYE();alert('급여대장('+year+'년 1~12월)에서 총급여·기납부·국민연금·보험료를 불러왔습니다.');
+  const A=payAnnual(id,year);
+  const prevs=((DB.ye[year]||{})[id]||{}).prevs||[];const pg=prevs.reduce((s,x)=>s+num(x.gross),0),pd=prevs.reduce((s,x)=>s+num(x.decided),0);
+  $('ye_gross').value=Math.round(A.taxable+pg);$('ye_prepaid').value=Math.round(A.tax+pd);
+  $('ye_pension').value=Math.round(A.np);$('ye_insHealth').value=Math.round(A.hi+A.ltc);$('ye_insEmp').value=Math.round(A.ei);$('ye_insprem').value=Math.round(A.hi+A.ltc+A.ei);
+  calcYE();alert('급여대장('+year+'년 '+A.months+'개월)에서 총급여(과세소득 '+won(A.taxable)+(pg?' + 종전근무처 '+won(pg):'')+')·기납부'+(pd?'(종전 결정세액 '+won(pd)+' 포함)':'')+'·국민연금·보험료'+(A.rlT?'·감면소득 '+won(A.rlT):'')+'을 불러왔습니다.');
 }
 function readYEInputs(){
   return {year:parseInt($('ye_year').value)||2026,gross:num($('ye_gross').value),prepaid:num($('ye_prepaid').value),
@@ -1211,11 +1488,13 @@ function readYEInputs(){
     womanType:$('ye_woman').value,pension:num($('ye_pension').value),insPrem:num($('ye_insprem').value),housing:num($('ye_housing').value),
     otherInc:num($('ye_othinc').value),pa:num($('ye_pa').value),paRet:num($('ye_pa_ret').value),protIns:num($('ye_protins').value),
     medical:num($('ye_medical').value),education:num($('ye_edu').value),donation:num($('ye_donation').value),rent:num($('ye_rent').value),
-    children:num($('ye_children').value),birthOrder:parseInt($('ye_birth').value)||0};
+    children:num($('ye_children').value),birthOrder:parseInt($('ye_birth').value)||0,
+    insHealth:num($('ye_insHealth').value),insEmp:num($('ye_insEmp').value),birthName:$('ye_birthName').value,birthRrn:$('ye_birthRrn').value,birthPay1:$('ye_birthPay1').value,birthPay2:$('ye_birthPay2').value};
 }
 function calcYE(){
   const id=$('ye_emp').value;if(!id){$('ye_result').innerHTML='<div class="empty">먼저 ② 직원관리에서 직원을 등록하세요.</div>';return;}
-  const inp=readYEInputs();const r=yearEnd(inp);
+  const inp=readYEInputs();{const A=payAnnual(id,inp.year);inp.relief=A.rl;inp.reliefT=A.rlT;}const r=yearEnd(inp);
+  {const cnt=Object.keys(DB.ye[$('ye_year').value]||{}).length;const el=$('ye_cnt');if(el)el.textContent=cnt+'명 정산';}
   // 저장
   const yr=$('ye_year').value;DB.ye[yr]=DB.ye[yr]||{};const o=DB.ye[yr][id]||{};Object.assign(o,inp);o._gross=r.gross;o._decided=r.decided;o._settle=r.settle;DB.ye[yr][id]=o;DB.save(); // 상세배열(deps/fins/rents/dons) 보존
   const isRefund=r.settle<0;
@@ -1240,6 +1519,7 @@ function calcYE(){
       ${row('(-) 주택자금/기타 소득공제',(r.mode==='표준세액공제'?0:r.housing)+r.otherInc,'§52④⑤·조특')}
       ${row('= 과세표준',r.taxBase,'')}
       ${row('× 기본세율 → 산출세액',r.calcTax,'§55')}
+      ${r.reliefTax?row('(-) 세액감면(조특법)',r.reliefTax,Object.keys(r.reliefBy||{}).map(c=>c+' '+won(r.reliefBy[c])).join(' · ')):''}
       ${row('(-) 근로소득세액공제',r.eitc,'§59')}
       ${row('(-) 자녀세액공제',r.childC,'§59의2')}
       ${row('(-) 연금계좌세액공제',r.pensionAcctCredit,'§59의3')}
@@ -1264,93 +1544,314 @@ function applyYEtoReport(){
   $('rptYM').value=ym;
 }
 
-// ===== ⑦ 간이·일용 지급명세서 전산데이터 =====
+// ===== ⑦ 간이지급명세서(근로소득) · 일용근로소득 지급명세서 — 급여대장 집계 → 제출요령 레이아웃 =====
+//   간이(근로): 반기 제출 · A/B/C 280 byte · 자료구분 77 (국세청 제출요령, 2027.1 매월 제출 전환 예정 — 전환 시 레이아웃 재확인)
+//   일용      : 매월 제출 · A/B/C 240 byte · 자료구분 28 (제출요령 2023.07.01 · 오류검증기준 2023)
+//   사업·기타 간이지급명세서는 급여대장 대상이 아니므로 종전 핵심항목 레코드를 유지한다(제출요령 확보 시 정밀화).
 const PSM_TYPES={
-  WORK:{name:'간이지급명세서(근로소득)',day:false,from:['일반','중도퇴사']},
-  BIZ:{name:'간이지급명세서(사업소득)',day:false},
-  ETC:{name:'간이지급명세서(기타소득)',day:false},
-  DAY:{name:'일용근로소득 지급명세서',day:true,from:['일용']}
+  WORK:{name:'간이지급명세서(근로소득)',period:'half',from:['일반','중도퇴사'],code:'77',len:280},
+  DAY:{name:'일용근로소득 지급명세서',period:'month',from:['일용'],code:'28',len:240},
+  BIZ:{name:'간이지급명세서(사업소득)',period:'month'},
+  ETC:{name:'간이지급명세서(기타소득)',period:'month'}
 };
-function psmGet(){const t=$('psm_type').value;const ym=$('psm_ym').value||todayYM();DB.psm[t]=DB.psm[t]||{};DB.psm[t][ym]=DB.psm[t][ym]||[];return DB.psm[t][ym];}
-function psmAddRow(){psmGet().push({name:'',rrn:'',days:0,gross:0,nontax:0,tax:0});DB.save();renderPSM();}
+function psmType(){return $('psm_type').value;}
+function psmYear(){return $('psm_year').value||String(new Date().getFullYear());}
+function psmHalf(){return $('psm_half').value||'1';}
+function psmYM(){return $('psm_ym').value||todayYM();}
+function halfMonths(year,half){const a=[];for(let m=(half==='2'?7:1);m<=(half==='2'?12:6);m++)a.push(year+'-'+String(m).padStart(2,'0'));return a;}
+function psmToggleUI(){const t=psmType();const cfg=PSM_TYPES[t];
+  $('psm_half_wrap').style.display=cfg.period==='half'?'':'none';$('psm_ym_wrap').style.display=cfg.period==='half'?'none':'';
+  $('psm_note').innerHTML={
+    WORK:'<b>간이지급명세서(근로소득)</b> · 반기별 제출(상반기 7월 말·하반기 다음해 1월 말). ③ 급여대장의 월별 <b>급여 등</b>(과세소득 중 인정상여 제외)과 <b>인정상여</b>를 반기 6개월로 수록하고, 근무기간은 ② 직원의 입사·퇴사일을 반기 안으로 자릅니다. 주(현)근무지 지급분만 제출합니다.',
+    DAY:'<b>일용근로소득 지급명세서</b> · 매월 제출(지급월 다음 달 말일). ③ 급여대장의 일용 직원 행(과세소득·비과세·근무일수·최종근무일·소득세)을 수록합니다. 근무월은 지급월과 같은 것으로 보며 다르면 아래 표에서 고치십시오.',
+    BIZ:'<b>간이지급명세서(사업소득)</b> · 급여대장 연동 대상이 아닙니다. 소득자를 직접 추가하십시오. 레코드는 핵심항목 임시 형식(제출요령 확보 시 정밀화).',
+    ETC:'<b>간이지급명세서(기타소득)</b> · 급여대장 연동 대상이 아닙니다. 소득자를 직접 추가하십시오. 레코드는 핵심항목 임시 형식(제출요령 확보 시 정밀화).'}[t];
+}
+// 급여대장 → 간이(근로) 소득자별 반기 집계
+function psmWorkRows(year,half){
+  const months=halfMonths(year,half);const hs=DIG(months[0]+'-01'),he=DIG(months[5]+'-'+(half==='2'?'31':'30'));
+  return DB.emps.filter(e=>e.type!=='일용').map(e=>{
+    const pay=[],recog=[];let any=false;
+    months.forEach(ym=>{const p=empPay(e.id,ym);const tx=p?payTaxable(p):0;const rc=p?num(p.recog):0;pay.push(Math.max(tx-rc,0));recog.push(rc);if(tx>0)any=true;});
+    if(!any)return null;
+    let s=DIG(e.join),en=DIG(e.leave);if(!s||s<hs)s=hs;if(!en||en>he)en=he;
+    return {e,pay,recog,start:s,end:en,sumPay:pay.reduce((a,b)=>a+b,0),sumRecog:recog.reduce((a,b)=>a+b,0)};
+  }).filter(Boolean);
+}
+// 급여대장 → 일용 소득자별 월 행
+function psmDayRows(ym){
+  return DB.emps.filter(e=>e.type==='일용').map(e=>{const p=empPay(e.id,ym);if(!p)return null;const tx=payTaxable(p),nt=ntSum(p).all;if(tx<=0&&nt<=0)return null;
+    const tax=payTax(e,p);return {e,p,taxable:tx,nontax:nt,days:num(p.days),lastDay:num(p.lastDay),workYM:p.workYM||ym,tax,local:fl(tax*0.1,10)};}).filter(Boolean);
+}
+function psmGet(){const t=psmType();const ym=psmYM();DB.psm[t]=DB.psm[t]||{};DB.psm[t][ym]=DB.psm[t][ym]||[];return DB.psm[t][ym];}
+function psmAddRow(){if(PSM_TYPES[psmType()].from){alert('근로·일용은 ② 직원관리·③ 급여대장에서 관리합니다. 직원을 등록하고 급여를 입력하십시오.');return;}psmGet().push({name:'',rrn:'',gross:0,nontax:0,tax:0});DB.save();renderPSM();}
 function psmDelRow(i){const a=psmGet();a.splice(i,1);DB.save();renderPSM();}
-function psmUpd(i,k,v){const a=psmGet();if(!a[i])return;a[i][k]=(k==='name'||k==='rrn')?v:num(v);
-  if($('psm_type').value==='DAY'&&(k==='days'||k==='gross'||k==='nontax')){ // 일용: 일 단위 자동 재계산(§47②·129·59③)
-    const r=a[i];r.tax=dayWorkerTax(Math.max(num(r.gross)-num(r.nontax),0),num(r.days));
-  }
-  DB.save();renderPSM();}
-function psmAutofill(){
-  const t=$('psm_type').value;const cfg=PSM_TYPES[t];const ym=$('psm_ym').value||todayYM();
-  if(!cfg.from){alert('사업·기타소득은 소득자를 직접 추가하세요(급여대장 연동 대상 아님).');return;}
-  const a=psmGet();const exist=new Set(a.map(r=>r.rrn));let added=0;
-  DB.emps.filter(e=>cfg.from.includes(e.type)).forEach(e=>{
-    const p=(DB.pays[ym]||{})[e.id];if(!p)return;
-    const gross=num(p.gross),nontax=(p.nt?ntSum(p).all:num(p.nontax)),taxable=Math.max(gross-nontax,0);
-    // 일용은 근로일수가 있어야 일단위 계산 가능 → 불러올 땐 0(이후 근로일수 입력 시 자동), 일반은 간이세액
-    let tax=(e.type==='일용')?(p.tax==null?0:num(p.tax)):((p.tax==null)?simpleTax(taxable,e.family,e.children):num(p.tax));
-    a.push({name:e.name||'',rrn:(e.rrn||''),days:0,gross:gross,nontax:nontax,tax:tax});added++;
-  });
-  DB.save();renderPSM();alert(added+'명을 급여대장('+ym+')에서 불러왔습니다.');
-}
+function psmUpd(i,k,v){const a=psmGet();if(!a[i])return;a[i][k]=(k==='name'||k==='rrn')?v:num(v);DB.save();renderPSM();}
 function renderPSM(){
-  const t=$('psm_type').value;const cfg=PSM_TYPES[t];const ym=$('psm_ym').value||todayYM();$('psm_ym').value=ym;
+  const t=psmType();const cfg=PSM_TYPES[t];psmToggleUI();
+  if(t==='WORK'){const year=psmYear(),half=psmHalf();const rows=psmWorkRows(year,half);const months=halfMonths(year,half);
+    $('psm_cnt').textContent=rows.length+'명';
+    $('psmHead').innerHTML='<tr><th class="l">성명</th><th>주민등록번호</th><th>근무기간(반기 내)</th>'+months.map(m=>'<th>'+m.slice(5)+'월<br><span class="muted">급여 등 / 인정상여</span></th>').join('')+'<th>급여 등 계</th><th>인정상여 계</th></tr>';
+    if(!rows.length){$('psmBody').innerHTML='<tr><td colspan="11" class="empty">해당 반기에 급여가 입력된 일반·중도퇴사 직원이 없습니다.</td></tr>';$('psmFoot').innerHTML='';return;}
+    let tp=0,tr=0;
+    $('psmBody').innerHTML=rows.map(r=>{tp+=r.sumPay;tr+=r.sumRecog;return `<tr><td class="l">${r.e.name||'(이름없음)'}</td><td class="c">${r.e.rrn||''}</td><td class="c">${r.start}~${r.end}</td>`
+      +r.pay.map((v,i)=>`<td>${won(v)}<br><span class="muted">${won(r.recog[i])}</span></td>`).join('')+`<td>${won(r.sumPay)}</td><td>${won(r.sumRecog)}</td></tr>`;}).join('');
+    $('psmFoot').innerHTML=`<tr class="totrow"><td class="l" colspan="9">합계 ${rows.length}명</td><td>${won(tp)}</td><td>${won(tr)}</td></tr>`;return;}
+  if(t==='DAY'){const ym=psmYM();const rows=psmDayRows(ym);$('psm_cnt').textContent=rows.length+'명';
+    $('psmHead').innerHTML='<tr><th class="l">성명</th><th>주민등록번호</th><th>지급월</th><th>근무월</th><th>근무일수</th><th>최종근무일</th><th>과세소득</th><th>비과세</th><th>소득세</th><th>지방소득세</th><th class="c">검증</th></tr>';
+    if(!rows.length){$('psmBody').innerHTML='<tr><td colspan="11" class="empty">해당 월에 급여가 입력된 일용 직원이 없습니다. ③ 급여대장에서 일용 직원의 급여·근무일수를 입력하십시오.</td></tr>';$('psmFoot').innerHTML='';return;}
+    let T={tx:0,nt:0,tax:0,local:0};
+    $('psmBody').innerHTML=rows.map(r=>{T.tx+=r.taxable;T.nt+=r.nontax;T.tax+=r.tax;T.local+=r.local;const chk=dayCheck(r,ym);
+      return `<tr><td class="l">${r.e.name||'(이름없음)'}</td><td class="c">${r.e.rrn||''}</td><td class="c">${ym.slice(5)}</td>
+        <td><input type="month" value="${r.workYM}" onchange="updPay('${ym}','${r.e.id}','workYM',this.value)" style="text-align:center"></td>
+        <td class="c">${r.days}</td><td class="c">${r.lastDay||'-'}</td><td>${won(r.taxable)}</td><td>${won(r.nontax)}</td><td>${won(r.tax)}</td><td>${won(r.local)}</td>
+        <td class="l" style="font-size:11px;color:${chk.length?'var(--rose)':'var(--green)'}">${chk.length?chk.join('<br>'):'정상'}</td></tr>`;}).join('');
+    $('psmFoot').innerHTML=`<tr class="totrow"><td class="l" colspan="6">합계 ${rows.length}명</td><td>${won(T.tx)}</td><td>${won(T.nt)}</td><td>${won(T.tax)}</td><td>${won(T.local)}</td><td></td></tr>`;return;}
+  // 사업·기타(수기)
   const a=psmGet();$('psm_cnt').textContent=a.length+'건';
-  const dayCol=cfg.day?'<th>근로일수</th>':'';
-  $('psmHead').innerHTML=`<tr><th class="l">성명</th><th>주민등록번호</th>${dayCol}<th>총지급액</th><th>비과세</th><th>소득세</th><th>지방소득세</th><th class="c">관리</th></tr>`;
-  if(!a.length){$('psmBody').innerHTML=`<tr><td colspan="${cfg.day?8:7}" class="empty">소득자를 추가하거나 [근로/일용 직원 불러오기]를 누르세요.</td></tr>`;$('psmFoot').innerHTML='';}
-  else{
-    let T={gross:0,nontax:0,tax:0,local:0,days:0};
-    $('psmBody').innerHTML=a.map((r,i)=>{
-      const local=fl(num(r.tax)*0.1,10);T.gross+=num(r.gross);T.nontax+=num(r.nontax);T.tax+=num(r.tax);T.local+=local;T.days+=num(r.days);
-      const dayTd=cfg.day?`<td><input value="${num(r.days)}" onchange="psmUpd(${i},'days',this.value)" style="text-align:right"></td>`:'';
-      return `<tr>
-        <td class="l"><input class="txt" value="${r.name||''}" onchange="psmUpd(${i},'name',this.value)"></td>
-        <td><input class="txt" value="${r.rrn||''}" maxlength="14" onchange="psmUpd(${i},'rrn',this.value)" style="text-align:center"></td>
-        ${dayTd}
-        <td><input value="${won(r.gross)}" onchange="psmUpd(${i},'gross',this.value)"></td>
-        <td><input value="${won(r.nontax)}" onchange="psmUpd(${i},'nontax',this.value)"></td>
-        <td><input value="${won(r.tax)}" onchange="psmUpd(${i},'tax',this.value)" style="color:var(--rose)"></td>
-        <td>${won(local)}</td>
-        <td class="c"><button class="btn btn-d btn-sm" onclick="psmDelRow(${i})">×</button></td>
-      </tr>`;}).join('');
-    $('psmFoot').innerHTML=`<tr class="totrow"><td class="l" colspan="${cfg.day?3:2}">합계 ${a.length}건</td><td>${won(T.gross)}</td><td>${won(T.nontax)}</td><td>${won(T.tax)}</td><td>${won(T.local)}</td><td></td></tr>`;
-  }
-  $('psm_note').innerHTML=`<b>${cfg.name}</b> · ${cfg.day?'일용: 귀속연월·근로일수·총지급액(비과세 일 15만 제외분)·원천징수세액':'소득자별 총지급액·소득세'} 입력. 지방소득세는 소득세의 10% 자동.`;
+  $('psmHead').innerHTML='<tr><th class="l">성명</th><th>주민등록번호</th><th>총지급액</th><th>비과세</th><th>소득세</th><th>지방소득세</th><th class="c">관리</th></tr>';
+  if(!a.length){$('psmBody').innerHTML='<tr><td colspan="7" class="empty">소득자를 추가하십시오.</td></tr>';$('psmFoot').innerHTML='';return;}
+  let T={gross:0,nontax:0,tax:0,local:0};
+  $('psmBody').innerHTML=a.map((r,i)=>{const local=fl(num(r.tax)*0.1,10);T.gross+=num(r.gross);T.nontax+=num(r.nontax);T.tax+=num(r.tax);T.local+=local;
+    return `<tr><td class="l"><input class="txt" value="${r.name||''}" onchange="psmUpd(${i},'name',this.value)"></td>
+      <td><input class="txt" value="${r.rrn||''}" maxlength="14" onchange="psmUpd(${i},'rrn',this.value)" style="text-align:center"></td>
+      <td><input value="${won(r.gross)}" onchange="psmUpd(${i},'gross',this.value)"></td><td><input value="${won(r.nontax)}" onchange="psmUpd(${i},'nontax',this.value)"></td>
+      <td><input value="${won(r.tax)}" onchange="psmUpd(${i},'tax',this.value)" style="color:var(--rose)"></td><td>${won(local)}</td>
+      <td class="c"><button class="btn btn-d btn-sm" onclick="psmDelRow(${i})">×</button></td></tr>`;}).join('');
+  $('psmFoot').innerHTML=`<tr class="totrow"><td class="l" colspan="2">합계 ${a.length}건</td><td>${won(T.gross)}</td><td>${won(T.nontax)}</td><td>${won(T.tax)}</td><td>${won(T.local)}</td><td></td></tr>`;
 }
+// 일용 오류검증 기준(2023) — C12·C13·C15·C16·C17
+function dayCheck(r,ym){const out=[];const last=new Date(parseInt(r.workYM.slice(0,4)),parseInt(r.workYM.slice(5,7)),0).getDate();
+  if(r.workYM>ym)out.push('근무월이 지급월보다 뒤');
+  if(r.days<=0)out.push('근무일수 없음');if(r.days>last)out.push('근무일수 > 근무월 말일');
+  if(r.days<=1&&r.taxable>=1000000)out.push('근무 0~1일에 100만원 이상');
+  if(r.taxable<=0&&r.nontax<=0)out.push('과세·비과세 모두 0');
+  if(r.tax>r.taxable)out.push('소득세 > 과세소득');if(r.tax>0&&r.tax<1000)out.push('소득세 1천원 미만은 0(소액부징수)');
+  if(!r.lastDay)out.push('최종근무일 없음');else{if(r.lastDay>last)out.push('최종근무일 > 말일');if(r.lastDay<r.days)out.push('최종근무일 < 근무일수');}
+  return out;}
 let _psmText='';
 function genPSM(){
-  const t=$('psm_type').value;const cfg=PSM_TYPES[t];const ym=$('psm_ym').value||todayYM();const a=psmGet();const b=DB.biz;
-  if(!a.length){$('psmOut').textContent='소득자 내역이 없습니다.';_psmText='';return;}
-  const ym6=ym.replace('-','');const bizNo=(b.no||'').replace(/[^0-9]/g,'');
-  const L=[C('11',2)+C(t,4)+C(ym6,6)+C(bizNo,10)+C(b.name,40)+N(a.length,7)];
-  let tg=0,tt=0;
-  a.forEach(r=>{
-    const local=fl(num(r.tax)*0.1,10);tg+=num(r.gross);tt+=num(r.tax);
-    const dayF=cfg.day?N(r.days,3):'';
-    L.push(C('21',2)+C(ym6,6)+C(bizNo,10)+C(r.name,30)+C((r.rrn||'').replace(/[^0-9]/g,''),13)
-      +dayF+N(r.gross,15)+N(r.nontax,15)+N(r.tax,15)+N(local,15));
-  });
-  L.push(C('31',2)+N(a.length,7)+N(tg,15)+N(tt,15));
-  _psmText=L.join('\r\n')+'\r\n';
-  $('psmOut').textContent=_psmText+
-    '\n[레코드 — '+cfg.name+', '+ym6+' 귀속]\n'+
-    'H(11): 자료구분2·유형코드4('+t+')·귀속연월6·사업자번호10·상호40·건수7\n'+
-    'D(21): 자료구분2·귀속연월6·사업자번호10·성명30·주민번호13'+(cfg.day?'·근로일수3':'')+'·총지급액15·비과세15·소득세15·지방소득세15\n'+
-    'T(31): 자료구분2·건수7·총지급액합계15·소득세합계15\n'+
-    '· 숫자 우측0채움·음수부호 / 문자 좌측 Space / 한글 2Byte(KSC-5601)\n'+
-    '※ 홈택스 각 서식 전산매체 파일레이아웃(제출요령 PDF는 한글 추출불가)은 규격(텍스트/엑셀) 확보 시 byte 단위로 정밀화. 현재는 검토·내부관리용 핵심항목 레코드.';
+  const t=psmType();const cfg=PSM_TYPES[t];const H=bizHead();const warn=[];
+  if(t==='WORK'){const year=psmYear(),half=psmHalf();const rows=psmWorkRows(year,half);
+    if(!rows.length){$('psmOut').textContent='해당 반기 소득자가 없습니다.';_psmText='';return;}
+    if(!H.office)warn.push('① 사업장 관할세무서코드가 비어 있습니다(A3·B3·C3 필수)');
+    const L=[];const put=(rec,v)=>{const s=mlBuild('GW',rec,v);if(bytLen(s)!==280)warn.push(rec+' 길이 '+bytLen(s));return s;};
+    L.push(put('A',{A1:'A',A2:'77',A3:H.office,A4:todayYMD(),A5:H.submitter,A6:H.agent,A7:H.htx,A8:'9000',A9:H.no,A10:H.name,A11:H.dept||'경리',A12:H.staff,A13:H.tel,A14:1}));
+    let tp=0,tr=0;rows.forEach(r=>{tp+=r.sumPay;tr+=r.sumRecog;});
+    L.push(put('B',{B1:'B',B2:'77',B3:H.office,B4:1,B5:H.name,B6:H.ceo,B7:H.no,B8:H.regno,B9:year,B10:half,B11:rows.length,B12:tp,B13:tr}));
+    rows.forEach((r,i)=>{const v={C1:'C',C2:'77',C3:H.office,C4:i+1,C5:H.no,C6:DIG(r.e.rrn),C7:r.e.name,C9:r.e.foreigner||'1',C10:r.e.resident||'1',C12:r.start,C13:r.end};
+      r.pay.forEach((p,k)=>{v['C'+(14+2*k)]=p;v['C'+(15+2*k)]=r.recog[k];});L.push(put('C',v));});
+    _psmText=L.join('\r\n')+'\r\n';
+    $('psmOut').textContent='[간이지급명세서(근로소득) 전산매체 — '+year+'년 '+(half==='1'?'상반기':'하반기')+' · 자료구분 77 · 레코드 280 byte · A/B/C]\n'
+      +'· 소득자 '+rows.length+'명 · 급여 등 계 '+won(tp)+' · 인정상여 계 '+won(tr)+'\n'
+      +'· 레코드 길이 검증: '+(warn.filter(w=>/길이/.test(w)).length?'⚠ 불일치':'전 레코드 280 byte 정합 ✔')+'\n'
+      +(warn.length?'\n[확인 필요]\n'+warn.map(w=>' ⚠ '+w).join('\n')+'\n':'')
+      +'\n· C14~C25: 반기 6개월의 급여 등(인정상여·비과세 제외)/인정상여 · C12~C13 근무기간(반기 안) · 근무시기 B10 '+half+'\n'
+      +'※ 2027.1 매월 제출 전환 시 국세청 개정 제출요령으로 레이아웃을 다시 확인해야 합니다.';return;}
+  if(t==='DAY'){const ym=psmYM();const rows=psmDayRows(ym);
+    if(!rows.length){$('psmOut').textContent='해당 월 일용 소득자가 없습니다.';_psmText='';return;}
+    if(!H.office)warn.push('① 사업장 관할세무서코드가 비어 있습니다(A3·B3·C3 필수)');
+    const year=ym.slice(0,4),mm=parseInt(ym.slice(5,7)),q=Math.ceil(mm/3);
+    const L=[];const put=(rec,v)=>{const s=mlBuild('DAY',rec,v);if(bytLen(s)!==240)warn.push(rec+' 길이 '+bytLen(s));return s;};
+    L.push(put('A',{A1:'A',A2:'28',A3:H.office,A4:todayYMD(),A5:H.submitter,A6:H.agent,A7:H.htx,A8:'9000',A9:H.no,A10:H.name,A11:H.dept||'경리',A12:H.staff,A13:H.tel,A14:1,A15:q,A16:mm}));
+    let T={tx:0,nt:0,tax:0,local:0};const ids=new Set();rows.forEach(r=>{T.tx+=r.taxable;T.nt+=r.nontax;T.tax+=r.tax;T.local+=r.local;ids.add(DIG(r.e.rrn));});
+    L.push(put('B',{B1:'B',B2:'28',B3:H.office,B4:1,B5:H.no,B6:H.name,B7:H.ceo,B8:H.regno,B9:H.tel,B10:DB.biz.email||'',B11:year,B12:String(q),B13:ids.size,B14:rows.length,B15:T.tx,B16:T.nt,B17:T.tax,B18:T.local,B19:mm}));
+    rows.forEach((r,i)=>{const chk=dayCheck(r,ym);if(chk.length)warn.push((r.e.name||'')+': '+chk.join(', '));
+      L.push(put('C',{C1:'C',C2:'28',C3:H.office,C4:i+1,C5:H.no,C6:DIG(r.e.rrn),C7:r.e.name,C8:r.e.foreigner||'1',C9:(r.e.tel||'').replace(/[^0-9]/g,''),C10:mm,C11:parseInt(r.workYM.slice(5,7)),C12:r.days,C13:r.taxable,C14:r.nontax,C15:r.tax,C16:r.local,C17:r.lastDay}));});
+    _psmText=L.join('\r\n')+'\r\n';
+    $('psmOut').textContent='[일용근로소득 지급명세서 전산매체 — '+ym+' 지급분 · 자료구분 28 · 레코드 240 byte · A/B/C · 파일명 I'+H.no.slice(0,7)+'.'+H.no.slice(7)+']\n'
+      +'· 일용근로자 '+ids.size+'명 · 건수 '+rows.length+' · 과세소득 계 '+won(T.tx)+' · 소득세 계 '+won(T.tax)+' · 지방소득세 계 '+won(T.local)+'\n'
+      +'· 레코드 길이 검증: '+(warn.filter(w=>/길이/.test(w)).length?'⚠ 불일치':'전 레코드 240 byte 정합 ✔')+'\n'
+      +(warn.length?'\n[확인 필요 — 오류검증기준(2023)]\n'+warn.map(w=>' ⚠ '+w).join('\n')+'\n':'')
+      +'\n· C10 지급월 · C11 근무월 · C12 근무일수 · C13 과세소득(1일 15만원 공제 전) · C14 비과세 · C15 소득세[(일당-15만)×6%×45%, 일 1천원 미만 0] · C16 지방소득세 · C17 최종근무일\n'
+      +'· 다운로드 파일은 EUC-KR(CP949) 인코딩(UTF-8 로 만들면 홈택스 형식검증에서 자릿수 오류).';return;}
+  // 사업·기타: 종전 핵심항목 임시 레코드
+  const a=psmGet();const ym=psmYM();if(!a.length){$('psmOut').textContent='소득자 내역이 없습니다.';_psmText='';return;}
+  const ym6=ym.replace('-','');
+  const L=[C('11',2)+C(t,4)+C(ym6,6)+C(H.no,10)+C(H.name,40)+N(a.length,7)];let tg=0,tt=0;
+  a.forEach(r=>{const local=fl(num(r.tax)*0.1,10);tg+=num(r.gross);tt+=num(r.tax);L.push(C('21',2)+C(ym6,6)+C(H.no,10)+C(r.name,30)+C(DIG(r.rrn),13)+N(r.gross,15)+N(r.nontax,15)+N(r.tax,15)+N(local,15));});
+  L.push(C('31',2)+N(a.length,7)+N(tg,15)+N(tt,15));_psmText=L.join('\r\n')+'\r\n';
+  $('psmOut').textContent=_psmText+'\n[핵심항목 임시 레코드 — '+cfg.name+', '+ym6+' 귀속] H(11)·D(21)·T(31). 해당 소득종류의 전산매체 제출요령 확보 시 정밀화합니다.';
 }
 function downloadPSM(){
   if(!_psmText)genPSM();if(!_psmText)return;
-  const t=$('psm_type').value;const ym6=($('psm_ym').value||todayYM()).replace('-','');
-  const blob=new Blob([_psmText],{type:'text/plain;charset=utf-8'});
-  const url=URL.createObjectURL(blob);const a=document.createElement('a');
-  a.href=url;a.download=PSM_TYPES[t].name+'_'+ym6+'.txt';a.click();URL.revokeObjectURL(url);
+  const t=psmType();const H=bizHead();let name;
+  if(t==='WORK')name='간이지급명세서_근로소득_'+psmYear()+'_'+(psmHalf()==='1'?'상반기':'하반기')+'.txt';
+  else if(t==='DAY')name='I'+H.no.slice(0,7)+'.'+H.no.slice(7);
+  else name=PSM_TYPES[t].name+'_'+psmYM().replace('-','')+'.txt';
+  const blob=new Blob([toCP949(_psmText)],{type:'application/octet-stream'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);
 }
+
+// ===== ⑧ 퇴직소득 — 세액계산(별지 제24호서식(2), 국세청 「(하반기)2026년 귀속 퇴직소득 세액계산 프로그램」 D260813 로직) + 지급명세서 전산매체(제출요령 2026.09.14, 900 byte) =====
+DB.ret=DB.ret||{};
+const RET_REASON=[['1','정년퇴직'],['2','정리해고'],['3','자발적 퇴직'],['4','임원퇴직'],['5','중간정산'],['6','기타']];
+// Excel DATEDIF(a,b,"M")+1 — 기산일부터 퇴사일까지 월수(1월 미만 1월)
+function monthsBetween(a,b){if(!a||!b)return 0;const A=new Date(a+'T00:00:00'),B=new Date(b+'T00:00:00');if(isNaN(A)||isNaN(B)||B<A)return 0;
+  let m=(B.getFullYear()-A.getFullYear())*12+(B.getMonth()-A.getMonth());if(B.getDate()<A.getDate())m--;return m+1;}
+function svcYears(months,excl,add,dup){const n=months-num(excl)+num(add)-num(dup);return n<=0?0:Math.ceil(n/12);}   // 1년 미만 절상
+function svcDeduction(y){if(y<=0)return 0;if(y<=5)return y*1000000;if(y<=10)return 5000000+(y-5)*2000000;if(y<=20)return 15000000+(y-10)*2500000;return 40000000+(y-20)*3000000;} // §48① (2023.1.1~)
+function convDeduction(x){if(x<=8000000)return x;if(x<=70000000)return 8000000+(x-8000000)*0.6;if(x<=100000000)return 45200000+(x-70000000)*0.5;if(x<=300000000)return 60200000+(x-100000000)*0.4;return 140200000+(x-300000000)*0.35;} // §48② 환산급여공제
+const fl10s=x=>(x<0?-1:1)*Math.floor(Math.abs(x)/10)*10;   // 10원 절사(부호 유지)
+const tr0=x=>(x<0?-1:1)*Math.floor(Math.abs(x));
+function retDefault(e){const y=String(new Date().getFullYear());return {reason:'3',final:{join:e.join||'',start:e.join||'',leave:e.leave||'',payDate:e.leave||'',excl:0,add:0,pay:0,nontax:0},credit:0,
+  mid:{on:false,name:'',bizno:'',join:'',start:'',leave:'',payDate:'',excl:0,add:0,pay:0,nontax:0,prepaid:0,defer:'2'},dup:0,accts:[],rows:[]};}
+function retGet(year,id){DB.ret[year]=DB.ret[year]||{};const e=DB.emps.find(x=>x.id===id)||{};if(!DB.ret[year][id])DB.ret[year][id]=retDefault(e);const r=DB.ret[year][id];r.accts=r.accts||[];r.rows=r.rows||[];r.mid=r.mid||retDefault(e).mid;return r;}
+// 중복월수 자동: 중간지급 근무처가 다른 곳(종전근무지)이면 두 근무기간이 겹치는 월수(1월 미만 1월)
+function retOverlap(inp,bizNo){const m=inp.mid;if(!m.on||!m.bizno||DIG(m.bizno)===bizNo)return 0;const s=[m.start,inp.final.start].sort()[1],e=[m.leave,inp.final.leave].sort()[0];return (s&&e&&e>=s)?monthsBetween(s,e):0;}
+function retireCalc(inp,e){
+  const f=inp.final,m=inp.mid,bizNo=DIG(DB.biz.no);
+  const fM=monthsBetween(f.start,f.leave),fY=svcYears(fM,f.excl,f.add,0);
+  const mOn=!!m.on,mM=mOn?monthsBetween(m.start,m.leave):0,mY=mOn?svcYears(mM,m.excl,m.add,0):0;
+  const sStart=mOn&&m.start&&(!f.start||m.start<f.start)?m.start:f.start,sLeave=f.leave;
+  const dup=inp.dup!=null&&inp.dup!==''?num(inp.dup):retOverlap(inp,bizNo);
+  const sM=monthsBetween(sStart,sLeave),sExcl=num(f.excl)+(mOn?num(m.excl):0),sAdd=num(f.add)+(mOn?num(m.add):0),sY=svcYears(sM,sExcl,sAdd,dup);
+  const fTax=Math.max(num(f.pay)-num(f.nontax),0),mTax=mOn?Math.max(num(m.pay)-num(m.nontax),0):0,income=fTax+mTax;
+  const ded=Math.min(svcDeduction(sY),income);
+  const conv=sY?Math.floor((income-ded)*12/sY):0;
+  const convDed=Math.floor(convDeduction(conv));
+  const base=Math.max(conv-convDed,0);
+  const convTax=Math.floor(incomeTax(base));
+  const calcTax=Math.floor(convTax/12*sY);
+  const credit=num(inp.credit),prepaid=mOn?num(m.prepaid):0;
+  const target=calcTax-credit-prepaid;                                   // ㊲ 신고대상세액(부호)
+  const acctSum=(inp.accts||[]).reduce((s,a)=>s+num(a.amt),0);
+  const defer=acctSum>0&&fTax>0?Math.max(0,Math.floor(target*acctSum/fTax)):0;   // ㊶ 이연퇴직소득세
+  const sub=mOn&&m.defer==='1'&&target<0&&f.leave>='2026-07-01';        // 부표(E레코드) 작성 대상
+  const rows=(inp.rows||[]);const prepaidWht=sub?rows.reduce((s,r)=>s+num(r.tax)+num(r.wht),0):0;
+  const taxS=target,localS=tr0(taxS/10);
+  const deferL=Math.floor(defer/10);
+  const netS=sub?Math.max(fl10s(taxS-defer),-fl10s(prepaidWht)):fl10s(taxS-defer);
+  const netL=fl10s(netS/10);
+  return {fM,fY,mM,mY,sStart,sLeave,sM,sExcl,sAdd,dup,sY,fTax,mTax,income,ded,conv,convDed,base,convTax,calcTax,credit,prepaid,target,acctSum,defer,sub,prepaidWht,
+    taxS,localS,taxT:taxS+localS,deferS:defer,deferL,deferT:defer+deferL,whtS:prepaidWht,whtL:Math.floor(prepaidWht/10),netS,netL,netT:netS+netL};
+}
+// ── UI ──
+function retYear(){return $('ret_year').value;}
+function initRet(){const sel=$('ret_emp');const cur=sel.value;
+  sel.innerHTML=DB.emps.filter(e=>e.type!=='일용').map(e=>`<option value="${e.id}">${e.name||'(이름없음)'}${e.leave?' (퇴사 '+e.leave+')':''}</option>`).join('')||'<option value="">직원 없음</option>';
+  if(cur)sel.value=cur;const y=retYear();const n=Object.keys(DB.ret[y]||{}).filter(id=>num((DB.ret[y][id].final||{}).pay)>0).length;$('ret_cnt').textContent=n+'명 계산됨';loadRet();}
+function loadRet(){const id=$('ret_emp').value;if(!id){$('ret_form').style.display='none';$('ret_result').innerHTML='<div class="empty">먼저 ② 직원관리에서 직원을 등록하세요.</div>';return;}
+  $('ret_form').style.display='';const r=retGet(retYear(),id);const e=DB.emps.find(x=>x.id===id)||{};
+  const set=(k,v)=>{const el=$(k);if(el)el.value=(v==null?'':v);};
+  set('ret_reason',r.reason);['join','start','leave','payDate','excl','add','pay','nontax'].forEach(k=>set('ret_f_'+k,r.final[k]));set('ret_credit',r.credit);
+  $('ret_mid_on').checked=!!r.mid.on;['name','bizno','join','start','leave','payDate','excl','add','pay','nontax','prepaid','defer'].forEach(k=>set('ret_m_'+k,r.mid[k]));
+  set('ret_dup',r.dup);$('ret_mid_box').style.display=r.mid.on?'':'none';
+  $('ret_emp_info').innerHTML=`임원여부 <b>${e.exec==='1'?'여':'부'}</b> · DB형 퇴직연금 가입일 <b>${e.dbDate||'-'}</b> · 2011.12.31 퇴직금 <b>${won(e.ret2011||0)}</b> · 거주/내외국인 <b>${e.resident==='2'?'비거주자':'거주자'}/${e.foreigner==='9'?'외국인':'내국인'}</b> <span class="muted">(② 직원관리 [상세]에서 수정)</span>`;
+  renderRetAccts();renderRetRows();calcRet(false);}
+function readRet(){const id=$('ret_emp').value;const r=retGet(retYear(),id);
+  r.reason=$('ret_reason').value;['join','start','leave','payDate'].forEach(k=>r.final[k]=$('ret_f_'+k).value);['excl','add','pay','nontax'].forEach(k=>r.final[k]=num($('ret_f_'+k).value));r.credit=num($('ret_credit').value);
+  r.mid.on=$('ret_mid_on').checked;['name','bizno','join','start','leave','payDate','defer'].forEach(k=>r.mid[k]=$('ret_m_'+k).value);['excl','add','pay','nontax','prepaid'].forEach(k=>r.mid[k]=num($('ret_m_'+k).value));
+  r.dup=$('ret_dup').value===''?'':num($('ret_dup').value);$('ret_mid_box').style.display=r.mid.on?'':'none';return r;}
+function retAcctAdd(){const r=readRet();if(r.accts.length>=2)return alert('과세이연계좌는 2개까지 수록됩니다.');r.accts.push({name:'',bizno:'',acct:'',date:r.final.payDate||'',amt:0});DB.save();renderRetAccts();}
+function retAcctDel(i){const r=readRet();r.accts.splice(i,1);DB.save();renderRetAccts();calcRet(false);}
+function retAcctUpd(i,k,v){const r=readRet();if(r.accts[i]){r.accts[i][k]=(k==='amt')?num(v):v;DB.save();calcRet(false);}}
+function renderRetAccts(){const r=readRet();const tb=$('retAcctBody');if(!tb)return;
+  tb.innerHTML=r.accts.length?r.accts.map((a,i)=>`<tr><td><input class="txt" value="${a.name||''}" onchange="retAcctUpd(${i},'name',this.value)"></td><td><input class="txt" value="${a.bizno||''}" onchange="retAcctUpd(${i},'bizno',this.value)" style="text-align:center"></td>
+    <td><input class="txt" value="${a.acct||''}" onchange="retAcctUpd(${i},'acct',this.value)"></td><td><input type="date" value="${a.date||''}" onchange="retAcctUpd(${i},'date',this.value)"></td>
+    <td><input value="${won(a.amt)}" onchange="retAcctUpd(${i},'amt',this.value)"></td><td class="c"><button class="btn btn-d btn-sm" onclick="retAcctDel(${i})">×</button></td></tr>`).join('')
+    :'<tr><td colspan="6" class="empty">과세이연(연금계좌 이체)이 없으면 비워 두십시오.</td></tr>';}
+function retRowAdd(){const r=readRet();if(r.rows.length>=5)return alert('중간지급 상세내역은 5회차까지 수록됩니다.');r.rows.push({seq:r.rows.length+1,year:'',name:r.mid.name||'',bizno:r.mid.bizno||'',pay:0,tax:0,defer:'2',acctName:'',acctBiz:'',acctNo:'',inAmt:0,outAmt:0,bal:0,wht:0,taxBal:0,adj:0});DB.save();renderRetRows();}
+function retRowDel(i){const r=readRet();r.rows.splice(i,1);DB.save();renderRetRows();calcRet(false);}
+function retRowUpd(i,k,v){const r=readRet();if(r.rows[i]){r.rows[i][k]=(['pay','tax','inAmt','outAmt','bal','wht','taxBal','adj','seq'].includes(k))?num(v):v;DB.save();calcRet(false);}}
+function renderRetRows(){const r=readRet();const tb=$('retRowBody');if(!tb)return;
+  tb.innerHTML=r.rows.length?r.rows.map((x,i)=>`<tr>
+    <td><input value="${x.seq}" onchange="retRowUpd(${i},'seq',this.value)" style="text-align:center"></td><td><input class="txt" value="${x.year||''}" maxlength="4" onchange="retRowUpd(${i},'year',this.value)" style="text-align:center"></td>
+    <td><input class="txt" value="${x.name||''}" onchange="retRowUpd(${i},'name',this.value)"></td><td><input class="txt" value="${x.bizno||''}" onchange="retRowUpd(${i},'bizno',this.value)" style="text-align:center"></td>
+    <td><input value="${won(x.pay)}" onchange="retRowUpd(${i},'pay',this.value)"></td><td><input value="${won(x.tax)}" onchange="retRowUpd(${i},'tax',this.value)"></td>
+    <td><select onchange="retRowUpd(${i},'defer',this.value)"><option value="2" ${x.defer!=='1'?'selected':''}>부</option><option value="1" ${x.defer==='1'?'selected':''}>여</option></select></td>
+    <td><input class="txt" value="${x.acctName||''}" onchange="retRowUpd(${i},'acctName',this.value)"></td><td><input class="txt" value="${x.acctBiz||''}" onchange="retRowUpd(${i},'acctBiz',this.value)" style="text-align:center"></td><td><input class="txt" value="${x.acctNo||''}" onchange="retRowUpd(${i},'acctNo',this.value)"></td>
+    <td><input value="${won(x.inAmt)}" onchange="retRowUpd(${i},'inAmt',this.value)"></td><td><input value="${won(x.outAmt)}" onchange="retRowUpd(${i},'outAmt',this.value)"></td><td><input value="${won(x.bal)}" onchange="retRowUpd(${i},'bal',this.value)"></td>
+    <td><input value="${won(x.wht)}" onchange="retRowUpd(${i},'wht',this.value)"></td><td><input value="${won(x.taxBal)}" onchange="retRowUpd(${i},'taxBal',this.value)"></td><td><input value="${won(x.adj)}" onchange="retRowUpd(${i},'adj',this.value)"></td>
+    <td class="c"><button class="btn btn-d btn-sm" onclick="retRowDel(${i})">×</button></td></tr>`).join('')
+    :'<tr><td colspan="17" class="empty">이미 지급된 퇴직소득(중간지급 등)을 합산 정산하고 과세이연이 있을 때만 입력합니다(E레코드).</td></tr>';}
+function calcRet(save){const id=$('ret_emp').value;if(!id)return;const r=readRet();const e=DB.emps.find(x=>x.id===id)||{};
+  if(save!==false){DB.save();}
+  const c=retireCalc(r,e);r._calc={income:c.income,netS:c.netS,netL:c.netL,payDate:r.final.payDate};DB.save();
+  const row=(k,v,n)=>`<tr><td class="l">${k}</td><td>${typeof v==='number'?won(v):v}</td><td class="l muted">${n||''}</td></tr>`;
+  const warn=[];if(!r.final.leave)warn.push('퇴사일이 없습니다(② 직원관리 또는 아래 입력)');if(!r.final.start)warn.push('기산일이 없습니다');if(num(r.final.pay)<=0)warn.push('퇴직급여가 0 입니다');
+  if(r.final.leave&&r.final.leave.slice(0,4)!==retYear())warn.push('퇴사일 연도가 귀속연도('+retYear()+')와 다릅니다');
+  $('ret_result').innerHTML=(warn.length?'<div class="note" style="border-color:var(--rose)">'+warn.map(w=>'⚠ '+w).join('<br>')+'</div>':'')+`
+  <div class="sumbar">
+    <div class="box"><div class="k">퇴직소득 산출세액 ㉞</div><div class="v">${won(c.calcTax)}원</div></div>
+    <div class="box"><div class="k">이연퇴직소득세 ㊶</div><div class="v">${won(c.defer)}원</div></div>
+    <div class="box" style="background:linear-gradient(135deg,${c.netS<0?'#047857,#059669':'#9f1239,#e11d48'})"><div class="k">차감원천징수세액 ㊻ (소득세+지방)</div><div class="v">${won(c.netT)}원</div></div>
+  </div>
+  <table><thead><tr><th class="l">구분</th><th>금액</th><th class="l">계산</th></tr></thead><tbody>
+    ${row('정산 근속기간',c.sStart+' ~ '+c.sLeave,'기산일~퇴사일 (중간지급 있으면 이른 기산일)')}
+    ${row('근속월수 − 제외 + 가산 − 중복 → 근속연수 ㉗',c.sM+' − '+c.sExcl+' + '+c.sAdd+' − '+c.dup+' → <b>'+c.sY+'년</b>','1년 미만 절상 · 중복월수는 종전근무지 겹침(자동, 직접 수정 가능)')}
+    ${row('㉘ 퇴직소득(과세대상 퇴직급여)',c.income,'최종 '+won(c.fTax)+(r.mid.on?' + 중간지급 '+won(c.mTax):''))}
+    ${row('㉙ 근속연수공제',c.ded,'§48① 5년 이하 100만/년 · 10년 이하 500만+200만/년 · 20년 이하 1,500만+250만/년 · 초과 4,000만+300만/년 (한도 퇴직소득)')}
+    ${row('㉚ 환산급여',c.conv,'(㉘−㉙) × 12 ÷ 근속연수 (절사)')}
+    ${row('㉛ 환산급여별공제',c.convDed,'§48② 800만 이하 전액 · 7천만 이하 800만+60% · 1억 이하 4,520만+50% · 3억 이하 6,020만+40% · 초과 1억4,020만+35%')}
+    ${row('㉜ 퇴직소득 과세표준',c.base,'㉚−㉛')}
+    ${row('㉝ 환산산출세액',c.convTax,'㉜ × 기본세율(§55)')}
+    ${row('㉞ 산출세액',c.calcTax,'㉝ × 근속연수 ÷ 12 (절사)')}
+    ${row('㉟ 세액공제 · ㊱ 기납부(기과세이연)세액',won(c.credit)+' · '+won(c.prepaid),'외국납부세액공제 · 중간지급분 기납부')}
+    <tr class="totrow"><td class="l">㊲ 신고대상세액 (㉞−㉟−㊱)</td><td>${won(c.target)}</td><td class="l">${c.target<0?'음수(환급) — 부호 1':''}</td></tr>
+    ${row('㊶ 이연퇴직소득세',c.defer,'㊲ × 계좌입금 '+won(c.acctSum)+' ÷ 최종 과세대상퇴직급여 '+won(c.fTax)+' (음수면 0)')}
+    ${row('납부명세 ㊸ 신고대상세액',won(c.taxS)+' / 지방 '+won(c.localS),'')}
+    ${row('납부명세 ㊹ 이연퇴직소득세',won(c.deferS)+' / 지방 '+won(c.deferL),'')}
+    ${c.sub?row('납부명세 ㊺ 기납부원천징수세액',won(c.whtS)+' / 지방 '+won(c.whtL),'부표(E레코드) 차감징수세액+원천징수세액 합'):''}
+    <tr class="totrow"><td class="l">㊻ 차감원천징수세액 (${c.sub?'MAX(㊸−㊹, −㊺)':'㊸−㊹'}, 10원 절사)</td><td>${won(c.netS)} / 지방 ${won(c.netL)}</td><td class="l">계 ${won(c.netT)} · 부표작성 ${c.sub?'여(C90=1)':'부'}</td></tr>
+  </tbody></table>
+  <div class="note">국세청 「(하반기)2026년 귀속 퇴직소득 세액계산 프로그램」(D260813, 별지 제24호서식(2) 개정 2026.5.22)의 계산 순서·절사 규칙과 같게 구성했습니다. 임원은 §22③ 한도초과액을 근로소득(급여대장 「임원 퇴직소득금액 한도초과액」)으로 옮기고 퇴직급여는 한도 내 금액만 넣으십시오.</div>`;}
+function retApplyReport(){const id=$('ret_emp').value;if(!id)return;const r=readRet();const e=DB.emps.find(x=>x.id===id)||{};const c=retireCalc(r,e);
+  const ym=(r.final.payDate||r.final.leave||'').slice(0,7);if(!ym)return alert('지급일(또는 퇴사일)을 먼저 입력하십시오.');
+  const m=getReportMeta(ym);let o=m.others.find(x=>x.code==='A20');if(!o){o={code:'A20',n:0,pay:0,tax:0,farm:0};m.others.push(o);}
+  // 같은 달 퇴직자 전체 합산(신고서 A20 퇴직소득 행)
+  let n=0,pay=0,tax=0;Object.keys(DB.ret[retYear()]||{}).forEach(rid=>{const x=DB.ret[retYear()][rid];const pd=(x.final.payDate||x.final.leave||'').slice(0,7);if(pd!==ym||num(x.final.pay)<=0)return;const ee=DB.emps.find(q=>q.id===rid)||{};const cc=retireCalc(x,ee);n++;pay+=cc.income;tax+=cc.netS;});
+  o.n=n;o.pay=pay;o.tax=tax;DB.save();alert(ym+' 원천징수이행상황신고서 A20(퇴직소득)에 '+n+'명, 총지급액 '+won(pay)+', 소득세 '+won(tax)+'을 반영했습니다.');}
+// ── 퇴직소득 지급명세서 전산매체 (RT: A/B/C/D/E 900 byte · 자료구분 25) ──
+let _retMediaText='';
+function genRetMedia(){
+  const year=retYear();const data=DB.ret[year]||{};const H=bizHead();const RL=mlLen('RT');
+  const ids=Object.keys(data).filter(id=>DB.emps.some(e=>e.id===id)&&num((data[id].final||{}).pay)>0);
+  if(!ids.length){$('retMediaOut').textContent='계산·저장된 퇴직소득자가 없습니다.';_retMediaText='';return;}
+  const warn=[];if(!H.office)warn.push('① 사업장 관할세무서코드가 비어 있습니다(A3·B3·C3 필수)');if(!H.regno)warn.push('① 사업장 법인(주민)등록번호가 비어 있습니다(B8 필수)');
+  const put=(rec,v,who)=>{const s=mlBuild('RT',rec,v);if(bytLen(s)!==RL)warn.push(rec+'['+(who||'')+'] 길이 '+bytLen(s));return s;};
+  const body=[];const cnt={C:0,D:0,E:0};let T={inc:0,taxS:0,defer:0,wht:0,netS:0,netL:0,netT:0};
+  ids.forEach((id,i)=>{const r=data[id];const e=DB.emps.find(x=>x.id===id)||{};const c=retireCalc(r,e);const seq=i+1;const rrn=DIG(e.rrn);const f=r.final,m=r.mid;
+    T.inc+=c.income;T.taxS+=c.taxS;T.defer+=c.defer;T.wht+=c.whtS;T.netS+=c.netS;T.netL+=c.netL;T.netT+=c.netT;
+    const v={C1:'C',C2:'25',C3:H.office,C4:seq,C5:H.no,C6:'1',C7:e.resident||'1',C8:e.foreigner||'1',C9:e.religious||'2',C10:e.resident==='2'?(e.country||''):'',C11:e.name,C12:rrn,
+      C13:e.exec==='1'?'1':'2',C14:D8(e.dbDate),C15:e.exec==='1'?num(e.ret2011):0,C16:year+'0101',C17:D8(f.leave),C18:r.reason||'3',
+      C19:m.on?m.name:'',C20:m.on?DIG(m.bizno):'',C21:m.on?num(m.pay):0,C22:m.on?num(m.nontax):0,C23:c.mTax,C24:m.on?(m.defer==='1'?'1':'2'):'2',
+      C25:H.name,C26:H.no,C27:num(f.pay),C28:num(f.nontax),C29:c.fTax,C30:num(f.pay)+(m.on?num(m.pay):0),C31:num(f.nontax)+(m.on?num(m.nontax):0),C32:c.income,
+      C33:m.on?D8(m.join):0,C34:m.on?D8(m.start):0,C35:m.on?D8(m.leave):0,C36:m.on?D8(m.payDate):0,C37:c.mM,C38:m.on?num(m.excl):0,C39:m.on?num(m.add):0,C40:0,C41:c.mY,
+      C42:D8(f.join),C43:D8(f.start),C44:D8(f.leave),C45:D8(f.payDate),C46:c.fM,C47:num(f.excl),C48:num(f.add),C49:0,C50:c.fY,
+      C51:0,C52:D8(c.sStart),C53:D8(c.sLeave),C54:0,C55:c.sM,C56:c.sExcl,C57:c.sAdd,C58:c.dup,C59:c.sY,
+      C60:c.income,C61:c.ded,C62:c.conv,C63:c.convDed,C64:c.base,C65:c.convTax,C66:c.calcTax,C67:c.credit,C68:c.prepaid,
+      C71:c.acctSum,C72:c.acctSum?c.fTax:0,C73:c.defer,C78:c.defer,C79:c.deferL,C80:0,C81:c.defer+c.deferL,C82:c.whtS,C83:c.whtL,C84:0,C85:c.whtS+c.whtL,C90:c.sub?'1':'2'};
+    mlSigned(v,'C69',c.target);mlSigned(v,'C70',c.acctSum?c.target:0);mlSigned(v,'C74',c.taxS);mlSigned(v,'C75',c.localS);mlSigned(v,'C76',0);mlSigned(v,'C77',c.taxS+c.localS);
+    mlSigned(v,'C86',c.netS);mlSigned(v,'C87',c.netL);mlSigned(v,'C88',0);mlSigned(v,'C89',c.netT);
+    body.push(put('C',v,e.name));cnt.C++;
+    (r.accts||[]).filter(a=>num(a.amt)>0).forEach((a,k)=>{body.push(put('D',{D1:'D',D2:'25',D3:H.office,D4:seq,D5:H.no,D7:rrn,D8:k+1,D9:a.name,D10:DIG(a.bizno),D11:a.acct,D12:D8(a.date),D13:num(a.amt)},e.name));cnt.D++;});
+    if(c.sub){(r.rows||[]).forEach(x=>{const ev={E1:'E',E2:'25',E3:H.office,E4:seq,E5:H.no,E7:rrn,E8:num(x.seq),E9:num(x.year),E10:x.name,E11:DIG(x.bizno),E12:num(x.pay),E14:x.defer==='1'?'1':'2',E15:x.defer==='1'?num(x.seq):0,
+        E16:x.defer==='1'?x.acctName:'',E17:x.defer==='1'?DIG(x.acctBiz):'',E18:x.defer==='1'?x.acctNo:'',E19:num(x.inAmt),E20:num(x.outAmt),E21:num(x.bal),E22:num(x.wht),E23:num(x.taxBal),E24:num(x.adj)};
+        mlSigned(ev,'E13',num(x.tax));body.push(put('E',ev,e.name));cnt.E++;});
+      if(!(r.rows||[]).length)warn.push((e.name||id)+': 부표 작성 대상(C90=1)인데 중간지급 상세내역(E레코드)이 없습니다');}
+    if(!f.leave)warn.push((e.name||id)+': 퇴사일 없음(C44 필수)');if(!e.rrn)warn.push((e.name||id)+': 주민등록번호 없음(C12 필수)');
+  });
+  const L=[];
+  L.push(put('A',{A1:'A',A2:'25',A3:H.office,A4:todayYMD(),A5:H.submitter,A6:H.agent,A7:H.htx,A8:'9000',A9:H.no,A10:H.name,A11:H.dept||'경리',A12:H.staff,A13:H.tel,A14:1,A15:101}));
+  const bv={B1:'B',B2:'25',B3:H.office,B4:1,B5:H.no,B6:H.name,B7:H.ceo,B8:H.regno,B9:'1',B10:cnt.C,B12:T.inc,B14:T.defer,B15:T.wht};
+  mlSigned(bv,'B13',T.taxS);mlSigned(bv,'B16',T.netS);mlSigned(bv,'B17',T.netL);mlSigned(bv,'B18',0);mlSigned(bv,'B19',T.netT);
+  L.push(put('B',bv));body.forEach(x=>L.push(x));
+  _retMediaText=L.join('\r\n')+'\r\n';
+  $('retMediaOut').textContent='[퇴직소득 지급명세서 전산매체 — '+year+' 귀속 · 제출요령 2026.09.14 · 자료구분 25 · 레코드 '+RL+' byte]\n'
+    +'· 수록순서 A → B → 소득자별(C → D연금계좌 → E기납부명세) · 소득자 '+cnt.C+'명 · D '+cnt.D+' · E '+cnt.E+'\n'
+    +'· 정산 과세대상퇴직급여 합계(B12) '+won(T.inc)+' · 신고대상세액 소득세(B13) '+won(T.taxS)+' · 이연퇴직소득세(B14) '+won(T.defer)+' · 차감원천징수 계(B19) '+won(T.netT)+'\n'
+    +'· 레코드 길이 검증: '+(warn.filter(w=>/길이/.test(w)).length?'⚠ 불일치':'전 레코드 '+RL+' byte 정합 ✔')+'\n'
+    +(warn.length?'\n[확인 필요]\n'+warn.map(w=>' ⚠ '+w).join('\n')+'\n':'')
+    +'\n· C13 임원여부 · C14 DB형 가입일 · C15 2011.12.31 퇴직금(임원) · C16~C17 귀속기간 · C18 퇴직사유 · C19~C24 중간지급 · C25~C29 최종 · C30~C32 정산 · C33~C59 근속기간 · C60~C68 세액계산 · C69~C73 이연 · C74~C89 납부명세 · C90 부표작성여부\n'
+    +'· 부호 칸: 양수 0 · 음수 1 · 금액은 절대값 · 다운로드 파일은 EUC-KR(CP949) 인코딩';
+}
+function downloadRetMedia(){if(!_retMediaText)genRetMedia();if(!_retMediaText)return;const blob=new Blob([toCP949(_retMediaText)],{type:'application/octet-stream'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='퇴직소득지급명세서_'+retYear()+'_'+DIG(DB.biz.no)+'.txt';a.click();URL.revokeObjectURL(url);}
 
 // ===== 초기화 =====
 loadBiz();renderEmp();
-$('payYM').value=todayYM();$('rptYM').value=todayYM();
+$('payYM').value=todayYM();$('rptYM').value=todayYM();$('psm_ym').value=todayYM();
 renderPay();
 </script>
 <!-- HB-CONSULT v1 -->
