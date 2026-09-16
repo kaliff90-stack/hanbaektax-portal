@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>한백택스 계약서 작성기 — 근로계약서 · 금전소비대차계약서 · 프리랜서 계약서</title>
+<!--
+  세무법인 한백택스 계약서 작성기 v1 (2026-09-16)
+  - 근로계약서(기간의 정함 없음·기간제·단시간) : 근로기준법 제17조·시행령 제8조, 기간제법 제17조의 서면 명시 사항을 모두 담는다.
+    최저임금(2026년 시간급 10,320원, 고용노동부 고시 2025-08-05)·수습 감액(최저임금법 제5조 ②, 령 제3조)·휴게(근기법 제54조)·
+    주 52시간·통상시급 자동 계산과 점검.
+  - 금전소비대차계약서 : 민법 제598조. 이자제한법 제2조(최고이자율 연 20%, 대통령령 제31593호) 점검,
+    인지세(인지세법 제3조 ①·제6조 8호: 5천만원 이하 비과세) 안내, 비영업대금 이익 원천징수(소득세법 제127조·제129조 ① 1호 나목 25%)
+    안내, 특수관계인 무상·저리 대출 증여(상증령 제31조의4, 적정이자율 = 법인세 시행규칙 제43조 ② 연 4.6%, 기준 1천만원) 안내,
+    상환 일정표(만기일시·원금균등·원리금균등).
+  - 프리랜서(업무위탁) 계약서 : 원천징수대상 사업소득(소득세법 제127조 ① 3호, 령 제184조 ① = 부가세법 제26조 ① 15호 면세 인적용역, 령 제42조)
+    3% + 지방소득세 0.3%, 소액부징수(소득세법 제86조 1호), 근로자성 징표 진단(대법원 2004다29736), 사업소득 간이지급명세서 매월 제출 안내.
+  - 데이터는 이 브라우저(localStorage)에만 저장된다. 서버로 보내지 않는다. JSON 저장·불러오기 지원.
+  - 인쇄: A4, 나눔고딕 11pt 이상.
+-->
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1B3A5C;--gold:#C8963E;--blue:#2F5D8A;--bg:#F4F6F9;--line:#DCE3EC;--gray:#6B7A8C;--red:#B91C1C;--amber:#92400E;--green:#166534}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:14px}
+.top{background:#fff;border-bottom:2px solid var(--gold);padding:12px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.top h1{margin:0;font-size:19px;color:var(--navy)}
+.top .sub{color:var(--gray);font-size:12px}
+.doctabs{display:flex;gap:6px;margin-left:auto}
+.doctabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font-weight:800;cursor:pointer;color:var(--navy);font-family:inherit;font-size:13px}
+.doctabs button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.wrap{display:grid;grid-template-columns:minmax(360px,520px) 1fr;gap:18px;padding:16px 20px;max-width:1500px;margin:0 auto}
+.panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.panel h2{font-size:14px;color:var(--navy);margin:14px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--line)}
+.panel h2:first-child{margin-top:0}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}
+.row.c3{grid-template-columns:1fr 1fr 1fr}
+.row.c1{grid-template-columns:1fr}
+.fld{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--gray);font-weight:700}
+.fld input,.fld select,.fld textarea{font:inherit;font-size:13px;color:#111;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;width:100%}
+.fld input:focus,.fld select:focus,.fld textarea:focus{outline:2px solid #C8963E55;border-color:var(--gold)}
+.fld textarea{min-height:64px;resize:vertical}
+.fld.num input{text-align:right}
+.chk{display:flex;align-items:center;gap:6px;font-size:13px;color:#111;font-weight:400;padding:4px 0}
+.chk input{width:auto}
+.hint{font-size:11px;color:var(--gray);font-weight:400}
+.toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;font-weight:700;cursor:pointer;color:var(--navy);font-family:inherit;font-size:12px}
+.btn.p{background:var(--gold);color:#fff;border-color:var(--gold)}
+.btn.n{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn.sm{padding:4px 8px;font-size:11px}
+.btn:hover{filter:brightness(.96)}
+.allow{display:grid;grid-template-columns:1.2fr 1fr .6fr auto;gap:6px;margin-bottom:6px;align-items:center}
+.allow input,.allow select{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;width:100%}
+.allow input.num{text-align:right}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.days label{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--gray);border:1px solid var(--line);border-radius:8px;padding:4px 2px}
+.days input[type=number]{width:100%;font-size:12px;text-align:center;padding:3px;border:1px solid var(--line);border-radius:6px}
+.checks{margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px}
+.checks li{font-size:12px;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:#fafbfd;line-height:1.5}
+.checks li.err{border-color:#fca5a5;background:#fef2f2;color:var(--red)}
+.checks li.warn{border-color:#fcd34d;background:#fffbeb;color:var(--amber)}
+.checks li.ok{border-color:#86efac;background:#f0fdf4;color:var(--green)}
+.checks li b{font-weight:800}
+.calc{font-size:12px;color:#111;border:1px dashed var(--line);border-radius:8px;padding:8px 10px;margin-top:8px;line-height:1.7;background:#fafbfd}
+.calc b{color:var(--navy)}
+.pv{position:sticky;top:8px}
+.sheet{background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 18px rgba(15,36,64,.08);padding:20mm 18mm;min-height:280mm;width:100%;max-width:210mm;margin:0 auto;font-size:11pt;line-height:1.75;color:#000}
+.sheet h1{text-align:center;font-size:19pt;letter-spacing:8px;margin:0 0 14pt;color:#000}
+.sheet h2{font-size:11.5pt;margin:12pt 0 3pt;color:#000}
+.sheet p{margin:0 0 4pt;text-align:justify}
+.sheet table{border-collapse:collapse;width:100%;margin:4pt 0 8pt;font-size:10.5pt}
+.sheet th,.sheet td{border:1px solid #000;padding:4pt 6pt;vertical-align:top;word-break:keep-all}
+.sheet th{background:#f3f4f6;font-weight:700;text-align:center;white-space:nowrap}
+.sheet td.r{text-align:right;white-space:nowrap}
+.sheet td.c{text-align:center}
+.sheet .sign{margin-top:18pt}
+.sheet .sign table td{border:none;padding:3pt 4pt}
+.sheet .party{width:100%}
+.sheet .party td{border:1px solid #000}
+.sheet .party td:first-child{width:22%;background:#f3f4f6;font-weight:700;text-align:center}
+.sheet .blank{display:inline-block;min-width:60px;border-bottom:1px solid #000}
+.sheet .foot{margin-top:14pt;font-size:9pt;color:#444;border-top:1px solid #999;padding-top:4pt}
+.sheet .stamp{display:inline-block;margin-left:6pt;color:#555;font-size:10pt}
+.sheet .note{font-size:9.5pt;color:#333;background:#f8fafc;border:1px solid #cbd5e1;padding:6pt 8pt;margin:6pt 0}
+.sheet .pb{page-break-before:always}
+.mobtab{display:none}
+@media(max-width:960px){
+  .wrap{grid-template-columns:1fr;padding:10px}
+  .pv{position:static}
+  .mobtab{display:flex;gap:6px;margin:0 0 8px}
+  .mobtab button{flex:1;padding:9px;border:1px solid var(--line);background:#fff;border-radius:8px;font-weight:800;color:var(--navy);font-family:inherit}
+  .mobtab button.on{background:var(--navy);color:#fff}
+  body.showpv #formPanel{display:none}
+  body:not(.showpv) #pvPanel{display:none}
+  .sheet{padding:12mm 8mm;min-height:auto;font-size:10.5pt}
+  .row,.row.c3{grid-template-columns:1fr 1fr}
+  .top h1{font-size:16px}
+  .doctabs{margin-left:0;width:100%}
+  .doctabs button{flex:1}
+}
+@page{size:A4;margin:16mm 15mm}
+@media print{
+  html,body{background:#fff}
+  .top,#formPanel,.toolbar,.mobtab,.nopr{display:none!important}
+  .wrap{display:block;padding:0;margin:0;max-width:none}
+  #pvPanel{display:block!important;border:none;padding:0;background:#fff}
+  .sheet{box-shadow:none;border:none;padding:0;margin:0;max-width:none;width:auto;min-height:auto}
+}
+</style>
+</head>
+<body>
+<!-- HB-HOME v1 -->
+<script>
+/* 한백택스 홈 바 — 생성기: 02-도구 & 스크립트/Python 스크립트/홈바_주입.py
+   이 블록은 자동 생성이다. 직접 고치지 말고 생성기를 고쳐 다시 실행한다. */
+(function(){
+  if (window.self !== window.top) return;          /* 포털 iframe 안에서는 부모의 바를 쓴다 */
+  if (window.__hbHome) return;
+  window.__hbHome = 1;
+  var me = decodeURIComponent((location.pathname.split('/').pop() || '').toLowerCase());
+  var host = document.createElement('div');
+  host.id = 'hbHome';
+  host.setAttribute('data-nogate', '1');
+  host.style.cssText = 'display:block;position:sticky;top:0;z-index:2147483000;margin:0;padding:0;line-height:0';
+  var links = [
+    ['한백택스_세무계산_포털.html', '세무계산 포털'],
+    ['한백택스_모바일.html', '모바일 포털']
+  ].filter(function(l){ return l[0].toLowerCase() !== me; });
+  var sh = host.attachShadow({ mode: 'open' });
+  sh.innerHTML =
+    '<style>' +
+    ':host{all:initial;display:block}' +
+    '.bar{box-sizing:border-box;display:flex;align-items:center;gap:10px;height:42px;padding:0 16px;' +
+      'background:#fff;border-bottom:2px solid #C8963E;box-shadow:0 2px 8px rgba(15,36,64,.08);' +
+      'font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:13px;line-height:1;color:#1B3A5C}' +
+    '.home{display:inline-flex;align-items:center;gap:6px;background:#C8963E;color:#fff;font-weight:800;' +
+      'padding:7px 13px;border-radius:999px;text-decoration:none;white-space:nowrap;letter-spacing:-.2px}' +
+    '.home:hover{background:#b8862f}' +
+    '.ttl{font-weight:700;color:#1B3A5C;white-space:nowrap;opacity:.85}' +
+    '.sp{flex:1}' +
+    '.lnk{color:#35507A;font-weight:700;text-decoration:none;padding:6px 10px;border:1px solid #DCE5F0;border-radius:999px;white-space:nowrap;background:#F5F8FC}' +
+    '.lnk:hover{border-color:#C8963E;color:#1B3A5C}' +
+    '@media(max-width:640px){.bar{padding:0 10px;gap:6px;height:40px}.ttl{display:none}.lnk{padding:6px 8px;font-size:12px}}' +
+    '@media print{.bar{display:none}}' +
+    '</style>' +
+    '<div class="bar">' +
+      '<a class="home" href="index.html" title="한백택스 세무 도구 모음(메인 화면)으로">&#8592; 메인 화면</a>' +
+      '<span class="ttl">세무법인 한백택스 · 세무 도구</span>' +
+      '<span class="sp"></span>' +
+      links.map(function(l){ return '<a class="lnk" href="' + l[0] + '">' + l[1] + '</a>'; }).join('') +
+    '</div>';
+  var s = document.currentScript;
+  if (s && s.parentNode) s.parentNode.insertBefore(host, s);
+  else document.body.insertBefore(host, document.body.firstChild);
+})();
+</script>
+<!-- /HB-HOME -->
+<div class="top">
+  <div>
+    <h1>계약서 작성기</h1>
+    <div class="sub">근로계약서 · 금전소비대차계약서 · 프리랜서(3.3%) 업무위탁계약서 — 입력하면 오른쪽에 바로 만들어지고, 법정 기재사항과 한도를 점검합니다. 내용은 이 브라우저에만 저장됩니다.</div>
+  </div>
+  <div class="doctabs" id="docTabs">
+    <button type="button" data-doc="labor" class="on">근로계약서</button>
+    <button type="button" data-doc="loan">금전소비대차계약서</button>
+    <button type="button" data-doc="free">프리랜서(3.3%) 계약서</button>
+  </div>
+</div>
+
+<div class="wrap">
+<div class="panel" id="formPanel">
+  <div class="mobtab"><button type="button" class="on" onclick="mobPv(false)">입력</button><button type="button" onclick="mobPv(true)">미리보기</button></div>
+  <div class="toolbar">
+    <button type="button" class="btn p" onclick="window.print()">🖨 인쇄 · PDF 저장</button>
+    <button type="button" class="btn" onclick="copyText()">📋 본문 복사</button>
+    <button type="button" class="btn" onclick="saveJson()">💾 JSON 저장</button>
+    <button type="button" class="btn" onclick="document.getElementById('jsonFile').click()">📂 불러오기</button>
+    <input type="file" id="jsonFile" accept=".json,application/json" style="display:none" onchange="loadJson(this)">
+    <button type="button" class="btn" onclick="fillSample()">예시 채우기</button>
+    <button type="button" class="btn" onclick="resetDoc()">초기화</button>
+    <button type="button" class="btn" id="btnBoard" onclick="fromBoard()" title="같은 사이트의 「거래처 업무판」에 등록한 거래처를 불러옵니다">🗓 업무판 거래처</button>
+  </div>
+
+  <!-- ══════════════ 근로계약서 입력 ══════════════ -->
+  <div id="form-labor">
+    <h2>① 계약 형태</h2>
+    <div class="row c3">
+      <label class="fld">계약 형태<select data-k="kind"><option value="perm">기간의 정함이 없는 근로계약</option><option value="fixed">기간제 근로계약</option><option value="part">단시간(파트타임) 근로계약</option></select></label>
+      <label class="fld">계약 시작일<input type="date" data-k="start"></label>
+      <label class="fld">계약 종료일 <span class="hint">(기간제·단시간)</span><input type="date" data-k="end"></label>
+    </div>
+    <h2>② 사업주(갑)</h2>
+    <div class="row">
+      <label class="fld">사업체명<input data-k="coName" placeholder="상호 또는 법인명"></label>
+      <label class="fld">대표자<input data-k="coRep"></label>
+      <label class="fld">사업자등록번호<input data-k="coBiz" placeholder="000-00-00000" inputmode="numeric"></label>
+      <label class="fld">전화<input data-k="coTel"></label>
+      <label class="fld" style="grid-column:1/-1">사업장 주소<input data-k="coAddr"></label>
+    </div>
+    <h2>③ 근로자(을)</h2>
+    <div class="row">
+      <label class="fld">성명<input data-k="wName"></label>
+      <label class="fld">생년월일<input type="date" data-k="wBirth"></label>
+      <label class="fld">연락처<input data-k="wTel"></label>
+      <label class="fld">주민등록번호 <span class="hint">(선택·계약서에 뒷자리 표시 안 함)</span><input data-k="wRrn" placeholder="000000-0000000" inputmode="numeric"></label>
+      <label class="fld" style="grid-column:1/-1">주소<input data-k="wAddr"></label>
+    </div>
+    <h2>④ 근무 장소 · 업무</h2>
+    <div class="row">
+      <label class="fld">근무 장소<input data-k="place" placeholder="예: 본사 사무실(서울 중구 …)"></label>
+      <label class="fld">업무 내용<input data-k="job" placeholder="예: 경리·회계 사무, 매장 판매"></label>
+    </div>
+    <h2>⑤ 근로시간 · 휴게 · 휴일</h2>
+    <div class="row c3">
+      <label class="fld">시업<input type="time" data-k="tIn" value="09:00"></label>
+      <label class="fld">종업<input type="time" data-k="tOut" value="18:00"></label>
+      <label class="fld">휴게 (분)<input type="number" data-k="rest" value="60" min="0" step="10"></label>
+      <label class="fld">휴게 시간대<input data-k="restTime" placeholder="12:00~13:00"></label>
+      <label class="fld">주휴일<select data-k="offDay"><option>일요일</option><option>토요일</option><option>월요일</option><option>화요일</option><option>수요일</option><option>목요일</option><option>금요일</option><option value="rot">주 1회(교대 지정)</option></select></label>
+      <label class="fld">주 근무일수<input type="number" data-k="daysPerWeek" value="5" min="1" max="6"></label>
+    </div>
+    <div class="fld" style="margin-top:8px">근로일별 근로시간 <span class="hint">(단시간 근로자는 필수 — 기간제법 §17 6호. 빈칸은 근무 없음)</span></div>
+    <div class="days" id="dayHours"></div>
+    <div class="calc" id="laborCalc"></div>
+    <h2>⑥ 임금</h2>
+    <div class="row c3">
+      <label class="fld">임금 형태<select data-k="payType"><option value="month">월급</option><option value="hour">시급</option><option value="day">일급</option></select></label>
+      <label class="fld num">기본급 (원)<input type="text" data-k="base" inputmode="numeric" placeholder="2,156,880"></label>
+      <label class="fld">상여금<select data-k="bonus"><option value="none">없음</option><option value="yes">있음(아래 기재)</option></select></label>
+      <label class="fld" style="grid-column:1/-1">상여금 내용 <span class="hint">(있음일 때)</span><input data-k="bonusDesc" placeholder="예: 연 기본급의 100%, 설·추석 각 50% 지급"></label>
+    </div>
+    <div class="fld" style="margin:8px 0 4px">제수당 <span class="hint">(명칭·월 금액·통상임금 포함 여부)</span></div>
+    <div id="allowList"></div>
+    <button type="button" class="btn sm" onclick="addAllow()">＋ 수당 추가</button>
+    <div class="row c3" style="margin-top:8px">
+      <label class="fld">지급일<select data-k="payDay"><option value="10">매월 10일</option><option value="15">매월 15일</option><option value="20">매월 20일</option><option value="25">매월 25일</option><option value="last">매월 말일</option><option value="5">매월 5일</option></select></label>
+      <label class="fld">지급 대상 기간<select data-k="payPeriod"><option value="prev">전월 1일~말일분</option><option value="cur">당월 1일~말일분</option></select></label>
+      <label class="fld">지급 방법<select data-k="payHow"><option value="bank">근로자 명의 예금계좌 입금</option><option value="cash">근로자에게 직접 지급</option></select></label>
+    </div>
+    <h2>⑦ 수습 · 사회보험 · 기타</h2>
+    <div class="row c3">
+      <label class="fld">수습 기간<select data-k="probation"><option value="0">없음</option><option value="1">1개월</option><option value="2">2개월</option><option value="3">3개월</option></select></label>
+      <label class="fld">수습 중 임금<select data-k="probPay"><option value="100">100% 지급</option><option value="90">90% 지급(최저임금 90% 이상)</option></select></label>
+      <label class="fld">단순노무 직종 여부<select data-k="simple"><option value="n">아니오</option><option value="y">예(수습 감액 불가)</option></select></label>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <label class="chk"><input type="checkbox" data-k="insNP" checked>국민연금</label>
+      <label class="chk"><input type="checkbox" data-k="insHI" checked>건강보험(장기요양 포함)</label>
+      <label class="chk"><input type="checkbox" data-k="insEI" checked>고용보험</label>
+      <label class="chk"><input type="checkbox" data-k="insWC" checked>산재보험</label>
+    </div>
+    <label class="fld" style="margin-top:6px">특약 사항 <span class="hint">(비밀유지·겸업·복무 등. 근로기준법에 미달하는 조건은 무효)</span><textarea data-k="extra"></textarea></label>
+    <div class="row c3" style="margin-top:8px">
+      <label class="fld">작성일<input type="date" data-k="signDate"></label>
+      <label class="chk" style="grid-column:span 2;align-self:end"><input type="checkbox" data-k="showTool">계약서 하단에 작성 도구 표시</label>
+    </div>
+    <ul class="checks" id="laborChecks"></ul>
+  </div>
+
+  <!-- ══════════════ 금전소비대차계약서 입력 ══════════════ -->
+  <div id="form-loan" style="display:none">
+    <h2>① 대여인(채권자, 갑)</h2>
+    <div class="row">
+      <label class="fld">성명 / 상호<input data-k="lName"></label>
+      <label class="fld">구분<select data-k="lType"><option value="ind">개인</option><option value="biz">개인사업자</option><option value="corp">법인</option></select></label>
+      <label class="fld">생년월일 / 사업자등록번호<input data-k="lId" placeholder="1980-01-01 또는 000-00-00000"></label>
+      <label class="fld">연락처<input data-k="lTel"></label>
+      <label class="fld" style="grid-column:1/-1">주소<input data-k="lAddr"></label>
+    </div>
+    <h2>② 차용인(채무자, 을)</h2>
+    <div class="row">
+      <label class="fld">성명 / 상호<input data-k="bName"></label>
+      <label class="fld">구분<select data-k="bType"><option value="ind">개인</option><option value="biz">개인사업자</option><option value="corp">법인</option></select></label>
+      <label class="fld">생년월일 / 사업자등록번호<input data-k="bId"></label>
+      <label class="fld">연락처<input data-k="bTel"></label>
+      <label class="fld" style="grid-column:1/-1">주소<input data-k="bAddr"></label>
+      <label class="fld" style="grid-column:1/-1">당사자 관계<select data-k="rel"><option value="none">특수관계 없음(제3자)</option><option value="family">가족·친족 등 특수관계인</option><option value="corp-rep">법인 ↔ 대표자·임원·주주</option><option value="corp-corp">계열·관계 법인 간</option></select></label>
+    </div>
+    <h2>③ 대여 조건</h2>
+    <div class="row c3">
+      <label class="fld num">대여 원금 (원)<input type="text" data-k="amt" inputmode="numeric" placeholder="50,000,000"></label>
+      <label class="fld">대여일(교부일)<input type="date" data-k="loanDate"></label>
+      <label class="fld">변제기일<input type="date" data-k="dueDate"></label>
+      <label class="fld">교부 방법<select data-k="give"><option value="bank">차용인 계좌로 이체</option><option value="cash">현금 교부</option><option value="done">이미 교부(기존 채무 확인)</option></select></label>
+      <label class="fld" style="grid-column:span 2">입금 계좌 <span class="hint">(교부·변제용)</span><input data-k="acct" placeholder="은행 · 계좌번호 · 예금주"></label>
+      <label class="fld num">이자율 (연 %)<input type="number" data-k="rate" step="0.1" min="0" placeholder="4.6"></label>
+      <label class="fld">이자 지급<select data-k="intHow"><option value="monthly">매월 지급</option><option value="maturity">변제기에 원금과 함께</option><option value="none">무이자</option></select></label>
+      <label class="fld">이자 지급일<select data-k="intDay"><option value="last">매월 말일</option><option value="1">매월 1일</option><option value="5">매월 5일</option><option value="10">매월 10일</option><option value="15">매월 15일</option><option value="20">매월 20일</option><option value="25">매월 25일</option></select></label>
+      <label class="fld">원금 변제 방법<select data-k="repay"><option value="bullet">변제기 일시상환</option><option value="equalP">원금 균등 분할(매월)</option><option value="equalPI">원리금 균등 분할(매월)</option></select></label>
+      <label class="fld num">지연손해금 (연 %)<input type="number" data-k="lateRate" step="0.1" min="0" placeholder="12"></label>
+      <label class="fld">중도상환<select data-k="prepay"><option value="ok">언제든 가능(수수료 없음)</option><option value="notice">7일 전 통지 후 가능</option><option value="no">불가</option></select></label>
+    </div>
+    <h2>④ 보증 · 담보 · 기타</h2>
+    <div class="row">
+      <label class="fld">연대보증인 성명 <span class="hint">(없으면 비움)</span><input data-k="gName"></label>
+      <label class="fld">연대보증인 생년월일<input data-k="gId"></label>
+      <label class="fld" style="grid-column:1/-1">연대보증인 주소<input data-k="gAddr"></label>
+      <label class="fld" style="grid-column:1/-1">담보 <span class="hint">(근저당·질권 등, 없으면 비움)</span><input data-k="collateral" placeholder="예: 서울 중구 ○○동 ○○아파트 ○동 ○호 근저당권 설정(채권최고액 6,000만원)"></label>
+      <label class="fld">관할법원<input data-k="court" placeholder="예: 서울중앙지방법원"></label>
+      <label class="fld">작성일<input type="date" data-k="signDate"></label>
+      <label class="fld" style="grid-column:1/-1">특약 사항<textarea data-k="extra"></textarea></label>
+    </div>
+    <div class="row" style="margin-top:4px">
+      <label class="chk"><input type="checkbox" data-k="lossClause" checked>기한이익 상실 조항 넣기</label>
+      <label class="chk"><input type="checkbox" data-k="showSched" checked>상환 일정표 붙이기</label>
+      <label class="chk"><input type="checkbox" data-k="notary">공정증서 작성 조항 넣기</label>
+      <label class="chk"><input type="checkbox" data-k="showTool">계약서 하단에 작성 도구 표시</label>
+    </div>
+    <div class="calc" id="loanCalc"></div>
+    <ul class="checks" id="loanChecks"></ul>
+  </div>
+
+  <!-- ══════════════ 프리랜서(업무위탁) 계약서 입력 ══════════════ -->
+  <div id="form-free" style="display:none">
+    <h2>① 위탁자(갑)</h2>
+    <div class="row">
+      <label class="fld">상호 / 법인명<input data-k="coName"></label>
+      <label class="fld">대표자<input data-k="coRep"></label>
+      <label class="fld">사업자등록번호<input data-k="coBiz" placeholder="000-00-00000" inputmode="numeric"></label>
+      <label class="fld">전화<input data-k="coTel"></label>
+      <label class="fld" style="grid-column:1/-1">주소<input data-k="coAddr"></label>
+    </div>
+    <h2>② 수탁자(을, 프리랜서)</h2>
+    <div class="row">
+      <label class="fld">성명<input data-k="fName"></label>
+      <label class="fld">주민등록번호 <span class="hint">(원천징수·지급명세서용, 계약서엔 앞자리만)</span><input data-k="fRrn" placeholder="000000-0000000" inputmode="numeric"></label>
+      <label class="fld">연락처<input data-k="fTel"></label>
+      <label class="fld">사업자등록<select data-k="fBiz"><option value="n">없음(개인)</option><option value="free">면세사업자 등록(인적용역)</option><option value="tax">과세사업자 등록</option></select></label>
+      <label class="fld" style="grid-column:1/-1">주소<input data-k="fAddr"></label>
+      <label class="fld" style="grid-column:1/-1">대가 입금 계좌<input data-k="fAcct" placeholder="은행 · 계좌번호 · 예금주"></label>
+    </div>
+    <h2>③ 위탁 업무</h2>
+    <div class="row">
+      <label class="fld" style="grid-column:1/-1">업무 내용<input data-k="job" placeholder="예: 홈페이지 디자인 및 퍼블리싱, 온라인 마케팅 콘텐츠 제작"></label>
+      <label class="fld" style="grid-column:1/-1">성과물 · 납품 기준 <span class="hint">(무엇을 언제 어떤 형태로)</span><input data-k="deliver" placeholder="예: 매월 말 콘텐츠 8건 납품, 시안 2회 수정 포함"></label>
+      <label class="fld">계약 시작일<input type="date" data-k="start"></label>
+      <label class="fld">계약 종료일<input type="date" data-k="end"></label>
+      <label class="fld">주 업무 장소<select data-k="where"><option value="free">을이 자율 결정(재택 등)</option><option value="client">갑의 사업장(필요 시)</option></select></label>
+      <label class="fld">해지 통지 기간<select data-k="termDays"><option value="30">30일 전 서면 통지</option><option value="15">15일 전 서면 통지</option><option value="7">7일 전 서면 통지</option></select></label>
+    </div>
+    <h2>④ 대가 · 세금</h2>
+    <div class="row c3">
+      <label class="fld">대가 방식<select data-k="feeType"><option value="month">월 정액</option><option value="total">총액(완료 시)</option><option value="each">건별</option><option value="hour">시간당</option></select></label>
+      <label class="fld num">금액 (원, 세전)<input type="text" data-k="fee" inputmode="numeric" placeholder="3,000,000"></label>
+      <label class="fld">세금 처리<select data-k="taxMode"><option value="wht">3.3% 원천징수 후 지급</option><option value="bill">계산서 발행(면세사업자)+3.3% 원천징수</option><option value="invoice">세금계산서 발행(과세사업자, 원천징수 없음)</option></select></label>
+      <label class="fld">지급일<select data-k="payDay"><option value="10">매월 10일</option><option value="15">매월 15일</option><option value="25">매월 25일</option><option value="last">매월 말일</option><option value="7d">납품·검수 후 7일 이내</option><option value="14d">납품·검수 후 14일 이내</option></select></label>
+      <label class="fld">비용 부담<select data-k="expense"><option value="self">업무 수행 비용은 을이 부담(대가에 포함)</option><option value="reimb">갑이 사전 승인한 실비는 갑이 정산</option></select></label>
+      <label class="fld">성과물 권리<select data-k="ip"><option value="client">대가 완납 시 저작재산권 갑에게 귀속</option><option value="license">을 보유, 갑에게 이용 허락</option></select></label>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <label class="chk"><input type="checkbox" data-k="confid" checked>비밀유지 조항</label>
+      <label class="chk"><input type="checkbox" data-k="noSub" checked>재위탁 금지 조항</label>
+      <label class="chk"><input type="checkbox" data-k="notWorker" checked>근로관계가 아님을 확인하는 조항</label>
+      <label class="chk"><input type="checkbox" data-k="showTool">계약서 하단에 작성 도구 표시</label>
+    </div>
+    <h2>⑤ 실제 업무 방식 점검 <span class="hint">(계약서에 안 적힘 · 근로자성 위험 진단용)</span></h2>
+    <div class="row">
+      <label class="chk"><input type="checkbox" data-k="rFixed">갑이 출퇴근 시간·근무 장소를 정한다</label>
+      <label class="chk"><input type="checkbox" data-k="rOrder">갑이 업무 내용을 구체적으로 지시·감독한다</label>
+      <label class="chk"><input type="checkbox" data-k="rExcl">다른 회사 일을 못 하게 한다(전속)</label>
+      <label class="chk"><input type="checkbox" data-k="rTool">갑의 장비·비품으로 갑의 직원과 같은 일을 한다</label>
+    </div>
+    <div class="row">
+      <label class="fld">관할법원<input data-k="court" placeholder="예: 서울중앙지방법원"></label>
+      <label class="fld">작성일<input type="date" data-k="signDate"></label>
+      <label class="fld" style="grid-column:1/-1">특약 사항<textarea data-k="extra"></textarea></label>
+    </div>
+    <div class="calc" id="freeCalc"></div>
+    <ul class="checks" id="freeChecks"></ul>
+  </div>
+</div>
+
+<div class="panel pv" id="pvPanel">
+  <div class="mobtab nopr"><button type="button" onclick="mobPv(false)">입력</button><button type="button" class="on" onclick="mobPv(true)">미리보기</button></div>
+  <div class="toolbar nopr"><button type="button" class="btn p" onclick="window.print()">🖨 인쇄 · PDF 저장</button><button type="button" class="btn" onclick="copyText()">📋 본문 복사</button><span class="hint" style="align-self:center">PDF 로 저장하려면 인쇄 창에서 「PDF로 저장」을 고르십시오.</span></div>
+  <div class="sheet" id="sheet"></div>
+</div>
+</div>
+
+<script>
+'use strict';
+/* ═══════ 기준값 (출처는 파일 머리 주석) ═══════ */
+const MIN_WAGE=10320;            // 2026년 시간급 최저임금 (고용노동부 고시 2025-08-05)
+const MIN_WAGE_YEAR=2026;
+const MAX_RATE=20;               // 이자제한법 최고이자율 연 20% (대통령령 제31593호, 2021-07-07 시행)
+const FAIR_RATE=4.6;             // 당좌대출이자율 (법인세법 시행규칙 제43조 ②) = 상증세 적정이자율
+const GIFT_FLOOR=10000000;       // 상증령 제31조의4 ② 기준금액
+const WHT_RATE=25, WHT_LOCAL=2.5;// 비영업대금 이익 원천징수 25% + 지방소득세
+const DAYS=['월','화','수','목','금','토','일'];
+
+const $=id=>document.getElementById(id);
+const fmt=n=>(Math.round(+n||0)).toLocaleString('ko-KR');
+const num=s=>{const v=parseFloat(String(s||'').replace(/[^\d.-]/g,''));return isNaN(v)?0:v;};
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const kd=s=>{if(!s)return '<span class="blank">&nbsp;</span>';const d=new Date(s+'T00:00:00');if(isNaN(d))return esc(s);return d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일';};
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const bizOk=b=>{const d=String(b||'').replace(/\D/g,'');if(d.length!==10)return false;const w=[1,3,7,1,3,7,1,3,5];let s=0;for(let i=0;i<9;i++)s+=+d[i]*w[i];s+=Math.floor(+d[8]*5/10);return (10-s%10)%10===+d[9];};
+const rrnOk=r=>{const d=String(r||'').replace(/\D/g,'');if(d.length!==13)return false;const w=[2,3,4,5,6,7,8,9,2,3,4,5];let s=0;for(let i=0;i<12;i++)s+=+d[i]*w[i];return (11-s%11)%10===+d[12];};
+function hangulMoney(n){n=Math.round(+n||0);if(n===0)return '영원';const dg='영일이삼사오육칠팔구',un=['','십','백','천'],big=['','만','억','조','경'];let out='',i=0;while(n>0){let part=n%10000,s='';for(let j=0;j<4&&part>0;j++){const d=part%10;if(d)s=(d===1&&j>0?'':dg[d])+un[j]+s;part=Math.floor(part/10);}if(s)out=s+big[i]+out;n=Math.floor(n/10000);i++;}return out+'원';}
+const addMonths=(iso,m)=>{const d=new Date(iso+'T00:00:00');const day=d.getDate();d.setMonth(d.getMonth()+m);if(d.getDate()!==day)d.setDate(0);return d.toISOString().slice(0,10);};
+const daysBetween=(a,b)=>Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/86400000);
+
+/* ═══════ 상태 ═══════ */
+let doc='labor';
+const DEF={
+  labor:{kind:'perm',start:'',end:'',coName:'',coRep:'',coBiz:'',coTel:'',coAddr:'',wName:'',wBirth:'',wTel:'',wRrn:'',wAddr:'',place:'',job:'',tIn:'09:00',tOut:'18:00',rest:60,restTime:'12:00~13:00',offDay:'일요일',daysPerWeek:5,dayHours:{월:8,화:8,수:8,목:8,금:8,토:'',일:''},payType:'month',base:'',bonus:'none',bonusDesc:'',allow:[],payDay:'10',payPeriod:'prev',payHow:'bank',probation:'0',probPay:'100',simple:'n',insNP:true,insHI:true,insEI:true,insWC:true,extra:'',signDate:'',showTool:false},
+  loan:{lName:'',lType:'ind',lId:'',lTel:'',lAddr:'',bName:'',bType:'ind',bId:'',bTel:'',bAddr:'',rel:'none',amt:'',loanDate:'',dueDate:'',give:'bank',acct:'',rate:'',intHow:'monthly',intDay:'last',repay:'bullet',lateRate:'',prepay:'ok',gName:'',gId:'',gAddr:'',collateral:'',court:'',signDate:'',extra:'',lossClause:true,showSched:true,notary:false,showTool:false},
+  free:{coName:'',coRep:'',coBiz:'',coTel:'',coAddr:'',fName:'',fRrn:'',fTel:'',fBiz:'n',fAddr:'',fAcct:'',job:'',deliver:'',start:'',end:'',where:'free',termDays:'30',feeType:'month',fee:'',taxMode:'wht',payDay:'10',expense:'self',ip:'client',confid:true,noSub:true,notWorker:true,showTool:false,rFixed:false,rOrder:false,rExcl:false,rTool:false,court:'',signDate:'',extra:''}
+};
+const LSKEY='hbt_contract_v1';
+let S={labor:JSON.parse(JSON.stringify(DEF.labor)),loan:JSON.parse(JSON.stringify(DEF.loan)),free:JSON.parse(JSON.stringify(DEF.free))};
+try{const r=localStorage.getItem(LSKEY);if(r){const o=JSON.parse(r);['labor','loan','free'].forEach(k=>{if(o[k])S[k]=Object.assign({},DEF[k],o[k]);});if(o.doc&&DEF[o.doc])doc=o.doc;}}catch(e){}
+function persist(){try{localStorage.setItem(LSKEY,JSON.stringify({doc,labor:S.labor,loan:S.loan,free:S.free}));}catch(e){}}
+const formOf=el=>el.closest('#form-labor')?'labor':el.closest('#form-loan')?'loan':'free';
+
+/* ═══════ 입력 바인딩 ═══════ */
+function bind(){
+  document.querySelectorAll('[data-k]').forEach(el=>{
+    const form=formOf(el);
+    const k=el.dataset.k;
+    const set=()=>{const v=S[form][k];if(el.type==='checkbox')el.checked=!!v;else el.value=(v==null?'':v);if(el.inputMode==='numeric'&&/^(base|amt|fee)$/.test(k)&&v)el.value=fmt(v);};
+    set();
+    el.addEventListener('input',()=>{
+      let v=el.type==='checkbox'?el.checked:el.value;
+      if(/^(base|amt|fee)$/.test(k)){v=num(v);}
+      S[form][k]=v;persist();render();
+    });
+    el.addEventListener('blur',()=>{if(/^(base|amt|fee)$/.test(k)&&S[form][k])el.value=fmt(S[form][k]);});
+  });
+}
+function refill(){document.querySelectorAll('[data-k]').forEach(el=>{const form=formOf(el);const k=el.dataset.k;const v=S[form][k];if(el.type==='checkbox')el.checked=!!v;else el.value=(v==null?'':v);if(/^(base|amt|fee)$/.test(k)&&v)el.value=fmt(v);});renderDays();renderAllow();}
+function renderDays(){
+  const box=$('dayHours');box.innerHTML='';
+  DAYS.forEach(d=>{const l=document.createElement('label');l.innerHTML='<span>'+d+'</span>';const i=document.createElement('input');i.type='number';i.min=0;i.max=24;i.step=0.5;i.value=S.labor.dayHours[d]===''||S.labor.dayHours[d]==null?'':S.labor.dayHours[d];i.addEventListener('input',()=>{S.labor.dayHours[d]=i.value===''?'':+i.value;persist();render();});l.appendChild(i);box.appendChild(l);});
+}
+function renderAllow(){
+  const box=$('allowList');box.innerHTML='';
+  S.labor.allow.forEach((a,idx)=>{
+    const r=document.createElement('div');r.className='allow';
+    r.innerHTML='<input placeholder="수당 명칭(예: 식대)" value="'+esc(a.name)+'"><input class="num" inputmode="numeric" placeholder="월 금액" value="'+(a.amt?fmt(a.amt):'')+'"><select><option value="y"'+(a.ordinary?' selected':'')+'>통상임금</option><option value="n"'+(!a.ordinary?' selected':'')+'>비포함</option></select><button type="button" class="btn sm">삭제</button>';
+    const [n,m,s,b]=r.children;
+    n.addEventListener('input',()=>{a.name=n.value;persist();render();});
+    m.addEventListener('input',()=>{a.amt=num(m.value);persist();render();});m.addEventListener('blur',()=>{if(a.amt)m.value=fmt(a.amt);});
+    s.addEventListener('change',()=>{a.ordinary=s.value==='y';persist();render();});
+    b.addEventListener('click',()=>{S.labor.allow.splice(idx,1);persist();renderAllow();render();});
+    box.appendChild(r);
+  });
+}
+function addAllow(){S.labor.allow.push({name:'',amt:0,ordinary:true});renderAllow();render();}
+
+/* ═══════ 문서 전환 · 도구 ═══════ */
+function showDoc(d){doc=d;document.querySelectorAll('#docTabs button').forEach(b=>b.classList.toggle('on',b.dataset.doc===d));['labor','loan','free'].forEach(k=>{$('form-'+k).style.display=d===k?'':'none';});persist();render();}
+document.querySelectorAll('#docTabs button').forEach(b=>b.addEventListener('click',()=>showDoc(b.dataset.doc)));
+function mobPv(on){document.body.classList.toggle('showpv',on);document.querySelectorAll('.mobtab button').forEach((b,i)=>b.classList.toggle('on',(i%2===1)===on));}
+function copyText(){const t=$('sheet').innerText;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>alert('본문을 복사했습니다.'),()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();alert('본문을 복사했습니다.');});}
+function saveJson(){const name=(doc==='labor'?'근로계약서_'+(S.labor.wName||'미정'):doc==='loan'?'금전소비대차계약서_'+(S.loan.bName||'미정'):'프리랜서계약서_'+(S.free.fName||'미정'))+'_'+today()+'.json';const blob=new Blob([JSON.stringify({doc,data:S[doc]},null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
+function loadJson(inp){const f=inp.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const o=JSON.parse(rd.result);const d=DEF[o.doc]?o.doc:'labor';S[d]=Object.assign({},DEF[d],o.data||{});if(d==='labor'){S[d].dayHours=Object.assign({},DEF.labor.dayHours,S[d].dayHours||{});S[d].allow=S[d].allow||[];}showDoc(d);refill();render();}catch(e){alert('읽을 수 없는 파일입니다.');}inp.value='';};rd.readAsText(f);}
+function resetDoc(){if(!confirm('현재 문서의 입력을 모두 지웁니다.'))return;S[doc]=JSON.parse(JSON.stringify(DEF[doc]));persist();refill();render();}
+function fillSample(){
+  if(doc==='labor'){S.labor=Object.assign({},DEF.labor,{kind:'perm',start:today(),coName:'주식회사 예시상사',coRep:'홍길동',coBiz:'123-45-67891',coTel:'02-000-0000',coAddr:'서울특별시 중구 ○○로 00, 0층',wName:'김예시',wBirth:'1995-03-15',wTel:'010-0000-0000',wAddr:'서울특별시 성동구 ○○로 00',place:'본사 사무실(서울 중구)',job:'경리·회계 사무 및 부수 업무',base:2400000,allow:[{name:'식대',amt:200000,ordinary:true},{name:'자가운전보조금',amt:200000,ordinary:false}],probation:'3',probPay:'100',signDate:today(),dayHours:{월:8,화:8,수:8,목:8,금:8,토:'',일:''}});}
+  else if(doc==='free'){S.free=Object.assign({},DEF.free,{coName:'주식회사 예시상사',coRep:'홍길동',coBiz:'123-45-67891',coTel:'02-000-0000',coAddr:'서울특별시 중구 ○○로 00, 0층',fName:'이예시',fTel:'010-0000-0000',fAddr:'경기도 성남시 분당구 ○○로 00',fAcct:'○○은행 000-000-000000 이예시',job:'온라인 마케팅 콘텐츠(카드뉴스·블로그) 기획 및 제작',deliver:'매월 카드뉴스 8건·블로그 4건 납품(시안 수정 2회 포함), 매월 말일 검수',start:today(),end:addMonths(today(),12),fee:3000000,court:'서울중앙지방법원',signDate:today()});}
+  else{S.loan=Object.assign({},DEF.loan,{lName:'주식회사 예시상사',lType:'corp',lId:'123-45-67891',lTel:'02-000-0000',lAddr:'서울특별시 중구 ○○로 00',bName:'홍길동',bType:'ind',bId:'1975-05-05',bTel:'010-0000-0000',bAddr:'서울특별시 강남구 ○○로 00',rel:'corp-rep',amt:60000000,loanDate:today(),dueDate:addMonths(today(),24),acct:'○○은행 000-000-000000 홍길동',rate:4.6,intHow:'monthly',repay:'bullet',lateRate:12,court:'서울중앙지방법원',signDate:today()});}
+  persist();refill();render();
+}
+function fromBoard(){
+  let cl=[];try{const b=JSON.parse(localStorage.getItem('hanbaek_board_v1')||'{}');cl=(b.clients||[]).filter(c=>c.name);}catch(e){}
+  if(!cl.length){alert('이 브라우저의 「거래처 업무판」에 등록된 거래처가 없습니다. 업무판에서 거래처를 먼저 등록하면 여기서 바로 불러옵니다.');return;}
+  const pick=prompt('불러올 거래처 번호를 입력하십시오.\n\n'+cl.map((c,i)=>(i+1)+'. '+c.name+(c.rep?' ('+c.rep+')':'')).join('\n'));
+  const c=cl[(+pick||0)-1];if(!c)return;
+  if(doc==='labor'||doc==='free'){Object.assign(S[doc],{coName:c.name,coRep:c.rep||'',coBiz:c.biz||'',coTel:c.tel||'',coAddr:c.addr||S[doc].coAddr});}
+  else{const isCorp=(c.type||'').indexOf('법인')>=0;Object.assign(S.loan,{lName:c.name,lType:isCorp?'corp':'biz',lId:c.biz||'',lTel:c.tel||'',lAddr:c.addr||S.loan.lAddr});}
+  persist();refill();render();
+}
+
+/* ═══════ 근로계약서 계산 · 점검 ═══════ */
+function laborCalc(d){
+  const hrs=DAYS.map(k=>+d.dayHours[k]||0);
+  const weekly=hrs.reduce((a,b)=>a+b,0);
+  const workDays=hrs.filter(h=>h>0).length;
+  const weeklyHol=weekly>=15?Math.min(weekly,40)/40*8:0;             // 주휴: 4주 평균 15시간 이상 (근기법 §18 ③·§55)
+  const monthly=weekly>0?Math.round((weekly+weeklyHol)*365/7/12):0;    // 40h → 209
+  const ordAllow=(d.allow||[]).filter(a=>a.ordinary).reduce((s,a)=>s+(+a.amt||0),0);
+  const allAllow=(d.allow||[]).reduce((s,a)=>s+(+a.amt||0),0);
+  const base=+d.base||0;
+  let hourly=0,monthPay=0;
+  if(d.payType==='hour'){hourly=base;monthPay=Math.round(base*(weekly+weeklyHol)*365/7/12)+allAllow;}
+  else if(d.payType==='day'){const perDay=weekly>0&&workDays>0?weekly/workDays:8;hourly=perDay?base/perDay:0;monthPay=Math.round(base*workDays*365/7/12)+allAllow;}
+  else{hourly=monthly?(base+ordAllow)/monthly:0;monthPay=base+allAllow;}
+  const prob=+d.probation>0&&d.probPay==='90';
+  const contractDays=d.start&&d.end?daysBetween(d.start,d.end)+1:null;
+  const probAllowed=prob&&(d.kind==='perm'||(contractDays!=null&&contractDays>=365))&&d.simple!=='y';
+  const minApplied=prob&&probAllowed?MIN_WAGE*0.9:MIN_WAGE;
+  const tIn=d.tIn||'',tOut=d.tOut||'';
+  let span=0;if(tIn&&tOut){const [a,b]=[tIn,tOut].map(t=>{const [h,m]=t.split(':').map(Number);return h*60+m;});span=b>a?b-a:b+1440-a;}
+  const dayWork=span?(span-(+d.rest||0))/60:0;
+  return {hrs,weekly,workDays,weeklyHol,monthly,ordAllow,allAllow,base,hourly,monthPay,prob,probAllowed,minApplied,contractDays,span,dayWork};
+}
+function laborChecks(d,c){
+  const L=[];const add=(lv,t)=>L.push({lv,t});
+  const need=[['coName','사업체명'],['coRep','대표자'],['wName','근로자 성명'],['start','계약 시작일'],['place','근무 장소'],['job','업무 내용']];
+  const miss=need.filter(([k])=>!d[k]).map(([,n])=>n);
+  if(miss.length)add('err','<b>필수 기재 누락</b>: '+miss.join(', ')+' — 근기법 §17 ①·근기령 §8');
+  if(d.kind!=='perm'&&!d.end)add('err','<b>계약 종료일</b>이 없습니다. 기간제·단시간은 근로계약기간을 서면 명시해야 합니다(기간제법 §17 1호).');
+  if(d.kind!=='perm'&&d.start&&d.end&&d.end<d.start)add('err','계약 종료일이 시작일보다 앞섭니다.');
+  if(d.kind==='fixed'&&c.contractDays!=null&&c.contractDays>730)add('warn','기간제 계약 기간이 2년을 넘습니다. 2년 초과 사용 시 기간의 정함이 없는 근로계약으로 봅니다(기간제법 §4 ②, 예외 사유 확인).');
+  if(d.coBiz&&!bizOk(d.coBiz))add('warn','사업자등록번호 형식(10자리 검증)이 맞지 않습니다: '+esc(d.coBiz));
+  if(d.wRrn&&!rrnOk(d.wRrn))add('warn','주민등록번호 형식(13자리 검증)이 맞지 않습니다.');
+  if(d.wBirth&&d.start){const age=(new Date(d.start)-new Date(d.wBirth))/31557600000;if(age<15)add('err','근로자가 15세 미만입니다. 고용노동부장관의 취직인허증 없이는 고용할 수 없습니다(근기법 §64).');else if(age<18)add('warn','18세 미만 연소자입니다. 가족관계증명서·친권자(후견인) 동의서를 사업장에 갖춰 두고(근기법 §66), 근로시간은 1일 7시간·1주 35시간 한도입니다(§69).');}
+  if(!c.weekly)add('err','<b>근로일별 근로시간</b>을 넣으십시오. 소정근로시간은 필수 기재사항입니다(근기법 §17 ① 2호).');
+  else{
+    if(c.weekly>40)add('err','1주 소정근로시간이 '+c.weekly+'시간으로 40시간을 넘습니다(근기법 §50 ①). 연장근로는 당사자 합의로 1주 12시간까지만 가능합니다(§53 ①).');
+    if(c.hrs.some(h=>h>8))add('warn','1일 소정근로시간이 8시간을 넘는 날이 있습니다(근기법 §50 ②). 초과분은 연장근로 가산(50%) 대상입니다(§56 ①).');
+    if(d.kind==='part'&&c.weekly>=(40*0.9))add('warn','단시간 근로자로 표시했지만 주 소정근로시간이 통상 근로자와 거의 같습니다. 단시간은 통상 근로자보다 1주 소정근로시간이 짧아야 합니다(근기법 §2 ① 9호).');
+    if(c.weekly<15)add('warn','1주 소정근로시간 15시간 미만: 주휴일·연차휴가 규정이 적용되지 않습니다(근기법 §18 ③). 계약서에서 주휴·연차 조항은 자동으로 조정됩니다.');
+  }
+  if(c.span){const need=c.dayWork>=8?60:c.dayWork>=4?30:0;if(need&&(+d.rest||0)<need)add('err','휴게시간 '+(+d.rest||0)+'분: 근로시간 '+c.dayWork.toFixed(1)+'시간에는 '+need+'분 이상이 필요합니다(근기법 §54 ①).');
+    const dh=Math.max(...c.hrs);if(dh&&Math.abs(c.dayWork-dh)>0.6)add('warn','시업·종업·휴게로 계산한 1일 근로 '+c.dayWork.toFixed(1)+'시간과 근로일별 시간표(최대 '+dh+'시간)가 다릅니다. 하나로 맞추십시오.');}
+  if(c.base>0&&c.hourly>0){
+    const label=c.prob&&c.probAllowed?'수습 감액 최저임금(90%) '+fmt(c.minApplied)+'원':MIN_WAGE_YEAR+'년 최저임금 '+fmt(MIN_WAGE)+'원';
+    if(c.hourly+0.5<c.minApplied)add('err','<b>최저임금 미달</b>: 통상시급 '+fmt(c.hourly)+'원 &lt; '+label+'. 기본급·통상임금 수당을 올리거나 시간을 줄이십시오(최저임금법 §6).');
+    else add('ok','최저임금 충족: 통상시급 '+fmt(c.hourly)+'원 ≥ '+label+'.');
+  }else if(!c.base)add('err','<b>기본급</b>을 넣으십시오. 임금의 구성항목·계산방법·지급방법은 서면 명시 사항입니다(근기법 §17 ②).');
+  if(c.prob&&!c.probAllowed)add('err','수습 90% 감액은 1년 이상 기간을 정한 계약(또는 기간의 정함 없음)이고 단순노무 직종이 아닐 때만 가능합니다(최저임금법 §5 ②, 령 §3). 100% 지급으로 바꾸십시오.');
+  if(+d.probation>3)add('err','수습 감액은 수습 시작일부터 3개월 이내만 가능합니다.');
+  if(d.payType==='month'&&c.allAllow>0&&(d.allow||[]).some(a=>!a.ordinary&&/식대|교통|차량|자가운전|직책|근속|기술|자격/.test(a.name)))add('warn','고정적·일률적으로 지급하는 수당(식대·직책수당 등)은 이름과 관계없이 통상임금에 들어갑니다(대법원 2024.12.19. 2020다247190 전원합의체). 「비포함」 표시를 다시 확인하십시오.');
+  if(d.bonus==='yes'&&!d.bonusDesc)add('warn','상여금 「있음」인데 내용이 비어 있습니다.');
+  if(!d.signDate)add('warn','작성일이 비어 있습니다.');
+  if(!(d.insNP&&d.insHI&&d.insEI&&d.insWC)){if(c.weekly>=15||c.monthly>=60)add('warn','월 60시간(주 15시간) 이상 근로자는 4대보험 의무 가입 대상입니다. 해제한 보험이 있으면 사유를 확인하십시오.');}
+  add('info','근로계약서는 2부를 작성해 1부를 근로자에게 반드시 교부하고(근기법 §17 ②, 위반 시 500만원 이하 벌금 §114), 사업장에 3년간 보존합니다(§42, 령 §22).');
+  return L;
+}
+function renderLabor(){
+  const d=S.labor,c=laborCalc(d);
+  $('laborCalc').innerHTML='1주 소정근로 <b>'+c.weekly+'시간</b> · 근로일 <b>'+c.workDays+'일</b> · 주휴 <b>'+c.weeklyHol+'시간</b> · 월 소정근로시간(주휴 포함) <b>'+c.monthly+'시간</b><br>'+
+    (c.base?('통상시급 <b>'+fmt(c.hourly)+'원</b>'+(d.payType==='month'?' = (기본급 '+fmt(c.base)+(c.ordAllow?' + 통상수당 '+fmt(c.ordAllow):'')+') ÷ '+c.monthly:'')+' · 월 임금 총액(예상) <b>'+fmt(c.monthPay)+'원</b>'+(c.prob?' · 수습 중 '+d.probPay+'%':'')+'<br>연장 1시간당 '+fmt(c.hourly*1.5)+'원 · 야간 가산 '+fmt(c.hourly*0.5)+'원 · 휴일(8h 이내) '+fmt(c.hourly*1.5)+'원'):'기본급을 넣으면 통상시급·최저임금 점검이 나옵니다.');
+  const L=laborChecks(d,c);
+  $('laborChecks').innerHTML=L.map(x=>'<li class="'+x.lv+'">'+x.t+'</li>').join('');
+  $('sheet').innerHTML=laborHtml(d,c);
+}
+function laborHtml(d,c){
+  const kindT={perm:'기간의 정함이 없는 근로계약',fixed:'기간제 근로계약',part:'단시간 근로계약'}[d.kind];
+  const term=d.kind==='perm'?'을의 근로개시일은 '+kd(d.start)+'로 하며, 근로계약기간은 정함이 없다.':'근로계약기간은 '+kd(d.start)+'부터 '+kd(d.end)+'까지로 한다.'+(d.start&&d.end&&c.contractDays?' (총 '+c.contractDays+'일)':'')+' 계약기간 만료로 근로관계는 종료되며, 갱신은 별도 합의에 따른다.';
+  const dayTable='<table><tr><th>구분</th>'+DAYS.map(x=>'<th>'+x+'</th>').join('')+'<th>합계</th></tr><tr><td class="c">근로시간</td>'+DAYS.map(x=>'<td class="c">'+(+d.dayHours[x]>0?d.dayHours[x]+'h':'－')+'</td>').join('')+'<td class="c">'+c.weekly+'h</td></tr></table>';
+  const payT={month:'월급',hour:'시급',day:'일급'}[d.payType];
+  const payDayT=d.payDay==='last'?'매월 말일':'매월 '+d.payDay+'일';
+  const periodT=d.payPeriod==='prev'?'전월 1일부터 말일까지의 근로에 대한 임금':'당월 1일부터 말일까지의 근로에 대한 임금';
+  const allowRows=(d.allow||[]).filter(a=>a.name||a.amt).map(a=>'<tr><td>'+esc(a.name)+'</td><td class="r">'+fmt(a.amt)+'원</td><td class="c">'+(a.ordinary?'통상임금':'통상임금 제외')+'</td></tr>').join('');
+  const wageTable='<table><tr><th>구성항목</th><th>금액</th><th>비고</th></tr><tr><td>기본급('+payT+')</td><td class="r">'+fmt(c.base)+'원</td><td class="c">'+(d.payType==='month'?'월 소정근로시간 '+c.monthly+'시간 기준':d.payType==='hour'?'시간당':'1일당')+'</td></tr>'+allowRows+(d.bonus==='yes'?'<tr><td>상여금</td><td colspan="2">'+esc(d.bonusDesc)+'</td></tr>':'')+'<tr><th>합계(월 예상)</th><td class="r">'+fmt(c.monthPay)+'원</td><td class="c">통상시급 '+fmt(c.hourly)+'원</td></tr></table>';
+  const holiday=c.weekly>=15?'주휴일은 매주 '+(d.offDay==='rot'?'1회(주 단위로 사업주가 지정하여 사전 통보)':esc(d.offDay))+'로 하며 유급으로 한다(근로기준법 제55조 제1항). 「근로자의 날 제정에 관한 법률」에 따른 근로자의 날과 근로기준법 시행령 제30조 제2항의 공휴일·대체공휴일은 유급휴일로 한다.':'을의 1주 소정근로시간이 15시간 미만이므로 주휴일 및 연차유급휴가에 관한 규정은 적용하지 아니한다(근로기준법 제18조 제3항).';
+  const annual=c.weekly>=15?'연차유급휴가는 근로기준법 제60조에 따라 부여한다. 1년간 80% 이상 출근한 경우 15일, 계속근로 1년 미만 또는 1년간 80% 미만 출근한 경우 1개월 개근 시 1일을 부여하며, 3년 이상 계속근로 시 최초 1년을 초과하는 매 2년마다 1일을 가산한다(한도 25일).'+(d.kind==='part'?' 단시간 근로자는 통상 근로자의 소정근로시간에 비례하여 시간 단위로 부여한다(근로기준법 제18조 제2항).':''):'';
+  const prob=+d.probation>0?'<h2>제'+(9)+'조 (수습)</h2><p>근로개시일부터 '+d.probation+'개월간을 수습기간으로 하며, 수습기간 중 임금은 제6조 임금의 '+d.probPay+'%'+(d.probPay==='90'?'(최저임금액의 90% 이상)':'')+'를 지급한다. 수습기간도 계속근로기간에 포함한다.</p>':'';
+  const ins=[d.insNP&&'국민연금',d.insHI&&'건강보험(노인장기요양보험 포함)',d.insEI&&'고용보험',d.insWC&&'산재보험'].filter(Boolean).join(', ');
+  const rrn=d.wRrn?String(d.wRrn).replace(/\D/g,'').replace(/^(\d{6})(\d)\d*$/,'$1-$2******'):'';
+  let n=0;const art=t=>'<h2>제'+(++n)+'조 ('+t+')</h2>';
+  return '<h1>근 로 계 약 서</h1>'+
+  '<p style="text-align:center;margin-bottom:10pt">('+kindT+')</p>'+
+  '<p><b>'+esc(d.coName||'________')+'</b>(이하 "갑"이라 한다)과(와) <b>'+esc(d.wName||'________')+'</b>(이하 "을"이라 한다)은 다음과 같이 근로계약을 체결한다.</p>'+
+  art('근로계약기간')+'<p>'+term+'</p>'+
+  art('근무 장소')+'<p>'+esc(d.place||'________')+'. 다만, 업무상 필요에 따라 갑은 을과 협의하여 근무 장소를 변경할 수 있다.</p>'+
+  art('업무의 내용')+'<p>'+esc(d.job||'________')+'. 업무상 필요에 따라 갑은 을과 협의하여 업무 내용을 변경할 수 있다.</p>'+
+  art('소정근로시간 및 휴게')+'<p>① 소정근로시간은 1일 '+(Math.max(...c.hrs)||0)+'시간, 1주 '+c.weekly+'시간으로 하며, 시업 '+esc(d.tIn)+' 종업 '+esc(d.tOut)+', 휴게시간은 '+(+d.rest||0)+'분('+esc(d.restTime||'근로시간 도중')+')으로 한다.</p><p>② 근로일 및 근로일별 근로시간은 다음과 같다.</p>'+dayTable+
+  '<p>③ 갑은 을과 합의하여 1주 12시간을 한도로 연장근로를 시킬 수 있으며, 연장·야간(22시~06시)·휴일근로에 대하여는 근로기준법 제56조에 따라 통상임금의 50%(8시간 초과 휴일근로는 100%) 이상을 가산하여 지급한다.'+(d.kind==='part'?' 단시간 근로자의 소정근로시간을 초과하는 근로는 1주 12시간을 한도로 하며 초과분에 대하여 통상임금의 50% 이상을 가산한다(기간제법 제6조).':'')+'</p>'+
+  art('휴일')+'<p>'+holiday+'</p>'+
+  art('임금')+'<p>① 임금은 다음의 구성항목과 금액으로 하며, 계산 방법은 비고와 같다.</p>'+wageTable+
+  '<p>② 임금은 '+payDayT+'('+periodT+')에 '+(d.payHow==='bank'?'을이 지정한 을 명의의 예금계좌에 입금하여':'을에게 직접')+' 지급한다. 지급일이 휴일인 경우 그 전일에 지급한다.</p><p>③ 임금에서 법령에 따른 세금과 사회보험료 등을 공제한 후 지급한다.'+(d.payType==='hour'&&c.weekly>=15?' 1주 소정근로일을 개근한 경우 주휴수당(1주 '+c.weeklyHol+'시간분)을 지급한다.':'')+'</p>'+
+  (annual?art('연차유급휴가')+'<p>'+annual+'</p>':'')+
+  art('사회보험')+'<p>갑과 을은 '+(ins||'관계 법령이 정하는 사회보험')+'에 가입하고 보험료는 관계 법령에 따라 각자 부담한다.</p>'+
+  (prob?prob.replace('제9조','제'+(++n)+'조'):'')+
+  art('근로계약서 교부')+'<p>갑은 이 계약을 체결함과 동시에 본 계약서를 2부 작성하여 갑과 을이 각 1부씩 보관하며, 을의 요구와 관계없이 을에게 1부를 교부한다(근로기준법 제17조).</p>'+
+  art('근로계약·취업규칙 등의 성실 이행')+'<p>갑과 을은 각자 근로계약, 취업규칙, 단체협약을 지키고 성실하게 이행하여야 한다. 이 계약에 정하지 아니한 사항은 근로기준법 등 관계 법령과 취업규칙에 따르며, 이 계약의 내용이 관계 법령에 미달하는 경우 그 부분은 무효로 하고 법령이 정한 기준에 따른다.</p>'+
+  (d.extra?art('특약 사항')+'<p>'+esc(d.extra).replace(/\n/g,'<br>')+'</p>':'')+
+  '<div class="sign"><p style="text-align:center;margin:10pt 0">'+kd(d.signDate)+'</p>'+
+  '<table class="party"><tr><td>(갑) 사업체명</td><td>'+esc(d.coName)+'</td></tr><tr><td>사업자등록번호</td><td>'+esc(d.coBiz)+'</td></tr><tr><td>주소</td><td>'+esc(d.coAddr)+'</td></tr><tr><td>전화</td><td>'+esc(d.coTel)+'</td></tr><tr><td>대표자</td><td>'+esc(d.coRep)+' <span class="stamp">(서명 또는 인)</span></td></tr></table>'+
+  '<table class="party" style="margin-top:8pt"><tr><td>(을) 성명</td><td>'+esc(d.wName)+' <span class="stamp">(서명 또는 인)</span></td></tr><tr><td>생년월일</td><td>'+(d.wBirth?kd(d.wBirth):'')+(rrn?' ('+rrn+')':'')+'</td></tr><tr><td>주소</td><td>'+esc(d.wAddr)+'</td></tr><tr><td>연락처</td><td>'+esc(d.wTel)+'</td></tr></table></div>'+
+  (d.showTool?'<div class="foot">세무법인 한백택스 계약서 작성기 · 02-2277-3101 · hb090@hanbaektax.kr</div>':'');
+}
+
+/* ═══════ 금전소비대차 계산 · 점검 ═══════ */
+function schedule(d){
+  const P=+d.amt||0,r=(+d.rate||0)/100,m=d.repay;const rows=[];
+  if(!P||!d.loanDate||!d.dueDate)return rows;
+  const months=Math.max(1,Math.round(daysBetween(d.loanDate,d.dueDate)/30.4375));
+  if(m==='bullet'){
+    if(d.intHow==='monthly'&&r>0){let bal=P;for(let i=1;i<=months;i++){const it=Math.round(P*r/12);rows.push({n:i,date:addMonths(d.loanDate,i),p:i===months?P:0,i:it,bal:i===months?0:bal});}}
+    else rows.push({n:1,date:d.dueDate,p:P,i:r>0?Math.round(P*r*daysBetween(d.loanDate,d.dueDate)/365):0,bal:0});
+  }else if(m==='equalP'){let bal=P;const pp=Math.floor(P/months);for(let i=1;i<=months;i++){const it=Math.round(bal*r/12);const p=i===months?bal:pp;bal-=p;rows.push({n:i,date:addMonths(d.loanDate,i),p,i:it,bal});}}
+  else{let bal=P;const mr=r/12;const pay=mr>0?P*mr/(1-Math.pow(1+mr,-months)):P/months;for(let i=1;i<=months;i++){const it=Math.round(bal*mr);let p=Math.round(pay-it);if(i===months)p=bal;bal-=p;rows.push({n:i,date:addMonths(d.loanDate,i),p,i:it,bal:Math.max(0,bal)});}}
+  return rows;
+}
+function stampTax(P){if(P<=50000000)return 0;if(P<=100000000)return 70000;if(P<=1000000000)return 150000;return 350000;}
+function loanChecks(d){
+  const L=[];const add=(lv,t)=>L.push({lv,t});const P=+d.amt||0,r=+d.rate||0,lr=+d.lateRate||0;
+  const miss=[['lName','대여인'],['bName','차용인'],['amt','대여 원금'],['loanDate','대여일'],['dueDate','변제기일']].filter(([k])=>!d[k]).map(([,n])=>n);
+  if(miss.length)add('err','<b>필수 기재 누락</b>: '+miss.join(', '));
+  if(d.loanDate&&d.dueDate&&d.dueDate<=d.loanDate)add('err','변제기일이 대여일보다 같거나 앞섭니다.');
+  [['lId',d.lType,'대여인'],['bId',d.bType,'차용인']].forEach(([k,t,n])=>{if(t!=='ind'&&d[k]&&!bizOk(d[k]))add('warn',n+' 사업자등록번호 형식이 맞지 않습니다: '+esc(d[k]));});
+  if(P&&P<100000)add('info','대차원금 10만원 미만은 이자제한법 최고이자율 적용 대상이 아닙니다(§2 ⑤).');
+  if(d.intHow!=='none'&&r>MAX_RATE)add('err','<b>이자율 연 '+r+'%</b>는 최고이자율 연 '+MAX_RATE+'%(이자제한법 §2 ①, 대통령령 제31593호)를 넘습니다. 초과 부분은 무효이며(§2 ③), 초과 지급분은 원본에 충당됩니다(§2 ④).');
+  if(lr>MAX_RATE)add('err','지연손해금 연 '+lr+'%도 최고이자율 연 '+MAX_RATE+'%를 넘을 수 없습니다(이자제한법 §2 ①·§5 준용).');
+  if(d.intHow!=='none'&&r>0&&r<=MAX_RATE)add('ok','이자율 연 '+r+'%: 최고이자율(연 '+MAX_RATE+'%) 이내.');
+  if(d.intHow!=='none'&&!r&&P)add('warn','이자 있음으로 표시했으나 이자율이 비어 있습니다. 약정이 없으면 민법상 법정이율 연 5%(민법 §379), 상행위이면 연 6%(상법 §54)가 적용됩니다.');
+  if(P){const st=stampTax(P);add(st?'warn':'info',st?'<b>인지세 '+fmt(st)+'원</b>: 기재금액 '+fmt(P)+'원의 금전소비대차 증서(인지세법 §3 ① 1호 준용, 5천만원 초과). 계약서 1통마다 납부하며 전자수입인지로 첨부합니다. 당사자가 연대하여 납부합니다(§1 ②).':'인지세 없음: 기재금액 5천만원 이하 금전소비대차 증서는 비과세입니다(인지세법 §6 8호).');}
+  if(d.intHow!=='none'&&r>0&&P){
+    const yr=Math.round(P*r/100);
+    add('info','<b>이자 원천징수</b>: 차용인이 이자를 지급할 때 비영업대금의 이익으로 소득세 '+WHT_RATE+'% + 지방소득세 '+WHT_LOCAL+'% = <b>27.5%</b>를 원천징수하여 다음 달 10일까지 신고·납부합니다(소득세법 §127 ①·§129 ① 1호 나목). 연 이자 '+fmt(yr)+'원 기준 원천징수 약 '+fmt(yr*0.275)+'원. 대여인은 금융소득 합계 2천만원 초과 시 종합과세.');
+  }
+  if(d.rel!=='none'&&P){
+    const gap=Math.max(0,FAIR_RATE-(d.intHow==='none'?0:r))/100;const benefit=Math.round(P*gap);
+    if(d.rel==='family'){if(benefit>=GIFT_FLOOR)add('warn','<b>증여세 유의</b>: 특수관계인 간 무상·저리 대출로 연간 이익(원금×(4.6%−약정이율)) '+fmt(benefit)+'원이 기준금액 1천만원 이상이라 그 이익을 증여로 봅니다(상증법 §41의4, 령 §31의4, 적정이자율 4.6%).');else add('info','특수관계인 간 대출: 연간 이익 '+fmt(benefit)+'원(원금×(4.6%−약정이율))이 1천만원 미만이면 증여 규정을 적용하지 않습니다(상증령 §31의4 ②). 다만 실제 이자 지급·상환 내역을 계좌로 남기십시오.');}
+    else if(d.rel==='corp-rep'){add('warn','<b>법인 ↔ 대표자·임원</b>: 법인이 빌려주는 쪽이면 가지급금 인정이자(가중평균차입이자율 또는 당좌대출이자율 연 4.6%, 법인세령 §89 ③·칙 §43 ②) 이하로 받으면 차액을 익금산입·상여 처분합니다. 대표자가 법인에 빌려주는 쪽(가수금)이면 이자는 비영업대금 이익으로 27.5% 원천징수 대상입니다.'+(d.intHow!=='none'&&r>=FAIR_RATE?' 현재 약정이율은 4.6% 이상입니다.':' 현재 약정이율이 4.6% 미만입니다.'));}
+    else add('warn','관계 법인 간 대여: 시가(가중평균차입이자율·당좌대출이자율 4.6%)와 다른 이율은 부당행위계산 부인 대상이 될 수 있습니다(법인세법 §52, 령 §88 ① 6호·§89 ③).');
+  }
+  if(d.gName)add('info','연대보증: 보증인 보호를 위한 특별법에 따라 보증 의사가 보증인의 기명날인 또는 서명이 있는 서면으로 표시되어야 효력이 있고(§3 ①), 채권자는 보증인의 청구가 있으면 채무 내용을 알려야 합니다.');
+  if(d.notary)add('info','공정증서: 공증사무소에서 「강제집행 인낙」 문구를 넣은 금전소비대차 공정증서를 작성하면 재판 없이 강제집행이 가능합니다. 당사자(또는 대리인) 출석·신분증·인감 필요.');
+  if(!d.signDate)add('warn','작성일이 비어 있습니다.');
+  return L;
+}
+function renderLoan(){
+  const d=S.loan,P=+d.amt||0,r=+d.rate||0;const rows=schedule(d);
+  const totI=rows.reduce((s,x)=>s+x.i,0);
+  $('loanCalc').innerHTML=P?('원금 <b>'+fmt(P)+'원</b> (금 '+hangulMoney(P)+'정)'+(d.loanDate&&d.dueDate?' · 기간 <b>'+daysBetween(d.loanDate,d.dueDate)+'일</b>('+Math.round(daysBetween(d.loanDate,d.dueDate)/30.4375)+'개월)':'')+(d.intHow!=='none'&&r?' · 연 '+r+'% → 월 이자 약 <b>'+fmt(P*r/1200)+'원</b> · 총 이자(일정표) <b>'+fmt(totI)+'원</b>':' · 무이자')+(P>50000000?' · 인지세 '+fmt(stampTax(P))+'원':' · 인지세 없음')):'대여 원금을 넣으면 한글 금액·이자·인지세가 계산됩니다.';
+  $('loanChecks').innerHTML=loanChecks(d).map(x=>'<li class="'+x.lv+'">'+x.t+'</li>').join('');
+  $('sheet').innerHTML=loanHtml(d,rows);
+}
+function loanHtml(d,rows){
+  const P=+d.amt||0,r=+d.rate||0,lr=+d.lateRate||0;
+  const idLabel=t=>t==='ind'?'생년월일':'사업자등록번호';
+  const party=(pre,nm,tp,id,addr,tel,sign)=>'<table class="party"><tr><td>'+pre+' '+(tp==='ind'?'성명':'상호')+'</td><td>'+esc(nm)+(sign?' <span class="stamp">(서명 또는 인)</span>':'')+'</td></tr>'+(tp!=='ind'?'<tr><td>대표자</td><td>&nbsp;<span class="stamp">(서명 또는 인)</span></td></tr>':'')+'<tr><td>'+idLabel(tp)+'</td><td>'+esc(id)+'</td></tr><tr><td>주소</td><td>'+esc(addr)+'</td></tr><tr><td>연락처</td><td>'+esc(tel)+'</td></tr></table>';
+  let n=0;const art=t=>'<h2>제'+(++n)+'조 ('+t+')</h2>';
+  const intClause=d.intHow==='none'?'이 대여금에는 이자를 붙이지 아니한다.':'이자는 연 '+r+'%(연 '+MAX_RATE+'%를 초과하지 아니하는 범위)로 하고, '+(d.intHow==='monthly'?'대여일 다음 달부터 '+(d.intDay==='last'?'매월 말일':'매월 '+d.intDay+'일')+'에 그 달분 이자를 지급한다.':'변제기에 원금과 함께 일괄 지급한다.')+' 이자는 대여일부터 실제 변제일까지 일할(1년 365일) 계산한다.';
+  const repayT={bullet:'을은 변제기일인 '+kd(d.dueDate)+'에 원금 전액을 일시에 변제한다.',equalP:'을은 대여일 다음 달부터 변제기일까지 매월 이자 지급일에 원금을 균등 분할하여 변제하고, 이자는 매월 잔여 원금에 대하여 계산한다(별지 상환 일정표 참조).',equalPI:'을은 대여일 다음 달부터 변제기일까지 매월 이자 지급일에 원리금을 균등 분할하여 변제한다(별지 상환 일정표 참조).'}[d.repay];
+  const giveT={bank:'갑은 '+kd(d.loanDate)+'에 위 금원을 을이 지정한 다음 계좌('+esc(d.acct||'________')+')로 송금하여 교부한다.',cash:'갑은 '+kd(d.loanDate)+'에 위 금원을 을에게 현금으로 교부하고, 을은 이를 수령하였음을 확인한다.',done:'갑은 '+kd(d.loanDate)+'에 위 금원을 을에게 교부하였고, 을은 이를 수령하였음을 확인한다.'}[d.give];
+  const prepayT={ok:'을은 변제기 전이라도 원금의 전부 또는 일부를 변제할 수 있으며, 이 경우 수수료 없이 변제일까지의 이자만 지급한다.',notice:'을은 갑에게 7일 전에 서면(문자·전자우편 포함)으로 통지한 후 변제기 전에 원금의 전부 또는 일부를 변제할 수 있다.',no:'을은 갑의 동의 없이 변제기 전에 변제할 수 없다.'}[d.prepay];
+  const sched=d.showSched&&rows.length>1?'<div class="pb"></div><h2 style="text-align:center">별지 — 상환 일정표</h2><table><tr><th>회차</th><th>일자</th><th>원금</th><th>이자</th><th>합계</th><th>잔액</th></tr>'+rows.map(x=>'<tr><td class="c">'+x.n+'</td><td class="c">'+esc(x.date)+'</td><td class="r">'+fmt(x.p)+'</td><td class="r">'+fmt(x.i)+'</td><td class="r">'+fmt(x.p+x.i)+'</td><td class="r">'+fmt(x.bal)+'</td></tr>').join('')+'<tr><th colspan="2">합계</th><td class="r">'+fmt(rows.reduce((s,x)=>s+x.p,0))+'</td><td class="r">'+fmt(rows.reduce((s,x)=>s+x.i,0))+'</td><td class="r">'+fmt(rows.reduce((s,x)=>s+x.p+x.i,0))+'</td><td></td></tr></table><p style="font-size:9.5pt">※ 이자는 월할 계산한 참고 금액이며, 실제 지급액은 제3조에 따른 일할 계산에 따른다.'+(r>0?' 이자 지급 시 비영업대금의 이익으로 소득세·지방소득세 27.5%를 원천징수한다(소득세법 제129조).':'')+'</p>':'';
+  return '<h1>금전소비대차계약서</h1>'+
+  '<p><b>'+esc(d.lName||'________')+'</b>(이하 "갑"이라 한다)과(와) <b>'+esc(d.bName||'________')+'</b>(이하 "을"이라 한다)은 다음과 같이 금전소비대차계약을 체결한다.</p>'+
+  art('대여 금액 및 교부')+'<p>① 갑은 을에게 금 <b>'+(P?hangulMoney(P)+'정 (₩'+fmt(P)+')':'________')+'</b>을 대여하고 을은 이를 차용한다.</p><p>② '+giveT+'</p>'+
+  art('변제기 및 변제 방법')+'<p>① 변제기일은 '+kd(d.dueDate)+'로 한다.</p><p>② '+repayT+'</p><p>③ 원리금은 갑이 지정하는 계좌('+esc(d.acct||'추후 통지')+')로 송금하여 변제하며, 송금 수수료는 을이 부담한다.</p>'+
+  art('이자')+'<p>'+intClause+'</p>'+(d.intHow!=='none'&&r>0?'<p>이자 지급 시 을은 「소득세법」에 따라 원천징수할 세액이 있는 경우 이를 공제하고 지급하며, 원천징수영수증을 갑에게 교부한다.</p>':'')+
+  art('지연손해금')+'<p>을이 원금 또는 이자의 지급을 지체한 때에는 지체한 금액에 대하여 지급기일 다음 날부터 완제일까지 연 '+(lr||'__')+'%의 비율에 의한 지연손해금을 가산하여 지급한다(연 '+MAX_RATE+'%를 초과하지 아니한다).</p>'+
+  art('중도상환')+'<p>'+prepayT+'</p>'+
+  (d.lossClause?art('기한이익의 상실')+'<p>을에게 다음 각 호의 사유가 발생한 때에는 갑의 통지·최고 없이 기한의 이익을 상실하며, 을은 즉시 원리금 전액을 변제하여야 한다.</p><p>1. 이자 또는 분할 원금의 지급을 2회 이상 연속하여 지체한 때<br>2. 을이 발행·배서한 어음·수표가 부도 처리되거나 을에 대하여 파산·회생 절차가 개시된 때<br>3. 을의 재산에 대하여 압류·가압류·가처분·경매 신청이 있는 때<br>4. 을이 갑에게 통지 없이 주소·연락처를 변경하여 소재가 불명하게 된 때</p>':'')+
+  (d.collateral?art('담보')+'<p>을은 이 계약상 채무를 담보하기 위하여 다음 담보를 제공하며, 담보 설정 비용은 을이 부담한다.<br>'+esc(d.collateral)+'</p>':'')+
+  (d.gName?art('연대보증')+'<p>연대보증인 <b>'+esc(d.gName)+'</b>은 을이 이 계약에 따라 갑에게 부담하는 원금·이자·지연손해금 및 비용 채무 일체에 대하여 을과 연대하여 보증한다. 보증 채무의 최고액은 금 '+(P?hangulMoney(Math.round(P*1.2))+'정 (₩'+fmt(Math.round(P*1.2))+')':'________')+'으로 한다.</p>':'')+
+  (d.notary?art('공정증서')+'<p>갑과 을은 이 계약 체결 후 지체 없이 공증인 사무소에서 이 계약에 관한 공정증서를 작성하며, 을은 채무를 이행하지 아니할 때 즉시 강제집행을 받더라도 이의가 없음을 인낙한다. 공증 비용은 을이 부담한다.</p>':'')+
+  art('통지')+'<p>갑과 을은 주소·연락처가 변경된 때 지체 없이 상대방에게 서면으로 통지하며, 통지를 게을리하여 생긴 불이익은 통지를 하지 아니한 당사자가 부담한다.</p>'+
+  art('관할 및 기타')+'<p>이 계약에 관한 분쟁은 '+esc(d.court||'갑의 주소지를 관할하는 법원')+'을 제1심 관할법원으로 한다. 이 계약에 정하지 아니한 사항은 민법 등 관계 법령과 일반 상관례에 따른다.</p>'+
+  (d.extra?art('특약 사항')+'<p>'+esc(d.extra).replace(/\n/g,'<br>')+'</p>':'')+
+  '<p style="margin-top:8pt">이 계약의 성립을 증명하기 위하여 계약서 '+(d.gName?'3':'2')+'통을 작성하여 갑·을'+(d.gName?'·연대보증인':'')+'이 서명 또는 날인한 후 각 1통씩 보관한다.'+(P>50000000?' (인지세법에 따른 전자수입인지 '+fmt(stampTax(P))+'원을 첨부한다.)':'')+'</p>'+
+  '<div class="sign"><p style="text-align:center;margin:10pt 0">'+kd(d.signDate)+'</p>'+
+  party('(갑) 대여인',d.lName,d.lType,d.lId,d.lAddr,d.lTel,d.lType==='ind')+'<div style="height:8pt"></div>'+
+  party('(을) 차용인',d.bName,d.bType,d.bId,d.bAddr,d.bTel,d.bType==='ind')+
+  (d.gName?'<div style="height:8pt"></div><table class="party"><tr><td>연대보증인 성명</td><td>'+esc(d.gName)+' <span class="stamp">(서명 또는 인)</span></td></tr><tr><td>생년월일</td><td>'+esc(d.gId)+'</td></tr><tr><td>주소</td><td>'+esc(d.gAddr)+'</td></tr></table>':'')+
+  '</div>'+sched+
+  (d.showTool?'<div class="foot">세무법인 한백택스 계약서 작성기 · 02-2277-3101 · hb090@hanbaektax.kr</div>':'');
+}
+
+/* ═══════ 프리랜서(업무위탁) 계산 · 점검 ═══════ */
+function freeCalc(d){
+  const fee=+d.fee||0;const wht=d.taxMode!=='invoice';
+  const tax=wht?Math.floor(fee*0.03):0;                 // 소득세 3% (소득세법 §129 ① 3호), 원 미만 절사
+  const local=wht?Math.floor(tax*0.1):0;                // 지방소득세 10%
+  const small=wht&&tax<1000;                            // 소액부징수 (소득세법 §86 1호)
+  const net=fee-(small?0:tax+local);
+  const months=d.start&&d.end?Math.max(1,Math.round(daysBetween(d.start,d.end)/30.4375)):0;
+  const risk=[d.rFixed,d.rOrder,d.rExcl,d.rTool].filter(Boolean).length;
+  return {fee,wht,tax,local,small,net,months,risk};
+}
+function freeChecks(d,c){
+  const L=[];const add=(lv,t)=>L.push({lv,t});
+  const miss=[['coName','위탁자'],['fName','수탁자 성명'],['job','업무 내용'],['start','계약 시작일'],['fee','대가 금액']].filter(([k])=>!d[k]).map(([,n])=>n);
+  if(miss.length)add('err','<b>필수 기재 누락</b>: '+miss.join(', '));
+  if(d.start&&d.end&&d.end<d.start)add('err','계약 종료일이 시작일보다 앞섭니다.');
+  if(d.coBiz&&!bizOk(d.coBiz))add('warn','위탁자 사업자등록번호 형식이 맞지 않습니다: '+esc(d.coBiz));
+  if(d.fRrn&&!rrnOk(d.fRrn))add('warn','주민등록번호 형식(13자리 검증)이 맞지 않습니다.');
+  if(c.wht&&!d.fRrn)add('warn','3.3% 원천징수를 하려면 수탁자의 주민등록번호가 필요합니다(원천징수이행상황신고·사업소득 지급명세서 기재). 계약서에는 앞자리만 표시됩니다.');
+  if(c.risk>=2)add('err','<b>근로자로 인정될 위험이 큽니다</b>(체크 '+c.risk+'개). 갑이 시간·장소를 정하고 구체적으로 지휘·감독하며 전속으로 일하면 계약 명칭과 관계없이 근로자로 봅니다(대법원 2006.12.7. 선고 2004다29736). 이 경우 4대보험·퇴직금·연차·해고 제한이 소급 적용될 수 있으니 근로계약서로 작성하십시오.');
+  else if(c.risk===1)add('warn','근로자성 징표가 1개 있습니다. 실제 업무 방식이 계약서(독립 수행·자율)와 다르면 근로자로 볼 수 있습니다. 해당 항목을 없애거나 근로계약 전환을 검토하십시오.');
+  else add('ok','실제 업무 방식 점검: 근로자성 징표 없음(독립 수행).');
+  if(d.taxMode==='invoice'){if(d.fBiz!=='tax')add('warn','세금계산서는 과세사업자만 발행합니다. 수탁자가 과세사업자로 등록되어 있는지 확인하십시오. 물적 시설 없이 근로자를 고용하지 않고 독립적으로 제공하는 인적용역은 면세라 세금계산서 대상이 아니고 3.3% 원천징수 대상입니다(부가세법 §26 ① 15호, 령 §42, 소득세령 §184 ①).');else add('info','과세사업자의 용역 공급: 공급가액에 부가세 10%를 더해 세금계산서를 받고, 사업소득 원천징수는 하지 않습니다.');}
+  else{
+    if(d.fBiz==='tax')add('warn','수탁자가 과세사업자로 등록되어 있으면 원칙적으로 세금계산서 대상입니다(원천징수 없음). 인적용역 면세 요건(물적 시설·고용 없음)에 맞는지 확인하십시오.');
+    if(c.fee){add(c.small?'info':'ok','<b>원천징수</b>: 대가 '+fmt(c.fee)+'원 → 소득세 3% '+fmt(c.tax)+'원 + 지방소득세 0.3% '+fmt(c.local)+'원 = '+fmt(c.tax+c.local)+'원 공제, 실지급 <b>'+fmt(c.net)+'원</b>'+(c.small?' (원천징수세액 1천원 미만 소액부징수 — 소득세법 §86 1호, 일부 용역 제외)':'')+' — 소득세법 §127 ① 3호·§129 ① 3호.');
+      add('info','갑(지급자)의 의무: 지급일 다음 달 10일까지 원천세 신고·납부(반기 납부 승인 사업자는 반기), 사업소득 <b>간이지급명세서를 매월</b>(지급일 다음 달 말일) 제출. 을(수탁자)은 다음 해 5월 종합소득세 신고 시 3.3% 기납부세액을 공제받아 정산(환급 가능).');}
+  }
+  if(d.feeType==='hour')add('warn','시간당 대가는 근로시간에 따라 임금을 받는 근로자와 구분이 어렵습니다. 가능하면 건별·성과물 기준으로 정하십시오.');
+  if(c.months>=12&&d.feeType==='month')add('info','월 정액으로 1년 이상 계속 위탁하는 경우 실질이 고용에 가까워질 수 있습니다. 성과물·납품 기준을 분명히 적고, 을이 다른 거래처 일을 할 수 있음을 남기십시오.');
+  add('info','보험설계사·학습지교사·택배·대리운전·방문판매 등 노무제공자 직종이면 고용보험(노무제공자)·산재보험 적용 대상인지 확인하십시오(고용보험법 §77조의6, 산재보험법 §91조의15). 예술인은 예술인 고용보험.');
+  if(!d.signDate)add('warn','작성일이 비어 있습니다.');
+  return L;
+}
+function renderFree(){
+  const d=S.free,c=freeCalc(d);
+  $('freeCalc').innerHTML=c.fee?('대가(세전) <b>'+fmt(c.fee)+'원</b>'+(c.wht?' · 원천징수 3.3% <b>'+fmt(c.small?0:c.tax+c.local)+'원</b> · 실지급 <b>'+fmt(c.net)+'원</b>':' · 세금계산서(부가세 별도 '+fmt(c.fee*0.1)+'원)')+(c.months?' · 기간 <b>'+c.months+'개월</b>'+(d.feeType==='month'?' · 총 '+fmt(c.fee*c.months)+'원':''):'')):'대가 금액을 넣으면 원천징수·실지급액이 계산됩니다.';
+  $('freeChecks').innerHTML=freeChecks(d,c).map(x=>'<li class="'+x.lv+'">'+x.t+'</li>').join('');
+  $('sheet').innerHTML=freeHtml(d,c);
+}
+function freeHtml(d,c){
+  let n=0;const art=t=>'<h2>제'+(++n)+'조 ('+t+')</h2>';
+  const feeT={month:'월 금 '+fmt(c.fee)+'원(세전)',total:'총액 금 '+fmt(c.fee)+'원(세전)',each:'건당 금 '+fmt(c.fee)+'원(세전)',hour:'시간당 금 '+fmt(c.fee)+'원(세전)'}[d.feeType];
+  const payT=d.payDay==='7d'?'납품·검수 완료일부터 7일 이내에':d.payDay==='14d'?'납품·검수 완료일부터 14일 이내에':d.payDay==='last'?'매월 말일에':'매월 '+d.payDay+'일에';
+  const taxT=d.taxMode==='invoice'?'을은 대가에 대하여 「부가가치세법」에 따른 세금계산서를 발행하고, 갑은 공급가액에 부가가치세를 더하여 지급한다.':(d.taxMode==='bill'?'을은 대가에 대하여 계산서를 발행하고, ':'')+'갑은 대가를 지급할 때 「소득세법」 제127조 및 제129조에 따라 사업소득세 3%와 지방소득세 0.3%(합계 3.3%)를 원천징수하여 납부하고 그 잔액을 지급하며, 을에게 원천징수영수증을 교부한다.'+(c.fee?' (대가 '+fmt(c.fee)+'원 기준 원천징수 '+fmt(c.small?0:c.tax+c.local)+'원, 실지급 '+fmt(c.net)+'원)':'');
+  const rrn=d.fRrn?String(d.fRrn).replace(/\D/g,'').replace(/^(\d{6})(\d)\d*$/,'$1-$2******'):'';
+  const term=d.end?'계약기간은 '+kd(d.start)+'부터 '+kd(d.end)+'까지로 한다. 기간 만료 1개월 전까지 어느 일방의 서면 이의가 없으면 같은 조건으로 1년씩 연장할 수 있다.':'이 계약은 '+kd(d.start)+'부터 효력이 있으며, 위탁 업무의 완료로 종료한다.';
+  return '<h1>업무위탁(프리랜서) 계약서</h1>'+
+  '<p><b>'+esc(d.coName||'________')+'</b>(이하 "갑"이라 한다)과(와) <b>'+esc(d.fName||'________')+'</b>(이하 "을"이라 한다)은 갑이 을에게 업무를 위탁하고 을이 이를 독립적으로 수행하는 것에 관하여 다음과 같이 계약을 체결한다.</p>'+
+  art('목적')+'<p>이 계약은 갑이 을에게 아래 업무를 위탁하고 을은 자신의 재량과 책임으로 이를 수행하며 갑은 그 대가를 지급하는 데 필요한 사항을 정함을 목적으로 한다.</p>'+
+  art('위탁 업무 및 성과물')+'<p>① 위탁 업무: '+esc(d.job||'________')+'</p><p>② 성과물·납품 기준: '+esc(d.deliver||'갑과 을이 협의하여 정한다')+'</p><p>③ 갑은 성과물을 받은 날부터 7일 이내에 검수 결과를 통지하며, 통지가 없으면 검수를 마친 것으로 본다. 검수 결과 보완이 필요하면 을은 합리적인 기간 내에 보완한다.</p>'+
+  art('계약기간')+'<p>'+term+'</p>'+
+  art('업무 수행 방법')+'<p>① 을은 갑의 지휘·감독을 받지 아니하고 자신의 전문성과 재량에 따라 독립적으로 업무를 수행하며, 업무 수행 시간과 장소는 '+(d.where==='client'?'을이 정하되 업무상 필요한 경우 갑의 사업장을 이용할 수 있다':'을이 자율적으로 정한다')+'.</p><p>② 갑은 업무의 목적·범위·납기 등 위탁 업무의 결과에 관한 요구사항을 을에게 전달할 수 있으나, 업무 수행 과정을 구체적으로 지시하거나 출퇴근·근태를 관리하지 아니한다.</p><p>③ 을은 이 계약과 충돌하지 않는 범위에서 제3자의 업무를 자유롭게 수행할 수 있다.</p>'+
+  art('대가 및 지급')+'<p>① 대가는 '+feeT+'으로 한다'+(d.feeType==='each'?'(건별 기준은 제2조 성과물 기준에 따른다)':'')+'.</p><p>② 갑은 대가를 '+payT+' 을이 지정한 계좌('+esc(d.fAcct||'________')+')로 지급한다.</p><p>③ '+taxT+'</p>'+
+  art('비용')+'<p>'+(d.expense==='reimb'?'업무 수행에 드는 비용은 을이 부담하되, 갑이 사전에 서면으로 승인한 비용(출장비·재료비 등)은 증빙에 따라 갑이 실비로 정산한다.':'업무 수행에 드는 장비·재료·통신·교통 등 일체의 비용은 대가에 포함된 것으로 보아 을이 부담한다.')+'</p>'+
+  art('성과물의 권리')+'<p>'+(d.ip==='client'?'위탁 업무의 성과물에 관한 저작재산권 등 일체의 지식재산권은 갑이 대가를 완납한 때에 갑에게 귀속되며, 을은 갑에 대하여 저작인격권을 행사하지 아니한다. 을은 성과물이 제3자의 권리를 침해하지 아니함을 보증한다.':'위탁 업무의 성과물에 관한 지식재산권은 을에게 있으며, 을은 갑에게 계약 목적 범위에서 성과물을 이용할 권리를 허락한다. 을은 성과물이 제3자의 권리를 침해하지 아니함을 보증한다.')+'</p>'+
+  (d.confid?art('비밀유지')+'<p>을은 업무 수행 중 알게 된 갑의 영업·기술·고객 정보 등 비밀을 계약기간 중은 물론 종료 후 3년간 제3자에게 누설하거나 업무 외 목적으로 이용하지 아니하며, 계약 종료 시 관련 자료를 반환·폐기한다. 갑도 을의 노하우·개인정보를 같은 조건으로 보호한다.</p>':'')+
+  (d.noSub?art('재위탁 금지')+'<p>을은 갑의 사전 서면 동의 없이 위탁 업무의 전부 또는 주요 부분을 제3자에게 재위탁할 수 없다.</p>':'')+
+  art('계약의 해지')+'<p>① 갑 또는 을은 '+d.termDays+'일 전에 서면(전자우편 포함)으로 통지하여 이 계약을 해지할 수 있다.</p><p>② 상대방이 이 계약을 위반하고 시정을 요구받은 날부터 7일 이내에 시정하지 아니한 때에는 즉시 해지할 수 있다.</p><p>③ 해지 시 갑은 해지일까지 완료된 업무에 상응하는 대가를 정산하여 지급한다.</p>'+
+  art('손해배상')+'<p>갑 또는 을이 이 계약을 위반하여 상대방에게 손해를 입힌 때에는 그 손해를 배상한다. 다만, 천재지변 등 불가항력으로 인한 경우에는 그러하지 아니하다.</p>'+
+  (d.notWorker?art('계약의 성격')+'<p>이 계약은 「민법」상 도급·위임의 성격을 가지는 업무위탁계약으로서 근로계약이 아니며, 을은 갑의 근로자가 아니다. 을은 대가에 대하여 「소득세법」상 사업소득자로서 종합소득세를 신고·납부하며, 갑과 을 사이에는 「근로기준법」·「퇴직급여보장법」 및 4대 사회보험 관계 법령상 사용자·근로자 관계가 성립하지 아니한다.</p>':'')+
+  art('관할 및 기타')+'<p>이 계약에 관한 분쟁은 '+esc(d.court||'갑의 주소지를 관할하는 법원')+'을 제1심 관할법원으로 한다. 이 계약에 정하지 아니한 사항은 관계 법령과 일반 상관례에 따르며, 계약 변경은 서면 합의로 한다.</p>'+
+  (d.extra?art('특약 사항')+'<p>'+esc(d.extra).replace(/\n/g,'<br>')+'</p>':'')+
+  '<p style="margin-top:8pt">이 계약의 성립을 증명하기 위하여 계약서 2통을 작성하여 갑과 을이 서명 또는 날인한 후 각 1통씩 보관한다.</p>'+
+  '<div class="sign"><p style="text-align:center;margin:10pt 0">'+kd(d.signDate)+'</p>'+
+  '<table class="party"><tr><td>(갑) 상호</td><td>'+esc(d.coName)+'</td></tr><tr><td>사업자등록번호</td><td>'+esc(d.coBiz)+'</td></tr><tr><td>주소</td><td>'+esc(d.coAddr)+'</td></tr><tr><td>전화</td><td>'+esc(d.coTel)+'</td></tr><tr><td>대표자</td><td>'+esc(d.coRep)+' <span class="stamp">(서명 또는 인)</span></td></tr></table>'+
+  '<table class="party" style="margin-top:8pt"><tr><td>(을) 성명</td><td>'+esc(d.fName)+' <span class="stamp">(서명 또는 인)</span></td></tr><tr><td>주민등록번호</td><td>'+rrn+'</td></tr><tr><td>주소</td><td>'+esc(d.fAddr)+'</td></tr><tr><td>연락처</td><td>'+esc(d.fTel)+'</td></tr></table></div>'+
+  (d.showTool?'<div class="foot">세무법인 한백택스 계약서 작성기 · 02-2277-3101 · hb090@hanbaektax.kr</div>':'');
+}
+
+function render(){if(doc==='labor')renderLabor();else if(doc==='loan')renderLoan();else renderFree();}
+bind();renderDays();renderAllow();showDoc(doc);
+</script>
+</body>
+</html>

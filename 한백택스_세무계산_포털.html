@@ -384,7 +384,7 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
   <div class="nav-item" data-page="corp">법인세</div>
   <div class="nav-item" data-page="ins">4대보험</div>
   <div class="nav-item" data-page="retire">퇴직소득세</div>
-  <div class="nav-item" data-page="acq">취득세·종부세</div><div class="nav-item" data-page="inh">상속세</div><div class="nav-item" data-page="bugift">부담부증여</div><div class="nav-item" data-page="bizinh">가업상속</div><div class="nav-item" data-page="gasan">가산세</div><div class="nav-item" data-page="biz">업종코드</div><div class="nav-item" data-page="board">내부 업무</div>
+  <div class="nav-item" data-page="acq">취득세·종부세</div><div class="nav-item" data-page="inh">상속세</div><div class="nav-item" data-page="bugift">부담부증여</div><div class="nav-item" data-page="bizinh">가업상속</div><div class="nav-item" data-page="gasan">가산세</div><div class="nav-item" data-page="biz">업종코드</div><div class="nav-item" data-page="contract">계약서</div><div class="nav-item" data-page="board">내부 업무</div>
 </div>
 
 <!-- ==================== HOME ==================== -->
@@ -508,6 +508,12 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
       <h3>업종코드 빠른검색</h3>
       <p>경비율·표준산업분류 1,610종 검색<br>소기업기준·조특법 §6·§7 세액감면 표시</p>
     </a>
+    <a class="dash-card" data-go="contract" href="javascript:void(0)" onclick="goPage('contract')">
+      <div class="icon" style="background:#EDE9FE;color:#5B21B6">📝</div>
+      <div class="badge">NEW</div>
+      <h3>계약서 작성기</h3>
+      <p>근로계약서 · 금전소비대차계약서 · 프리랜서(3.3%)<br>법정 기재사항·최저임금·이자 한도·인지세 자동 점검</p>
+    </a>
     <a class="dash-card" data-go="board" href="javascript:void(0)" onclick="goPage('board')">
       <div class="icon" style="background:#FEF3C7;color:#92400E">🗓️</div>
       <div class="badge">직원용</div>
@@ -597,6 +603,15 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
   <div class="disclaimer mt-16">
     ※ 경비율·규모기준·감면율은 신고연도·업종·요건에 따라 달라질 수 있으니, 신고 시 국세청 최신 고시와 개별 요건을 확인하시기 바랍니다.
   </div>
+</div>
+<!-- ==================== 계약서 작성기 ==================== -->
+<div class="page" id="page-contract">
+  <div class="calc-title"><h2>계약서 작성기</h2><div class="sub">근로계약서(기간의 정함 없음·기간제·단시간) · 금전소비대차계약서 · 프리랜서(3.3%) 업무위탁계약서 — 입력하면 바로 만들어지고 법정 기재사항·최저임금·이자 한도·인지세·원천징수를 점검합니다. 내용은 이 브라우저에만 저장됩니다.</div></div>
+  <div style="margin:0 0 10px;text-align:right">
+    <a href="한백택스_계약서_작성기.html" target="_blank" rel="noopener" style="display:inline-block;font-size:13px;font-weight:700;color:var(--blue);border:1.5px solid var(--blue);border-radius:8px;padding:7px 14px;text-decoration:none;cursor:pointer">새 창으로 크게 보기 ↗</a>
+  </div>
+  <iframe id="contractFrame" title="계약서 작성기" style="width:100%;height:82vh;min-height:560px;border:1px solid var(--border);border-radius:12px;background:#fff;display:block"></iframe>
+  <script>(function(){function fill(){var f=document.getElementById('contractFrame');if(f&&!f.getAttribute('src'))f.setAttribute('src','한백택스_계약서_작성기.html');}function on(e){var t=e.target,el=t&&t.closest?t.closest('[data-page="contract"],[data-go="contract"]'):null;if(el)setTimeout(fill,0);}document.addEventListener('click',on,true);document.addEventListener('touchend',on,true);window.addEventListener('load',function(){try{if(new URLSearchParams(location.search).get('page')==='contract')fill();}catch(e){}});})();</script>
 </div>
 <!-- ==================== 거래처 업무판(직원용) ==================== -->
 <div class="page" id="page-board">
