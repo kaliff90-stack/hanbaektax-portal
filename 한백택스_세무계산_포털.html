@@ -384,7 +384,7 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
   <div class="nav-item" data-page="corp">법인세</div>
   <div class="nav-item" data-page="ins">4대보험</div>
   <div class="nav-item" data-page="retire">퇴직소득세</div>
-  <div class="nav-item" data-page="acq">취득세·종부세</div><div class="nav-item" data-page="inh">상속세</div><div class="nav-item" data-page="bugift">부담부증여</div><div class="nav-item" data-page="bizinh">가업상속</div><div class="nav-item" data-page="gasan">가산세</div><div class="nav-item" data-page="biz">업종코드</div>
+  <div class="nav-item" data-page="acq">취득세·종부세</div><div class="nav-item" data-page="inh">상속세</div><div class="nav-item" data-page="bugift">부담부증여</div><div class="nav-item" data-page="bizinh">가업상속</div><div class="nav-item" data-page="gasan">가산세</div><div class="nav-item" data-page="biz">업종코드</div><div class="nav-item" data-page="board">내부 업무</div>
 </div>
 
 <!-- ==================== HOME ==================== -->
@@ -508,6 +508,12 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
       <h3>업종코드 빠른검색</h3>
       <p>경비율·표준산업분류 1,610종 검색<br>소기업기준·조특법 §6·§7 세액감면 표시</p>
     </a>
+    <a class="dash-card" data-go="board" href="javascript:void(0)" onclick="goPage('board')">
+      <div class="icon" style="background:#FEF3C7;color:#92400E">🗓️</div>
+      <div class="badge">직원용</div>
+      <h3>내부 업무</h3>
+      <p>거래처 업무판(일정 자동 생성·담당·상태·통지)<br>급여·지급명세서 · 전산매체 검증 · 자료 변환 도구 모음</p>
+    </a>
   </div>
   <div class="disclaimer mt-16">
     ※ 본 자료는 교육 목적으로 작성되었으며, 실제 세금 신고 시에는 반드시 세무 전문가와 상담하시기 바랍니다.<br>
@@ -591,6 +597,22 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
   <div class="disclaimer mt-16">
     ※ 경비율·규모기준·감면율은 신고연도·업종·요건에 따라 달라질 수 있으니, 신고 시 국세청 최신 고시와 개별 요건을 확인하시기 바랍니다.
   </div>
+</div>
+<!-- ==================== 거래처 업무판(직원용) ==================== -->
+<div class="page" id="page-board">
+  <div class="calc-title"><h2>내부 업무 <span style="font-size:13px;font-weight:700;color:#92400E;background:#FEF3C7;border-radius:8px;padding:3px 8px;vertical-align:middle">직원용</span></h2><div class="sub">사무실 직원이 쓰는 도구를 한곳에 모았다. 아래 업무판은 거래처 명부 × 신고 일정 규칙으로 이달 업무를 만들고, 담당·상태·통지를 관리한다. 데이터는 이 브라우저와 연결한 파일에만 저장된다.</div></div>
+  <div class="staff-tools" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin:0 0 14px">
+    <a href="한백택스_원천징수_연말정산.html" target="_blank" rel="noopener" style="display:block;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:#fff;text-decoration:none;color:var(--navy)"><b>💼 원천징수·연말정산 시스템</b><br><span style="font-size:12px;color:var(--gray)">급여대장 → 원천세·지급명세서 전산매체(근로·간이·일용·퇴직)</span></a>
+    <a href="한백택스_전산매체_대응지도_v4.html" target="_blank" rel="noopener" style="display:block;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:#fff;text-decoration:none;color:var(--navy)"><b>🗂️ 전산매체 대응지도·오류검증</b><br><span style="font-size:12px;color:var(--gray)">서식↔레코드 대조 · 제출 파일 규칙 검증</span></a>
+    <a href="PDF_OCR_Excel변환_한백택스_v4.html" target="_blank" rel="noopener" style="display:block;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:#fff;text-decoration:none;color:var(--navy)"><b>📄 PDF·스캔·사진 → 엑셀</b><br><span style="font-size:12px;color:var(--gray)">접수 자료(통장·거래명세·급여대장) 표 추출</span></a>
+    <a href="한백택스_세금신고기한_캘린더.html" target="_blank" rel="noopener" style="display:block;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:#fff;text-decoration:none;color:var(--navy)"><b>📅 세금신고기한 캘린더</b><br><span style="font-size:12px;color:var(--gray)">월별 신고·납부 마감일</span></a>
+    <a href="한백택스_경정청구_v2.html" target="_blank" rel="noopener" style="display:block;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:#fff;text-decoration:none;color:var(--navy)"><b>↩️ 경정청구 시뮬레이션</b><br><span style="font-size:12px;color:var(--gray)">5년치 환급 진단 · 상담용</span></a>
+    <a href="한백택스_업무판.html" target="_blank" rel="noopener" style="display:block;padding:12px 14px;border:1.5px solid var(--blue);border-radius:10px;background:#F5F8FC;text-decoration:none;color:var(--blue)"><b>🗓️ 업무판 새 창으로 크게 보기 ↗</b><br><span style="font-size:12px;color:var(--gray)">파일 연결·인쇄는 새 창에서 하는 것이 편하다</span></a>
+  </div>
+  <iframe id="boardFrame" title="거래처 업무판" style="width:100%;height:82vh;min-height:560px;border:1px solid var(--border);border-radius:12px;background:#fff;display:block"></iframe>
+  <script>(function(){function fill(){var f=document.getElementById('boardFrame');if(f&&!f.getAttribute('src'))f.setAttribute('src','한백택스_업무판.html');}function on(e){var t=e.target,el=t&&t.closest?t.closest('[data-page="board"],[data-go="board"]'):null;if(el)setTimeout(fill,0);}document.addEventListener('click',on,true);document.addEventListener('touchend',on,true);
+  /* ?page=board 처럼 주소로 바로 열기(메인 화면 카드용) */
+  window.addEventListener('load',function(){try{var q=new URLSearchParams(location.search).get('page');if(q&&document.getElementById('page-'+q)&&typeof goPage==='function'){goPage(q);if(q==='board')fill();}}catch(e){}});})();</script>
 </div>
 
 <!-- ==================== 1. 급여실수령액 계산기 ==================== -->

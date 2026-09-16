@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<script>if(window.self!==window.top)document.documentElement.classList.add('inframe');</script>
+<title>한백택스 업무판 — 거래처·신고 일정·연락</title>
+<!--
+  세무법인 한백택스 내부용 업무판 v1 (2026-09-16)
+  - 거래처 등록(CSV·엑셀 가져오기) → 유형별 신고 일정 자동 생성 → 이달 업무판(담당자·상태·D-day) → 자료요청·독촉·완료통지 문구
+  - 데이터: 이 폴더의 업무판_데이터.json (OneDrive 로 직원 공유) + 브라우저 저장(localStorage) 이중 보관. 「파일 연결」로 JSON 파일을 고르면 저장 때마다 그 파일에 씁니다.
+  - 공개 포털(GitHub Pages)에 올리지 않습니다. 거래처 실명·사업자번호가 들어갑니다.
+  - 기한 규칙: 세금신고기한 캘린더(웹배포_공개용)의 TEMPLATE 를 거래처 유형별로 확장. 토·일·공휴일이면 다음 영업일(국세기본법 §5).
+-->
+<style>
+:root{--navy:#1B3A5C;--blue:#2E6DA4;--gold:#C8963E;--bg:#F5F8FC;--card:#fff;--soft:#E9F0F8;--gsoft:#FBF3E4;--line:#DCE5F0;--t1:#0F2440;--t2:#35507A;--gray:#6E7F94;--red:#C0392B;--redbg:#FDECEA;--green:#1E7D4E;--greenbg:#E6F4EC;--amber:#8a6100;--amberbg:#fdf3dd}
+*{box-sizing:border-box;margin:0;padding:0;font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif}
+body{background:var(--bg);color:var(--t1);font-size:14px;line-height:1.5}
+.top{background:#fff;border-bottom:2px solid var(--gold);padding:12px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:42px;z-index:20}
+.inframe .top{top:0}
+.top h1{font-size:18px;color:var(--navy)}
+.top .sub{color:var(--t2);font-size:12px}
+.top .sp{flex:1}
+.nav{display:flex;gap:2px;background:#fff;border-bottom:1px solid var(--line);padding:0 12px;overflow-x:auto}
+.nav button{padding:12px 16px;border:none;background:none;font-size:14px;font-weight:700;color:var(--gray);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+.nav button.on{color:var(--navy);border-bottom-color:var(--gold)}
+.wrap{max-width:1400px;margin:0 auto;padding:18px 16px 60px}
+.page{display:none}.page.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 1px 2px rgba(15,36,64,.04)}
+.card h2{font-size:15px;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.card h2 .act{display:flex;gap:6px;flex-wrap:wrap}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 12px;background:#f8fafc;border:1px solid var(--line);border-radius:10px;margin-bottom:12px}
+.toolbar label{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--t2);white-space:nowrap}
+input,select,textarea{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:13px;color:var(--t1);background:#fff}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold)}
+.btn{border:none;border-radius:8px;padding:7px 12px;font-size:13px;font-weight:700;cursor:pointer;background:var(--soft);color:var(--navy)}
+.btn.p{background:var(--navy);color:#fff}.btn.g{background:var(--gold);color:#fff}.btn.d{background:var(--redbg);color:var(--red)}.btn.sm{padding:4px 8px;font-size:12px}
+.btn:hover{filter:brightness(.95)}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--gsoft);color:var(--amber)}
+.stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.stat .b{background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;border-radius:12px;padding:12px 14px}
+.stat .b .k{font-size:11px;opacity:.85}.stat .b .v{font-size:22px;font-weight:800}
+.stat .b.warn{background:linear-gradient(135deg,#9f1239,#e11d48)}.stat .b.ok{background:linear-gradient(135deg,#047857,#059669)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:middle}
+th{background:#f8fafc;font-size:12px;color:#475569;text-align:center}
+td.r,th.r{text-align:right}td.c,th.c{text-align:center}
+tbody tr:hover{background:#fafcff}
+td input,td select{width:100%;padding:5px 7px;font-size:12.5px}
+.tblwrap{overflow-x:auto}
+.st{display:inline-block;padding:3px 9px;border-radius:10px;font-size:11.5px;font-weight:800;white-space:nowrap;cursor:pointer;border:1px solid transparent}
+.st.s0{background:#f1f5f9;color:#475569}.st.s1{background:var(--amberbg);color:var(--amber)}.st.s2{background:#e0e7ff;color:#3730a3}.st.s3{background:#fce7f3;color:#9d174d}.st.s4{background:var(--greenbg);color:var(--green)}.st.s5{background:#d1fae5;color:#065f46}
+.dd{font-weight:800}.dd.late{color:var(--red)}.dd.soon{color:var(--amber)}.dd.ok{color:var(--green)}
+.note{background:var(--gsoft);border-left:4px solid var(--gold);padding:8px 12px;border-radius:0 8px 8px 0;font-size:12px;margin:8px 0;color:var(--t2)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.fld{display:flex;flex-direction:column;gap:3px;font-size:12px;font-weight:700;color:var(--t2)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:4px 10px;border:1px solid var(--line);border-radius:20px;background:#fff;cursor:pointer;font-size:12px;font-weight:700;color:var(--navy)}
+.chip.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+pre.msg{white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px;font-family:inherit;font-size:13px;min-height:90px}
+.kb{display:grid;grid-template-columns:repeat(6,minmax(180px,1fr));gap:8px;overflow-x:auto}
+.kb .col{background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:8px;min-height:120px}
+.kb .col h4{font-size:12px;color:var(--t2);margin-bottom:6px;display:flex;justify-content:space-between}
+.kb .it{background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 8px;margin-bottom:6px;font-size:12px;cursor:pointer}
+.kb .it b{display:block;color:var(--navy)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;z-index:99;display:none}
+.muted{color:var(--gray);font-size:12px}
+.badge{font-size:10.5px;padding:1px 6px;border-radius:6px;background:var(--soft);color:var(--t2);font-weight:700;margin-left:4px}
+@media(max-width:800px){.kb{grid-template-columns:repeat(2,1fr)}.top h1{font-size:16px}}
+@media print{.top,.nav,.toolbar,.btn{display:none!important}.page{display:block!important}}
+</style>
+</head>
+<body>
+<!-- HB-HOME v1 -->
+<script>
+/* 한백택스 홈 바 — 생성기: 02-도구 & 스크립트/Python 스크립트/홈바_주입.py
+   이 블록은 자동 생성이다. 직접 고치지 말고 생성기를 고쳐 다시 실행한다. */
+(function(){
+  if (window.self !== window.top) return;          /* 포털 iframe 안에서는 부모의 바를 쓴다 */
+  if (window.__hbHome) return;
+  window.__hbHome = 1;
+  var me = decodeURIComponent((location.pathname.split('/').pop() || '').toLowerCase());
+  var host = document.createElement('div');
+  host.id = 'hbHome';
+  host.setAttribute('data-nogate', '1');
+  host.style.cssText = 'display:block;position:sticky;top:0;z-index:2147483000;margin:0;padding:0;line-height:0';
+  var links = [
+    ['한백택스_세무계산_포털.html', '세무계산 포털'],
+    ['한백택스_모바일.html', '모바일 포털']
+  ].filter(function(l){ return l[0].toLowerCase() !== me; });
+  var sh = host.attachShadow({ mode: 'open' });
+  sh.innerHTML =
+    '<style>' +
+    ':host{all:initial;display:block}' +
+    '.bar{box-sizing:border-box;display:flex;align-items:center;gap:10px;height:42px;padding:0 16px;' +
+      'background:#fff;border-bottom:2px solid #C8963E;box-shadow:0 2px 8px rgba(15,36,64,.08);' +
+      'font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:13px;line-height:1;color:#1B3A5C}' +
+    '.home{display:inline-flex;align-items:center;gap:6px;background:#C8963E;color:#fff;font-weight:800;' +
+      'padding:7px 13px;border-radius:999px;text-decoration:none;white-space:nowrap;letter-spacing:-.2px}' +
+    '.home:hover{background:#b8862f}' +
+    '.ttl{font-weight:700;color:#1B3A5C;white-space:nowrap;opacity:.85}' +
+    '.sp{flex:1}' +
+    '.lnk{color:#35507A;font-weight:700;text-decoration:none;padding:6px 10px;border:1px solid #DCE5F0;border-radius:999px;white-space:nowrap;background:#F5F8FC}' +
+    '.lnk:hover{border-color:#C8963E;color:#1B3A5C}' +
+    '@media(max-width:640px){.bar{padding:0 10px;gap:6px;height:40px}.ttl{display:none}.lnk{padding:6px 8px;font-size:12px}}' +
+    '@media print{.bar{display:none}}' +
+    '</style>' +
+    '<div class="bar">' +
+      '<a class="home" href="index.html" title="한백택스 세무 도구 모음(메인 화면)으로">&#8592; 메인 화면</a>' +
+      '<span class="ttl">세무법인 한백택스 · 세무 도구</span>' +
+      '<span class="sp"></span>' +
+      links.map(function(l){ return '<a class="lnk" href="' + l[0] + '">' + l[1] + '</a>'; }).join('') +
+    '</div>';
+  var s = document.currentScript;
+  if (s && s.parentNode) s.parentNode.insertBefore(host, s);
+  else document.body.insertBefore(host, document.body.firstChild);
+})();
+</script>
+<!-- /HB-HOME -->
+<div class="top">
+  <div><h1>한백택스 업무판</h1><div class="sub">거래처 · 신고 일정 · 담당자 · 연락 — 내부용 (공개 포털 아님)</div></div>
+  <span class="sp"></span>
+  <span class="muted" id="fileState">데이터: 브라우저 저장</span>
+  <button class="btn sm" onclick="connectFile()">파일 연결</button>
+  <button class="btn sm" onclick="saveNow()">저장</button>
+  <button class="btn sm" onclick="exportJSON()">JSON 내보내기</button>
+  <label class="btn sm" style="cursor:pointer">JSON 가져오기<input type="file" accept=".json" style="display:none" onchange="importJSON(this)"></label>
+</div>
+<div class="nav" id="nav">
+  <button class="on" data-p="board">① 이달 업무판</button>
+  <button data-p="clients">② 거래처</button>
+  <button data-p="rules">③ 일정 규칙</button>
+  <button data-p="contact">④ 연락·통지</button>
+  <button data-p="settings">⑤ 담당자·설정</button>
+</div>
+<div class="wrap">
+
+<!-- ① 이달 업무판 -->
+<div class="page on" id="page-board">
+  <div class="card">
+    <h2>① 이달 업무판 <span class="act"><button class="btn" onclick="genTasks()">이달 일정 생성·갱신</button><button class="btn" onclick="viewMode=viewMode==='table'?'kanban':'table';renderBoard()">표 / 칸반</button><button class="btn" onclick="window.print()">인쇄</button></span></h2>
+    <div class="toolbar">
+      <label>월 <input type="month" id="bd_ym" onchange="renderBoard()"></label>
+      <label>담당자 <select id="bd_staff" onchange="renderBoard()"><option value="">전체</option></select></label>
+      <label>세목 <select id="bd_cat" onchange="renderBoard()"><option value="">전체</option></select></label>
+      <label>상태 <select id="bd_st" onchange="renderBoard()"><option value="">전체</option><option value="open">미완료</option><option value="late">지연</option><option value="done">완료</option></select></label>
+      <label>검색 <input id="bd_q" placeholder="거래처·업무" oninput="renderBoard()" style="width:160px"></label>
+      <span class="muted">상태를 누르면 다음 단계로 넘어갑니다: 자료요청 → 접수 → 작성 → 검토 → 신고완료 → 납부안내</span>
+    </div>
+    <div class="stat" id="bd_stat"></div>
+    <div id="bd_body"></div>
+  </div>
+</div>
+
+<!-- ② 거래처 -->
+<div class="page" id="page-clients">
+  <div class="card">
+    <h2>② 거래처 <span class="act"><button class="btn g" onclick="addClient()">+ 거래처 추가</button><label class="btn" style="cursor:pointer">CSV·엑셀 가져오기<input type="file" accept=".csv,.xlsx,.xls" style="display:none" onchange="importClients(this)"></label><button class="btn" onclick="downloadTemplate()">가져오기 서식(CSV)</button><button class="btn" onclick="exportClientsCSV()">CSV 내보내기</button></span></h2>
+    <div class="toolbar">
+      <span class="pill" id="cl_cnt">0곳</span>
+      <label>담당자 <select id="cl_staff" onchange="renderClients()"><option value="">전체</option></select></label>
+      <label>검색 <input id="cl_q" placeholder="상호·사업자번호·대표자" oninput="renderClients()" style="width:200px"></label>
+      <span class="muted">사업자등록번호는 10자리 검증(가중치)을 합니다. 유형·과세유형·원천세 주기·결산월·성실신고 여부가 신고 일정을 결정합니다.</span>
+    </div>
+    <div class="tblwrap"><table id="clTable"><thead><tr>
+      <th>상호</th><th>사업자등록번호</th><th>대표자</th><th>유형</th><th>과세유형</th><th>원천세</th><th>결산월</th><th>성실<br>신고</th><th>담당자</th><th>연락처</th><th>이메일</th><th>메모</th><th class="c">관리</th>
+    </tr></thead><tbody id="clBody"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ③ 일정 규칙 -->
+<div class="page" id="page-rules">
+  <div class="card">
+    <h2>③ 신고 일정 규칙 <span class="act"><button class="btn g" onclick="addRule()">+ 규칙 추가</button><button class="btn" onclick="resetRules()">기본 규칙으로 되돌리기</button></span></h2>
+    <div class="note">규칙은 거래처 조건(유형·과세유형·원천세 주기·성실신고·결산월)에 맞는 거래처에만 적용됩니다. 월 '*' 는 매월, 일 '말' 은 말일. 기한이 토·일·공휴일이면 다음 영업일로 옮깁니다(국세기본법 §5). 공휴일 목록은 ⑤ 설정에서 고칩니다.</div>
+    <div class="tblwrap"><table><thead><tr><th>세목</th><th>업무</th><th>월</th><th>일</th><th>대상 유형</th><th>과세유형</th><th>원천세</th><th>성실신고</th><th>결산월</th><th>자료요청 D-</th><th>사용</th><th class="c">관리</th></tr></thead><tbody id="ruleBody"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ④ 연락·통지 -->
+<div class="page" id="page-contact">
+  <div class="card">
+    <h2>④ 연락·통지 <span class="act"><button class="btn" onclick="renderContact()">새로 고침</button></span></h2>
+    <div class="toolbar">
+      <label>종류 <select id="ct_kind" onchange="renderContact()"><option value="req">자료 요청</option><option value="remind">자료 독촉</option><option value="done">신고 완료 안내</option><option value="pay">납부 안내</option></select></label>
+      <label>월 <input type="month" id="ct_ym" onchange="renderContact()"></label>
+      <label>담당자 <select id="ct_staff" onchange="renderContact()"><option value="">전체</option></select></label>
+      <label><input type="checkbox" id="ct_all" onchange="renderContact()"> 시점 무관 전체 보기</label>
+      <span class="muted">대상 거래처는 이달 업무판 상태에서 자동으로 고릅니다(자료요청·독촉: 접수 전 / 완료·납부: 신고완료 이후). 문구는 ⑤ 설정의 서식을 씁니다.</span>
+    </div>
+    <div id="ct_body"></div>
+  </div>
+</div>
+
+<!-- ⑤ 설정 -->
+<div class="page" id="page-settings">
+  <div class="card">
+    <h2>⑤ 담당자·설정 <span class="act"><button class="btn p" onclick="saveSettings()">저장</button></span></h2>
+    <div class="grid">
+      <label class="fld">담당자 목록(쉼표로 구분)<input id="st_staff" placeholder="예: 김대리, 이과장, 박주임"></label>
+      <label class="fld">사무실 표시명<input id="st_office" value="세무법인 한백택스"></label>
+      <label class="fld">대표 전화<input id="st_tel" value="02-2277-3101"></label>
+      <label class="fld">접수 메일<input id="st_mail" value="hb090@hanbaektax.kr"></label>
+      <label class="fld">메일중계 주소(Apps Script, 비우면 메일 앱으로)<input id="st_relay" placeholder="https://script.google.com/macros/s/…/exec"></label>
+      <label class="fld">메일중계 토큰<input id="st_token" value="hbtax-relay"></label>
+    </div>
+    <h3 style="font-size:13px;color:var(--navy);margin:14px 0 6px">공휴일(YYYY-MM-DD, 줄마다 하나) — 기한 이월용</h3>
+    <textarea id="st_hol" rows="6" style="width:100%"></textarea>
+    <h3 style="font-size:13px;color:var(--navy);margin:14px 0 6px">통지 서식 — 치환자: {상호} {대표자} {업무} {기한} {담당자} {사무실} {전화} {메일} {월}</h3>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr))">
+      <label class="fld">자료 요청<textarea id="tp_req" rows="6"></textarea></label>
+      <label class="fld">자료 독촉<textarea id="tp_remind" rows="6"></textarea></label>
+      <label class="fld">신고 완료 안내<textarea id="tp_done" rows="6"></textarea></label>
+      <label class="fld">납부 안내<textarea id="tp_pay" rows="6"></textarea></label>
+    </div>
+    <div class="note">데이터 파일: 「파일 연결」로 이 폴더의 <b>업무판_데이터.json</b> 을 고르면 저장할 때마다 그 파일에 씁니다(Chrome·Edge). 다른 직원도 같은 파일을 연결하면 OneDrive 로 같은 내용을 봅니다. 동시에 고치면 나중에 저장한 쪽이 남으니, 저장 전에 「JSON 가져오기」로 최신본을 읽어 오십시오.</div>
+  </div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* ===== 저장소 ===== */
+const LS='hanbaek_board_v1';
+const DEFAULT_RULES=[
+  {id:'wht_m',cat:'원천',title:'원천세 신고·납부(전월 지급분)',m:'*',d:10,types:'',vat:'',wht:'매월',honest:'',fy:'',req:8,on:true},
+  {id:'wht_h1',cat:'원천',title:'원천세 반기납부(하반기분)',m:1,d:10,types:'',vat:'',wht:'반기',honest:'',fy:'',req:8,on:true},
+  {id:'wht_h2',cat:'원천',title:'원천세 반기납부(상반기분)',m:7,d:10,types:'',vat:'',wht:'반기',honest:'',fy:'',req:8,on:true},
+  {id:'psm_m',cat:'지급명세',title:'간이지급명세서(사업·기타)·일용 지급명세서',m:'*',d:'말',types:'',vat:'',wht:'',honest:'',fy:'',req:10,on:true},
+  {id:'vat_2c',cat:'부가세',title:'부가가치세 2기 확정신고',m:1,d:25,types:'개인,법인',vat:'일반',wht:'',honest:'',fy:'',req:15,on:true},
+  {id:'vat_s',cat:'부가세',title:'간이과세자 부가가치세 신고',m:1,d:25,types:'개인',vat:'간이',wht:'',honest:'',fy:'',req:15,on:true},
+  {id:'vat_1p',cat:'부가세',title:'부가가치세 1기 예정신고(법인)·예정고지 확인(개인)',m:4,d:25,types:'개인,법인',vat:'일반',wht:'',honest:'',fy:'',req:12,on:true},
+  {id:'vat_1c',cat:'부가세',title:'부가가치세 1기 확정신고',m:7,d:25,types:'개인,법인',vat:'일반',wht:'',honest:'',fy:'',req:15,on:true},
+  {id:'vat_2p',cat:'부가세',title:'부가가치세 2기 예정신고(법인)·예정고지 확인(개인)',m:10,d:25,types:'개인,법인',vat:'일반',wht:'',honest:'',fy:'',req:12,on:true},
+  {id:'exempt',cat:'기타',title:'면세사업자 사업장현황 신고',m:2,d:10,types:'개인',vat:'면세',wht:'',honest:'',fy:'',req:15,on:true},
+  {id:'psm_y',cat:'지급명세',title:'근로·퇴직·사업·기타소득 지급명세서(연 1회)',m:3,d:10,types:'',vat:'',wht:'',honest:'',fy:'',req:20,on:true},
+  {id:'ye',cat:'원천',title:'연말정산 환급·추가징수 반영 신고',m:3,d:10,types:'',vat:'',wht:'',honest:'',fy:'',req:30,on:true},
+  {id:'corp',cat:'법인',title:'법인세 신고·납부(결산월 +3개월)',m:'결산+3',d:31,types:'법인',vat:'',wht:'',honest:'',fy:'',req:40,on:true},
+  {id:'corp_mid',cat:'법인',title:'법인세 중간예납(결산월 +8개월)',m:'결산+8',d:31,types:'법인',vat:'',wht:'',honest:'',fy:'',req:15,on:true},
+  {id:'inc',cat:'종소세',title:'종합소득세 확정신고·납부',m:5,d:31,types:'개인',vat:'',wht:'',honest:'N',fy:'',req:30,on:true},
+  {id:'inc_h',cat:'종소세',title:'성실신고확인 종합소득세 신고',m:6,d:30,types:'개인',vat:'',wht:'',honest:'Y',fy:'',req:40,on:true},
+  {id:'inc_mid',cat:'종소세',title:'종합소득세 중간예납 납부 확인',m:11,d:30,types:'개인',vat:'',wht:'',honest:'',fy:'',req:10,on:true},
+];
+const DEFAULT_HOL=['2026-01-01','2026-02-16','2026-02-17','2026-02-18','2026-03-02','2026-05-05','2026-05-25','2026-06-06','2026-08-17','2026-09-24','2026-09-25','2026-09-26','2026-10-05','2026-10-09','2026-12-25','2027-01-01','2027-02-08','2027-02-09','2027-02-10','2027-03-01','2027-05-05','2027-05-13','2027-06-06','2027-08-16','2027-09-14','2027-09-15','2027-09-16','2027-10-04','2027-10-11','2027-12-27'];
+const DEFAULT_TPL={
+  req:'{상호} {대표자}님, 안녕하세요. {사무실} {담당자}입니다.\n{월} {업무}(기한 {기한}) 준비를 위해 아래 자료를 보내 주시면 감사하겠습니다.\n- 매출·매입 세금계산서·현금영수증·카드 내역\n- 급여 변동·입퇴사자 명단\n- 기타 증빙(통장·영수증)\n카카오톡 채널 또는 {메일} 로 보내 주십시오. 문의 {전화}',
+  remind:'{상호} {대표자}님, {사무실} {담당자}입니다.\n{월} {업무} 기한({기한})이 가까워 자료를 다시 부탁드립니다. 아직 접수된 자료가 없어 기한 내 신고가 어려울 수 있습니다.\n오늘 중으로 보내 주시면 바로 처리하겠습니다. 문의 {전화}',
+  done:'{상호} {대표자}님, {사무실} {담당자}입니다.\n{월} {업무} 신고를 마쳤습니다. 신고서 사본은 카카오톡 채널로 보내 드립니다.\n납부할 세액이 있으면 별도로 납부 안내를 드리겠습니다. 감사합니다.',
+  pay:'{상호} {대표자}님, {사무실} {담당자}입니다.\n{월} {업무} 세액 납부 안내입니다. 납부기한 {기한} 까지 홈택스·카드·가상계좌로 납부하시면 됩니다.\n납부서는 카카오톡 채널로 보내 드렸습니다. 문의 {전화}'
+};
+const STATUS=['자료요청','접수','작성','검토','신고완료','납부안내'];
+let DB={clients:[],tasks:{},rules:JSON.parse(JSON.stringify(DEFAULT_RULES)),staff:[],settings:{office:'세무법인 한백택스',tel:'02-2277-3101',mail:'hb090@hanbaektax.kr',relay:'https://script.google.com/macros/s/AKfycbxtBSiGZjkoJEl87cttAm1HUrR4A1D2zyz03S65NOkC6ezSUsHW_8BW5Pq5fkIyBZAK7A/exec',token:'hbtax-relay',hol:DEFAULT_HOL.slice()},tpl:Object.assign({},DEFAULT_TPL),log:[]};
+let fileHandle=null,viewMode='table';
+const $=id=>document.getElementById(id);
+function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(toast._t);toast._t=setTimeout(()=>t.style.display='none',2600);}
+function load(){try{const r=localStorage.getItem(LS);if(r){const d=JSON.parse(r);DB=Object.assign(DB,d);DB.settings=Object.assign({office:'세무법인 한백택스',tel:'02-2277-3101',mail:'hb090@hanbaektax.kr',relay:'https://script.google.com/macros/s/AKfycbxtBSiGZjkoJEl87cttAm1HUrR4A1D2zyz03S65NOkC6ezSUsHW_8BW5Pq5fkIyBZAK7A/exec',token:'hbtax-relay',hol:DEFAULT_HOL.slice()},d.settings||{});DB.tpl=Object.assign({},DEFAULT_TPL,d.tpl||{});if(!DB.rules||!DB.rules.length)DB.rules=JSON.parse(JSON.stringify(DEFAULT_RULES));}}catch(e){}}
+async function persist(){localStorage.setItem(LS,JSON.stringify(DB));if(fileHandle){try{const w=await fileHandle.createWritable();await w.write(JSON.stringify(DB,null,1));await w.close();$('fileState').textContent='데이터: '+fileHandle.name+' (저장됨 '+new Date().toLocaleTimeString('ko-KR')+')';}catch(e){toast('파일 저장 실패: '+e.message);}}}
+async function saveNow(){await persist();toast('저장했습니다');}
+/* 파일 핸들은 IndexedDB 에 보관해 다음에 자동 연결 */
+function idb(){return new Promise((res,rej)=>{const r=indexedDB.open('hanbaek_board',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+async function idbSet(k,v){const d=await idb();return new Promise((res,rej)=>{const t=d.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=res;t.onerror=()=>rej(t.error);});}
+async function idbGet(k){const d=await idb();return new Promise((res,rej)=>{const t=d.transaction('kv','readonly');const q=t.objectStore('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});}
+async function connectFile(){
+  if(!window.showOpenFilePicker){toast('이 브라우저는 파일 연결을 지원하지 않습니다(Chrome·Edge 사용). JSON 내보내기·가져오기를 쓰십시오.');return;}
+  try{const [h]=await window.showOpenFilePicker({types:[{description:'업무판 데이터',accept:{'application/json':['.json']}}],multiple:false});
+    const f=await h.getFile();const txt=await f.text();
+    if(txt.trim()){const d=JSON.parse(txt);if(d&&d.clients){if(!confirm('파일의 내용('+d.clients.length+'곳)을 불러와 지금 화면을 바꿉니다. 계속할까요?'))return;DB=Object.assign(DB,d);}}
+    fileHandle=h;await idbSet('handle',h);$('fileState').textContent='데이터: '+h.name;await persist();renderAll();toast('파일을 연결했습니다');}
+  catch(e){if(e.name!=='AbortError')toast('연결 실패: '+e.message);}
+}
+async function reconnect(){try{const h=await idbGet('handle');if(!h)return;const p=await h.queryPermission({mode:'readwrite'});if(p==='granted'||(await h.requestPermission({mode:'readwrite'}))==='granted'){const f=await h.getFile();const txt=await f.text();if(txt.trim()){const d=JSON.parse(txt);if(d&&d.clients)DB=Object.assign(DB,d);}fileHandle=h;$('fileState').textContent='데이터: '+h.name;renderAll();}}catch(e){}}
+function exportJSON(){const b=new Blob([JSON.stringify(DB,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='업무판_데이터_'+new Date().toISOString().slice(0,10)+'.json';a.click();}
+function importJSON(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.clients)throw new Error('형식 아님');if(!confirm('가져온 파일('+d.clients.length+'곳)로 지금 내용을 바꿉니다. 계속할까요?'))return;DB=Object.assign(DB,d);persist();renderAll();toast('가져왔습니다');}catch(e){toast('가져오기 실패: '+e.message);}};r.readAsText(f);inp.value='';}
+
+/* ===== 유틸 ===== */
+const uid=()=>'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function bizValid(no){const d=String(no||'').replace(/[^0-9]/g,'');if(d.length!==10)return false;const w=[1,3,7,1,3,7,1,3,5];let s=0;for(let i=0;i<9;i++)s+=parseInt(d[i])*w[i];s+=Math.floor(parseInt(d[8])*5/10);return (10-(s%10))%10===parseInt(d[9]);}
+function fmtBiz(no){const d=String(no||'').replace(/[^0-9]/g,'');return d.length===10?d.slice(0,3)+'-'+d.slice(3,5)+'-'+d.slice(5):no||'';}
+function lastDay(y,m){return new Date(y,m,0).getDate();}
+function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function nextBiz(dateStr){const hol=new Set(DB.settings.hol||[]);let d=new Date(dateStr+'T00:00:00');for(let i=0;i<10;i++){const wd=d.getDay();if(wd!==0&&wd!==6&&!hol.has(iso(d)))break;d.setDate(d.getDate()+1);}return iso(d);}
+function today(){return iso(new Date());}
+function addDays(dateStr,n){const d=new Date(dateStr+'T00:00:00');d.setDate(d.getDate()+n);return iso(d);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function ymLabel(ym){return ym.slice(0,4)+'년 '+parseInt(ym.slice(5,7))+'월';}
+
+/* ===== 규칙 적용 → 거래처별 이달 업무 ===== */
+function ruleApplies(r,c,mo){
+  if(!r.on)return false;
+  if(r.types&&!r.types.split(',').map(s=>s.trim()).includes(c.type))return false;
+  if(r.vat&&r.vat!==(c.vat||''))return false;
+  if(r.wht&&r.wht!==(c.wht||''))return false;
+  if(r.honest&&r.honest!==(c.honest||'N'))return false;
+  if(r.fy&&String(r.fy)!==String(c.fy||12))return false;
+  if(r.m==='*')return true;
+  if(/^결산\+(\d+)$/.test(String(r.m))){const add=parseInt(RegExp.$1);const fy=parseInt(c.fy||12);return ((fy+add-1)%12)+1===mo;}
+  return parseInt(r.m)===mo;
+}
+function dueOf(r,y,mo){const d=r.d==='말'?lastDay(y,mo):parseInt(r.d);return nextBiz(iso(new Date(y,mo-1,Math.min(d,lastDay(y,mo)))));}
+function genTasks(){
+  const ym=$('bd_ym').value||today().slice(0,7);const y=parseInt(ym.slice(0,4)),mo=parseInt(ym.slice(5,7));let n=0;
+  DB.tasks[ym]=DB.tasks[ym]||{};
+  DB.clients.forEach(c=>{DB.rules.forEach(r=>{if(!ruleApplies(r,c,mo))return;const key=c.id+'|'+r.id;
+    if(!DB.tasks[ym][key]){DB.tasks[ym][key]={client:c.id,rule:r.id,title:r.title,cat:r.cat,due:dueOf(r,y,mo),st:0,reqDate:addDays(dueOf(r,y,mo),-(r.req||10)),memo:'',hist:[]};n++;}
+    else{const t=DB.tasks[ym][key];t.due=dueOf(r,y,mo);t.title=r.title;t.cat=r.cat;}});});
+  persist();renderBoard();toast(ymLabel(ym)+' 업무 '+n+'건 새로 생성');
+}
+function taskList(ym){const T=DB.tasks[ym]||{};return Object.keys(T).map(k=>Object.assign({key:k},T[k])).filter(t=>DB.clients.some(c=>c.id===t.client));}
+function clientOf(id){return DB.clients.find(c=>c.id===id)||{};}
+function dday(due){const t=new Date(today()+'T00:00:00'),d=new Date(due+'T00:00:00');return Math.round((d-t)/86400000);}
+function setStatus(ym,key,st){const t=DB.tasks[ym][key];if(!t)return;t.st=st;(t.hist=t.hist||[]).push({st,at:new Date().toISOString().slice(0,16).replace('T',' ')});persist();renderBoard();}
+function cycleStatus(ym,key){const t=DB.tasks[ym][key];setStatus(ym,key,(t.st+1)%STATUS.length);}
+function renderBoard(){
+  const ym=$('bd_ym').value||today().slice(0,7);$('bd_ym').value=ym;
+  const staff=$('bd_staff').value,cat=$('bd_cat').value,stf=$('bd_st').value,q=($('bd_q').value||'').toLowerCase();
+  let L=taskList(ym).map(t=>Object.assign(t,{c:clientOf(t.client),dd:dday(t.due)}));
+  L=L.filter(t=>(!staff||t.c.staff===staff)&&(!cat||t.cat===cat)&&(!q||(t.c.name+t.title).toLowerCase().includes(q)));
+  const isDone=t=>t.st>=4;
+  if(stf==='open')L=L.filter(t=>!isDone(t));if(stf==='late')L=L.filter(t=>!isDone(t)&&t.dd<0);if(stf==='done')L=L.filter(isDone);
+  L.sort((a,b)=>a.due<b.due?-1:a.due>b.due?1:a.c.name<b.c.name?-1:1);
+  const all=taskList(ym);const late=all.filter(t=>t.st<4&&dday(t.due)<0).length,done=all.filter(t=>t.st>=4).length,soon=all.filter(t=>t.st<4&&dday(t.due)>=0&&dday(t.due)<=3).length;
+  const byStaff={};all.forEach(t=>{const s=clientOf(t.client).staff||'(미배정)';byStaff[s]=byStaff[s]||{n:0,d:0};byStaff[s].n++;if(t.st>=4)byStaff[s].d++;});
+  $('bd_stat').innerHTML=`<div class="b"><div class="k">${ymLabel(ym)} 업무</div><div class="v">${all.length}건</div></div><div class="b ok"><div class="k">완료</div><div class="v">${done}건 (${all.length?Math.round(done/all.length*100):0}%)</div></div><div class="b warn"><div class="k">지연(기한 경과·미완료)</div><div class="v">${late}건</div></div><div class="b"><div class="k">3일 내 기한</div><div class="v">${soon}건</div></div>`
+    +Object.keys(byStaff).map(s=>`<div class="b" style="background:linear-gradient(135deg,#475569,#64748b)"><div class="k">${esc(s)}</div><div class="v">${byStaff[s].d}/${byStaff[s].n}</div></div>`).join('');
+  if(!all.length){$('bd_body').innerHTML='<div class="note">이달 업무가 없습니다. 거래처를 등록한 뒤 「이달 일정 생성·갱신」을 누르십시오.</div>';return;}
+  const ddHtml=t=>{const cls=t.st>=4?'ok':t.dd<0?'late':t.dd<=3?'soon':'';return `<span class="dd ${cls}">${t.st>=4?'완료':(t.dd<0?'D+'+(-t.dd):'D-'+t.dd)}</span>`;};
+  if(viewMode==='kanban'){
+    $('bd_body').innerHTML='<div class="kb">'+STATUS.map((s,i)=>`<div class="col"><h4>${s}<span>${L.filter(t=>t.st===i).length}</span></h4>`+L.filter(t=>t.st===i).map(t=>`<div class="it" onclick="cycleStatus('${ym}','${t.key}')" title="누르면 다음 단계"><b>${esc(t.c.name)}</b>${esc(t.title)}<div class="muted">${t.due} ${ddHtml(t)} · ${esc(t.c.staff||'미배정')}</div></div>`).join('')+'</div>').join('')+'</div>';
+    return;}
+  $('bd_body').innerHTML='<div class="tblwrap"><table><thead><tr><th>기한</th><th>D-day</th><th>거래처</th><th>업무</th><th>세목</th><th>담당자</th><th>자료요청일</th><th>상태</th><th>메모</th></tr></thead><tbody>'
+    +L.map(t=>`<tr><td class="c">${t.due}</td><td class="c">${ddHtml(t)}</td><td><b>${esc(t.c.name)}</b><div class="muted">${esc(t.c.ceo||'')} · ${esc(t.c.type||'')}${t.c.vat?'·'+esc(t.c.vat):''}</div></td><td>${esc(t.title)}</td><td class="c"><span class="pill">${esc(t.cat)}</span></td><td class="c">${esc(t.c.staff||'미배정')}</td><td class="c">${t.reqDate||''}</td>
+      <td class="c"><span class="st s${t.st}" onclick="cycleStatus('${ym}','${t.key}')" title="누르면 다음 단계">${STATUS[t.st]}</span> <select style="width:auto;padding:2px" onchange="setStatus('${ym}','${t.key}',+this.value)">${STATUS.map((s,i)=>`<option value="${i}" ${i===t.st?'selected':''}>${s}</option>`).join('')}</select></td>
+      <td><input value="${esc(t.memo||'')}" onchange="DB.tasks['${ym}']['${t.key}'].memo=this.value;persist()"></td></tr>`).join('')+'</tbody></table></div>';
+}
+
+/* ===== 거래처 ===== */
+function addClient(){DB.clients.unshift({id:uid(),name:'',biz:'',ceo:'',type:'개인',vat:'일반',wht:'매월',fy:12,honest:'N',staff:'',tel:'',email:'',memo:''});persist();renderClients();}
+function delClient(id){const c=clientOf(id);if(!confirm((c.name||'이 거래처')+' 를 삭제할까요? 관련 업무 기록도 화면에서 사라집니다.'))return;DB.clients=DB.clients.filter(x=>x.id!==id);persist();renderClients();}
+function updClient(id,k,v){const c=clientOf(id);if(!c.id)return;c[k]=(k==='fy')?parseInt(v)||12:v;if(k==='biz'&&v&&!bizValid(v))toast('사업자등록번호 검증식에 맞지 않습니다: '+v);persist();if(k==='name'||k==='staff')renderClients();}
+function renderClients(){
+  const staff=$('cl_staff').value,q=($('cl_q').value||'').toLowerCase();
+  const L=DB.clients.filter(c=>(!staff||c.staff===staff)&&(!q||((c.name||'')+(c.biz||'')+(c.ceo||'')).toLowerCase().includes(q)));
+  $('cl_cnt').textContent=DB.clients.length+'곳';
+  const sel=(id,k,opts,v)=>`<select onchange="updClient('${id}','${k}',this.value)">${opts.map(o=>`<option ${String(v)===String(o)?'selected':''}>${o}</option>`).join('')}</select>`;
+  $('clBody').innerHTML=L.length?L.map(c=>`<tr>
+    <td><input value="${esc(c.name)}" onchange="updClient('${c.id}','name',this.value)" placeholder="상호"></td>
+    <td><input value="${esc(c.biz)}" onchange="updClient('${c.id}','biz',this.value)" placeholder="000-00-00000" style="text-align:center;${c.biz&&!bizValid(c.biz)?'border-color:var(--red)':''}"></td>
+    <td><input value="${esc(c.ceo)}" onchange="updClient('${c.id}','ceo',this.value)"></td>
+    <td>${sel(c.id,'type',['개인','법인'],c.type)}</td><td>${sel(c.id,'vat',['일반','간이','면세'],c.vat)}</td><td>${sel(c.id,'wht',['매월','반기','없음'],c.wht)}</td>
+    <td>${sel(c.id,'fy',[12,3,6,9,1,2,4,5,7,8,10,11],c.fy||12)}</td><td>${sel(c.id,'honest',['N','Y'],c.honest||'N')}</td>
+    <td><select onchange="updClient('${c.id}','staff',this.value)"><option value="">(미배정)</option>${DB.staff.map(s=>`<option ${c.staff===s?'selected':''}>${esc(s)}</option>`).join('')}</select></td>
+    <td><input value="${esc(c.tel)}" onchange="updClient('${c.id}','tel',this.value)"></td><td><input value="${esc(c.email)}" onchange="updClient('${c.id}','email',this.value)"></td>
+    <td><input value="${esc(c.memo)}" onchange="updClient('${c.id}','memo',this.value)"></td>
+    <td class="c"><button class="btn d sm" onclick="delClient('${c.id}')">삭제</button></td></tr>`).join(''):'<tr><td colspan="13" class="c muted">거래처가 없습니다. [+ 거래처 추가] 또는 CSV·엑셀 가져오기.</td></tr>';
+}
+const IMPORT_COLS=[['상호','name'],['사업자등록번호','biz'],['대표자','ceo'],['유형','type'],['과세유형','vat'],['원천세','wht'],['결산월','fy'],['성실신고','honest'],['담당자','staff'],['연락처','tel'],['이메일','email'],['메모','memo']];
+function downloadTemplate(){const rows=[IMPORT_COLS.map(c=>c[0]),['(주)예시상사','123-45-67890','홍길동','법인','일반','매월','12','N','김대리','02-000-0000','a@b.c','']];const csv='﻿'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='거래처_가져오기_서식.csv';a.click();}
+function importClients(inp){const f=inp.files[0];if(!f)return;const done=rows=>{const head=rows[0].map(h=>String(h||'').trim());const idx={};IMPORT_COLS.forEach(([k,f])=>{const i=head.findIndex(h=>h.replace(/\s/g,'')===k);if(i>=0)idx[f]=i;});
+    if(idx.name==null){toast('머리행에 「상호」 열이 없습니다. 서식을 내려받아 맞춰 주십시오.');return;}
+    let n=0,u=0;rows.slice(1).forEach(r=>{const g=k=>idx[k]!=null?String(r[idx[k]]||'').trim():'';if(!g('name'))return;const biz=g('biz').replace(/[^0-9]/g,'');
+      let c=DB.clients.find(x=>biz&&x.biz.replace(/[^0-9]/g,'')===biz)||DB.clients.find(x=>x.name===g('name'));
+      const rec={name:g('name'),biz:biz?fmtBiz(biz):g('biz'),ceo:g('ceo'),type:/법인/.test(g('type'))?'법인':'개인',vat:/간이/.test(g('vat'))?'간이':/면세/.test(g('vat'))?'면세':'일반',wht:/반기/.test(g('wht'))?'반기':/없/.test(g('wht'))?'없음':'매월',fy:parseInt(g('fy'))||12,honest:/^y|여|예/i.test(g('honest'))?'Y':'N',staff:g('staff'),tel:g('tel'),email:g('email'),memo:g('memo')};
+      if(c){Object.assign(c,rec);u++;}else{DB.clients.push(Object.assign({id:uid()},rec));n++;}
+      if(rec.staff&&!DB.staff.includes(rec.staff))DB.staff.push(rec.staff);});
+    persist();renderAll();toast('거래처 '+n+'곳 추가, '+u+'곳 갱신');};
+  if(/\.xlsx?$/i.test(f.name)){if(!window.XLSX){toast('엑셀 읽기 라이브러리를 불러오지 못했습니다(인터넷 필요). CSV 로 저장해 가져오십시오.');return;}const r=new FileReader();r.onload=()=>{const wb=XLSX.read(new Uint8Array(r.result),{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];done(XLSX.utils.sheet_to_json(ws,{header:1,raw:false}));};r.readAsArrayBuffer(f);}
+  else{const r=new FileReader();r.onload=()=>{const txt=r.result.replace(/^﻿/,'');done(parseCSV(txt));};r.readAsText(f,'utf-8');}
+  inp.value='';}
+function parseCSV(t){const rows=[];let row=[],cur='',q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c==='"'){if(t[i+1]==='"'){cur+='"';i++;}else q=false;}else cur+=c;}else{if(c==='"')q=true;else if(c===','){row.push(cur);cur='';}else if(c==='\n'||c==='\r'){if(c==='\r'&&t[i+1]==='\n')i++;row.push(cur);rows.push(row);row=[];cur='';}else cur+=c;}}if(cur||row.length){row.push(cur);rows.push(row);}return rows.filter(r=>r.some(v=>v!==''));}
+function exportClientsCSV(){const rows=[IMPORT_COLS.map(c=>c[0])].concat(DB.clients.map(c=>IMPORT_COLS.map(([k,f])=>c[f]==null?'':c[f])));const csv='﻿'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='거래처_'+today()+'.csv';a.click();}
+
+/* ===== 규칙 ===== */
+function addRule(){DB.rules.push({id:'r'+Date.now().toString(36),cat:'기타',title:'',m:'*',d:10,types:'',vat:'',wht:'',honest:'',fy:'',req:10,on:true});persist();renderRules();}
+function delRule(i){if(!confirm('이 규칙을 지울까요?'))return;DB.rules.splice(i,1);persist();renderRules();}
+function updRule(i,k,v){const r=DB.rules[i];if(!r)return;r[k]=(k==='on')?!!v:(k==='req'?parseInt(v)||0:v);persist();}
+function resetRules(){if(!confirm('기본 규칙으로 되돌립니다. 직접 추가한 규칙은 사라집니다.'))return;DB.rules=JSON.parse(JSON.stringify(DEFAULT_RULES));persist();renderRules();}
+function renderRules(){$('ruleBody').innerHTML=DB.rules.map((r,i)=>`<tr>
+  <td><input value="${esc(r.cat)}" onchange="updRule(${i},'cat',this.value)" style="width:70px"></td><td><input value="${esc(r.title)}" onchange="updRule(${i},'title',this.value)"></td>
+  <td><input value="${esc(r.m)}" onchange="updRule(${i},'m',this.value)" style="width:70px" title="1~12, * 매월, 결산+3"></td><td><input value="${esc(r.d)}" onchange="updRule(${i},'d',this.value)" style="width:50px" title="일 또는 말"></td>
+  <td><input value="${esc(r.types)}" onchange="updRule(${i},'types',this.value)" style="width:80px" placeholder="개인,법인"></td><td><input value="${esc(r.vat)}" onchange="updRule(${i},'vat',this.value)" style="width:60px" placeholder="일반"></td>
+  <td><input value="${esc(r.wht)}" onchange="updRule(${i},'wht',this.value)" style="width:60px" placeholder="매월"></td><td><input value="${esc(r.honest)}" onchange="updRule(${i},'honest',this.value)" style="width:40px" placeholder="Y/N"></td>
+  <td><input value="${esc(r.fy)}" onchange="updRule(${i},'fy',this.value)" style="width:40px"></td><td><input type="number" value="${r.req||10}" onchange="updRule(${i},'req',this.value)" style="width:60px"></td>
+  <td class="c"><input type="checkbox" ${r.on?'checked':''} onchange="updRule(${i},'on',this.checked)"></td><td class="c"><button class="btn d sm" onclick="delRule(${i})">×</button></td></tr>`).join('');}
+
+/* ===== 연락·통지 ===== */
+function fill(tpl,t,c){const kindTitle=t?t.title:'';const map={'{상호}':c.name||'',' {대표자}':c.ceo?' '+c.ceo:'','{대표자}':c.ceo||'대표','{업무}':kindTitle,'{기한}':t?t.due:'','{담당자}':c.staff||'담당자','{사무실}':DB.settings.office,'{전화}':DB.settings.tel,'{메일}':DB.settings.mail,'{월}':t?ymLabel($('ct_ym').value||today().slice(0,7)):''};let s=tpl;Object.keys(map).forEach(k=>{s=s.split(k).join(map[k]);});return s;}
+function renderContact(){
+  const kind=$('ct_kind').value,ym=$('ct_ym').value||today().slice(0,7);$('ct_ym').value=ym;const staff=$('ct_staff').value;
+  const all=$('ct_all').checked;
+  const L=taskList(ym).map(t=>Object.assign(t,{c:clientOf(t.client),dd:dday(t.due)})).filter(t=>!staff||t.c.staff===staff).filter(t=>{
+    if(all)return kind==='req'||kind==='remind'?t.st<=0:t.st>=4;
+    if(kind==='req')return t.st<=0&&t.dd<= (DB.rules.find(r=>r.id===t.rule)||{req:10}).req;
+    if(kind==='remind')return t.st<=0&&t.dd<=5;
+    if(kind==='done')return t.st===4;if(kind==='pay')return t.st>=4;return true;});
+  L.sort((a,b)=>a.due<b.due?-1:1);
+  const tpl=DB.tpl[kind]||'';
+  $('ct_body').innerHTML=L.length?L.map(t=>{const msg=fill(tpl,t,t.c);const id=t.key.replace(/[^a-z0-9]/gi,'');const sent=(DB.log||[]).filter(l=>l.key===t.key&&l.kind===kind).length;
+    return `<div class="card" style="padding:12px 14px"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><div><b>${esc(t.c.name)}</b> <span class="muted">${esc(t.c.ceo||'')} · ${esc(t.c.staff||'미배정')} · ${esc(t.title)} · 기한 ${t.due}</span>${sent?`<span class="badge">보낸 기록 ${sent}회</span>`:''}</div>
+      <div class="chips"><button class="btn sm" onclick="copyMsg('${id}','${ym}','${t.key}','${kind}')">카톡용 복사</button><a class="btn sm" href="mailto:${esc(t.c.email||'')}?subject=${encodeURIComponent('['+DB.settings.office+'] '+t.title+' 안내')}&body=${encodeURIComponent(msg)}" onclick="logSend('${ym}','${t.key}','${kind}','mail')">메일 앱</a>${DB.settings.relay?`<button class="btn sm p" onclick="relayMsg('${id}','${ym}','${t.key}','${kind}')">중계로 발송</button>`:''}</div></div>
+      <pre class="msg" id="msg_${id}">${esc(msg)}</pre></div>`;}).join(''):'<div class="note">대상 거래처가 없습니다. 업무판 상태(자료요청 단계·기한 임박·신고완료)에 따라 자동으로 고릅니다.</div>';
+}
+function logSend(ym,key,kind,how){(DB.log=DB.log||[]).push({key,kind,how,at:new Date().toISOString().slice(0,16).replace('T',' ')});persist();}
+async function copyMsg(id,ym,key,kind){const txt=$('msg_'+id).textContent;try{await navigator.clipboard.writeText(txt);}catch(e){const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();}logSend(ym,key,kind,'copy');toast('복사했습니다 — 카카오톡 채널에 붙여 넣으십시오');renderContact();}
+async function relayMsg(id,ym,key,kind){const t=DB.tasks[ym][key];const c=clientOf(t.client);if(!c.email){toast('거래처 이메일이 없습니다');return;}
+  try{const r=await fetch(DB.settings.relay,{method:'POST',body:JSON.stringify({token:DB.settings.token,type:'notify',to:c.email,subject:'['+DB.settings.office+'] '+t.title+' 안내',text:$('msg_'+id).textContent,client:c.name,page:'업무판'})});const j=await r.json().catch(()=>({}));if(!r.ok||!j.ok)throw new Error(j.error||('HTTP '+r.status));logSend(ym,key,kind,'relay');toast('발송했습니다');renderContact();}
+  catch(e){toast('발송 실패: '+e.message+' (메일중계 Code.gs 에 notify 유형이 있어야 합니다)');}}
+
+/* ===== 설정 ===== */
+function loadSettings(){$('st_staff').value=DB.staff.join(', ');const s=DB.settings;$('st_office').value=s.office;$('st_tel').value=s.tel;$('st_mail').value=s.mail;$('st_relay').value=s.relay||'';$('st_token').value=s.token||'hbtax-relay';$('st_hol').value=(s.hol||[]).join('\n');['req','remind','done','pay'].forEach(k=>$('tp_'+k).value=DB.tpl[k]||'');}
+function saveSettings(){DB.staff=$('st_staff').value.split(',').map(s=>s.trim()).filter(Boolean);Object.assign(DB.settings,{office:$('st_office').value,tel:$('st_tel').value,mail:$('st_mail').value,relay:$('st_relay').value.trim(),token:$('st_token').value.trim(),hol:$('st_hol').value.split(/\n/).map(s=>s.trim()).filter(s=>/^\d{4}-\d{2}-\d{2}$/.test(s))});['req','remind','done','pay'].forEach(k=>DB.tpl[k]=$('tp_'+k).value);persist();renderAll();toast('설정을 저장했습니다');}
+function fillStaffSelects(){['bd_staff','cl_staff','ct_staff'].forEach(id=>{const el=$(id);const cur=el.value;el.innerHTML='<option value="">전체</option>'+DB.staff.map(s=>`<option ${cur===s?'selected':''}>${esc(s)}</option>`).join('');});
+  const cats=[...new Set(DB.rules.map(r=>r.cat))];const el=$('bd_cat');const cur=el.value;el.innerHTML='<option value="">전체</option>'+cats.map(c=>`<option ${cur===c?'selected':''}>${esc(c)}</option>`).join('');}
+function renderAll(){fillStaffSelects();renderBoard();renderClients();renderRules();renderContact();loadSettings();}
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#nav button').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));b.classList.add('on');$('page-'+b.dataset.p).classList.add('on');if(b.dataset.p==='contact')renderContact();});
+load();$('bd_ym').value=today().slice(0,7);$('ct_ym').value=today().slice(0,7);renderAll();reconnect();
+</script>
+</body>
+</html>
