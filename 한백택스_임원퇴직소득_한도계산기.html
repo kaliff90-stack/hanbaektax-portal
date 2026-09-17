@@ -23,6 +23,10 @@
     법인세법 시행령 제44조 ④⑤, 시행규칙 제22조 ⑤ — 임원 퇴직급여 손금한도
       (정관 금액, 없으면 퇴직 전 1년 총급여 × 1/10 × 역년 근속연수(1년 미만 월수, 1개월 미만 불산입))
     소득세법 제48조(퇴직소득공제)·제55조 ①②(세율, 연분연승) — 기존 퇴직소득세 계산기와 같은 표
+  v1.1 (2026-09-17): 손금한도에 「정관 지급배수 방식」 추가
+      기준급여(연간 × 1/10 또는 월) × 근속연수(월할·절상·절사) × 배수(1·1.5·2·2.5·3·4·5·직접)
+      배수별 비교표(정관 계산액대로 지급 가정) · 소득세법 한도 안에 드는 최대 배수 표시.
+      소득세법 제22조 ③의 3배·2배는 법정 배수라 입력으로 바꾸지 않는다.
   원 미만은 최종 산출 단계에서 한 번만 절사한다.
   부칙·경과규정(2012년·2020년 개정 부칙)과 직원→임원 전환 시 근무기간 취급은 MCP 로 확인되지 않아 화면에 「확인 필요」로 표시한다.
 -->
@@ -47,7 +51,8 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
 .fld.num input{text-align:right}
 .hint{font-size:11.5px;color:var(--gray);font-weight:400;line-height:1.55}
 .chk{display:flex;align-items:flex-start;gap:6px;font-size:13px;color:#111;font-weight:400;padding:4px 0;line-height:1.5}
-.chk input{margin-top:3px}
+.chk input,.fld .chk input{margin-top:3px;width:auto;flex:0 0 auto}
+.chk.wide{grid-column:1/-1;font-weight:400}
 .period{font-size:12px;background:var(--auto);border:1px dashed #b9cbe0;border-radius:8px;padding:7px 10px;margin:6px 0 2px;line-height:1.65;color:#1f2d3d}
 .period b{color:var(--navy)}
 .toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
@@ -157,6 +162,7 @@ table.t tr.big td.f{color:#dbe4ef}
 <div class="panel" id="formPanel">
   <div class="toolbar">
     <button type="button" class="btn n" onclick="fillSample()">예시 채우기</button>
+    <button type="button" class="btn n" onclick="fillSample(true)">정관 배수 예시</button>
     <button type="button" class="btn p" onclick="window.print()">🖨 인쇄 · PDF</button>
     <button type="button" class="btn" onclick="resetAll()">초기화</button>
   </div>
@@ -175,11 +181,45 @@ table.t tr.big td.f{color:#dbe4ef}
     <label class="fld full">임원 퇴직급여 손금한도 (법인세법 시행령 제44조 ④)
       <select id="corpMode">
         <option value="none">검토하지 않음 — 지급액 전부 퇴직소득으로 봄</option>
-        <option value="rule">정관(또는 정관이 위임한 지급규정)에 정한 금액</option>
-        <option value="std">정관 규정 없음 — 1년 총급여 × 1/10 × 근속연수</option>
+        <option value="mult">정관 규정 — 지급배수 방식 (기준급여 × 근속연수 × 1배·1.5배·2배·3배 …)</option>
+        <option value="rule">정관(또는 정관이 위임한 지급규정)에 정한 금액 직접 입력</option>
+        <option value="std">정관 규정 없음 — 1년 총급여 × 1/10 × 근속연수 (법정 1배)</option>
       </select>
     </label>
     <label class="fld full num" id="fRuleAmt" style="display:none">정관·지급규정에 따른 퇴직급여 (원)<input id="ruleAmt" inputmode="numeric" placeholder="0"></label>
+    <div class="fld full" id="fMult" style="display:none">
+      <div class="row">
+        <label class="fld">기준급여 방식
+          <select id="multBase">
+            <option value="year">연간급여 × 1/10</option>
+            <option value="month">월급여</option>
+          </select>
+        </label>
+        <label class="fld num"><span id="multSalLbl">연간 기준급여 (원)</span><input id="multSal" inputmode="numeric" placeholder="0"></label>
+        <label class="fld">근속연수 (정관대로)
+          <select id="multYears">
+            <option value="month">월할 (개월÷12)</option>
+            <option value="up">1년 미만 절상</option>
+            <option value="down">1년 미만 절사</option>
+          </select>
+        </label>
+        <label class="fld">지급배수
+          <select id="multX">
+            <option value="1">1배</option>
+            <option value="1.5">1.5배</option>
+            <option value="2" selected>2배</option>
+            <option value="2.5">2.5배</option>
+            <option value="3">3배</option>
+            <option value="4">4배</option>
+            <option value="5">5배</option>
+            <option value="custom">직접 입력</option>
+          </select>
+        </label>
+        <label class="fld num" id="fMultXc" style="display:none">배수 직접 입력<input id="multXc" inputmode="decimal" placeholder="예: 1.8"></label>
+        <label class="chk wide"><input type="checkbox" id="payFromRule">퇴직급여 지급액을 정관 계산액과 같게 둡니다 (1번 지급액 칸을 자동으로 채움)</label>
+      </div>
+      <div class="hint">계산식: <b>연간급여 × 1/10 × 근속연수 × 배수</b> 또는 <b>월급여 × 근속연수 × 배수</b>. 월할은 1개월 미만을 버립니다. 기준급여는 정관에 적힌 대로(예: 퇴직 전 1년 총급여, 퇴직 전 3년 평균 연봉, 퇴직 전 3개월 평균 월급) 넣습니다. 오른쪽 결과 맨 아래에 <b>배수별 비교표</b>가 나옵니다.</div>
+    </div>
     <label class="fld full num" id="fYear1" style="display:none">퇴직 전 1년 총급여 (원) <span class="hint">손금불산입 급여(시행령 제43조)는 빼고 적습니다</span><input id="year1" inputmode="numeric" placeholder="0"></label>
   </div>
   <div class="hint" style="margin-top:4px">손금한도를 넘는 금액은 손금불산입·상여로 처분되어 <b>근로소득(소득세법 제20조 ① 제3호)</b>이 되고, 나머지만 퇴직소득으로 아래 한도를 적용합니다.</div>
@@ -223,7 +263,8 @@ table.t tr.big td.f{color:#dbe4ef}
       <li><b>소득세법 제22조 ③</b> 임원 퇴직소득 한도, 초과액은 근로소득 · <b>④</b> 근무기간 개월 수(1개월 미만은 1개월), 총급여 범위 (2026.7.1. 시행본 · 2027.1.1. 시행예정본 문언 같음)</li>
       <li><b>소득세법 시행령 제42조의2 ⑤</b> 임원의 범위(법인세법 시행령 제40조 ① 준용) · <b>⑥</b> 2011.12.31 퇴직 가정 금액 · <b>⑦</b> 해외 파견 급여 포함</li>
       <li><b>소득세법 제20조 ① 제3호</b> 법인세법상 상여처분 금액은 근로소득</li>
-      <li><b>법인세법 시행령 제44조 ④⑤</b> 임원 퇴직급여 손금한도 · <b>법인세법 시행규칙 제22조 ⑤</b> 역년 근속연수(1년 미만은 월수, 1개월 미만 불산입)</li>
+      <li><b>법인세법 시행령 제44조 ④⑤</b> 임원 퇴직급여 손금한도 — 정관(퇴직급여를 계산할 수 있는 기준 포함, 정관이 위임한 지급규정은 그 규정)에 정한 금액, 없으면 1년 총급여 × 1/10 × 근속연수 · <b>법인세법 시행규칙 제22조 ⑤</b> 역년 근속연수(1년 미만은 월수, 1개월 미만 불산입)</li>
+      <li>정관 지급배수(1배·1.5배·2배·3배 등)는 법인세법상 손금한도를 정할 뿐이고, <b>소득세법 제22조 ③의 3배·2배 한도는 법정 배수</b>라 정관으로 늘릴 수 없습니다. 정관 계산액이 소득세법 한도를 넘으면 그 부분은 근로소득입니다.</li>
       <li><b>소득세법 제48조</b> 퇴직소득공제 · <b>제55조 ①②</b> 기본세율, 환산 후 12로 나누고 근속연수를 곱함</li>
     </ul>
     <div class="hint" style="margin-top:6px">
@@ -300,8 +341,9 @@ function retireTax(amt,years){
 }
 
 /* ── 입력 ── */
-const IDS=['isExec','dIn','dOut','pay','corpMode','ruleAmt','year1','preMode','preAmt','sal1','sal2','baseTax'];
-const MONEY=['pay','ruleAmt','year1','preAmt','sal1','sal2','baseTax'];
+const IDS=['isExec','dIn','dOut','pay','corpMode','ruleAmt','multBase','multSal','multYears','multX','multXc','payFromRule','year1','preMode','preAmt','sal1','sal2','baseTax'];
+const MONEY=['pay','ruleAmt','multSal','year1','preAmt','sal1','sal2','baseTax'];
+const MULT_SET=[1,1.5,2,2.5,3];                         /* 배수별 비교표에 늘 넣는 배수 */
 const LS='hbt_exec_retire_v1';
 function save(){try{const o={};IDS.forEach(k=>{const el=$(k);o[k]=el.type==='checkbox'?el.checked:el.value;});localStorage.setItem(LS,JSON.stringify(o));}catch(e){}}
 function load(o){IDS.forEach(k=>{if(!(k in o))return;const el=$(k);if(el.type==='checkbox')el.checked=!!o[k];else el.value=o[k];});}
@@ -311,7 +353,6 @@ function moneyFmt(){MONEY.forEach(k=>{const el=$(k);if(document.activeElement===
 function calc(){
   const C=[],add=(t,m)=>C.push({t,m});
   const dIn=D($('dIn').value), dOut=D($('dOut').value);
-  const pay=num($('pay').value);
   const corpMode=$('corpMode').value, preMode=$('preMode').value;
   $('fRuleAmt').style.display=corpMode==='rule'?'':'none';
   $('fYear1').style.display=corpMode==='std'?'':'none';
@@ -320,7 +361,6 @@ function calc(){
   const ok=dIn&&dOut&&dOut>=dIn;
   if(!dIn||!dOut)add('err','<b>입사일·퇴직일</b>을 넣으십시오.');
   else if(dOut<dIn)add('err','퇴직일이 입사일보다 앞섭니다.');
-  if(!pay)add('err','<b>퇴직급여 지급액</b>을 넣으십시오.');
   if(!$('isExec').checked)add('warn','임원이 아니면 제22조 ③ 한도는 적용되지 않습니다. 아래 결과는 참고용입니다.');
 
   const J2011=new Date(2011,11,31), J2012=new Date(2012,0,1), J2017=new Date(2017,0,1), J2019=new Date(2019,11,31), J2020=new Date(2020,0,1);
@@ -351,29 +391,39 @@ function calc(){
     :'② 2020.1.1 이후 근무기간이 없습니다.';
 
   /* 1) 법인세법 손금한도 */
-  let corpLimit=null, corpYears=0, corpM=0, corpOver=0;
+  $('fMult').style.display=corpMode==='mult'?'':'none';
+  const mBase=$('multBase').value, mYrs=$('multYears').value, mXsel=$('multX').value;
+  $('fMultXc').style.display=mXsel==='custom'?'':'none';
+  $('multSalLbl').textContent=mBase==='month'?'월 기준급여 (원)':'연간 기준급여 (원)';
+  const multX=mXsel==='custom'?num($('multXc').value):+mXsel;
+  const multSal=num($('multSal').value);
+  const cmUp=ok?months(dIn,dOut,true):0, cmDown=ok?months(dIn,dOut,false):0;
+  /* 정관 근속연수: 월할(개월/12, 1개월 미만 버림) · 1년 미만 절상 · 절사 */
+  const multYears=mYrs==='up'?Math.ceil(cmUp/12):mYrs==='down'?Math.floor(cmDown/12):cmDown/12;
+  const multAmt=x=>floor(multSal*(mBase==='month'?1:0.1)*multYears*x);     /* 정관 배수 방식 퇴직급여 */
+  const corpM=cmDown;
+  let corpLimit=null;
   if(corpMode==='rule'){
     corpLimit=num($('ruleAmt').value);
     if(!corpLimit)add('warn','정관·지급규정 금액이 비어 있어 손금한도를 0원으로 봅니다.');
+  }else if(corpMode==='mult'){
+    corpLimit=multAmt(multX);
+    if(!multSal)add('warn','<b>기준급여</b>가 비어 있어 정관 계산액이 0원입니다.');
+    if(!(multX>0))add('err','<b>지급배수</b>를 넣으십시오.');
+    if($('payFromRule').checked&&corpLimit>0&&num($('pay').value)!==corpLimit){
+      $('pay').value=corpLimit.toLocaleString('ko-KR');
+    }
+    add('warn','정관 배수 규정이라도 특정 임원만을 위해 퇴직 직전에 개정했거나 근로·공헌과 무관하게 과다한 배수이면 손금·퇴직소득 인정이 부인될 수 있습니다(판례·예규 별도 확인). 정관 개정일·주주총회 결의·지급규정 위임 여부를 확인하십시오.');
   }else if(corpMode==='std'){
-    corpM=ok?months(dIn,dOut,false):0;
-    corpYears=corpM/12;
     corpLimit=floor(num($('year1').value)*corpM/120);   /* 1년 총급여 × 1/10 × 근속개월/12, 원 미만 절사 */
     if(!num($('year1').value))add('warn','<b>퇴직 전 1년 총급여</b>가 비어 있어 손금한도가 0원입니다.');
-    add('warn','직원에서 임원이 될 때 퇴직금을 받지 않았다면 직원 기간을 근속연수에 넣을 수 있습니다(법인세법 시행령 제44조 ④ 제2호 후단). 입사일을 그에 맞게 넣으십시오.');
   }
-  if(corpLimit!=null)corpOver=Math.max(0,pay-corpLimit);
-  const retireAmt=pay-corpOver;                           /* 퇴직소득금액 */
+  if(corpMode==='std'||corpMode==='mult')
+    add('warn','직원에서 임원이 될 때 퇴직금을 받지 않았다면 직원 기간을 근속연수에 넣을 수 있습니다(법인세법 시행령 제44조 ④ 제2호 후단 — 정관 규정이 없는 경우의 규정). 입사일을 그에 맞게 넣으십시오.');
+  const pay=num($('pay').value);
+  if(!pay)add('err','<b>퇴직급여 지급액</b>을 넣으십시오.');
 
-  /* 2) 2011.12.31 이전분 */
-  let preAmt=0;
-  if(preMode==='rule'){
-    preAmt=Math.min(num($('preAmt').value),retireAmt);
-    if(!pre)add('warn','2011.12.31 이전 근무기간이 없는데 규정 금액 방식을 골랐습니다.');
-  }else preAmt=mAll?retireAmt*mPre/mAll:0;
-  const target=Math.max(0,retireAmt-preAmt);              /* 한도 비교 대상 */
-
-  /* 3) 한도 */
+  /* 3) 한도 (지급액과 무관) */
   const sal1=num($('sal1').value), sal2=num($('sal2').value);
   const avg1=mA1?sal1/mA1*12:0, avg2=mA2?sal2/mA2*12:0;
   const lim1=avg1*0.1*mP1/12*3, lim2=avg2*0.1*mP2/12*2;
@@ -381,20 +431,30 @@ function calc(){
   if(p1&&!sal1)add('err','<b>① 총급여</b>(2019.12.31부터 소급 3년)를 넣으십시오. 비워 두면 3배 한도가 0원이 됩니다.');
   if(p2&&!sal2)add('err','<b>② 총급여</b>(퇴직일부터 소급 3년)를 넣으십시오. 비워 두면 2배 한도가 0원이 됩니다.');
   if(ok&&!p1&&!p2)add('warn','2012.1.1 이후 근무기간이 없어 한도 비교 대상이 없습니다(2011.12.31 이전분은 차감).');
-
-  const excess=$('isExec').checked?Math.max(0,floor(target)-floor(limit)):0;   /* 근로소득으로 보는 금액 */
-  const finalRetire=floor(retireAmt)-excess;
-  const laborTotal=floor(corpOver)+excess;
-
-  /* 4) 세액 */
-  const tNo=retireTax(floor(retireAmt),years);             /* 한도가 없었다면 */
-  const tYes=retireTax(finalRetire,years);
+  if(preMode==='rule'&&!pre)add('warn','2011.12.31 이전 근무기간이 없는데 규정 금액 방식을 골랐습니다.');
   const base=num($('baseTax').value);
-  const laborTax=floor(basicTax(base+laborTotal)-basicTax(base));
-  const laborLocal=floor(laborTax*0.1);
-  const corpTax=corpOver?floor(basicTax(base+floor(corpOver))-basicTax(base)):0;
-  const burdenNo=tNo.tax+tNo.local+corpTax+floor(corpTax*0.1);
-  const burdenYes=tYes.tax+tYes.local+laborTax+laborLocal;
+  const isExec=$('isExec').checked;
+
+  /* 지급액·손금한도 → 퇴직소득·근로소득·세액 (본 계산과 배수별 비교표가 같이 쓴다) */
+  function flow(payX,limX){
+    const corpOver=limX!=null?Math.max(0,payX-limX):0;
+    const retireAmt=payX-corpOver;                                   /* 퇴직소득금액 */
+    const preAmt=preMode==='rule'?Math.min(num($('preAmt').value),retireAmt):(mAll?retireAmt*mPre/mAll:0);
+    const target=Math.max(0,retireAmt-preAmt);                       /* 한도 비교 대상 */
+    const excess=isExec?Math.max(0,floor(target)-floor(limit)):0;    /* 근로소득으로 보는 금액 */
+    const finalRetire=floor(retireAmt)-excess;
+    const laborTotal=floor(corpOver)+excess;
+    const tNo=retireTax(floor(retireAmt),years);                     /* 한도가 없었다면 */
+    const tYes=retireTax(finalRetire,years);
+    const laborTax=floor(basicTax(base+laborTotal)-basicTax(base));
+    const laborLocal=floor(laborTax*0.1);
+    const corpTax=corpOver?floor(basicTax(base+floor(corpOver))-basicTax(base)):0;
+    const burdenNo=tNo.tax+tNo.local+corpTax+floor(corpTax*0.1);
+    const burdenYes=tYes.tax+tYes.local+laborTax+laborLocal;
+    return {pay:payX,lim:limX,corpOver,retireAmt,preAmt,target,excess,finalRetire,laborTotal,tNo,tYes,laborTax,laborLocal,burdenNo,burdenYes};
+  }
+  const F=flow(pay,corpLimit);
+  const {corpOver,retireAmt,preAmt,target,excess,finalRetire,laborTotal,tNo,tYes,laborTax,laborLocal,burdenNo,burdenYes}=F;
 
   if(ok&&pay){
     if(excess>0)add('warn','한도초과액 <b>'+fmt(excess)+'원</b>은 근로소득입니다. 퇴직 연도 근로소득에 합산해 원천징수(중도퇴사 연말정산)하고, 퇴직소득 지급명세서에는 한도 이내 금액만 퇴직소득으로 적습니다.');
@@ -416,7 +476,9 @@ function calc(){
     tr('퇴직급여 지급액',fmt(pay),'비과세·공적연금 일시금 제외')+
     (corpLimit!=null?
       tr('법인세법 손금한도',fmt(corpLimit),corpMode==='rule'?'정관·지급규정 금액 (시행령 제44조 ④ 제1호·⑤)':
-        '1년 총급여 '+fmt(num($('year1').value))+' × 1/10 × 근속 '+corpM+'개월/12 ('+fmtR(corpYears)+'년) — 시행령 제44조 ④ 제2호, 시행규칙 제22조 ⑤')+
+        corpMode==='mult'?'정관 배수 규정: '+(mBase==='month'?'월 기준급여 ':'연간 기준급여 ')+fmt(multSal)+(mBase==='month'?'':' × 1/10')+
+          ' × 근속 '+fmtR(multYears)+'년('+(mYrs==='up'?'1년 미만 절상':mYrs==='down'?'1년 미만 절사':corpM+'개월/12')+') × '+fmtR(multX)+'배 — 시행령 제44조 ④ 제1호·⑤':
+        '1년 총급여 '+fmt(num($('year1').value))+' × 1/10 × 근속 '+corpM+'개월/12 ('+fmtR(corpM/12)+'년) — 시행령 제44조 ④ 제2호, 시행규칙 제22조 ⑤')+
       tr('(−) 손금한도 초과 → 상여처분',fmt(corpOver),'근로소득 (소득세법 제20조 ① 제3호)')
       :tr('법인세법 손금한도','검토 안 함','2번에서 고르면 계산합니다'))+
     tr('퇴직소득금액',fmt(retireAmt),'','sum')+
@@ -459,19 +521,46 @@ function calc(){
     tr('한도 때문에 늘어난 세부담',fmt(Math.max(0,burdenYes-burdenNo)),'근로소득공제 증가·세액공제 변동 미반영 추정','big')+
     '</table>';
 
+  /* 마. 정관 지급배수별 비교 — 정관 배수대로 지급한다고 보고 같은 식(flow)으로 다시 계산 */
+  let cmp=null;
+  if(corpMode==='mult'&&multSal>0&&multYears>0&&ok){
+    const xs=MULT_SET.slice();
+    if(multX>0&&xs.indexOf(multX)<0)xs.push(multX);
+    xs.sort((a,b)=>a-b);
+    cmp=xs.map(x=>{const a=multAmt(x);const f=flow(a,a);return {x,a,f,netAmt:a-f.burdenYes,own:pay?Math.max(0,pay-a):0};});
+    const unit=multAmt(1);                                 /* 1배 금액 */
+    const keep=preMode==='ratio'&&mAll?(1-mPre/mAll):null; /* 한도 비교 대상 비율 */
+    const xMax=keep&&unit?floor(limit)/(unit*keep):null;   /* 소득세법 한도 안에 드는 최대 배수(근사) */
+    h+='<div class="sec">마. 정관 지급배수별 비교 — 정관 계산액대로 지급한다고 볼 때<span class="unit">단위: 원</span></div>'+
+      '<div class="hint" style="margin:0 0 4px">1배 금액 '+fmt(unit)+'원 = '+(mBase==='month'?'월 기준급여':'연간 기준급여 × 1/10')+' × 근속 '+fmtR(multYears)+'년. '+
+      '소득세법 한도(3배·2배)는 법률에 정해진 배수라 바꿀 수 없고, 정관 배수가 커지면 한도를 넘는 부분이 근로소득이 됩니다.'+
+      (xMax!=null&&isExec?' <b>소득세법 한도 안에 드는 정관 배수는 약 '+fmtR(Math.floor(xMax*100)/100)+'배까지</b>입니다(2011년 이전분 안분 기준).':'')+'</div>'+
+      '<div style="overflow-x:auto"><table class="t" style="min-width:760px"><tr><th>배수</th><th>정관 퇴직급여</th><th>한도초과 → 근로소득</th><th>퇴직소득세·지방세</th><th>근로소득 추가세·지방세</th><th>세부담 합계</th><th>세후 수령액</th><th>실효세율</th>'+
+      (pay?'<th>지급액 '+fmt(pay)+'원일 때 손금불산입</th>':'')+'</tr>'+
+      cmp.map(c=>'<tr'+(c.x===multX?' class="sum"':'')+'><td style="text-align:center;white-space:nowrap">'+fmtR(c.x)+'배'+(c.x===multX?' ◀':'')+'</td>'+
+        '<td class="r">'+fmt(c.a)+'</td><td class="r"'+(c.f.excess>0?' style="color:#B91C1C;font-weight:800"':'')+'>'+fmt(c.f.excess)+'</td>'+
+        '<td class="r">'+fmt(c.f.tYes.tax+c.f.tYes.local)+'</td><td class="r">'+fmt(c.f.laborTax+c.f.laborLocal)+'</td>'+
+        '<td class="r">'+fmt(c.f.burdenYes)+'</td><td class="r">'+fmt(c.netAmt)+'</td>'+
+        '<td class="r">'+(c.a?(c.f.burdenYes/c.a*100).toFixed(2):'0.00')+'%</td>'+
+        (pay?'<td class="r">'+fmt(c.own)+'</td>':'')+'</tr>').join('')+
+      '</table></div>'+
+      '<div class="hint">근로소득 추가세는 5번에 넣은 퇴직 연도 근로소득 과세표준에 더해 계산한 추정치입니다. 법인 쪽 법인세 효과(손금 인정 여부)는 반영하지 않았습니다.</div>';
+  }
+
   $('out').innerHTML=h;
   $('checks').innerHTML=C.map(x=>'<li class="'+x.t+'">'+(x.t==='err'?'✕ ':x.t==='warn'?'! ':'✓ ')+x.m+'</li>').join('');
-  window.__last={mAll,mPre,mP1,mP2,mA1,mA2,years,corpOver,retireAmt,preAmt,target,avg1,avg2,lim1,lim2,limit,excess,finalRetire,tNo,tYes,laborTax,burdenYes,burdenNo};
+  window.__last={corpLimit,multYears,multX,cmp:cmp&&cmp.map(c=>({x:c.x,a:c.a,excess:c.f.excess,burden:c.f.burdenYes,own:c.own})),mAll,mPre,mP1,mP2,mA1,mA2,years,corpOver,retireAmt,preAmt,target,avg1,avg2,lim1,lim2,limit,excess,finalRetire,tNo,tYes,laborTax,burdenYes,burdenNo};
 }
 
-function fillSample(){
-  load({isExec:true,dIn:'2005-03-01',dOut:'2026-06-30',pay:'2000000000',corpMode:'none',ruleAmt:'',year1:'',
+function fillSample(mult){
+  load({isExec:true,dIn:'2005-03-01',dOut:'2026-06-30',pay:'2000000000',corpMode:mult?'mult':'none',ruleAmt:'',year1:'',
+        multBase:'year',multSal:'240000000',multYears:'month',multX:'3',multXc:'',payFromRule:false,
         preMode:'ratio',preAmt:'',sal1:'540000000',sal2:'720000000',baseTax:'120000000'});
   moneyFmt();save();calc();
 }
 function resetAll(){
   if(!confirm('입력을 모두 지웁니다.'))return;
-  load({isExec:true,dIn:'',dOut:'',pay:'',corpMode:'none',ruleAmt:'',year1:'',preMode:'ratio',preAmt:'',sal1:'',sal2:'',baseTax:''});
+  load({isExec:true,dIn:'',dOut:'',pay:'',corpMode:'none',ruleAmt:'',year1:'',multSal:'',multXc:'',payFromRule:false,preMode:'ratio',preAmt:'',sal1:'',sal2:'',baseTax:''});
   save();calc();
 }
 (function init(){
