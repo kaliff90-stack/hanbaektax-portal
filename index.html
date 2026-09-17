@@ -1063,5 +1063,20 @@ document.getElementById('footMeta').textContent =
   '수록 도구 ' + ALL.length + '종 · 오프라인 사용 가능 · 검색 단축키 “/” · 최근 개편 2026-09-09';
 render();
 </script>
+<script>
+/* 도구 링크(같은 폴더 .html)는 누를 때마다 주소 끝에 시각을 붙여 연다 — GitHub Pages HTML 캐시(10분) 때문에 배포 직후 예전 화면이 열리는 것을 막는다 */
+(function(){
+  function fresh(e){
+    var a=e.target&&e.target.closest?e.target.closest('a[href]'):null;
+    if(!a)return;
+    var h=a.getAttribute('href')||'';
+    if(!/^[^:?#]+\.html$/i.test(h))return;
+    a.setAttribute('href',h+'?v='+Date.now());
+    setTimeout(function(){a.setAttribute('href',h);},0);
+  }
+  document.addEventListener('click',fresh,true);
+  document.addEventListener('auxclick',fresh,true);
+})();
+</script>
 </body>
 </html>

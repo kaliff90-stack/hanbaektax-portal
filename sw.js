@@ -5,7 +5,7 @@
  *   { type:'SKIP_WAITING' }             → 대기 중인 새 워커를 즉시 활성화
  * 캐시 이름을 올리면 구캐시가 정리되고 새 자산을 다시 받는다.
  */
-const CACHE = 'hanbaektax-v43';
+const CACHE = 'hanbaektax-v44';
 
 /* 앱 셸 — 설치 즉시 확보 */
 const SHELL = [
@@ -103,12 +103,15 @@ self.addEventListener('fetch', e => {
   const isDoc = sameOrigin && (req.mode === 'navigate' || req.destination === 'document' ||
     req.destination === 'iframe' || /\.html?$/i.test(url.pathname) || url.pathname.endsWith('/'));
   if (isDoc) {
+    /* cache:'no-cache' — 브라우저 HTTP 캐시(Pages 10분)도 서버에 다시 확인(ETag 304)하게 한다 */
+    const fresh = new Request(req.url, { cache: 'no-cache', credentials: 'same-origin', redirect: 'follow' });
     e.respondWith(
-      fetch(req)
+      fetch(fresh)
         .then(res => {
           if (res && res.status === 200 && res.type === 'basic') {
             const copy = res.clone();
-            e.waitUntil(caches.open(CACHE).then(cache => cache.put(req, copy)));
+            /* ?v=시각 이 붙어 와도 캐시 항목은 파일마다 하나만 둔다 */
+            e.waitUntil(caches.open(CACHE).then(cache => cache.put(url.origin + url.pathname, copy)));
           }
           return res;
         })
