@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>한백택스 CMS 자동이체 신청서 작성기 — 기장료 자동이체(출금이체) 신청서</title>
+<!--
+  세무법인 한백택스 CMS 자동이체 신청서 작성기 v1 (2026-09-17)
+  - 원본 서식: 볼트 루트 「cms신청서 (2).xls」 두 번째 시트( 자동이체 신청서 ).
+    항목·안내문구·거래은행 19개·이체일 4칸·예금주 동의란·위임장(대리인) 구성을 그대로 옮겼다.
+    원본에 없는 항목은 만들지 않았다. 다만 원본 목록에 없는 은행(인터넷전문은행 등)을 위해
+    「기타」 한 칸을 두었고, 고르면 점검란에 원본 서식에 없는 항목임을 표시한다.
+  - 두 가지 쓰임새
+      업체용 : 거래처가 링크를 받아 그대로 채우고 인쇄·서명해 보내는 화면(항목별 안내, 큰 입력칸)
+      직원용 : 사무실에서 여러 건을 만들어 보관·일괄 인쇄하고, 업체에 보낼 작성 링크를 만드는 화면
+  - 출력: 인쇄·PDF / 이미지(PNG) / 워드(.doc) / JSON.
+  - 점검: 사업자등록번호 10자리·주민등록번호 13자리 검증식, 계좌번호 자릿수, 이메일·휴대폰 형식,
+    예금주와 신청인이 다를 때 동의란 서명, 대리인 신청 시 위임장,
+    이체일 5·10·15·20·25·30일 회피 권고(원본 서식의 안내문).
+  - 계좌번호·주민등록번호는 이 브라우저(localStorage)에만 남는다. 서버로 보내지 않는다.
+    업체 작성 링크에도 계좌번호·주민등록번호·대리인 주민번호는 담지 않는다.
+  - 인쇄: A4 1장, 나눔고딕.
+-->
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1B3A5C;--gold:#C8963E;--blue:#2F5D8A;--bg:#F4F6F9;--line:#DCE3EC;--gray:#6B7A8C;--red:#B91C1C;--amber:#92400E;--green:#166534}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:14px}
+.top{background:#fff;border-bottom:2px solid var(--gold);padding:12px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.top h1{margin:0;font-size:19px;color:var(--navy)}
+.top .sub{color:var(--gray);font-size:12px;max-width:820px;line-height:1.6}
+.doctabs{display:flex;gap:6px;margin-left:auto}
+.doctabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font-weight:800;cursor:pointer;color:var(--navy);font-family:inherit;font-size:13px}
+.doctabs button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.wrap{display:grid;grid-template-columns:minmax(360px,520px) 1fr;gap:18px;padding:16px 20px;max-width:1500px;margin:0 auto}
+.panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.panel h2{font-size:14px;color:var(--navy);margin:16px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--line)}
+.panel h2:first-child{margin-top:0}
+.panel h2 .n{display:inline-block;background:var(--navy);color:#fff;border-radius:50%;width:19px;height:19px;line-height:19px;text-align:center;font-size:11px;margin-right:6px;font-weight:800}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}
+.row.c3{grid-template-columns:1fr 1fr 1fr}
+.row.c1{grid-template-columns:1fr}
+.fld{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--gray);font-weight:700}
+.fld input,.fld select,.fld textarea{font:inherit;font-size:13px;color:#111;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;width:100%}
+.fld input:focus,.fld select:focus,.fld textarea:focus{outline:2px solid #C8963E55;border-color:var(--gold)}
+.fld.num input{text-align:right}
+.chk{display:flex;align-items:center;gap:6px;font-size:13px;color:#111;font-weight:400;padding:4px 0}
+.chk input{width:auto}
+.hint{font-size:11px;color:var(--gray);font-weight:400}
+.toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;font-weight:700;cursor:pointer;color:var(--navy);font-family:inherit;font-size:12px}
+.btn.p{background:var(--gold);color:#fff;border-color:var(--gold)}
+.btn.n{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn.sm{padding:4px 8px;font-size:11px}
+.btn:hover{filter:brightness(.96)}
+.banks{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.banks label{display:flex;align-items:center;justify-content:center;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:7px 2px;cursor:pointer;background:#fff;color:#111}
+.banks label.on{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:800}
+.banks input{display:none}
+.daypick{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.daypick .d{border:1px solid var(--line);border-radius:8px;padding:6px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;background:#fff}
+.daypick .d.on{background:var(--navy);border-color:var(--navy)}
+.daypick .d.on .lbl{color:#fff}
+.daypick .d input{width:100%;text-align:center;font:inherit;font-size:15px;font-weight:800;padding:4px;border:1px solid var(--line);border-radius:6px}
+.daypick .lbl{font-size:11px;color:var(--gray);font-weight:700}
+.checks{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px}
+.checks li{font-size:12px;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:#fafbfd;line-height:1.55}
+.checks li.err{border-color:#fca5a5;background:#fef2f2;color:var(--red)}
+.checks li.warn{border-color:#fcd34d;background:#fffbeb;color:var(--amber)}
+.checks li.ok{border-color:#86efac;background:#f0fdf4;color:var(--green)}
+.checks li b{font-weight:800}
+.guide{font-size:12.5px;line-height:1.75;color:#111;border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:8px;padding:11px 13px;margin-bottom:12px;background:#fffdf7}
+.guide b{color:var(--navy)}
+.guide ol{margin:6px 0 0;padding-left:18px}
+.guide li{margin-bottom:3px}
+.pv{position:sticky;top:8px}
+.list{display:flex;flex-direction:column;gap:5px;margin-top:6px}
+.list .it{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12px;background:#fafbfd}
+.list .it .nm{font-weight:800;color:var(--navy);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list .it .mt{color:var(--gray);white-space:nowrap}
+.empty{font-size:12px;color:var(--gray);padding:8px 2px}
+.linkbox{margin-top:6px;display:none}
+.linkbox textarea{width:100%;min-height:58px;font:inherit;font-size:11px;padding:7px;border:1px solid var(--line);border-radius:8px;resize:vertical}
+.staffonly{display:none}
+body.staff .staffonly{display:block}
+body.staff .clientonly{display:none}
+/* ── 미리보기(신청서) ── */
+.sheet{background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 18px rgba(15,36,64,.08);padding:13mm 13mm;min-height:287mm;width:100%;max-width:210mm;margin:0 auto;font-size:10.5pt;line-height:1.6;color:#000}
+.sheet h1{text-align:center;font-size:20pt;letter-spacing:10px;margin:0 0 10pt;color:#000;font-weight:800}
+.sheet .greet{border:1px solid #000;padding:7pt 9pt;font-size:9.5pt;line-height:1.75;margin-bottom:8pt}
+.sheet .greet p{margin:0 0 5pt}
+.sheet .greet p:last-child{margin-bottom:0}
+.sheet .feebox{text-align:right;margin:0 0 6pt;font-size:10pt}
+.sheet .feebox .val{display:inline-block;border-bottom:1.5px solid #000;min-width:110pt;text-align:center;font-size:12pt;font-weight:800;padding:0 6pt 1pt}
+.sheet .feebox .vat{font-size:8.5pt;color:#333}
+.sheet .band{background:#1B3A5C;color:#fff;font-weight:800;font-size:11pt;padding:3pt 12pt;display:inline-block;margin:0 0 4pt}
+.sheet table{border-collapse:collapse;width:100%;font-size:10pt;table-layout:fixed}
+.sheet th,.sheet td{border:1px solid #000;padding:4pt 6pt;vertical-align:middle;word-break:break-all}
+.sheet th{background:#EEF2F7;font-weight:800;text-align:center;white-space:nowrap}
+.sheet td.c{text-align:center}
+.sheet .bk{font-size:9.5pt;line-height:1.9}
+.sheet .bk span{display:inline-block;margin-right:10pt;white-space:nowrap}
+.sheet .sig{height:132pt;vertical-align:top;padding:8pt 10pt;font-size:9.5pt;line-height:1.7}
+.sheet .sig .dt{text-align:center;margin:9pt 0}
+.sheet .sig .ln{margin-top:9pt}
+.sheet .sig .note{font-size:8.5pt;color:#333;margin-top:5pt}
+.sheet .foot{margin-top:9pt;border-top:2px solid #1B3A5C;padding-top:5pt;text-align:center;font-size:9pt;color:#222}
+.sheet .foot .of{font-size:12.5pt;font-weight:800;color:#1B3A5C;letter-spacing:2px}
+.sheet .ck{font-weight:800}
+.sheet .blank{display:inline-block;min-width:54pt;border-bottom:1px solid #000}
+.mobtab{display:none}
+@media(max-width:960px){
+  .wrap{grid-template-columns:1fr;padding:10px}
+  .pv{position:static}
+  .mobtab{display:flex;gap:6px;margin:0 0 8px}
+  .mobtab button{flex:1;padding:9px;border:1px solid var(--line);background:#fff;border-radius:8px;font-weight:800;color:var(--navy);font-family:inherit}
+  .mobtab button.on{background:var(--navy);color:#fff}
+  body.showpv #formPanel{display:none}
+  body:not(.showpv) #pvPanel{display:none}
+  .sheet{padding:7mm 5mm;min-height:auto;font-size:9pt}
+  .row,.row.c3{grid-template-columns:1fr}
+  .banks{grid-template-columns:repeat(4,1fr)}
+  .top h1{font-size:16px}
+  .doctabs{margin-left:0;width:100%}
+  .doctabs button{flex:1}
+  .fld input,.fld select{font-size:16px;padding:9px}
+}
+@page{size:A4;margin:10mm}
+@media print{
+  html,body{background:#fff}
+  .top,#formPanel,.toolbar,.mobtab,.nopr,#hbHome{display:none!important}
+  .wrap{display:block;padding:0;margin:0;max-width:none}
+  #pvPanel{display:block!important;border:none;padding:0;background:#fff;position:static}
+  .sheet{box-shadow:none;border:none;padding:0;margin:0;max-width:none;width:auto;min-height:auto;font-size:10pt}
+  .sheet+.sheet{page-break-before:always}
+}
+</style>
+</head>
+<body>
+<!-- HB-HOME v1 -->
+<script>
+/* 한백택스 홈 바 — 생성기: 02-도구 & 스크립트/Python 스크립트/홈바_주입.py
+   이 블록은 자동 생성이다. 직접 고치지 말고 생성기를 고쳐 다시 실행한다. */
+(function(){
+  if (window.self !== window.top) return;          /* 포털 iframe 안에서는 부모의 바를 쓴다 */
+  if (window.__hbHome) return;
+  window.__hbHome = 1;
+  var me = decodeURIComponent((location.pathname.split('/').pop() || '').toLowerCase());
+  var host = document.createElement('div');
+  host.id = 'hbHome';
+  host.setAttribute('data-nogate', '1');
+  host.style.cssText = 'display:block;position:sticky;top:0;z-index:2147483000;margin:0;padding:0;line-height:0';
+  var links = [
+    ['한백택스_세무계산_포털.html', '세무계산 포털'],
+    ['한백택스_모바일.html', '모바일 포털']
+  ].filter(function(l){ return l[0].toLowerCase() !== me; });
+  var sh = host.attachShadow({ mode: 'open' });
+  sh.innerHTML =
+    '<style>' +
+    ':host{all:initial;display:block}' +
+    '.bar{box-sizing:border-box;display:flex;align-items:center;gap:10px;height:42px;padding:0 16px;' +
+      'background:#fff;border-bottom:2px solid #C8963E;box-shadow:0 2px 8px rgba(15,36,64,.08);' +
+      'font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:13px;line-height:1;color:#1B3A5C}' +
+    '.home{display:inline-flex;align-items:center;gap:6px;background:#C8963E;color:#fff;font-weight:800;' +
+      'padding:7px 13px;border-radius:999px;text-decoration:none;white-space:nowrap;letter-spacing:-.2px}' +
+    '.home:hover{background:#b8862f}' +
+    '.ttl{font-weight:700;color:#1B3A5C;white-space:nowrap;opacity:.85}' +
+    '.sp{flex:1}' +
+    '.lnk{color:#35507A;font-weight:700;text-decoration:none;padding:6px 10px;border:1px solid #DCE5F0;border-radius:999px;white-space:nowrap;background:#F5F8FC}' +
+    '.lnk:hover{border-color:#C8963E;color:#1B3A5C}' +
+    '@media(max-width:640px){.bar{padding:0 10px;gap:6px;height:40px}.ttl{display:none}.lnk{padding:6px 8px;font-size:12px}}' +
+    '@media print{.bar{display:none}}' +
+    '</style>' +
+    '<div class="bar">' +
+      '<a class="home" href="index.html" title="한백택스 세무 도구 모음(메인 화면)으로">&#8592; 메인 화면</a>' +
+      '<span class="ttl">세무법인 한백택스 · 세무 도구</span>' +
+      '<span class="sp"></span>' +
+      links.map(function(l){ return '<a class="lnk" href="' + l[0] + '">' + l[1] + '</a>'; }).join('') +
+    '</div>';
+  var s = document.currentScript;
+  if (s && s.parentNode) s.parentNode.insertBefore(host, s);
+  else document.body.insertBefore(host, document.body.firstChild);
+})();
+</script>
+<!-- /HB-HOME -->
+<div class="top">
+  <div>
+    <h1>CMS 자동이체 신청서 작성기</h1>
+    <div class="sub">기장료 자동이체(출금이체) 신청서를 화면에서 채우면 오른쪽에 바로 만들어집니다. 인쇄·PDF·이미지(PNG)·워드(.doc)로 뽑을 수 있습니다. 입력한 내용은 이 브라우저에만 저장되고 서버로 보내지 않습니다.</div>
+  </div>
+  <div class="doctabs" id="modeTabs">
+    <button type="button" data-mode="client" class="on">업체용 · 간편 작성</button>
+    <button type="button" data-mode="staff">직원용 · 여러 건 관리</button>
+  </div>
+</div>
+
+<div class="wrap">
+<div class="panel" id="formPanel">
+  <div class="mobtab"><button type="button" class="on" onclick="mobPv(false)">입력</button><button type="button" onclick="mobPv(true)">미리보기</button></div>
+
+  <div class="toolbar">
+    <button type="button" class="btn p" onclick="printOne()">🖨 인쇄 · PDF 저장</button>
+    <button type="button" class="btn" onclick="savePng()">🖼 이미지(PNG)</button>
+    <button type="button" class="btn" onclick="saveWord()">📄 워드(.doc)</button>
+    <button type="button" class="btn" onclick="saveJson()">💾 JSON 저장</button>
+    <button type="button" class="btn" onclick="document.getElementById('jsonFile').click()">📂 불러오기</button>
+    <input type="file" id="jsonFile" accept=".json,application/json" style="display:none" onchange="loadJson(this)">
+    <button type="button" class="btn" onclick="resetDoc()">초기화</button>
+  </div>
+
+  <div class="staffonly">
+    <div class="toolbar">
+      <button type="button" class="btn n" onclick="makeLink()">🔗 업체 작성 링크 만들기</button>
+      <button type="button" class="btn" onclick="fromBoard()" title="같은 브라우저의 「거래처 업무판」에 등록한 거래처를 불러옵니다">🗓 업무판 거래처</button>
+      <button type="button" class="btn" onclick="saveToList()">➕ 목록에 보관</button>
+      <button type="button" class="btn" onclick="printAll()">🖨 보관분 전체 인쇄</button>
+      <button type="button" class="btn" onclick="saveWordAll()">📄 보관분 워드</button>
+      <button type="button" class="btn" onclick="fillSample()">예시 채우기</button>
+    </div>
+    <div class="linkbox" id="linkBox">
+      <textarea id="linkText" readonly onclick="this.select()"></textarea>
+      <div class="toolbar" style="margin:6px 0 0">
+        <button type="button" class="btn sm" onclick="copyLink()">📋 링크 복사</button>
+        <button type="button" class="btn sm" onclick="mailLink()">✉ 메일로 보내기</button>
+        <button type="button" class="btn sm" onclick="document.getElementById('linkBox').style.display='none'">닫기</button>
+      </div>
+      <div class="hint">링크에는 상호·주소·연락처·기장료·이체일만 담깁니다. <b>계좌번호·주민등록번호는 담기지 않습니다.</b> 업체가 링크를 열어 나머지를 채웁니다.</div>
+    </div>
+  </div>
+
+  <div class="guide clientonly">
+    <b>작성 방법</b>
+    <ol>
+      <li>아래 칸을 채우면 오른쪽(휴대폰은 「미리보기」)에 신청서가 그대로 만들어집니다.</li>
+      <li>「인쇄 · PDF 저장」으로 A4 한 장을 출력합니다. 이미지(PNG)·워드(.doc)로도 받을 수 있습니다.</li>
+      <li>출력물의 <b>신청인란에 도장(인) 또는 서명</b>을 합니다. 예금주가 신청인과 다르면 <b>예금주 동의란</b>에도 받습니다.</li>
+      <li>서명한 신청서와 <b>통장 사본</b>을 사무소로 보내 주십시오. — 카카오톡 사진 전송 · 이메일 hb090@hanbaektax.kr · 팩스 02-2277-3161 (문의 02-2277-3101)</li>
+    </ol>
+  </div>
+
+  <h2><span class="n">1</span>신청 업체</h2>
+  <div class="row">
+    <label class="fld" style="grid-column:1/-1">신청인 <span class="hint">(상호 또는 법인명)</span><input data-k="applicant" placeholder="예: 씨엠에스무역㈜"></label>
+    <label class="fld">신청구분<select data-k="applType"><option value="corp">법인</option><option value="ind">개인</option></select></label>
+    <label class="fld">이메일<input data-k="email" type="email" placeholder="admin@example.com" inputmode="email"></label>
+    <label class="fld">전화<input data-k="tel" placeholder="02-0000-0000" inputmode="tel"></label>
+    <label class="fld">휴대폰<input data-k="mobile" placeholder="010-0000-0000" inputmode="tel"></label>
+    <label class="fld" style="grid-column:1/-1">주소<input data-k="addr" placeholder="예: 서울 강남구 ○○로 00, 0층"></label>
+  </div>
+
+  <h2><span class="n">2</span>출금 계좌</h2>
+  <div class="fld" style="margin-bottom:5px">거래은행 <span class="hint">(한 곳만 고릅니다)</span></div>
+  <div class="banks" id="bankList"></div>
+  <div class="row" style="margin-top:8px">
+    <label class="fld" id="bankEtcFld" style="display:none">기타 은행명<input data-k="bankEtc" placeholder="예: 카카오뱅크"></label>
+    <label class="fld" style="grid-column:1/-1">계좌번호<input data-k="acct" placeholder="예: 124456-01-789001" inputmode="numeric"></label>
+    <label class="fld">예금주명<input data-k="holderName" placeholder="통장에 적힌 그대로"></label>
+    <label class="fld" style="align-self:end"><span class="chk"><input type="checkbox" data-k="holderSame">신청인과 같음</span></label>
+    <label class="fld" style="grid-column:1/-1" id="holderIdFld">예금주 주민등록번호 <span class="hint">(법인은 사업자등록번호)</span><input data-k="holderId" placeholder="000000-0000000" inputmode="numeric"></label>
+  </div>
+
+  <h2><span class="n">3</span>이체일 · 기장료</h2>
+  <div class="fld" style="margin-bottom:5px">이체일 <span class="hint">(칸을 눌러 고릅니다 · 숫자를 바꿔 원하는 날로 적어도 됩니다)</span></div>
+  <div class="daypick" id="dayPick"></div>
+  <div class="row" style="margin-top:8px">
+    <label class="fld num">월 기장료 (원) <span class="hint">부가세 포함</span><input data-k="fee" inputmode="numeric" placeholder="330,000"></label>
+    <label class="fld">신청일자<input type="date" data-k="signDate"></label>
+  </div>
+
+  <h2><span class="n">4</span>위임장 <span class="hint">(대리인이 대신 신청할 때만)</span></h2>
+  <label class="chk"><input type="checkbox" data-k="useDeleg">대리인이 신청합니다 — 위임장 칸을 채웁니다</label>
+  <div class="row" id="delegRow" style="margin-top:6px;display:none">
+    <label class="fld">대리인 성명<input data-k="agentName"></label>
+    <label class="fld">주민등록번호<input data-k="agentRrn" placeholder="000000-0000000" inputmode="numeric"></label>
+    <label class="fld">신청인과의 관계<input data-k="agentRel" placeholder="예: ㈜○○○의 직원"></label>
+    <label class="fld">위임일자<input type="date" data-k="delegDate"></label>
+  </div>
+
+  <div class="staffonly">
+    <h2><span class="n">5</span>사무소 표기</h2>
+    <div class="row">
+      <label class="fld" style="grid-column:1/-1">사무소명 <span class="hint">(신청서 아래 띠와 인사말에 들어갑니다)</span><input data-k="office"></label>
+      <label class="fld" style="grid-column:1/-1">연락처 표기 <span class="hint">(신청서 맨 아래 줄)</span><input data-k="officeFoot"></label>
+    </div>
+    <h2>보관한 신청서</h2>
+    <div class="list" id="savedList"></div>
+  </div>
+
+  <ul class="checks" id="checks"></ul>
+  <div class="hint" style="margin-top:10px;line-height:1.7">
+    이 화면은 신청서 서식을 채워 주는 도구입니다. 실제 자동이체 등록은 사무소가 CMS 사업자에 접수한 뒤 이뤄지며, 은행별 출금 가능 여부·계좌 상태에 따라 반려될 수 있습니다. 서명·날인한 원본(또는 사본)과 통장 사본이 필요합니다.
+  </div>
+</div>
+
+<div class="panel pv" id="pvPanel">
+  <div class="mobtab nopr"><button type="button" onclick="mobPv(false)">입력</button><button type="button" class="on" onclick="mobPv(true)">미리보기</button></div>
+  <div class="toolbar nopr">
+    <button type="button" class="btn p" onclick="printOne()">🖨 인쇄 · PDF 저장</button>
+    <button type="button" class="btn" onclick="savePng()">🖼 이미지(PNG)</button>
+    <button type="button" class="btn" onclick="saveWord()">📄 워드(.doc)</button>
+    <span class="hint" style="align-self:center">PDF 는 인쇄 창에서 「PDF로 저장」을 고르면 됩니다.</span>
+  </div>
+  <div class="sheet" id="sheet"></div>
+  <div id="sheetAll" style="display:none"></div>
+</div>
+</div>
+<script>
+'use strict';
+
+/* ═══════ 서식 고정값 — 원본 「cms신청서 (2).xls」 그대로 ═══════ */
+const BANKS=['경남','광주','국민','기업','농협','대구','부산','새마을금고','시티','신한','신협','외환','우리','우체국','전북','제일','제주','수협','하나'];
+const AVOID=[5,10,15,20,25,30];                 /* 원본 안내: 가급적 피할 이체일 */
+const OFFICE='세무법인 한백택스';
+const OFFICE_FOOT='서울특별시 중구 동호로 315, 신안빌딩 2층 · 전화 02-2277-3101 · 팩스 02-2277-3161 · hb090@hanbaektax.kr';
+const GREET=[
+ '전자금융(인터넷뱅킹)의 발달로 인하여 모든 은행 업무가 자동화 되고 기존에 이용하던 지로에 대한 수요가 갈수록 감소하고 있습니다.',
+ '이에 저희 사무소에서도 수납업무의 간소화로 보다 나은 세무서비스를 고객님께 제공해 드리고자 기장료 자동이체 서비스를 도입하게 되었습니다.',
+ '은행에 방문하시어 자동이체를 신청하시는 불편함이 없이 아래의 신청서를 작성하여 주시면 지정된 일자에 고객님의 통장에서 자동이체가 되오니 적극 협조하여 주시기 바랍니다.'
+];
+
+/* ═══════ 잔손 ═══════ */
+const $=id=>document.getElementById(id);
+const fmt=n=>(Math.round(+n||0)).toLocaleString('ko-KR');
+const num=s=>{const v=parseFloat(String(s==null?'':s).replace(/[^\d.-]/g,''));return isNaN(v)?0:v;};
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const dg=s=>String(s==null?'':s).replace(/\D/g,'');
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const kd=s=>{if(!s)return '<span class="blank">&nbsp;</span>년 <span class="blank">&nbsp;</span>월 <span class="blank">&nbsp;</span>일';const d=new Date(s+'T00:00:00');if(isNaN(d))return esc(s);return d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일';};
+const val=s=>{s=String(s==null?'':s).trim();return s?esc(s):'&nbsp;';};
+/* 사업자등록번호 검증(국세청 검증식) */
+const bizOk=b=>{const d=dg(b);if(d.length!==10)return false;const w=[1,3,7,1,3,7,1,3,5];let s=0;for(let i=0;i<9;i++)s+=+d[i]*w[i];s+=Math.floor(+d[8]*5/10);return (10-s%10)%10===+d[9];};
+/* 주민등록번호 검증(체크디지트) */
+const rrnOk=r=>{const d=dg(r);if(d.length!==13)return false;const w=[2,3,4,5,6,7,8,9,2,3,4,5];let s=0;for(let i=0;i<12;i++)s+=+d[i]*w[i];return (11-s%11)%10===+d[12];};
+/* 전화 표기: 원본의 ☎ ( 02 ) 510 - 2260 꼴 */
+function telFmt(v){
+  const t=String(v==null?'':v).trim();
+  if(!t)return '☎ (　　　　) 　　　 - 　　　';
+  let p=t.split(/[-.\s]+/).filter(Boolean);
+  if(p.length<3){
+    const d=dg(t);
+    if(d.length>=9){
+      if(d.startsWith('02'))p=[d.slice(0,2),d.slice(2,d.length-4),d.slice(-4)];
+      else p=[d.slice(0,3),d.slice(3,d.length-4),d.slice(-4)];
+    }else return esc(t);
+  }
+  return '☎ ( '+esc(p[0])+' ) '+esc(p[1])+' - '+esc(p.slice(2).join('-'));
+}
+
+/* ═══════ 상태 ═══════ */
+const DEF={
+  office:OFFICE, officeFoot:OFFICE_FOOT,
+  applicant:'', applType:'corp', email:'', tel:'', mobile:'', addr:'',
+  bank:'', bankEtc:'', acct:'', holderName:'', holderSame:false, holderId:'',
+  days:[3,13,23,28], day:'', fee:'', signDate:'',
+  useDeleg:false, agentName:'', agentRrn:'', agentRel:'', delegDate:''
+};
+const LSKEY='hbt_cms_v1';
+let mode='client';
+let S=JSON.parse(JSON.stringify(DEF));
+let LIST=[];
+try{
+  const r=localStorage.getItem(LSKEY);
+  if(r){const o=JSON.parse(r);
+    if(o.cur)S=Object.assign({},DEF,o.cur);
+    if(Array.isArray(o.list))LIST=o.list;
+    if(o.mode==='staff'||o.mode==='client')mode=o.mode;
+  }
+}catch(e){}
+if(!Array.isArray(S.days)||S.days.length!==4)S.days=DEF.days.slice();
+function persist(){try{localStorage.setItem(LSKEY,JSON.stringify({mode,cur:S,list:LIST}));}catch(e){}}
+
+/* ═══════ 입력 바인딩 ═══════ */
+function bind(){
+  document.querySelectorAll('[data-k]').forEach(el=>{
+    const k=el.dataset.k;
+    el.addEventListener('input',()=>{
+      S[k]=el.type==='checkbox'?el.checked:(k==='fee'?num(el.value):el.value);
+      persist();refill();render();
+    });
+    if(k==='fee')el.addEventListener('blur',()=>{if(S.fee)el.value=fmt(S.fee);});
+  });
+}
+function refill(){
+  if(S.holderSame)S.holderName=S.applicant;
+  document.querySelectorAll('[data-k]').forEach(el=>{
+    const k=el.dataset.k,v=S[k];
+    if(el.type==='checkbox'){el.checked=!!v;return;}
+    if(document.activeElement===el)return;                 /* 입력 중인 칸은 건드리지 않는다 */
+    el.value=(k==='fee')?(v?fmt(v):''):(v==null?'':v);
+  });
+  $('delegRow').style.display=S.useDeleg?'':'none';
+  $('bankEtcFld').style.display=S.bank==='기타'?'':'none';
+  $('holderIdFld').firstChild.nodeValue=S.applType==='corp'?'예금주 사업자등록번호 ':'예금주 주민등록번호 ';
+  renderBanks();renderDays();
+}
+function renderBanks(){
+  $('bankList').innerHTML=BANKS.concat(['기타']).map(b=>
+    '<label class="'+(S.bank===b?'on':'')+'"><input type="radio" name="bank" value="'+b+'"'+(S.bank===b?' checked':'')+'>'+b+'</label>').join('');
+  $('bankList').querySelectorAll('input').forEach(el=>el.addEventListener('change',()=>{S.bank=el.value;persist();refill();render();}));
+}
+function renderDays(){
+  $('dayPick').innerHTML=S.days.map((d,i)=>
+    '<div class="d'+(String(S.day)!==''&&String(S.day)===String(d)?' on':'')+'" data-i="'+i+'">'+
+    '<input type="number" min="1" max="31" value="'+esc(d)+'" data-di="'+i+'">'+
+    '<span class="lbl">'+(String(S.day)===String(d)&&String(d)!==''?'선택함':'누르면 선택')+'</span></div>').join('');
+  $('dayPick').querySelectorAll('.d').forEach(el=>el.addEventListener('click',ev=>{
+    if(ev.target.tagName==='INPUT')return;   /* 숫자 칸을 누르면 고쳐 쓰는 것이고, 칸 바깥을 누르면 고르는 것 */
+    const d=S.days[+el.dataset.i];if(d==='')return;
+    S.day=String(d);persist();refill();render();
+  }));
+  $('dayPick').querySelectorAll('input').forEach(el=>el.addEventListener('input',()=>{
+    const i=+el.dataset.di,old=String(S.days[i]);
+    S.days[i]=el.value;
+    if(String(S.day)===old)S.day=el.value;
+    persist();render();
+  }));
+}
+
+/* ═══════ 점검 ═══════ */
+function checks(){
+  const c=[],d=S;
+  const add=(t,m)=>c.push({t,m});
+  if(!d.applicant.trim())add('err','<b>신청인(상호)</b>을 적어 주십시오.');
+  if(!d.bank)add('err','<b>거래은행</b>을 고르십시오.');
+  if(d.bank==='기타'&&!d.bankEtc.trim())add('err','기타 은행을 골랐습니다. <b>은행명</b>을 적어 주십시오.');
+  if(d.bank==='기타')add('warn','기타 은행은 <b>원본 신청서 목록에 없는 은행</b>입니다. 접수 전에 해당 은행의 CMS 출금이체 가능 여부를 사무소에 확인하십시오.');
+  if(d.bank==='외환')add('warn','외환은행은 하나은행과 통합되었습니다(원본 서식에 남아 있는 항목). <b>통장에 적힌 은행명</b>으로 고르십시오.');
+  const ad=dg(d.acct);
+  if(!ad)add('err','<b>계좌번호</b>를 적어 주십시오.');
+  else if(ad.length<9||ad.length>16)add('warn','계좌번호가 <b>'+ad.length+'자리</b>입니다. 은행별 자릿수(보통 10~14자리)와 다릅니다. 통장과 대조하십시오.');
+  if(!d.holderName.trim())add('err','<b>예금주명</b>을 통장에 적힌 그대로 적어 주십시오.');
+  if(!d.holderId.trim())add('err',(d.applType==='corp'?'<b>예금주 사업자등록번호</b>':'<b>예금주 주민등록번호</b>')+'를 적어 주십시오.');
+  else if(d.applType==='corp'){
+    if(dg(d.holderId).length===13&&rrnOk(d.holderId))add('warn','신청구분이 <b>법인</b>인데 주민등록번호가 들어갔습니다. 법인은 사업자등록번호를 적습니다(원본 서식 안내).');
+    else if(!bizOk(d.holderId))add('err','<b>사업자등록번호가 맞지 않습니다</b>(10자리·검증식). 다시 확인하십시오.');
+    else add('ok','사업자등록번호 형식 확인 — 정상');
+  }else{
+    if(!rrnOk(d.holderId))add('err','<b>주민등록번호가 맞지 않습니다</b>(13자리·검증식). 다시 확인하십시오.');
+    else add('ok','주민등록번호 형식 확인 — 정상');
+  }
+  if(d.applicant.trim()&&d.holderName.trim()&&d.applicant.trim()!==d.holderName.trim())
+    add('warn','신청인과 예금주가 다릅니다. 신청서의 <b>예금주 동의란</b>에 (거래인감) 또는 서명을 받아야 합니다.');
+  if(String(d.day)==='')add('err','<b>이체일</b>을 고르십시오.');
+  else if(AVOID.indexOf(+d.day)>=0)add('warn','이체일 <b>'+d.day+'일</b>은 가급적 피해 달라고 안내된 날(5·10·15·20·25·30일)입니다. 다른 날을 권합니다.');
+  if(!num(d.fee))add('warn','<b>월 기장료</b>를 적으면 신청서 윗줄에 금액(부가세 포함)이 찍힙니다.');
+  if(d.email.trim()&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email.trim()))add('warn','<b>이메일</b> 형식을 확인하십시오.');
+  const mb=dg(d.mobile);
+  if(mb&&!(mb.length===10||mb.length===11))add('warn','<b>휴대폰 번호</b> 자릿수를 확인하십시오.');
+  if(!d.tel.trim()&&!mb)add('warn','<b>전화 또는 휴대폰</b> 중 하나는 적어 주십시오. 등록 결과 안내에 씁니다.');
+  if(!d.addr.trim())add('warn','<b>주소</b>가 비어 있습니다.');
+  if(!d.signDate)add('warn','<b>신청일자</b>가 비어 있습니다. 손으로 적어도 되지만, 넣어 두면 인쇄물에 찍힙니다.');
+  if(d.useDeleg){
+    if(!d.agentName.trim())add('err','위임장을 쓰기로 했습니다. <b>대리인 성명</b>을 적어 주십시오.');
+    if(!d.agentRrn.trim())add('err','<b>대리인 주민등록번호</b>를 적어 주십시오.');
+    else if(!rrnOk(d.agentRrn))add('err','<b>대리인 주민등록번호가 맞지 않습니다</b>(13자리·검증식).');
+    if(!d.agentRel.trim())add('warn','<b>신청인과의 관계</b>를 적어 주십시오(예: ㈜○○○의 직원).');
+    add('warn','대리인이 신청하면 <b>신청인의 위임장 날인(또는 서명)</b>이 있어야 합니다.');
+  }
+  if(!c.some(x=>x.t==='err'))add('ok','필수 항목이 채워졌습니다. 인쇄한 뒤 <b>신청인 도장(인) 또는 서명</b>을 받고, 통장 사본과 함께 사무소로 보내 주십시오.');
+  $('checks').innerHTML=c.map(x=>'<li class="'+x.t+'">'+(x.t==='err'?'✕ ':x.t==='warn'?'! ':'✓ ')+x.m+'</li>').join('');
+}
+
+/* ═══════ 신청서 만들기 ═══════ */
+function bankName(d){return d.bank==='기타'?(d.bankEtc.trim()||'기타'):d.bank;}
+function sheetHtml(d,wd){
+  const office=(d.office||OFFICE).trim()||OFFICE;
+  const banks=BANKS.concat(d.bank==='기타'?[bankName(d)]:[]).map(b=>{
+    const on=(d.bank===b)||(d.bank==='기타'&&b===bankName(d));
+    return '<span>'+(on?'■':'□')+esc(b)+'</span>'+(wd?'&nbsp; ':'');
+  }).join('');
+  const days=d.days.map(x=>{
+    const on=String(x)!==''&&String(d.day)===String(x);
+    return '<span style="display:inline-block;min-width:44pt">'+(on?'■':'□')+' '+(String(x)===''?'　　':esc(x))+'일</span>'+(wd?'&nbsp;':'');
+  }).join('');
+  const corp=d.applType==='corp';
+  return ''+
+  '<h1>자동이체 신청서</h1>'+
+  '<div class="greet">'+
+    '<p>안녕하세요?　'+esc(office)+'입니다.</p>'+
+    GREET.map(g=>'<p>'+esc(g)+'</p>').join('')+
+  '</div>'+
+  '<div class="feebox">월 기장료 <span class="val">'+(num(d.fee)?fmt(d.fee)+'원':'&nbsp;')+'</span> <span class="vat">(부가세포함)</span></div>'+
+  '<div class="band">신청내용</div>'+
+  '<table><colgroup><col style="width:13%"><col style="width:20%"><col style="width:17%"><col style="width:13%"><col style="width:20%"><col style="width:17%"></colgroup>'+
+  '<tr><th>신청인</th><td colspan="2">'+val(d.applicant)+'</td><th>신청구분</th><td colspan="2" class="c">'+
+    (corp?'<span class="ck">■법인</span>　□개인':'□법인　<span class="ck">■개인</span>')+'</td></tr>'+
+  '<tr><th>거래은행</th><td colspan="5" class="bk">'+banks+'</td></tr>'+
+  '<tr><th>계좌번호</th><td colspan="5">'+val(d.acct)+'</td></tr>'+
+  '<tr><th>예금주<br>'+(corp?'사업자번호':'주민번호')+'</th><td colspan="5">'+val(d.holderId)+
+    '　<span style="font-size:8.5pt;color:#333">(법인은 사업자번호 기재)</span></td></tr>'+
+  '<tr><th>예금주명</th><td colspan="2">'+val(d.holderName)+'</td><th>이메일</th><td colspan="2">'+val(d.email)+'</td></tr>'+
+  '<tr><th>전화</th><td colspan="2">'+telFmt(d.tel)+'</td><th>휴대폰</th><td colspan="2">'+telFmt(d.mobile)+'</td></tr>'+
+  '<tr><th>주소</th><td colspan="2">'+val(d.addr)+'</td><th>이체일</th><td colspan="2" class="c">'+days+'</td></tr>'+
+  '<tr>'+
+    '<td colspan="3" rowspan="5" class="sig">'+
+      '위와 같이 기장료 자동이체를 신청합니다.'+
+      '<div class="dt">'+kd(d.signDate)+'</div>'+
+      '<div>신청인 : <b>'+val(d.applicant)+'</b>　　(인) 또는 서명</div>'+
+      '<div class="note">(신청인과 예금주가 다를 경우 예금주 동의가 필요합니다.)</div>'+
+      '<div class="ln">예금주 동의란 : '+(d.holderName&&d.holderName!==d.applicant?'<b>'+val(d.holderName)+'</b>':'<span class="blank">&nbsp;</span>')+'　　(거래인감) 또는 서명</div>'+
+      '<div class="note">* 예금주 동의란은 신청인과 예금주가 다를 경우 작성</div>'+
+    '</td>'+
+    '<th colspan="3">위임장 (대리인이 신청시)</th></tr>'+
+  '<tr><th>대리인 성명</th><td colspan="2">'+val(d.useDeleg?d.agentName:'')+'</td></tr>'+
+  '<tr><th>주민번호</th><td colspan="2">'+val(d.useDeleg?d.agentRrn:'')+'</td></tr>'+
+  '<tr><th>신청인관계</th><td colspan="2">'+val(d.useDeleg?d.agentRel:'')+'</td></tr>'+
+  '<tr><td colspan="3" class="sig" style="height:auto">'+
+      '위 사람에게 기장료 자동이체 신청에 관한 일체의 권리를 위임합니다.'+
+      '<div class="dt">'+kd(d.useDeleg?(d.delegDate||d.signDate):'')+'</div>'+
+      '<div>신청인 : '+(d.useDeleg?'<b>'+val(d.applicant)+'</b>':'<span class="blank">&nbsp;</span>')+'　(인) 또는 서명</div>'+
+      '<div class="note">* 신청인과 예금주가 같을 경우는 작성할 필요가 없습니다.</div>'+
+  '</td></tr>'+
+  '</table>'+
+  '<div class="foot"><div class="of">'+esc(office)+'</div><div>'+esc(d.officeFoot||OFFICE_FOOT)+'</div></div>';
+}
+function render(){
+  if(S.holderSame)S.holderName=S.applicant;
+  $('sheet').innerHTML=sheetHtml(S);
+  checks();
+  renderList();
+}
+
+/* ═══════ 화면 전환 ═══════ */
+function setMode(m){
+  mode=m;
+  document.body.classList.toggle('staff',m==='staff');
+  document.querySelectorAll('#modeTabs button').forEach(b=>b.classList.toggle('on',b.dataset.mode===m));
+  persist();refill();render();
+}
+function mobPv(on){document.body.classList.toggle('showpv',on);document.querySelectorAll('.mobtab button').forEach((b,i)=>b.classList.toggle('on',(i%2===1)===on));}
+
+/* ═══════ 보관 목록(직원용) ═══════ */
+function saveToList(){
+  if(!S.applicant.trim()){alert('신청인(상호)을 먼저 적어 주십시오.');return;}
+  const id=Date.now()+'';
+  const i=LIST.findIndex(x=>x.d&&x.d.applicant===S.applicant);
+  const rec={id,ts:today(),d:JSON.parse(JSON.stringify(S))};
+  if(i>=0){if(!confirm('같은 신청인('+S.applicant+')이 이미 보관돼 있습니다. 바꿔 넣을까요?'))return;rec.id=LIST[i].id;LIST[i]=rec;}
+  else LIST.unshift(rec);
+  persist();renderList();
+}
+function loadFromList(id){const r=LIST.find(x=>x.id===id);if(!r)return;S=Object.assign({},DEF,r.d);persist();refill();render();mobPv(false);}
+function delFromList(id){const r=LIST.find(x=>x.id===id);if(!r)return;if(!confirm((r.d.applicant||'이 건')+' 을(를) 목록에서 지울까요?'))return;LIST=LIST.filter(x=>x.id!==id);persist();renderList();}
+function renderList(){
+  const box=$('savedList');if(!box)return;
+  if(!LIST.length){box.innerHTML='<div class="empty">보관한 신청서가 없습니다. 「➕ 목록에 보관」을 누르면 여기에 쌓이고, 「보관분 전체 인쇄」로 한 번에 뽑을 수 있습니다.</div>';return;}
+  box.innerHTML=LIST.map(r=>{
+    const d=r.d||{};
+    return '<div class="it"><span class="nm">'+esc(d.applicant||'(상호 없음)')+'</span>'+
+      '<span class="mt">'+esc(bankName(d)||'-')+' · '+(String(d.day)===''?'이체일 미정':esc(d.day)+'일')+' · '+(num(d.fee)?fmt(d.fee)+'원':'금액 미정')+'</span>'+
+      '<button type="button" class="btn sm" onclick="loadFromList(\''+r.id+'\')">불러오기</button>'+
+      '<button type="button" class="btn sm" onclick="delFromList(\''+r.id+'\')">삭제</button></div>';
+  }).join('');
+}
+
+/* ═══════ 업무판 거래처 ═══════ */
+function fromBoard(){
+  let cl=[];
+  try{const b=JSON.parse(localStorage.getItem('hanbaek_board_v1')||'{}');cl=(b.clients||[]).filter(c=>c.name);}catch(e){}
+  if(!cl.length){alert('이 브라우저의 「거래처 업무판」에 등록된 거래처가 없습니다. 업무판에서 거래처를 먼저 등록하면 여기서 바로 불러옵니다.');return;}
+  const pick=prompt('불러올 거래처 번호를 입력하십시오.\n\n'+cl.map((c,i)=>(i+1)+'. '+c.name+(c.ceo?' ('+c.ceo+')':'')).join('\n'));
+  const c=cl[(+pick||0)-1];if(!c)return;
+  S.applicant=c.name||S.applicant;
+  S.applType=(String(c.type||'').indexOf('법인')>=0)?'corp':'ind';
+  if(c.biz&&S.applType==='corp')S.holderId=c.biz;
+  S.tel=c.tel||S.tel;
+  S.email=c.email||S.email;
+  if(S.holderSame)S.holderName=S.applicant;
+  persist();refill();render();
+}
+
+/* ═══════ 업체 작성 링크 ═══════ */
+const LINK_SKIP={acct:1,holderId:1,agentRrn:1};
+function makeLink(){
+  const o={};
+  Object.keys(DEF).forEach(k=>{if(!LINK_SKIP[k]&&JSON.stringify(S[k])!==JSON.stringify(DEF[k]))o[k]=S[k];});
+  let b64='';
+  try{b64=btoa(unescape(encodeURIComponent(JSON.stringify(o))));}catch(e){alert('링크를 만들지 못했습니다.');return;}
+  const url=location.origin+location.pathname+'?cms='+encodeURIComponent(b64);
+  $('linkText').value=url;$('linkBox').style.display='block';
+}
+function copyLink(){
+  const t=$('linkText').value;if(!t){makeLink();return;}
+  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(
+    ()=>alert('링크를 복사했습니다. 카카오톡·문자로 보내면 업체가 열어 바로 채웁니다.'),
+    ()=>{$('linkText').select();document.execCommand('copy');alert('링크를 복사했습니다.');});
+}
+function mailLink(){
+  const t=$('linkText').value;if(!t){makeLink();return;}
+  const sub=encodeURIComponent('['+(S.office||OFFICE)+'] 기장료 자동이체(CMS) 신청서 작성 안내');
+  const body=encodeURIComponent(
+    (S.applicant||'고객')+' 님\n\n기장료 자동이체 신청서를 아래 링크에서 바로 작성·출력하실 수 있습니다.\n'+t+
+    '\n\n작성 후 인쇄하여 신청인 날인(또는 서명)하시고, 통장 사본과 함께 회신해 주십시오.\n'+
+    '이메일 hb090@hanbaektax.kr · 팩스 02-2277-3161 · 문의 02-2277-3101\n\n'+(S.office||OFFICE));
+  location.href='mailto:'+encodeURIComponent(S.email||'')+'?subject='+sub+'&body='+body;
+}
+
+/* ═══════ 출력 ═══════ */
+function baseName(){return '자동이체신청서_'+((S.applicant||'무제').replace(/[\\/:*?"<>|]/g,'')) +'_'+today();}
+function printOne(){$('sheetAll').style.display='none';$('sheet').style.display='';window.print();}
+function printAll(){
+  if(!LIST.length){alert('보관한 신청서가 없습니다.');return;}
+  $('sheetAll').innerHTML=LIST.map(r=>'<div class="sheet">'+sheetHtml(Object.assign({},DEF,r.d))+'</div>').join('');
+  $('sheetAll').style.display='';$('sheet').style.display='none';
+  const back=()=>{$('sheetAll').style.display='none';$('sheet').style.display='';window.removeEventListener('afterprint',back);};
+  window.addEventListener('afterprint',back);
+  window.print();
+  setTimeout(back,3000);
+}
+function download(blob,name){
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+}
+function loadScript(src){return new Promise((ok,ng)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>ng(new Error('load'));document.head.appendChild(s);});}
+async function savePng(){
+  try{
+    if(!window.html2canvas)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+    const el=$('sheet');
+    const cv=await html2canvas(el,{scale:2,backgroundColor:'#ffffff',useCORS:true,windowWidth:el.scrollWidth});
+    cv.toBlob(b=>{if(!b){alert('이미지를 만들지 못했습니다.');return;}download(b,baseName()+'.png');},'image/png');
+  }catch(e){
+    alert('이미지를 만들지 못했습니다(인터넷 연결이 필요합니다).\n인쇄 창에서 「PDF로 저장」을 이용하시거나, 화면을 캡처해 주십시오.');
+  }
+}
+const WORD_CSS=
+ '@page Section1{size:595.3pt 841.9pt;margin:34.0pt 34.0pt 28.0pt}'+'div.Section1{page:Section1}'+
+ 'body{font-family:"맑은 고딕","Nanum Gothic",sans-serif;font-size:10.5pt;line-height:1.6;color:#000}'+
+ 'h1{text-align:center;font-size:19pt;letter-spacing:8px;margin:0 0 8pt}'+
+ '.greet{border:1px solid #000;padding:6pt 8pt;font-size:9pt;line-height:1.55;margin-bottom:6pt}'+
+ '.greet p{margin:0 0 4pt}'+
+ '.feebox{text-align:right;margin:0 0 6pt;font-size:10pt}'+
+ '.feebox .val{border-bottom:1.5pt solid #000;font-size:12pt;font-weight:bold;padding:0 6pt}'+
+ '.feebox .vat{font-size:8.5pt}'+
+ '.band{background:#1B3A5C;color:#fff;font-weight:bold;font-size:11pt;padding:3pt 12pt;margin:0 0 4pt}'+
+ 'table{border-collapse:collapse;width:100%;font-size:10pt}'+
+ 'th,td{border:1px solid #000;padding:3pt 5pt;vertical-align:middle;word-wrap:break-word}'+
+ 'th{background:#EEF2F7;font-weight:bold;text-align:center}'+
+ 'td.c{text-align:center}'+
+ '.bk{font-size:8.5pt;line-height:1.7}'+'.bk span{font-size:8.5pt}'+
+ '.sig{height:108pt;vertical-align:top;font-size:9.5pt;line-height:1.6}'+
+ '.sig .dt{text-align:center;margin:9pt 0}'+
+ '.sig .ln{margin-top:9pt}'+
+ '.sig .note{font-size:8.5pt;color:#333;margin-top:5pt}'+
+ '.foot{margin-top:9pt;border-top:2pt solid #1B3A5C;padding-top:5pt;text-align:center;font-size:9pt}'+
+ '.foot .of{font-size:12.5pt;font-weight:bold;color:#1B3A5C;letter-spacing:2px}'+
+ '.blank{border-bottom:1px solid #000}';
+/* 워드는 colgroup·table-layout 을 따르지 않는다. 칸마다 절대 폭(pt)을 박고
+   mso-table-layout-alt:fixed 를 줘야 A4 폭(본문 527pt) 안에 들어간다.
+   폭 합계 68+192+68+192 = 520pt. */
+function wordize(h){
+  return h
+    .replace(/<colgroup>[\s\S]*?<\/colgroup>/, '')
+    .replace('<table>', '<table border="1" cellspacing="0" cellpadding="3" style="border-collapse:collapse;width:520pt;mso-table-layout-alt:fixed">')
+    .replace('<td colspan="3" class="sig" style="height:auto">', '<td colspan="3" class="sig" style="width:260pt;height:auto">')
+    .replace(/<th colspan="3"/g, '<th colspan="3" style="width:260pt"')
+    .replace(/<td colspan="3"/g, '<td colspan="3" style="width:260pt"')
+    .replace(/<td colspan="5"/g, '<td colspan="5" style="width:452pt"')
+    .replace(/<td colspan="2"/g, '<td colspan="2" style="width:192pt"')
+    .replace(/<th>/g, '<th style="width:68pt">');
+}
+function wordDoc(inner){
+  return '﻿<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'+
+    '<head><meta charset="utf-8"><title>자동이체 신청서</title>'+
+    '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->'+
+    '<style>'+WORD_CSS+'</style></head><body><div class="Section1">'+inner+'</div></body></html>';
+}
+function saveWord(){
+  download(new Blob([wordDoc(wordize(sheetHtml(S,true)))],{type:'application/msword;charset=utf-8'}),baseName()+'.doc');
+}
+function saveWordAll(){
+  if(!LIST.length){alert('보관한 신청서가 없습니다.');return;}
+  const inner=LIST.map((r,i)=>(i?'<br clear=all style="page-break-before:always">':'')+wordize(sheetHtml(Object.assign({},DEF,r.d),true))).join('');
+  download(new Blob([wordDoc(inner)],{type:'application/msword;charset=utf-8'}),'자동이체신청서_'+LIST.length+'건_'+today()+'.doc');
+}
+function saveJson(){
+  download(new Blob([JSON.stringify({app:'hbt-cms',ver:1,data:S},null,1)],{type:'application/json'}),baseName()+'.json');
+}
+function loadJson(inp){
+  const f=inp.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{const o=JSON.parse(rd.result);S=Object.assign({},DEF,o.data||o);if(!Array.isArray(S.days)||S.days.length!==4)S.days=DEF.days.slice();persist();refill();render();}
+    catch(e){alert('읽을 수 없는 파일입니다.');}
+    inp.value='';
+  };
+  rd.readAsText(f);
+}
+function resetDoc(){
+  if(!confirm('지금 화면의 입력을 모두 지웁니다. 보관 목록은 남습니다.'))return;
+  const keep={office:S.office,officeFoot:S.officeFoot,days:S.days.slice()};
+  S=Object.assign(JSON.parse(JSON.stringify(DEF)),keep);
+  persist();refill();render();
+}
+function fillSample(){
+  S=Object.assign(JSON.parse(JSON.stringify(DEF)),{
+    applicant:'씨엠에스무역㈜',applType:'corp',email:'admin@cmstrade.net',tel:'02-510-2260',mobile:'010-123-4567',
+    addr:'서울 강남구 청담동 52 청담빌딩',bank:'경남',acct:'124456-01-789001',holderName:'씨엠에스무역㈜',holderSame:true,
+    holderId:'120-00-12343',days:[3,13,23,28],day:'28',fee:330000,signDate:today(),
+    useDeleg:true,agentName:'나직원',agentRrn:'701010-1234563',agentRel:'씨엠에스무역㈜의 직원',delegDate:today(),
+    office:S.office,officeFoot:S.officeFoot
+  });
+  persist();refill();render();
+}
+
+/* ═══════ 시작 ═══════ */
+(function init(){
+  try{
+    const q=new URLSearchParams(location.search).get('cms');
+    if(q){
+      const o=JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(q)))));
+      S=Object.assign({},DEF,S,o);
+      if(!Array.isArray(S.days)||S.days.length!==4)S.days=DEF.days.slice();
+      mode='client';
+    }
+  }catch(e){}
+  if(!S.signDate)S.signDate=today();
+  document.querySelectorAll('#modeTabs button').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
+  bind();setMode(mode);
+})();
+</script>
+</body>
+</html>

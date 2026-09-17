@@ -384,7 +384,7 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
   <div class="nav-item" data-page="corp">법인세</div>
   <div class="nav-item" data-page="ins">4대보험</div>
   <div class="nav-item" data-page="retire">퇴직소득세</div>
-  <div class="nav-item" data-page="acq">취득세·종부세</div><div class="nav-item" data-page="inh">상속세</div><div class="nav-item" data-page="bugift">부담부증여</div><div class="nav-item" data-page="bizinh">가업상속</div><div class="nav-item" data-page="gasan">가산세</div><div class="nav-item" data-page="biz">업종코드</div><div class="nav-item" data-page="contract">계약서</div><div class="nav-item" data-page="board">내부 업무</div>
+  <div class="nav-item" data-page="acq">취득세·종부세</div><div class="nav-item" data-page="inh">상속세</div><div class="nav-item" data-page="bugift">부담부증여</div><div class="nav-item" data-page="bizinh">가업상속</div><div class="nav-item" data-page="gasan">가산세</div><div class="nav-item" data-page="biz">업종코드</div><div class="nav-item" data-page="contract">계약서</div><div class="nav-item" data-page="cms">CMS신청서</div><div class="nav-item" data-page="board">내부 업무</div>
 </div>
 
 <!-- ==================== HOME ==================== -->
@@ -514,6 +514,12 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
       <h3>계약서 작성기</h3>
       <p>근로계약서 · 금전소비대차계약서 · 프리랜서(3.3%)<br>법정 기재사항·최저임금·이자 한도·인지세 자동 점검</p>
     </a>
+    <a class="dash-card" data-go="cms" href="javascript:void(0)" onclick="goPage('cms')">
+      <div class="icon" style="background:#DBEAFE;color:#1E3A8A">🏦</div>
+      <div class="badge">NEW</div>
+      <h3>CMS 자동이체 신청서</h3>
+      <p>기장료 출금이체 신청서를 화면에서 작성<br>업체에 작성 링크 전송 · 인쇄·PDF·이미지·워드 출력</p>
+    </a>
     <a class="dash-card" data-go="board" href="javascript:void(0)" onclick="goPage('board')">
       <div class="icon" style="background:#FEF3C7;color:#92400E">🗓️</div>
       <div class="badge">직원용</div>
@@ -612,6 +618,15 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
   </div>
   <iframe id="contractFrame" title="계약서 작성기" style="width:100%;height:82vh;min-height:560px;border:1px solid var(--border);border-radius:12px;background:#fff;display:block"></iframe>
   <script>(function(){function fill(){var f=document.getElementById('contractFrame');if(f&&!f.getAttribute('src'))f.setAttribute('src','한백택스_계약서_작성기.html');}function on(e){var t=e.target,el=t&&t.closest?t.closest('[data-page="contract"],[data-go="contract"]'):null;if(el)setTimeout(fill,0);}document.addEventListener('click',on,true);document.addEventListener('touchend',on,true);window.addEventListener('load',function(){try{if(new URLSearchParams(location.search).get('page')==='contract')fill();}catch(e){}});})();</script>
+</div>
+<!-- ==================== CMS 자동이체 신청서 ==================== -->
+<div class="page" id="page-cms">
+  <div class="calc-title"><h2>CMS 자동이체 신청서</h2><div class="sub">기장료 자동이체(출금이체) 신청서를 화면에서 채우고 인쇄·PDF·이미지(PNG)·워드(.doc)로 뽑습니다. 업체가 직접 채울 작성 링크를 만들어 보낼 수 있고, 직원용 화면에서는 여러 건을 보관해 한 번에 인쇄합니다. 계좌번호·주민등록번호는 이 브라우저에만 남습니다.</div></div>
+  <div style="margin:0 0 10px;text-align:right">
+    <a href="한백택스_CMS자동이체_신청서.html" target="_blank" rel="noopener" style="display:inline-block;font-size:13px;font-weight:700;color:var(--blue);border:1.5px solid var(--blue);border-radius:8px;padding:7px 14px;text-decoration:none;cursor:pointer">새 창으로 크게 보기 ↗</a>
+  </div>
+  <iframe id="cmsFrame" title="CMS 자동이체 신청서 작성기" style="width:100%;height:82vh;min-height:560px;border:1px solid var(--border);border-radius:12px;background:#fff;display:block"></iframe>
+  <script>(function(){function fill(){var f=document.getElementById('cmsFrame');if(f&&!f.getAttribute('src'))f.setAttribute('src','한백택스_CMS자동이체_신청서.html');}function on(e){var t=e.target,el=t&&t.closest?t.closest('[data-page="cms"],[data-go="cms"]'):null;if(el)setTimeout(fill,0);}document.addEventListener('click',on,true);document.addEventListener('touchend',on,true);window.addEventListener('load',function(){try{if(new URLSearchParams(location.search).get('page')==='cms')fill();}catch(e){}});})();</script>
 </div>
 <!-- ==================== 거래처 업무판(직원용) ==================== -->
 <div class="page" id="page-board">
