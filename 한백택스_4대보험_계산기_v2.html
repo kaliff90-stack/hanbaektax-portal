@@ -356,7 +356,8 @@ function validate(){
 function calc(){
   const warnings=validate();
   const wage=v('wage');
-  const npBase=Math.min(Math.max(wage,v('np_min')),v('np_max'));
+  // 기준소득월액 = 보수월액의 천원 미만 절사 후 상·하한 적용 (국민연금법 §3① 5호·시행령 §5)
+  const npBase=Math.min(Math.max(Math.floor(wage/1000)*1000,v('np_min')),v('np_max'));
   const tb=document.getElementById('tbody');tb.innerHTML='';
   let empTot=0,erTot=0,hiEmp=0,hiEr=0;
 

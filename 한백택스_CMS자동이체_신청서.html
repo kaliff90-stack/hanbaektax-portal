@@ -21,6 +21,11 @@
     이체일 5·10·15·20·25·30일 회피 권고(원본 서식의 안내문).
   - 계좌번호·주민등록번호는 이 브라우저(localStorage)에만 남는다. 서버로 보내지 않는다.
     업체 작성 링크에도 계좌번호·주민등록번호·대리인 주민번호는 담지 않는다.
+  - 예외: 「한백택스로 바로 보내기」(v2, 2026-09-17)
+    전송 동의를 체크하고 누를 때만 신청 내용 전부(계좌번호·주민등록번호 포함)와 신청서 이미지(PNG),
+    업체가 고른 첨부(통장 사본·서명본)를 자료전송 메일중계(Google Apps Script)로 보내
+    사무실 메일(hb090@hanbaektax.kr)에 접수한다. 카톡채널 포털 상담신청과 같은 중계·토큰을 쓴다.
+    중계 실패 시 메일 앱(mailto)으로 대신 보낸다(첨부는 업체가 직접).
   - 인쇄: A4 1장, 나눔고딕.
 -->
 <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
@@ -110,6 +115,10 @@ body.staff .clientonly{display:none}
 .sheet .foot .of{font-size:12.5pt;font-weight:800;color:#1B3A5C;letter-spacing:2px}
 .sheet .ck{font-weight:800}
 .sheet .blank{display:inline-block;min-width:54pt;border-bottom:1px solid #000}
+.sendbox{margin-top:14px;border:1px solid var(--line);border-top:3px solid var(--navy);border-radius:10px;padding:12px 14px;background:#f8fafd}
+.sendbox .hint b{color:var(--navy)}
+#sendStatus.ok{color:var(--green);font-weight:700}
+#sendStatus.err{color:var(--red);font-weight:700}
 .mobtab{display:none}
 @media(max-width:960px){
   .wrap{grid-template-columns:1fr;padding:10px}
@@ -188,7 +197,7 @@ body.staff .clientonly{display:none}
 <div class="top">
   <div>
     <h1>CMS 자동이체 신청서 작성기</h1>
-    <div class="sub">기장료 자동이체(출금이체) 신청서를 화면에서 채우면 오른쪽에 바로 만들어집니다. 인쇄·PDF·이미지(PNG)·워드(.doc)로 뽑을 수 있습니다. 입력한 내용은 이 브라우저에만 저장되고 서버로 보내지 않습니다.</div>
+    <div class="sub">기장료 자동이체(출금이체) 신청서를 화면에서 채우면 오른쪽에 바로 만들어집니다. 인쇄·PDF·이미지(PNG)·워드(.doc)로 뽑을 수 있고, 「한백택스로 바로 보내기」로 사무소 메일에 곧바로 접수할 수 있습니다. 입력한 내용은 이 브라우저에만 저장되며, 보내기를 누를 때만 사무소로 전송됩니다.</div>
   </div>
   <div class="doctabs" id="modeTabs">
     <button type="button" data-mode="client" class="on">업체용 · 간편 작성</button>
@@ -201,6 +210,7 @@ body.staff .clientonly{display:none}
   <div class="mobtab"><button type="button" class="on" onclick="mobPv(false)">입력</button><button type="button" onclick="mobPv(true)">미리보기</button></div>
 
   <div class="toolbar">
+    <button type="button" class="btn n" onclick="goSend()">📨 한백택스로 바로 보내기</button>
     <button type="button" class="btn p" onclick="printOne()">🖨 인쇄 · PDF 저장</button>
     <button type="button" class="btn" onclick="savePng()">🖼 이미지(PNG)</button>
     <button type="button" class="btn" onclick="saveWord()">📄 워드(.doc)</button>
@@ -238,6 +248,7 @@ body.staff .clientonly{display:none}
       <li>출력물의 <b>신청인란에 도장(인) 또는 서명</b>을 합니다. 예금주가 신청인과 다르면 <b>예금주 동의란</b>에도 받습니다.</li>
       <li>서명한 신청서와 <b>통장 사본</b>을 사무소로 보내 주십시오. — 카카오톡 사진 전송 · 이메일 hb090@hanbaektax.kr · 팩스 02-2277-3161 (문의 02-2277-3101)</li>
     </ol>
+    <div style="margin-top:6px"><b>더 간단하게:</b> 맨 아래 「한백택스로 바로 보내기」를 누르면 작성한 신청서와 사진(통장 사본·서명본)이 메일 앱 없이 사무소로 바로 접수됩니다.</div>
   </div>
 
   <h2><span class="n">1</span>신청 업체</h2>
@@ -289,6 +300,22 @@ body.staff .clientonly{display:none}
   </div>
 
   <ul class="checks" id="checks"></ul>
+
+  <div class="sendbox" id="sendBox">
+    <h2 style="margin-top:0"><span class="n">✉</span>한백택스로 바로 보내기 <span class="hint">(메일 앱 없이 hb090@hanbaektax.kr 로 접수)</span></h2>
+    <div class="fld">첨부 <span class="hint">(통장 사본 · 서명한 신청서 사진 · PDF — 최대 5개, 합계 15MB)</span>
+      <input type="file" id="sendFiles" multiple accept="image/*,application/pdf" onchange="addSendFiles(this)">
+    </div>
+    <div class="list" id="sendFileList"></div>
+    <label class="fld" style="margin-top:8px">전할 말 <span class="hint">(선택)</span><textarea id="sendMemo" rows="2" placeholder="예: 다음 달부터 출금해 주세요. 서명본은 우편으로 보냅니다."></textarea></label>
+    <label class="chk" style="margin-top:6px"><input type="checkbox" id="sendAgree">계좌번호·주민(사업자)등록번호가 담긴 신청 내용을 자동이체 등록 목적으로 세무법인 한백택스에 보내는 데 동의합니다.</label>
+    <div class="toolbar" style="margin:8px 0 0">
+      <button type="button" class="btn n" id="sendBtn" onclick="sendToOffice()">📨 한백택스로 보내기</button>
+      <button type="button" class="btn" onclick="mailToOffice()">✉ 메일 앱으로 보내기</button>
+    </div>
+    <div class="hint" id="sendStatus" style="line-height:1.7">작성한 신청서는 이미지(PNG)로 함께 붙어 갑니다. 서명·날인은 사무소가 원본(또는 사진)으로 받아야 등록되니, 서명한 신청서 사진을 첨부하시면 가장 빠릅니다.</div>
+  </div>
+
   <div class="hint" style="margin-top:10px;line-height:1.7">
     이 화면은 신청서 서식을 채워 주는 도구입니다. 실제 자동이체 등록은 사무소가 CMS 사업자에 접수한 뒤 이뤄지며, 은행별 출금 가능 여부·계좌 상태에 따라 반려될 수 있습니다. 서명·날인한 원본(또는 사본)과 통장 사본이 필요합니다.
   </div>
@@ -614,12 +641,22 @@ function download(blob,name){
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);
 }
 function loadScript(src){return new Promise((ok,ng)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>ng(new Error('load'));document.head.appendChild(s);});}
+/* 신청서 미리보기를 PNG 로. 휴대폰에서 미리보기가 숨겨져 있으면 잠깐 보이게 한 뒤 찍는다.
+   windowWidth 를 신청서 폭(약 625px)으로 주면 복제 화면에 960px 이하 규칙이 걸려
+   #pvPanel 이 숨겨지고 0×0 캔버스가 나온다(v1 의 PC 이미지 저장 실패 원인).
+   휴대폰에서도 A4 배치로 찍히도록 복제 화면 폭을 PC 폭(1280px)으로 고정한다. */
+async function sheetPngBlob(){
+  if(!window.html2canvas)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+  const el=$('sheet'),pv=$('pvPanel'),hidden=getComputedStyle(pv).display==='none';
+  if(hidden)pv.style.setProperty('display','block','important');
+  try{
+    const cv=await html2canvas(el,{scale:2,backgroundColor:'#ffffff',useCORS:true,windowWidth:1280});
+    return await new Promise((ok,ng)=>cv.toBlob(b=>b?ok(b):ng(new Error('png')),'image/png'));
+  }finally{ if(hidden)pv.style.removeProperty('display'); }
+}
 async function savePng(){
   try{
-    if(!window.html2canvas)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
-    const el=$('sheet');
-    const cv=await html2canvas(el,{scale:2,backgroundColor:'#ffffff',useCORS:true,windowWidth:el.scrollWidth});
-    cv.toBlob(b=>{if(!b){alert('이미지를 만들지 못했습니다.');return;}download(b,baseName()+'.png');},'image/png');
+    download(await sheetPngBlob(),baseName()+'.png');
   }catch(e){
     alert('이미지를 만들지 못했습니다(인터넷 연결이 필요합니다).\n인쇄 창에서 「PDF로 저장」을 이용하시거나, 화면을 캡처해 주십시오.');
   }
@@ -704,6 +741,112 @@ function fillSample(){
   persist();refill();render();
 }
 
+/* ═══════ 한백택스로 바로 보내기 — 자료전송 메일중계 ═══════
+ * 카톡채널 포털(한백택스_카톡채널_포털_v3.html)의 RELAY 와 같은 주소·토큰.
+ * 중계(02-도구 & 스크립트/자료전송_메일중계/Code.gs)는 type 을 모르면 consult 로 받고
+ * subject 를 메일 제목 꼬리표로, files 를 첨부로 쓴다. email 이 있으면 답장이 신청인에게 간다. */
+const RELAY={url:'https://script.google.com/macros/s/AKfycbxtBSiGZjkoJEl87cttAm1HUrR4A1D2zyz03S65NOkC6ezSUsHW_8BW5Pq5fkIyBZAK7A/exec',token:'hbtax-relay'};
+const OFFICE_MAIL='hb090@hanbaektax.kr';
+const SEND_MAX_FILES=5, SEND_MAX_BYTES=15*1024*1024;   /* 중계 한도 20MB 안에서 신청서 PNG 몫을 남긴다 */
+let sendFiles=[];
+function relayReady(){return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(RELAY.url||'');}
+function fileToB64(f){return new Promise((ok,ng)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]||'');r.onerror=()=>ng(r.error||new Error('read'));r.readAsDataURL(f);});}
+async function relaySend(payload){
+  const body=JSON.stringify(Object.assign({token:RELAY.token,page:location.href.split('?')[0],ua:navigator.userAgent},payload));
+  const res=await fetch(RELAY.url,{method:'POST',body});   /* Content-Type 지정 안 함 → preflight 없이 전송 */
+  let j={};try{j=await res.json();}catch(e){}
+  if(!res.ok||!j.ok)throw new Error(j.error||('HTTP '+res.status));
+  return j;
+}
+function goSend(){mobPv(false);$('sendBox').scrollIntoView({behavior:'smooth',block:'start'});}
+function mb(n){return (n/1048576).toFixed(1)+'MB';}
+function addSendFiles(inp){
+  const add=Array.from(inp.files||[]);inp.value='';
+  for(const f of add){
+    if(sendFiles.length>=SEND_MAX_FILES){alert('첨부는 '+SEND_MAX_FILES+'개까지입니다.');break;}
+    if(sendFiles.reduce((a,x)=>a+x.size,0)+f.size>SEND_MAX_BYTES){alert(f.name+' — 첨부 합계가 15MB를 넘습니다. 사진 크기를 줄이거나 나눠 보내 주십시오.');continue;}
+    sendFiles.push(f);
+  }
+  renderSendFiles();
+}
+function delSendFile(i){sendFiles.splice(i,1);renderSendFiles();}
+function renderSendFiles(){
+  $('sendFileList').innerHTML=sendFiles.length?sendFiles.map((f,i)=>
+    '<div class="it"><span class="nm">'+esc(f.name)+'</span><span class="mt">'+mb(f.size)+'</span>'+
+    '<button type="button" class="btn sm" onclick="delSendFile('+i+')">빼기</button></div>').join('')
+    :'<div class="empty">첨부 없음 — 통장 사본을 함께 보내 주시면 등록이 빨라집니다.</div>';
+}
+function setSendStatus(t,cls){const s=$('sendStatus');s.textContent=t;s.className='hint'+(cls?' '+cls:'');}
+/* 메일 본문: 사무소가 CMS 사업자에 그대로 옮겨 적을 수 있도록 항목을 모두 적는다 */
+function sendText(memo){
+  const d=S,corp=d.applType==='corp';
+  const L=[
+    '[CMS 자동이체 신청]',
+    '신청인: '+(d.applicant||''),
+    '신청구분: '+(corp?'법인':'개인'),
+    '거래은행: '+(bankName(d)||'')+(d.bank==='기타'?' (원본 서식 목록 외 은행)':''),
+    '계좌번호: '+(d.acct||''),
+    '예금주명: '+(d.holderName||''),
+    (corp?'예금주 사업자등록번호: ':'예금주 주민등록번호: ')+(d.holderId||''),
+    '이체일: '+(String(d.day)===''?'(미선택)':d.day+'일'),
+    '월 기장료: '+(num(d.fee)?fmt(d.fee)+'원 (부가세 포함)':'(미기재)'),
+    '신청일자: '+(d.signDate||''),
+    '이메일: '+(d.email||''),
+    '전화: '+(d.tel||''),
+    '휴대폰: '+(d.mobile||''),
+    '주소: '+(d.addr||'')
+  ];
+  if(d.useDeleg)L.push('','[위임장 — 대리인 신청]','대리인 성명: '+(d.agentName||''),'대리인 주민등록번호: '+(d.agentRrn||''),'신청인과의 관계: '+(d.agentRel||''),'위임일자: '+(d.delegDate||d.signDate||''));
+  const errs=Array.from($('checks').querySelectorAll('li.err,li.warn')).map(li=>'· '+li.textContent.replace(/^[✕!]\s*/,''));
+  if(errs.length)L.push('','[작성 화면 점검 결과]',...errs);
+  L.push('','첨부: '+(sendFiles.length?sendFiles.map(f=>f.name).join(', '):'없음 (신청서 이미지만)'));
+  if(memo)L.push('','전할 말: '+memo);
+  return L.join('\n');
+}
+function sendPreflight(){
+  if(!S.applicant.trim()){alert('신청인(상호)을 먼저 적어 주십시오.');return false;}
+  const errs=Array.from($('checks').querySelectorAll('li.err')).map(li=>'· '+li.textContent.replace(/^✕\s*/,''));
+  if(errs.length&&!confirm('아직 채우지 않았거나 맞지 않는 항목이 있습니다.\n\n'+errs.join('\n')+'\n\n그래도 보낼까요? (사무소에서 연락드려 보완합니다)'))return false;
+  if(!$('sendAgree').checked){alert('계좌번호·주민(사업자)등록번호 전송 동의란에 체크해 주십시오.');$('sendAgree').focus();return false;}
+  return true;
+}
+async function sendToOffice(){
+  if(!sendPreflight())return;
+  if(!relayReady()){mailToOffice(true);return;}
+  const btn=$('sendBtn');btn.disabled=true;
+  const memo=($('sendMemo').value||'').trim();
+  try{
+    setSendStatus('신청서 이미지를 만드는 중…');
+    const enc=[];
+    try{
+      const png=await sheetPngBlob();
+      enc.push({name:baseName()+'.png',type:'image/png',size:png.size,data:await fileToB64(png)});
+    }catch(e){ /* 이미지가 안 되면 본문만으로 접수한다 — 본문에 모든 항목이 있다 */ }
+    for(const f of sendFiles)enc.push({name:f.name,type:f.type||'application/octet-stream',size:f.size,data:await fileToB64(f)});
+    const total=enc.reduce((a,x)=>a+x.size,0);
+    setSendStatus('한백택스로 보내는 중… ('+mb(total)+')');
+    const r=await relaySend({
+      type:'cms', subject:'CMS 자동이체 신청',
+      name:S.applicant.trim(), phone:(S.mobile||S.tel||'').trim(), email:(S.email||'').trim(),
+      text:sendText(memo), files:enc
+    });
+    setSendStatus('접수되었습니다'+(r.id?' · 접수번호 '+r.id:'')+' — 확인 후 연락드립니다. (문의 02-2277-3101)','ok');
+    alert('한백택스로 접수되었습니다.'+(r.id?'\n접수번호 '+r.id:'')+'\n\n서명한 신청서를 첨부하지 않으셨다면, 인쇄 후 서명해 사진으로 보내 주십시오.');
+    sendFiles=[];renderSendFiles();$('sendMemo').value='';
+  }catch(err){
+    setSendStatus('자동 접수 실패('+err.message+') — 「메일 앱으로 보내기」를 이용해 주십시오.','err');
+    if(confirm('자동 접수에 실패했습니다 ('+err.message+').\n메일 앱으로 대신 보낼까요?'))mailToOffice(true);
+  }finally{btn.disabled=false;}
+}
+function mailToOffice(checked){
+  if(!checked&&!sendPreflight())return;
+  const memo=($('sendMemo').value||'').trim();
+  const sub='[한백택스] CMS 자동이체 신청 - '+(S.applicant||'');
+  const body=sendText(memo)+'\n\n※ 통장 사본과 서명한 신청서(사진·PDF)를 이 메일에 첨부해 주십시오.\n  「이미지(PNG)」·「인쇄 · PDF 저장」으로 신청서 파일을 받을 수 있습니다.';
+  location.href='mailto:'+OFFICE_MAIL+'?subject='+encodeURIComponent(sub)+'&body='+encodeURIComponent(body);
+  setSendStatus('메일 앱을 열었습니다. 통장 사본·신청서 파일을 첨부해 보내 주십시오.');
+}
+
 /* ═══════ 시작 ═══════ */
 (function init(){
   try{
@@ -717,7 +860,7 @@ function fillSample(){
   }catch(e){}
   if(!S.signDate)S.signDate=today();
   document.querySelectorAll('#modeTabs button').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
-  bind();setMode(mode);
+  bind();setMode(mode);renderSendFiles();
 })();
 </script>
 </body>

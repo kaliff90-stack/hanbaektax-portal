@@ -391,8 +391,9 @@ button:active{transform:scale(0.95);transition:transform 0.1s}
       <div class="row"><div class="lbl">(-) 근로소득공제</div><div class="auto-cell" id="sal_earned_ded">12,030,000</div><div class="note">소득세법 §47</div></div>
       <div class="row"><div class="lbl">근로소득금액</div><div class="auto-cell" id="sal_earned_income">33,570,000</div></div>
       <div class="row"><div class="lbl">(-) 인적공제</div><div class="auto-cell" id="sal_personal_ded">1,500,000</div><div class="note">부양가족 × 150만</div></div>
-      <div class="row"><div class="lbl">(-) 국민연금보험료공제</div><div class="auto-cell" id="sal_np_ded">2,166,000</div><div class="note">국민연금 × 12</div></div>
-      <div class="row"><div class="lbl">(-) 기타 공제 추정</div><div class="input-cell"><input type="number" id="sal_other_ded" value="0" oninput="calcSalary()"></div><div class="note">건강보험·특별공제 등</div></div>
+      <div class="row"><div class="lbl">(-) 연금보험료공제</div><div class="auto-cell" id="sal_np_ded">2,166,000</div><div class="note">국민연금 × 12 · 소득세법 §51의3</div></div>
+      <div class="row"><div class="lbl">(-) 보험료 특별소득공제</div><div class="auto-cell" id="sal_special_ded">0</div><div class="note">건강·장기요양·고용보험 · 소득세법 §52①</div></div>
+      <div class="row"><div class="lbl">(-) 기타 소득공제</div><div class="input-cell"><input type="number" id="sal_other_ded" value="0" oninput="calcSalary()"></div><div class="note">주택자금·연금저축 등 (연간)</div></div>
       <div class="row"><div class="lbl" style="font-weight:800">과세표준 (연간)</div><div class="auto-cell" id="sal_tax_base">29,904,000</div></div>
       <div class="row"><div class="lbl">산출세액 (연간)</div><div class="auto-cell" id="sal_calc_tax">3,225,600</div></div>
       <div class="row"><div class="lbl">(-) 근로소득세액공제</div><div class="auto-cell" id="sal_tax_credit">660,000</div><div class="note">소득세법 §59</div></div>
@@ -621,7 +622,8 @@ function calcSalary(){
 
   // 4대보험 (2026년 기준 — 국민연금 9.5%/건강보험 7.19%/장기요양 13.14%×건보료/고용 1.8%)
   const lim=npLimits(); const npR_rate=npRate();
-  const npBase=Math.min(Math.max(taxable,lim.min),lim.max);
+  // 기준소득월액 = 보수월액의 천원 미만 절사 후 상·하한 적용 (국민연금법 §3① 5호·시행령 §5)
+  const npBase=Math.min(Math.max(fl(taxable,1000),lim.min),lim.max);
   const npE=fl(npBase*npR_rate,10), npR=fl(npBase*npR_rate,10);
   const hiE=fl(taxable*0.03595,10), hiR=fl(taxable*0.03595,10);
   const ltcE=fl(hiE*0.1314,10), ltcR=fl(hiR*0.1314,10);
@@ -644,8 +646,9 @@ function calcSalary(){
   const earnDed=earnedDeduction(annual);
   const earnedInc=annual-earnDed;
   const personalDed=dep*1500000;
-  const npDed=npE*12;
-  const taxBase=Math.max(earnedInc-personalDed-npDed-otherDed,0);
+  const npDed=npE*12;                       // 연금보험료공제 — 소득세법 §51의3
+  const specialDed=(hiE+ltcE+eiE)*12;       // 보험료 특별소득공제 — 소득세법 §52①
+  const taxBase=Math.max(earnedInc-personalDed-npDed-specialDed-otherDed,0);
   const calcTax=incomeTax(taxBase);
   const taxCredit=earnedTaxCredit(calcTax,annual);
   const finalTax=Math.max(calcTax-taxCredit,0);
@@ -653,7 +656,8 @@ function calcSalary(){
   const localTax=fl(monthlyTax*0.1,10);
 
   s('sal_annual',annual);s('sal_earned_ded',earnDed);s('sal_earned_income',earnedInc);
-  s('sal_personal_ded',personalDed);s('sal_np_ded',npDed);s('sal_tax_base',taxBase);
+  s('sal_personal_ded',personalDed);s('sal_np_ded',npDed);
+  s('sal_special_ded',specialDed);s('sal_tax_base',taxBase);
   s('sal_calc_tax',calcTax);s('sal_tax_credit',taxCredit);s('sal_final_tax',finalTax);
   s('sal_monthly_tax',monthlyTax);s('sal_local_tax',localTax);
 
