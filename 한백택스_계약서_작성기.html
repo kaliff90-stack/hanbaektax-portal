@@ -54,6 +54,17 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
 .btn.p{background:var(--gold);color:#fff;border-color:var(--gold)}
 .btn.n{background:var(--navy);color:#fff;border-color:var(--navy)}
 .btn.sm{padding:4px 8px;font-size:11px}
+/* 서명 패드 · 직인 */
+.sigwrap{margin-top:8px}
+.sigpad{position:relative;border:1.5px dashed #9fb3c8;border-radius:10px;background:#fff;margin-top:4px}
+.sigpad canvas{display:block;width:100%;height:150px;touch-action:none;cursor:crosshair}
+.sigpad .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#b6c2d0;font-size:15px;pointer-events:none}
+.sigpad.has .ph{display:none}
+.sigpad.erase canvas{cursor:cell}
+.sigbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px;font-size:11px;color:var(--gray)}
+.sigbar .tool.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.sheet .sigimg{height:32pt;max-width:130pt;vertical-align:middle;margin:0 2pt}
+.sheet .sealimg{height:54pt;width:54pt;vertical-align:middle;margin:0 4pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .btn:hover{filter:brightness(.96)}
 .allow{display:grid;grid-template-columns:1.2fr 1fr .6fr auto;gap:6px;margin-bottom:6px;align-items:center}
 .allow input,.allow select{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;width:100%}
@@ -438,6 +449,23 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
       <label class="fld">작성일<input type="date" data-k="signDate"></label>
       <label class="fld" style="grid-column:1/-1">특약 사항<textarea data-k="extra"></textarea></label>
     </div>
+    <h2><span class="n">⑦</span>서명 <span class="hint">(을의 직인은 미리 찍혀 있습니다 — 갑만 서명하면 됩니다)</span></h2>
+    <div class="row">
+      <label class="chk"><input type="checkbox" data-k="useSeal" checked>약정서에 <b>을(수임인)의 직인</b>을 미리 찍어 둔다</label>
+      <label class="chk"><input type="checkbox" data-k="agree">갑이 약정 내용을 확인하였다</label>
+    </div>
+    <div class="sigwrap">
+      <div class="fld">갑(위임인) 서명 <span class="hint" id="sigClientWho"></span></div>
+      <div class="sigpad" id="padClientBox"><canvas id="padClient"></canvas><div class="ph">여기에 서명하십시오</div></div>
+      <div class="sigbar">
+        <button type="button" class="btn sm tool on" data-pad="client" data-tool="pen">✏ 펜</button>
+        <button type="button" class="btn sm tool" data-pad="client" data-tool="erase">🧽 지우개</button>
+        <button type="button" class="btn sm" onclick="PADS.client.undo()">↶ 되돌리기</button>
+        <button type="button" class="btn sm" onclick="PADS.client.clear()" style="color:#B91C1C;border-color:#fca5a5">🗑 서명 지우기</button>
+        <span id="sigClientAt"></span>
+      </div>
+      <div class="hint" style="line-height:1.6;margin-top:4px">거래처에 화면을 보여 주고 손가락이나 마우스로 서명을 받으면 약정서가 그대로 완성됩니다. 잘못 쓴 곳은 <b>🧽 지우개</b>로 문지르거나 <b>↶ 되돌리기</b>로 한 획씩 되돌립니다. 서명은 이 브라우저에만 저장되며, 서명한 뒤 약정 내용을 고치면 다시 받으라고 알려 줍니다.</div>
+    </div>
     <div class="calc" id="taxCalc"></div>
     <ul class="checks" id="taxChecks"></ul>
   </div>
@@ -479,7 +507,7 @@ const DEF={
   labor:{kind:'perm',start:'',end:'',coName:'',coRep:'',coBiz:'',coTel:'',coAddr:'',wName:'',wBirth:'',wTel:'',wRrn:'',wAddr:'',place:'',job:'',tIn:'09:00',tOut:'18:00',rest:60,restTime:'12:00~13:00',offDay:'일요일',daysPerWeek:5,dayHours:{월:8,화:8,수:8,목:8,금:8,토:'',일:''},payType:'month',base:'',bonus:'none',bonusDesc:'',allow:[],payDay:'10',payPeriod:'prev',payHow:'bank',probation:'0',probPay:'100',simple:'n',insNP:true,insHI:true,insEI:true,insWC:true,extra:'',signDate:'',showTool:false},
   loan:{lName:'',lType:'ind',lId:'',lTel:'',lAddr:'',bName:'',bType:'ind',bId:'',bTel:'',bAddr:'',rel:'none',amt:'',loanDate:'',dueDate:'',give:'bank',acct:'',rate:'',intHow:'monthly',intDay:'last',repay:'bullet',lateRate:'',prepay:'ok',gName:'',gId:'',gAddr:'',collateral:'',court:'',signDate:'',extra:'',lossClause:true,showSched:true,notary:false,showTool:false},
   free:{coName:'',coRep:'',coBiz:'',coTel:'',coAddr:'',fName:'',fRrn:'',fTel:'',fBiz:'n',fAddr:'',fAcct:'',job:'',deliver:'',start:'',end:'',where:'free',termDays:'30',feeType:'month',fee:'',taxMode:'wht',payDay:'10',expense:'self',ip:'client',confid:true,noSub:true,notWorker:true,showTool:false,rFixed:false,rOrder:false,rExcl:false,rTool:false,court:'',signDate:'',extra:''},
-  tax:{cName:'',cRep:'',cType:'corp',cBiz:'',cTel:'',cEmail:'',cAddr:'',oName:'세무법인 한백택스',oRep:'차재영',oBiz:'',oTel:'02-2277-3101',oAddr:'서울특별시 중구 동호로 315, 신안빌딩 2층',oStaff:'',wBook:true,wVat:true,wWht:true,wIncome:true,wYear:false,wIns:false,wConsult:true,wSincere:false,wEtc:'',start:'',end:'',renew:'auto',fee:'',feeVat:'in',adjFee:'',payDay:'10',payHow:'cms',adjWhen:'filing',confid:true,dataResp:true,capLiab:false,handover:true,eDoc:true,showTool:false,court:'',signDate:'',extra:''}
+  tax:{cName:'',cRep:'',cType:'corp',cBiz:'',cTel:'',cEmail:'',cAddr:'',oName:'세무법인 한백택스',oRep:'차재영',oBiz:'522-85-00152',oTel:'02-2277-3101',oAddr:'서울특별시 중구 동호로 315, 신안빌딩 2층',oStaff:'',wBook:true,wVat:true,wWht:true,wIncome:true,wYear:false,wIns:false,wConsult:true,wSincere:false,wEtc:'',start:'',end:'',renew:'auto',fee:'',feeVat:'in',adjFee:'',payDay:'10',payHow:'cms',adjWhen:'filing',confid:true,dataResp:true,capLiab:false,handover:true,eDoc:true,showTool:false,court:'',signDate:'',extra:'',useSeal:true,agree:false,sigClient:'',sigAt:'',sigFor:''}
 };
 const LSKEY='hbt_contract_v1';
 let S={labor:JSON.parse(JSON.stringify(DEF.labor)),loan:JSON.parse(JSON.stringify(DEF.loan)),free:JSON.parse(JSON.stringify(DEF.free)),tax:JSON.parse(JSON.stringify(DEF.tax))};
@@ -801,6 +829,112 @@ function freeHtml(d,c){
   (d.showTool?'<div class="foot">세무법인 한백택스 계약서 작성기 · 02-2277-3101 · hb090@hanbaektax.kr</div>':'');
 }
 
+/* ═══════ 직인 · 서명 ═══════ */
+const SEAL_RED='#C0392B';
+/* 도장 이미지를 따로 두지 않고 그때그때 그린다 — 사무소명·대표자를 고치면 같이 바뀐다. */
+function sealSvg(office,rep){
+  const F='NanumGothic,\'Nanum Gothic\',\'Malgun Gothic\',sans-serif';
+  const top=/^세무법인/.test(office||'')?'세무법인':'',
+        mid=(office||'').replace(/^세무법인\s*/,'')||'한백택스',
+        bot=rep?('대표 '+rep):'';
+  const t=(y,size,weight,s)=>s?'<text x="50" y="'+y+'" text-anchor="middle" fill="'+SEAL_RED+'" font-family="'+F+'" font-size="'+size+'" font-weight="'+weight+'">'+esc(s)+'</text>':'';
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">'+
+    '<circle cx="50" cy="50" r="46" fill="none" stroke="'+SEAL_RED+'" stroke-width="4"/>'+
+    '<circle cx="50" cy="50" r="40" fill="none" stroke="'+SEAL_RED+'" stroke-width="1.2"/>'+
+    t(top?37:45,12,700,top)+t(top?57:58,18,800,mid)+t(73,9,700,bot)+
+    '</svg>';
+  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+}
+const sigOr=(src,txt)=>/^data:image\//.test(src||'')?'<img class="sigimg" alt="서명" src="'+src+'">':txt;
+/* 서명한 뒤 내용이 바뀌면 다시 받아야 한다 — 바뀜을 알아채는 지문 */
+function taxSigKey(d){
+  return [d.cName,d.cRep,d.cType,d.cBiz,d.start,d.end,d.renew,num(d.fee),d.feeVat,num(d.adjFee),
+          d.payDay,d.payHow,d.adjWhen,TAX_WORKS.map(([k])=>d[k]?1:0).join(''),d.wEtc,d.extra].join('|');
+}
+
+/* 서명 패드 — 포인터로 그린다(터치·펜·마우스). 한 획이 끝날 때마다 여백을 잘라 투명 PNG 로 저장한다. */
+function sigPad(canvasId,form,key,name){
+  const cv=$(canvasId),box=cv.parentNode,ctx=cv.getContext('2d');
+  const INK='#0b1f3a',PEN=2.6,ERASER=18,UNDO_MAX=20;
+  let drawing=false,last=null,w=0,tool='pen',hist=[],shown=null;
+  const dpr=()=>window.devicePixelRatio||1;
+  const cur=()=>S[form][key];
+  function style(){
+    ctx.lineCap='round';ctx.lineJoin='round';
+    if(tool==='erase'){ctx.globalCompositeOperation='destination-out';ctx.lineWidth=ERASER;ctx.strokeStyle='#000';ctx.fillStyle='#000';}
+    else{ctx.globalCompositeOperation='source-over';ctx.lineWidth=PEN;ctx.strokeStyle=INK;ctx.fillStyle=INK;}
+  }
+  function setTool(t){
+    tool=t;style();box.classList.toggle('erase',t==='erase');
+    document.querySelectorAll('.sigbar .tool[data-pad="'+name+'"]').forEach(b=>b.classList.toggle('on',b.dataset.tool===t));
+  }
+  document.querySelectorAll('.sigbar .tool[data-pad="'+name+'"]').forEach(b=>b.addEventListener('click',()=>setTool(b.dataset.tool)));
+  function wipe(){ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);ctx.restore();}
+  function fit(force){
+    const r=cv.getBoundingClientRect();
+    if(!r.width||(!force&&r.width===w))return;
+    w=r.width;cv.width=Math.round(r.width*dpr());cv.height=Math.round(r.height*dpr());
+    ctx.setTransform(dpr(),0,0,dpr(),0,0);style();hist=[];load();
+  }
+  function load(){
+    wipe();shown=cur();box.classList.toggle('has',!!cur());
+    if(!cur())return;
+    const im=new Image();
+    im.onload=()=>{
+      const r=cv.getBoundingClientRect(),iw=im.width/dpr(),ih=im.height/dpr();
+      const k=Math.min(r.width*0.95/iw,r.height*0.95/ih,1);
+      ctx.save();ctx.globalCompositeOperation='source-over';
+      ctx.drawImage(im,(r.width-iw*k)/2,(r.height-ih*k)/2,iw*k,ih*k);ctx.restore();
+    };
+    im.src=cur();
+  }
+  function snap(){hist.push(ctx.getImageData(0,0,cv.width,cv.height));if(hist.length>UNDO_MAX)hist.shift();}
+  function pos(e){const r=cv.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top};}
+  cv.addEventListener('pointerdown',e=>{
+    e.preventDefault();snap();drawing=true;last=pos(e);style();
+    try{cv.setPointerCapture(e.pointerId);}catch(_){}
+    ctx.beginPath();ctx.arc(last.x,last.y,tool==='erase'?ERASER/2:1.2,0,Math.PI*2);ctx.fill();
+    if(tool==='pen')box.classList.add('has');
+  });
+  cv.addEventListener('pointermove',e=>{
+    if(!drawing)return;
+    const p=pos(e);ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p;
+  });
+  const end=()=>{if(!drawing)return;drawing=false;save();};
+  cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);cv.addEventListener('pointerleave',end);
+  function save(){
+    const img=ctx.getImageData(0,0,cv.width,cv.height),d=img.data;
+    let x0=cv.width,y0=cv.height,x1=-1,y1=-1;
+    for(let y=0;y<cv.height;y+=2)for(let x=0;x<cv.width;x+=2){
+      if(d[(y*cv.width+x)*4+3]>8){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}
+    }
+    if(x1<0){S[form][key]='';shown='';S[form].sigFor='';S[form].sigAt='';box.classList.remove('has');persist();render();return;}
+    const pad=8;x0=Math.max(0,x0-pad);y0=Math.max(0,y0-pad);x1=Math.min(cv.width-1,x1+pad);y1=Math.min(cv.height-1,y1+pad);
+    const out=document.createElement('canvas');out.width=x1-x0+1;out.height=y1-y0+1;
+    out.getContext('2d').drawImage(cv,x0,y0,out.width,out.height,0,0,out.width,out.height);
+    S[form][key]=out.toDataURL('image/png');shown=S[form][key];box.classList.add('has');
+    S[form].sigAt=new Date().toLocaleString('ko-KR');S[form].sigFor=taxSigKey(S[form]);
+    persist();render();
+  }
+  function undo(){if(!hist.length)return;ctx.putImageData(hist.pop(),0,0);save();}
+  function clear(){
+    snap();wipe();setTool('pen');
+    S[form][key]='';shown='';S[form].sigFor='';S[form].sigAt='';
+    box.classList.remove('has');persist();render();
+  }
+  function sync(){if(w&&cur()!==shown){hist=[];setTool('pen');load();}}
+  return {fit,load,sync,undo,clear,setTool};
+}
+const PADS={};
+function refreshPads(){
+  if(!PADS.client)return;
+  const d=S.tax;
+  $('sigClientWho').textContent=d.cName?'('+d.cName+(d.cRep?' '+d.cRep:'')+')':'';
+  $('sigClientAt').textContent=d.sigClient?'서명함 · '+d.sigAt:'';
+  PADS.client.fit();PADS.client.sync();
+}
+window.addEventListener('resize',()=>{if(PADS.client)PADS.client.fit(true);});
+
 /* ═══════ 세무대리 약정서 계산 · 점검 ═══════ */
 /* 수임 업무 항목 — 체크 순서대로 약정서 제2조에 번호가 붙는다. 문구는 세무사법 §2 각 호를 따른다. */
 const TAX_WORKS=[
@@ -838,6 +972,12 @@ function taxChecks(d,c){
   add('info','<b>수임 범위 밖</b>(제2조 ②): 세무조사 입회·대리, 불복 청구(과세전적부심사·이의신청·심사·심판), 경정청구, 양도소득세·상속세·증여세 등 재산제세 신고는 별도 약정·보수입니다. 이 문구가 없으면 월 기장료에 포함된 것으로 오해받습니다.');
   if(!d.dataResp)add('warn','자료 미제출·허위 자료에 따른 <b>가산세 부담 주체</b> 조항을 빼셨습니다. 넣어 두는 편이 분쟁을 줄입니다.');
   add('info','을의 의무 근거: 「민법」 제681조(선량한 관리자의 주의), 「세무사법」 제12조(성실의무). 비밀유지 근거: 「세무사법」 제11조(비밀 엄수).');
+  if(d.useSeal)add('ok','을(수임인) 칸에 <b>직인이 찍혀</b> 나갑니다. 갑의 서명만 받으면 약정서가 완성됩니다.');
+  else add('warn','을의 직인을 빼셨습니다. 인쇄한 뒤 사무소 도장을 직접 찍어야 합니다.');
+  if(!d.sigClient)add('warn','<b>갑(위임인) 서명</b>이 없습니다. ⑦에서 거래처에 화면을 보여 주고 바로 받을 수 있습니다.');
+  else if(d.sigFor&&d.sigFor!==taxSigKey(d))add('err','서명을 받은 뒤 <b>약정 내용이 바뀌었습니다</b>(수임 업무·보수·기간 등). 바뀐 내용을 확인하고 <b>서명을 다시</b> 받으십시오.');
+  else add('ok','갑의 서명이 들어갔습니다'+(d.sigAt?' ('+d.sigAt+')':'')+'.');
+  if(d.sigClient&&!d.agree)add('warn','⑦의 <b>약정 내용 확인</b> 칸에 체크해 주십시오.');
   if(!d.signDate)add('warn','작성일이 비어 있습니다.');
   return L;
 }
@@ -846,6 +986,7 @@ function renderTax(){
   $('taxCalc').innerHTML=c.fee?('월 기장료 <b>'+fmt(c.feePay)+'원</b>'+(c.ex?' (부가세 포함 실지급)':' (부가세 포함)')+(c.adj?' · 조정 보수 <b>'+fmt(c.adjPay)+'원</b>':'')+' · 연 <b>'+fmt(c.year)+'원</b> · 수임 업무 <b>'+c.works.length+'건</b>'):'월 기장료를 넣으면 연간 보수가 계산됩니다.';
   $('taxChecks').innerHTML=taxChecks(d,c).map(x=>'<li class="'+x.lv+'">'+x.t+'</li>').join('');
   $('sheet').innerHTML=taxHtml(d,c);
+  refreshPads();
 }
 function taxHtml(d,c){
   let n=0;const art=t=>'<h2>제'+(++n)+'조 ('+t+')</h2>';
@@ -906,13 +1047,15 @@ function taxHtml(d,c){
   (d.extra?art('특약 사항')+'<p>'+esc(d.extra).replace(/\n/g,'<br>')+'</p>':'')+
   '<p style="margin-top:8pt">이 약정의 성립을 증명하기 위하여 약정서 2통을 작성하여 갑과 을이 서명 또는 날인한 후 각 1통씩 보관한다.</p>'+
   '<div class="sign"><p style="text-align:center;margin:10pt 0">'+kd(d.signDate)+'</p>'+
-  '<table class="party"><tr><td>(갑) 상호</td><td>'+esc(d.cName)+'</td></tr><tr><td>사업자등록번호</td><td>'+esc(d.cBiz)+'</td></tr><tr><td>주소</td><td>'+esc(d.cAddr)+'</td></tr><tr><td>전화</td><td>'+esc(d.cTel)+'</td></tr><tr><td>대표자</td><td>'+esc(d.cRep)+' <span class="stamp">(서명 또는 인)</span></td></tr></table>'+
-  '<table class="party" style="margin-top:8pt"><tr><td>(을) 사무소</td><td>'+esc(d.oName)+'</td></tr><tr><td>사업자등록번호</td><td>'+esc(d.oBiz)+'</td></tr><tr><td>주소</td><td>'+esc(d.oAddr)+'</td></tr><tr><td>전화</td><td>'+esc(d.oTel)+'</td></tr><tr><td>대표 세무사</td><td>'+esc(d.oRep)+' <span class="stamp">(서명 또는 인)</span></td></tr>'+(d.oStaff?'<tr><td>담당</td><td>'+esc(d.oStaff)+'</td></tr>':'')+'</table></div>'+
+  '<table class="party"><tr><td>(갑) 상호</td><td>'+esc(d.cName)+'</td></tr><tr><td>사업자등록번호</td><td>'+esc(d.cBiz)+'</td></tr><tr><td>주소</td><td>'+esc(d.cAddr)+'</td></tr><tr><td>전화</td><td>'+esc(d.cTel)+'</td></tr><tr><td>대표자</td><td>'+esc(d.cRep)+'\u3000'+sigOr(d.sigClient,'<span class="stamp">(서명 또는 인)</span>')+'</td></tr></table>'+
+  '<table class="party" style="margin-top:8pt"><tr><td>(을) 사무소</td><td>'+esc(d.oName)+'</td></tr><tr><td>사업자등록번호</td><td>'+esc(d.oBiz)+'</td></tr><tr><td>주소</td><td>'+esc(d.oAddr)+'</td></tr><tr><td>전화</td><td>'+esc(d.oTel)+'</td></tr><tr><td>대표 세무사</td><td>'+esc(d.oRep)+'\u3000'+(d.useSeal?'<img class="sealimg" alt="직인" src="'+sealSvg(d.oName,d.oRep)+'">':'<span class="stamp">(서명 또는 인)</span>')+'</td></tr>'+(d.oStaff?'<tr><td>담당</td><td>'+esc(d.oStaff)+'</td></tr>':'')+'</table></div>'+
   (d.showTool?'<div class="foot">세무법인 한백택스 계약서 작성기 · 02-2277-3101 · hb090@hanbaektax.kr</div>':'');
 }
 
 function render(){if(doc==='labor')renderLabor();else if(doc==='loan')renderLoan();else if(doc==='tax')renderTax();else renderFree();}
-bind();renderDays();renderAllow();showDoc(doc);
+bind();renderDays();renderAllow();
+PADS.client=sigPad('padClient','tax','sigClient','client');
+showDoc(doc);
 </script>
 </body>
 </html>
