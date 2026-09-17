@@ -292,7 +292,7 @@ body.staff .clientonly{display:none}
     <label class="fld" style="grid-column:1/-1">계좌번호<input data-k="acct" placeholder="예: 124456-01-789001" inputmode="numeric"></label>
     <label class="fld">예금주명<input data-k="holderName" placeholder="통장에 적힌 그대로"></label>
     <label class="fld" style="align-self:end"><span class="chk"><input type="checkbox" data-k="holderSame">신청인과 같음</span></label>
-    <label class="fld" style="grid-column:1/-1" id="holderIdFld">예금주 주민등록번호 <span class="hint">(법인은 사업자등록번호)</span><input data-k="holderId" placeholder="000000-0000000" inputmode="numeric"></label>
+    <label class="fld" style="grid-column:1/-1" id="holderIdFld">예금주 주민등록번호 <span class="hint" id="holderIdHint">(개인은 주민등록번호 13자리)</span><input data-k="holderId" placeholder="000000-0000000" inputmode="numeric"></label>
   </div>
 
   <h2><span class="n">3</span>이체일 · 기장료</h2>
@@ -472,7 +472,11 @@ function refill(){
   });
   $('delegRow').style.display=S.useDeleg?'':'none';
   $('bankEtcFld').style.display=S.bank==='기타'?'':'none';
-  $('holderIdFld').firstChild.nodeValue=S.applType==='corp'?'예금주 사업자등록번호 ':'예금주 주민등록번호 ';
+  /* 예금주 번호 칸은 신청구분을 따라간다 — 법인이면 사업자등록번호(10자리), 개인이면 주민등록번호(13자리) */
+  const corpSel=S.applType==='corp';
+  $('holderIdFld').firstChild.nodeValue=corpSel?'예금주 사업자등록번호 ':'예금주 주민등록번호 ';
+  $('holderIdHint').textContent=corpSel?'(법인은 사업자등록번호 10자리)':'(개인은 주민등록번호 13자리)';
+  $('holderIdFld').querySelector('input').placeholder=corpSel?'000-00-00000':'000000-0000000';
   renderBanks();renderDays();
 }
 function renderBanks(){
@@ -506,11 +510,12 @@ function checks(){
   if(!d.holderName.trim())add('err','<b>예금주명</b>을 통장에 적힌 그대로 적어 주십시오.');
   if(!d.holderId.trim())add('err',(d.applType==='corp'?'<b>예금주 사업자등록번호</b>':'<b>예금주 주민등록번호</b>')+'를 적어 주십시오.');
   else if(d.applType==='corp'){
-    if(dg(d.holderId).length===13&&rrnOk(d.holderId))add('warn','신청구분이 <b>법인</b>인데 주민등록번호가 들어갔습니다. 법인은 사업자등록번호를 적습니다(원본 서식 안내).');
+    if(dg(d.holderId).length===13)add('err','신청구분이 <b>법인</b>입니다. 주민등록번호(13자리)가 아니라 <b>사업자등록번호(10자리)</b>를 적어 주십시오.');
     else if(!bizOk(d.holderId))add('err','<b>사업자등록번호가 맞지 않습니다</b>(10자리·검증식). 다시 확인하십시오.');
     else add('ok','사업자등록번호 형식 확인 — 정상');
   }else{
-    if(!rrnOk(d.holderId))add('err','<b>주민등록번호가 맞지 않습니다</b>(13자리·검증식). 다시 확인하십시오.');
+    if(dg(d.holderId).length===10)add('err','신청구분이 <b>개인</b>입니다. 사업자등록번호(10자리)가 아니라 <b>주민등록번호(13자리)</b>를 적어 주십시오.');
+    else if(!rrnOk(d.holderId))add('err','<b>주민등록번호가 맞지 않습니다</b>(13자리·검증식). 다시 확인하십시오.');
     else add('ok','주민등록번호 형식 확인 — 정상');
   }
   if(d.applicant.trim()&&d.holderName.trim()&&d.applicant.trim()!==d.holderName.trim())
@@ -568,7 +573,7 @@ function sheetHtml(d,wd){
   '<tr><th>거래은행</th><td colspan="5" class="bk">'+banks+'</td></tr>'+
   '<tr><th>계좌번호</th><td colspan="5">'+val(d.acct)+'</td></tr>'+
   '<tr><th>예금주<br>'+(corp?'사업자번호':'주민번호')+'</th><td colspan="5">'+val(d.holderId)+
-    '　<span style="font-size:8.5pt;color:#333">(법인은 사업자번호 기재)</span></td></tr>'+
+    '　<span style="font-size:8.5pt;color:#333">('+(corp?'법인은 사업자번호':'개인은 주민번호')+' 기재)</span></td></tr>'+
   '<tr><th>예금주명</th><td colspan="2">'+val(d.holderName)+'</td><th>이메일</th><td colspan="2">'+val(d.email)+'</td></tr>'+
   '<tr><th>전화</th><td colspan="2">'+telFmt(d.tel)+'</td><th>휴대폰</th><td colspan="2">'+telFmt(d.mobile)+'</td></tr>'+
   '<tr><th>주소</th><td colspan="2">'+val(d.addr)+'</td><th>이체일</th><td colspan="2" class="c">'+days+'</td></tr>'+
