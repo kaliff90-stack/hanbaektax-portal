@@ -10,7 +10,7 @@
   세무법인 한백택스 CMS 자동이체 신청서 작성기 v1 (2026-09-17)
   - 원본 서식: 볼트 루트 「cms신청서 (2).xls」 두 번째 시트( 자동이체 신청서 ).
     항목·안내문구·거래은행 19개·예금주 동의란·위임장(대리인) 구성을 그대로 옮겼다.
-    이체일은 사무소 방침(2026-09-17)으로 5·10·15·25·30일 다섯 칸 고정(원본의 4칸 자유기재·회피일 안내는 쓰지 않는다).
+    이체일은 사무소 방침(2026-09-17)으로 1·5·10·15·25·30일 여섯 칸 고정(원본의 4칸 자유기재·회피일 안내는 쓰지 않는다).
     원본에 없는 항목은 만들지 않았다. 다만 원본 목록에 없는 은행(인터넷전문은행 등)을 위해
     「기타」 한 칸을 두었고, 고르면 점검란에 원본 서식에 없는 항목임을 표시한다.
   - 두 가지 쓰임새
@@ -19,7 +19,7 @@
   - 출력: 인쇄·PDF / 이미지(PNG) / 워드(.doc) / JSON.
   - 점검: 사업자등록번호 10자리·주민등록번호 13자리 검증식, 계좌번호 자릿수, 이메일·휴대폰 형식,
     예금주와 신청인이 다를 때 동의란 서명, 대리인 신청 시 위임장,
-    이체일은 5·10·15·25·30일 중에서만 고른다.
+    이체일은 1·5·10·15·25·30일 중에서만 고른다.
   - 계좌번호·주민등록번호는 이 브라우저(localStorage)에만 남는다. 서버로 보내지 않는다.
     업체 작성 링크에도 계좌번호·주민등록번호·대리인 주민번호는 담지 않는다.
   - 예외: 「한백택스로 바로 보내기」(v2, 2026-09-17)
@@ -34,7 +34,7 @@
     업체 이메일이 있고 원하면 접수 확인 메일(type=notify, 계좌·주민번호 가림)을 보낸다.
   - 화면 서명(v3, 2026-09-17)
     신청인 서명(위임장 신청인란에도 같은 서명), 예금주가 다르면 예금주 동의 서명을 화면에서 받는다.
-    패드 도구: 펜 · 지우개 · 되돌리기(획 단위) · 전체 지우기. 저장된 서명 위에 이어 쓰거나 일부만 지울 수 있다.
+    패드 도구: 펜 · 지우개 · 되돌리기(획 단위) · 서명 지우기(전체). 화면 「초기화」도 서명을 지운다. 저장된 서명 위에 이어 쓰거나 일부만 지울 수 있다.
     서명은 투명 PNG(dataURL)로 이 브라우저에만 저장되고, 미리보기·인쇄·PNG·전송에 그대로 찍힌다.
     업체 작성 링크에는 담지 않는다. 전송 시 신청 내용+서명의 SHA-256 을 문서번호와 함께 남긴다(중계 접수대장 기록).
     워드(.doc) 출력에는 서명 이미지가 나오지 않을 수 있다(워드의 data URI 처리).
@@ -76,7 +76,7 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
 .banks label{display:flex;align-items:center;justify-content:center;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:7px 2px;cursor:pointer;background:#fff;color:#111}
 .banks label.on{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:800}
 .banks input{display:none}
-.daypick{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.daypick{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
 .daypick .d{border:1px solid var(--line);border-radius:8px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;background:#fff;font-family:inherit}
 .daypick .d .n{font-size:18px;font-weight:800;color:var(--navy)}
 .daypick .d.on .n{color:#fff}
@@ -154,6 +154,7 @@ body.staff .clientonly{display:none}
   .sheet{padding:7mm 5mm;min-height:auto;font-size:9pt}
   .row,.row.c3{grid-template-columns:1fr}
   .banks{grid-template-columns:repeat(4,1fr)}
+  .daypick{grid-template-columns:repeat(3,1fr)}
   .top h1{font-size:16px}
   .doctabs{margin-left:0;width:100%}
   .doctabs button{flex:1}
@@ -295,7 +296,7 @@ body.staff .clientonly{display:none}
   </div>
 
   <h2><span class="n">3</span>이체일 · 기장료</h2>
-  <div class="fld" style="margin-bottom:5px">이체일 <span class="hint">(5·10·15·25·30일 중 하나를 누릅니다)</span></div>
+  <div class="fld" style="margin-bottom:5px">이체일 <span class="hint">(1·5·10·15·25·30일 중 하나를 누릅니다)</span></div>
   <div class="daypick" id="dayPick"></div>
   <div class="row" style="margin-top:8px">
     <label class="fld num">월 기장료 (원) <span class="hint">부가세 포함</span><input data-k="fee" inputmode="numeric" placeholder="330,000"></label>
@@ -319,7 +320,7 @@ body.staff .clientonly{display:none}
       <button type="button" class="btn sm tool on" data-pad="applicant" data-tool="pen">✏ 펜</button>
       <button type="button" class="btn sm tool" data-pad="applicant" data-tool="erase">🧽 지우개</button>
       <button type="button" class="btn sm" onclick="PADS.applicant.undo()">↶ 되돌리기</button>
-      <button type="button" class="btn sm" onclick="PADS.applicant.clear()">전체 지우기</button>
+      <button type="button" class="btn sm" onclick="PADS.applicant.clear()" style="color:#B91C1C;border-color:#fca5a5">🗑 서명 지우기</button>
       <span id="sigApplicantAt"></span>
     </div>
   </div>
@@ -330,12 +331,12 @@ body.staff .clientonly{display:none}
       <button type="button" class="btn sm tool on" data-pad="holder" data-tool="pen">✏ 펜</button>
       <button type="button" class="btn sm tool" data-pad="holder" data-tool="erase">🧽 지우개</button>
       <button type="button" class="btn sm" onclick="PADS.holder.undo()">↶ 되돌리기</button>
-      <button type="button" class="btn sm" onclick="PADS.holder.clear()">전체 지우기</button>
+      <button type="button" class="btn sm" onclick="PADS.holder.clear()" style="color:#B91C1C;border-color:#fca5a5">🗑 서명 지우기</button>
       <span id="sigHolderAt"></span>
     </div>
   </div>
   <label class="chk" style="margin-top:6px"><input type="checkbox" data-k="sigConsent">위 서명은 본인이 직접 한 것이며, 이 신청서에 적힌 계좌에서 기장료를 자동이체(출금)하는 데 동의합니다.</label>
-  <div class="hint" style="line-height:1.6">잘못 쓴 부분은 <b>🧽 지우개</b>로 문질러 지우거나 <b>↶ 되돌리기</b>로 한 획씩 되돌립니다. 서명은 이 브라우저에만 저장되고, 「한백택스로 보내기」를 누를 때 신청서 이미지에 찍혀 함께 전송됩니다. 대리인이 신청하면 위임장 신청인란에도 신청인 서명이 들어갑니다. 출금이체 동의 증빙으로 어떤 방식을 인정하는지는 CMS 이용 약관에 따르므로, 사무소가 원본 서명을 따로 요청할 수 있습니다.</div>
+  <div class="hint" style="line-height:1.6">잘못 쓴 부분은 <b>🧽 지우개</b>로 문질러 지우거나 <b>↶ 되돌리기</b>로 한 획씩 되돌립니다. 처음부터 다시 쓰려면 <b>🗑 서명 지우기</b>를 누릅니다(맨 위 「초기화」도 서명까지 지웁니다). 서명은 이 브라우저에만 저장되고, 「한백택스로 보내기」를 누를 때 신청서 이미지에 찍혀 함께 전송됩니다. 대리인이 신청하면 위임장 신청인란에도 신청인 서명이 들어갑니다. 출금이체 동의 증빙으로 어떤 방식을 인정하는지는 CMS 이용 약관에 따르므로, 사무소가 원본 서명을 따로 요청할 수 있습니다.</div>
 
   <div class="staffonly">
     <h2><span class="n">5</span>사무소 표기</h2>
@@ -387,7 +388,7 @@ body.staff .clientonly{display:none}
 
 /* ═══════ 서식 고정값 — 원본 「cms신청서 (2).xls」 그대로 ═══════ */
 const BANKS=['경남','광주','국민','기업','농협','대구','부산','새마을금고','시티','신한','신협','외환','우리','우체국','전북','제일','제주','수협','하나'];
-const DAYS=[5,10,15,25,30];                     /* 사무소 이체일 — 이 다섯 날만 고른다 */
+const DAYS=[1,5,10,15,25,30];                   /* 사무소 이체일 — 이 여섯 날만 고른다 */
 const OFFICE='세무법인 한백택스';
 const OFFICE_FOOT='서울특별시 중구 동호로 315, 신안빌딩 2층 · 전화 02-2277-3101 · 팩스 02-2277-3161 · hb090@hanbaektax.kr';
 const GREET=[

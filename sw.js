@@ -5,7 +5,7 @@
  *   { type:'SKIP_WAITING' }             → 대기 중인 새 워커를 즉시 활성화
  * 캐시 이름을 올리면 구캐시가 정리되고 새 자산을 다시 받는다.
  */
-const CACHE = 'hanbaektax-v42';
+const CACHE = 'hanbaektax-v43';
 
 /* 앱 셸 — 설치 즉시 확보 */
 const SHELL = [
@@ -29,7 +29,7 @@ self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE).then(cache =>
       Promise.all(SHELL.map(u => cache.add(u).catch(() => null)))
-    )
+    ).then(() => self.skipWaiting())   /* 새 버전은 기다리지 않고 바로 적용 — 포털·계산기 창에는 업데이트 단추가 없다 */
   );
 });
 
@@ -82,7 +82,9 @@ async function status(urls, port) {
 }
 
 /* ── 요청 처리 ──
- * 같은 출처: 캐시 우선 + 배경 갱신(stale-while-revalidate)
+ * 같은 출처 HTML 문서(페이지·iframe): 네트워크 우선 — 배포한 수정이 첫 새로고침에 바로 보이게 한다.
+ *   실패(오프라인)하면 캐시본, 그것도 없으면 캐시된 index.html.
+ * 같은 출처 그 밖의 자산: 캐시 우선 + 배경 갱신(stale-while-revalidate)
  * 구글 폰트: 캐시 우선
  * 그 밖의 외부 요청: 네트워크 그대로
  * 오프라인에서 문서 요청이 실패하면 캐시된 index.html 로 돌린다.
@@ -97,6 +99,24 @@ self.addEventListener('fetch', e => {
   const sameOrigin = url.origin === self.location.origin;
   const isFont = FONT_HOSTS.indexOf(url.hostname) >= 0;
   if (!sameOrigin && !isFont) return;
+
+  const isDoc = sameOrigin && (req.mode === 'navigate' || req.destination === 'document' ||
+    req.destination === 'iframe' || /\.html?$/i.test(url.pathname) || url.pathname.endsWith('/'));
+  if (isDoc) {
+    e.respondWith(
+      fetch(req)
+        .then(res => {
+          if (res && res.status === 200 && res.type === 'basic') {
+            const copy = res.clone();
+            e.waitUntil(caches.open(CACHE).then(cache => cache.put(req, copy)));
+          }
+          return res;
+        })
+        .catch(() => caches.open(CACHE).then(cache =>
+          cache.match(req, { ignoreSearch: true }).then(hit => hit || cache.match('./index.html'))))
+    );
+    return;
+  }
 
   e.respondWith(
     caches.open(CACHE).then(cache =>
