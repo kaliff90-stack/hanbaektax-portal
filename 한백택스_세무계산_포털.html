@@ -384,6 +384,7 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
   <div class="nav-item" data-page="corp">법인세</div>
   <div class="nav-item" data-page="ins">4대보험</div>
   <div class="nav-item" data-page="retire">퇴직소득세</div>
+  <div class="nav-item" data-page="exretire">임원퇴직한도</div>
   <div class="nav-item" data-page="acq">취득세·종부세</div><div class="nav-item" data-page="inh">상속세</div><div class="nav-item" data-page="bugift">부담부증여</div><div class="nav-item" data-page="bizinh">가업상속</div><div class="nav-item" data-page="gasan">가산세</div><div class="nav-item" data-page="biz">업종코드</div><div class="nav-item" data-page="contract">계약서</div><div class="nav-item" data-page="cms">CMS신청서</div><div class="nav-item" data-page="board">내부 업무</div>
 </div>
 
@@ -465,6 +466,12 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
       <div class="badge">2026·검증</div>
       <h3>퇴직소득세 계산기</h3>
       <p>근속연수공제→환산급여→연분연승<br>8단계 오류검증·중간정산 합산특례</p>
+    </a>
+    <a class="dash-card" data-go="exretire" href="javascript:void(0)" onclick="goPage('exretire')">
+      <div class="icon" style="background:#FEF2F2;color:#B91C1C">👔</div>
+      <div class="badge">2026·신규</div>
+      <h3>임원 퇴직소득 한도초과액</h3>
+      <p>소득세법 §22③ 3배·2배 한도·2011년 이전분 차감<br>손금한도 선검토·초과액 근로소득 세부담 비교</p>
     </a>
     <a class="dash-card" data-go="acq" href="javascript:void(0)" onclick="goPage('acq')">
       <div class="icon" style="background:#ECFDF5;color:#047857">🏘️</div>
@@ -554,6 +561,15 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
     <a href="#" onclick="openCalc('retire');return false" style="display:inline-block;font-size:13px;font-weight:700;color:var(--blue);border:1.5px solid var(--blue);border-radius:8px;padding:7px 14px;text-decoration:none;cursor:pointer">새 창으로 크게 보기 ↗</a>
   </div>
   <iframe id="retireFrame" title="퇴직소득세 계산기" style="width:100%;height:82vh;min-height:560px;border:1px solid var(--border);border-radius:12px;background:#fff;display:block"></iframe>
+</div>
+<!-- ==================== 임원 퇴직소득 한도초과액 ==================== -->
+<div class="page" id="page-exretire">
+  <div class="calc-title"><h2>임원 퇴직소득 한도초과액</h2><div class="sub">소득세법 제22조 ③ — 2012~2019 근무분 3배 · 2020년 이후 근무분 2배 한도를 넘는 임원 퇴직소득은 근로소득입니다. 법인세법 손금한도 → 2011년 이전분 차감 → 한도 → 한도 이내 퇴직소득세 → 초과액 근로소득 세부담까지 계산합니다.</div></div>
+  <div style="margin:0 0 10px;text-align:right">
+    <a href="한백택스_임원퇴직소득_한도계산기.html" target="_blank" rel="noopener" style="display:inline-block;font-size:13px;font-weight:700;color:var(--blue);border:1.5px solid var(--blue);border-radius:8px;padding:7px 14px;text-decoration:none;cursor:pointer">새 창으로 크게 보기 ↗</a>
+  </div>
+  <iframe id="exretireFrame" title="임원 퇴직소득 한도초과액 계산기" style="width:100%;height:82vh;min-height:560px;border:1px solid var(--border);border-radius:12px;background:#fff;display:block"></iframe>
+  <script>(function(){function fill(){var f=document.getElementById('exretireFrame');if(f&&!f.getAttribute('src'))f.setAttribute('src','한백택스_임원퇴직소득_한도계산기.html');}function on(e){var t=e.target,el=t&&t.closest?t.closest('[data-page="exretire"],[data-go="exretire"]'):null;if(el)setTimeout(fill,0);}document.addEventListener('click',on,true);document.addEventListener('touchend',on,true);window.addEventListener('load',function(){try{if(new URLSearchParams(location.search).get('page')==='exretire')fill();}catch(e){}});})();</script>
 </div>
 <!-- ==================== v2 내장: 취득세·종부세 계산기 ==================== -->
 <div class="page" id="page-acq">
