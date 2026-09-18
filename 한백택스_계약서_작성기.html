@@ -20,6 +20,14 @@
   - 세무대리 약정서 : 세무사법 제2조(세무사의 직무) 각 호에서 수임 업무를 고른다. 민법 제680조(위임)·제681조(선관의무),
     세무사법 제12조(성실의무)·제11조(비밀 엄수)를 조문 근거로 적는다. 기장료·조정료를 나누어 적고 부가세 포함·별도를
     구분해 연간 보수를 계산한다. 세무조사 대리·불복·경정청구·재산제세 신고는 수임 범위 밖으로 명시한다.
+  - 임원퇴직금 지급규정(정관) (2026-09-18 추가)
+    정관 조항(지급규정 위임형 / 정관 직접 기재형) + 임원퇴직금 지급규정 전문(직위별 지급배수표) + 주주총회 의사록(안).
+    근거(K-Law MCP 원문 확인 2026-09-18): 상법 제388조(이사 보수 — 정관 또는 주주총회 결의)·제415조(감사 준용)·
+    제433조·제434조(정관 변경 특별결의: 출석 의결권 2/3 이상 + 발행주식총수 1/3 이상)·제368조 ①(보통결의),
+    법인세법 시행령 제44조 ④⑤(정관·정관 위임 지급규정 금액이 손금 한도, 없으면 1년 총급여×1/10×근속연수)·② 5호·시행규칙 제22조 ③(중간정산 사유),
+    소득세법 제22조 ③(퇴직소득 한도 — 2020년 이후 근무분 2배, 초과분 근로소득),
+    대법원 2016.2.18. 선고 2015두50153(특정 임원 자금 분여용 급격 인상 규정은 정관상 규정으로 보지 않음, 퇴직 직전 급여 인상분 제외),
+    서울행정법원 2018.5.18. 선고 2017구합5034(지배주주 임원만을 위하여 개정한 지급규정).
   - 데이터는 이 브라우저(localStorage)에만 저장된다. 서버로 보내지 않는다. JSON 저장·불러오기 지원.
   - 인쇄: A4, 나눔고딕 11pt 이상.
 -->
@@ -179,13 +187,14 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
 <div class="top">
   <div>
     <h1>계약서 작성기</h1>
-    <div class="sub">근로계약서 · 금전소비대차계약서 · 프리랜서(3.3%) 업무위탁계약서 — 입력하면 오른쪽에 바로 만들어지고, 법정 기재사항과 한도를 점검합니다. 내용은 이 브라우저에만 저장됩니다.</div>
+    <div class="sub">근로계약서 · 금전소비대차계약서 · 프리랜서(3.3%) 업무위탁계약서 · 임원퇴직금 지급규정(정관) — 입력하면 오른쪽에 바로 만들어지고, 법정 기재사항과 한도를 점검합니다. 내용은 이 브라우저에만 저장됩니다.</div>
   </div>
   <div class="doctabs" id="docTabs">
     <button type="button" data-doc="tax" class="on">세무대리 약정서</button>
     <button type="button" data-doc="labor">근로계약서</button>
     <button type="button" data-doc="loan">금전소비대차계약서</button>
     <button type="button" data-doc="free">프리랜서(3.3%) 계약서</button>
+    <button type="button" data-doc="exec">임원퇴직금 규정(정관)</button>
   </div>
 </div>
 
@@ -391,6 +400,77 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
     <ul class="checks" id="freeChecks"></ul>
   </div>
 
+
+  <!-- ══════════════ 임원퇴직금 지급규정(정관) 입력 ══════════════ -->
+  <div id="form-exec" style="display:none">
+    <h2>① 회사</h2>
+    <div class="row">
+      <label class="fld">상호 <span class="hint">(주식회사 기준)</span><input data-k="coName" placeholder="예: 주식회사 예시상사"></label>
+      <label class="fld">대표이사<input data-k="coRep"></label>
+      <label class="fld">사업자등록번호<input data-k="coBiz" placeholder="000-00-00000" inputmode="numeric"></label>
+      <label class="fld">정관 조문 번호 <span class="hint">(임원 보수 조항)</span><input data-k="artNo" inputmode="numeric" placeholder="예: 37"></label>
+      <label class="fld" style="grid-column:1/-1">본점 주소<input data-k="coAddr"></label>
+    </div>
+    <h2>② 정관에 넣는 방식</h2>
+    <div class="row c1">
+      <label class="fld">방식<select data-k="mode">
+        <option value="delegate">정관은 위임만 — 배수·산식은 「임원퇴직금 지급규정」에 둔다 (권장: 개정이 쉬움)</option>
+        <option value="direct">정관에 산식과 직위별 지급배수를 직접 적는다</option>
+      </select></label>
+    </div>
+    <h2>③ 퇴직금 산식</h2>
+    <div class="row">
+      <label class="fld">기준급여<select data-k="baseType">
+        <option value="avg3m">퇴직 전 3개월 평균 월급여 × 근속연수 × 지급배수</option>
+        <option value="year1">퇴직 전 1년 총급여 × 1/10 × 근속연수 × 지급배수</option>
+        <option value="avg3y">퇴직 전 3년 연평균 총급여 × 1/10 × 근속연수 × 지급배수</option>
+      </select></label>
+      <label class="fld">근속연수 계산<select data-k="yrsMode">
+        <option value="month">1년 미만은 월할 (1개월 미만은 버림)</option>
+        <option value="up">1년 미만은 1년으로</option>
+        <option value="down">1년 미만은 버림</option>
+      </select></label>
+      <label class="chk"><input type="checkbox" data-k="inclBonus" checked>기준급여에 정기상여 포함</label>
+      <label class="chk"><input type="checkbox" data-k="countStaff" checked>직원 근무기간 통산 (임원 취임 때 퇴직금을 받지 않은 경우)</label>
+    </div>
+    <h2>④ 직위별 지급배수</h2>
+    <div id="execRows"></div>
+    <button type="button" class="btn sm" onclick="addExecRow()">＋ 직위 추가</button>
+    <span class="hint" style="margin-left:6px">예: 대표이사 3배 · 전무 2배 · 상무 1.5배 · 이사·감사 1배</span>
+    <h2>⑤ 넣을 조항</h2>
+    <div class="row">
+      <label class="chk"><input type="checkbox" data-k="midSettle" checked>중간정산 (법인세법상 인정 사유만)</label>
+      <label class="chk"><input type="checkbox" data-k="pension" checked>퇴직연금(DC·DB) 적립분 차감</label>
+      <label class="chk"><input type="checkbox" data-k="limitPay" checked>배임·횡령 등으로 해임된 경우 감액·미지급</label>
+      <label class="chk"><input type="checkbox" data-k="heir" checked>재임 중 사망 시 유족에게 지급</label>
+      <label class="chk"><input type="checkbox" data-k="retro">시행 전 근속기간에도 이 규정 적용</label>
+      <label class="chk"><input type="checkbox" data-k="minutes" checked>주주총회 의사록(안) 붙이기</label>
+      <label class="chk"><input type="checkbox" data-k="showTool">문서 하단에 작성 도구 표시</label>
+    </div>
+    <div class="row">
+      <label class="fld">지급 기한<select data-k="payDays"><option value="14">퇴직일부터 14일 이내</option><option value="30">퇴직일부터 30일 이내</option><option value="60">퇴직일부터 60일 이내</option></select></label>
+      <label class="fld">시행일<input type="date" data-k="effDate"></label>
+    </div>
+    <h2>⑥ 주주총회 <span class="hint">(의사록·결의 요건 점검)</span></h2>
+    <div class="row c3">
+      <label class="fld">개최일<input type="date" data-k="meetDate"></label>
+      <label class="fld">개최 장소<input data-k="meetPlace" placeholder="본점 회의실"></label>
+      <label class="fld">의장<input data-k="chair" placeholder="대표이사 ○○○"></label>
+      <label class="fld num">발행주식 총수<input data-k="shTotal" inputmode="numeric" placeholder="10000"></label>
+      <label class="fld num">출석 주식수<input data-k="shAttend" inputmode="numeric" placeholder="10000"></label>
+      <label class="fld num">찬성 주식수<input data-k="shYes" inputmode="numeric" placeholder="10000"></label>
+    </div>
+    <h2>⑦ 예시 계산 <span class="hint">(문서에는 안 들어감 · 세금 점검용)</span></h2>
+    <div class="row c3">
+      <label class="fld">직위<select data-k="exPos" id="exPosSel"></select></label>
+      <label class="fld num" id="exSalLbl">기준급여 (원)<input data-k="exSal" inputmode="numeric" placeholder="10,000,000"></label>
+      <label class="fld num">근속연수 (년)<input type="number" data-k="exYears" step="0.01" min="0" placeholder="10"></label>
+      <label class="fld num" style="grid-column:1/-1">퇴직 전 3년 연평균 총급여 (원) <span class="hint">소득세법 한도 추정용 · 비우면 기준급여로 환산</span><input data-k="exAnnual" inputmode="numeric" placeholder="120,000,000"></label>
+    </div>
+    <div class="calc" id="execCalc"></div>
+    <ul class="checks" id="execChecks"></ul>
+  </div>
+
   <!-- ══════════════ 세무대리 약정서 입력 ══════════════ -->
   <div id="form-tax" style="display:none">
     <h2>① 위임인(갑)</h2>
@@ -540,30 +620,35 @@ const DEF={
   labor:{kind:'perm',start:'',end:'',coName:'',coRep:'',coBiz:'',coTel:'',coAddr:'',wName:'',wBirth:'',wTel:'',wRrn:'',wAddr:'',place:'',job:'',tIn:'09:00',tOut:'18:00',rest:60,restTime:'12:00~13:00',offDay:'일요일',daysPerWeek:5,dayHours:{월:8,화:8,수:8,목:8,금:8,토:'',일:''},payType:'month',base:'',bonus:'none',bonusDesc:'',allow:[],payDay:'10',payPeriod:'prev',payHow:'bank',probation:'0',probPay:'100',simple:'n',insNP:true,insHI:true,insEI:true,insWC:true,extra:'',signDate:'',showTool:false},
   loan:{lName:'',lType:'ind',lId:'',lTel:'',lAddr:'',bName:'',bType:'ind',bId:'',bTel:'',bAddr:'',rel:'none',amt:'',loanDate:'',dueDate:'',give:'bank',acct:'',rate:'',intHow:'monthly',intDay:'last',repay:'bullet',lateRate:'',prepay:'ok',gName:'',gId:'',gAddr:'',collateral:'',court:'',signDate:'',extra:'',lossClause:true,showSched:true,notary:false,showTool:false},
   free:{coName:'',coRep:'',coBiz:'',coTel:'',coAddr:'',fName:'',fRrn:'',fTel:'',fBiz:'n',fAddr:'',fAcct:'',job:'',deliver:'',start:'',end:'',where:'free',termDays:'30',feeType:'month',fee:'',taxMode:'wht',payDay:'10',expense:'self',ip:'client',confid:true,noSub:true,notWorker:true,showTool:false,rFixed:false,rOrder:false,rExcl:false,rTool:false,court:'',signDate:'',extra:''},
+  exec:{coName:'',coRep:'',coBiz:'',coAddr:'',artNo:'',mode:'delegate',baseType:'avg3m',yrsMode:'month',inclBonus:true,countStaff:true,
+    rows:[{pos:'대표이사',x:3},{pos:'부사장 · 전무이사',x:2},{pos:'상무이사',x:1.5},{pos:'이사',x:1},{pos:'감사',x:1}],
+    midSettle:true,pension:true,limitPay:true,heir:true,retro:false,minutes:true,showTool:false,payDays:'14',effDate:'',
+    meetDate:'',meetPlace:'',chair:'',shTotal:'',shAttend:'',shYes:'',exPos:'0',exSal:'',exYears:'',exAnnual:''},
   tax:{cName:'',cRep:'',cType:'corp',cBiz:'',cTel:'',cEmail:'',cAddr:'',oName:'세무법인 한백택스',oRep:'차재영',oBiz:'522-85-00152',oTel:'02-2277-3101',oAddr:'서울특별시 중구 동호로 315, 신안빌딩 2층',oStaff:'',wBook:true,wVat:true,wWht:true,wIncome:true,wYear:false,wIns:false,wConsult:true,wSincere:false,wEtc:'',start:'',end:'',renew:'auto',fee:'',feeVat:'in',payDay:'10',payHow:'cms',confid:true,dataResp:true,capLiab:false,handover:true,eDoc:true,showTool:false,court:'',signDate:'',extra:'',confirm:null,agree:false,sigClient:'',sigAt:'',sigFor:''}
 };
 const LSKEY='hbt_contract_v1';
-let S={labor:JSON.parse(JSON.stringify(DEF.labor)),loan:JSON.parse(JSON.stringify(DEF.loan)),free:JSON.parse(JSON.stringify(DEF.free)),tax:JSON.parse(JSON.stringify(DEF.tax))};
-try{const r=localStorage.getItem(LSKEY);if(r){const o=JSON.parse(r);['labor','loan','free','tax'].forEach(k=>{if(o[k])S[k]=Object.assign({},DEF[k],o[k]);});if(o.doc&&DEF[o.doc])doc=o.doc;}}catch(e){}
-function persist(){try{localStorage.setItem(LSKEY,JSON.stringify({doc,labor:S.labor,loan:S.loan,free:S.free,tax:S.tax}));}catch(e){}}
-const formOf=el=>el.closest('#form-labor')?'labor':el.closest('#form-loan')?'loan':el.closest('#form-tax')?'tax':'free';
+let S={labor:JSON.parse(JSON.stringify(DEF.labor)),loan:JSON.parse(JSON.stringify(DEF.loan)),free:JSON.parse(JSON.stringify(DEF.free)),tax:JSON.parse(JSON.stringify(DEF.tax)),exec:JSON.parse(JSON.stringify(DEF.exec))};
+try{const r=localStorage.getItem(LSKEY);if(r){const o=JSON.parse(r);['labor','loan','free','tax','exec'].forEach(k=>{if(o[k])S[k]=Object.assign({},JSON.parse(JSON.stringify(DEF[k])),o[k]);});if(o.doc&&DEF[o.doc])doc=o.doc;}}catch(e){}
+function persist(){try{localStorage.setItem(LSKEY,JSON.stringify({doc,labor:S.labor,loan:S.loan,free:S.free,tax:S.tax,exec:S.exec}));}catch(e){}}
+const formOf=el=>el.closest('#form-labor')?'labor':el.closest('#form-loan')?'loan':el.closest('#form-tax')?'tax':el.closest('#form-exec')?'exec':'free';
 
 /* ═══════ 입력 바인딩 ═══════ */
+const MONEY_K=/^(base|amt|fee|exSal|exAnnual|shTotal|shAttend|shYes)$/;   /* 천 단위 쉼표로 보이는 칸 */
 function bind(){
   document.querySelectorAll('[data-k]').forEach(el=>{
     const form=formOf(el);
     const k=el.dataset.k;
-    const set=()=>{const v=S[form][k];if(el.type==='checkbox')el.checked=!!v;else el.value=(v==null?'':v);if(el.inputMode==='numeric'&&/^(base|amt|fee)$/.test(k)&&v)el.value=fmt(v);};
+    const set=()=>{const v=S[form][k];if(el.type==='checkbox')el.checked=!!v;else el.value=(v==null?'':v);if(el.inputMode==='numeric'&&MONEY_K.test(k)&&v)el.value=fmt(v);};
     set();
     el.addEventListener('input',()=>{
       let v=el.type==='checkbox'?el.checked:el.value;
-      if(/^(base|amt|fee)$/.test(k)){v=num(v);}
+      if(MONEY_K.test(k)){v=num(v);}
       S[form][k]=v;persist();render();
     });
-    el.addEventListener('blur',()=>{if(/^(base|amt|fee)$/.test(k)&&S[form][k])el.value=fmt(S[form][k]);});
+    el.addEventListener('blur',()=>{if(MONEY_K.test(k)&&S[form][k])el.value=fmt(S[form][k]);});
   });
 }
-function refill(){document.querySelectorAll('[data-k]').forEach(el=>{const form=formOf(el);const k=el.dataset.k;const v=S[form][k];if(el.type==='checkbox')el.checked=!!v;else el.value=(v==null?'':v);if(/^(base|amt|fee)$/.test(k)&&v)el.value=fmt(v);});renderDays();renderAllow();}
+function refill(){document.querySelectorAll('[data-k]').forEach(el=>{const form=formOf(el);const k=el.dataset.k;const v=S[form][k];if(el.type==='checkbox')el.checked=!!v;else el.value=(v==null?'':v);if(MONEY_K.test(k)&&v)el.value=fmt(v);});renderDays();renderAllow();renderExecRows();}
 function renderDays(){
   const box=$('dayHours');box.innerHTML='';
   DAYS.forEach(d=>{const l=document.createElement('label');l.innerHTML='<span>'+d+'</span>';const i=document.createElement('input');i.type='number';i.min=0;i.max=24;i.step=0.5;i.value=S.labor.dayHours[d]===''||S.labor.dayHours[d]==null?'':S.labor.dayHours[d];i.addEventListener('input',()=>{S.labor.dayHours[d]=i.value===''?'':+i.value;persist();render();});l.appendChild(i);box.appendChild(l);});
@@ -584,16 +669,17 @@ function renderAllow(){
 function addAllow(){S.labor.allow.push({name:'',amt:0,ordinary:true});renderAllow();render();}
 
 /* ═══════ 문서 전환 · 도구 ═══════ */
-function showDoc(d){doc=d;document.querySelectorAll('#docTabs button').forEach(b=>b.classList.toggle('on',b.dataset.doc===d));['labor','loan','free','tax'].forEach(k=>{$('form-'+k).style.display=d===k?'':'none';});persist();render();}
+function showDoc(d){doc=d;document.querySelectorAll('#docTabs button').forEach(b=>b.classList.toggle('on',b.dataset.doc===d));['labor','loan','free','tax','exec'].forEach(k=>{$('form-'+k).style.display=d===k?'':'none';});persist();render();}
 document.querySelectorAll('#docTabs button').forEach(b=>b.addEventListener('click',()=>showDoc(b.dataset.doc)));
 function mobPv(on){document.body.classList.toggle('showpv',on);document.querySelectorAll('.mobtab button').forEach((b,i)=>b.classList.toggle('on',(i%2===1)===on));}
 function copyText(){const t=$('sheet').innerText;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>alert('본문을 복사했습니다.'),()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();alert('본문을 복사했습니다.');});}
-function saveJson(){const name=(doc==='labor'?'근로계약서_'+(S.labor.wName||'미정'):doc==='loan'?'금전소비대차계약서_'+(S.loan.bName||'미정'):doc==='tax'?'세무대리약정서_'+(S.tax.cName||'미정'):'프리랜서계약서_'+(S.free.fName||'미정'))+'_'+today()+'.json';const blob=new Blob([JSON.stringify({doc,data:S[doc]},null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
-function loadJson(inp){const f=inp.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const o=JSON.parse(rd.result);const d=DEF[o.doc]?o.doc:'labor';S[d]=Object.assign({},DEF[d],o.data||{});if(d==='labor'){S[d].dayHours=Object.assign({},DEF.labor.dayHours,S[d].dayHours||{});S[d].allow=S[d].allow||[];}showDoc(d);refill();render();}catch(e){alert('읽을 수 없는 파일입니다.');}inp.value='';};rd.readAsText(f);}
+function saveJson(){const name=(doc==='labor'?'근로계약서_'+(S.labor.wName||'미정'):doc==='loan'?'금전소비대차계약서_'+(S.loan.bName||'미정'):doc==='tax'?'세무대리약정서_'+(S.tax.cName||'미정'):doc==='exec'?'임원퇴직금지급규정_'+(S.exec.coName||'미정'):'프리랜서계약서_'+(S.free.fName||'미정'))+'_'+today()+'.json';const blob=new Blob([JSON.stringify({doc,data:S[doc]},null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
+function loadJson(inp){const f=inp.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const o=JSON.parse(rd.result);const d=DEF[o.doc]?o.doc:'labor';S[d]=Object.assign({},DEF[d],o.data||{});if(d==='labor'){S[d].dayHours=Object.assign({},DEF.labor.dayHours,S[d].dayHours||{});S[d].allow=S[d].allow||[];}if(d==='exec'&&!Array.isArray(S[d].rows))S[d].rows=JSON.parse(JSON.stringify(DEF.exec.rows));showDoc(d);refill();render();}catch(e){alert('읽을 수 없는 파일입니다.');}inp.value='';};rd.readAsText(f);}
 function resetDoc(){if(!confirm('현재 문서의 입력을 모두 지웁니다.'))return;S[doc]=JSON.parse(JSON.stringify(DEF[doc]));persist();refill();render();}
 function fillSample(){
   if(doc==='labor'){S.labor=Object.assign({},DEF.labor,{kind:'perm',start:today(),coName:'주식회사 예시상사',coRep:'홍길동',coBiz:'123-45-67891',coTel:'02-000-0000',coAddr:'서울특별시 중구 ○○로 00, 0층',wName:'김예시',wBirth:'1995-03-15',wTel:'010-0000-0000',wAddr:'서울특별시 성동구 ○○로 00',place:'본사 사무실(서울 중구)',job:'경리·회계 사무 및 부수 업무',base:2400000,allow:[{name:'식대',amt:200000,ordinary:true},{name:'자가운전보조금',amt:200000,ordinary:false}],probation:'3',probPay:'100',signDate:today(),dayHours:{월:8,화:8,수:8,목:8,금:8,토:'',일:''}});}
   else if(doc==='free'){S.free=Object.assign({},DEF.free,{coName:'주식회사 예시상사',coRep:'홍길동',coBiz:'123-45-67891',coTel:'02-000-0000',coAddr:'서울특별시 중구 ○○로 00, 0층',fName:'이예시',fTel:'010-0000-0000',fAddr:'경기도 성남시 분당구 ○○로 00',fAcct:'○○은행 000-000-000000 이예시',job:'온라인 마케팅 콘텐츠(카드뉴스·블로그) 기획 및 제작',deliver:'매월 카드뉴스 8건·블로그 4건 납품(시안 수정 2회 포함), 매월 말일 검수',start:today(),end:addMonths(today(),12),fee:3000000,court:'서울중앙지방법원',signDate:today()});}
+  else if(doc==='exec'){S.exec=Object.assign(JSON.parse(JSON.stringify(DEF.exec)),{coName:'주식회사 예시상사',coRep:'홍길동',coBiz:'123-45-67891',coAddr:'서울특별시 중구 ○○로 00, 0층',artNo:'37',effDate:today(),meetDate:today(),meetPlace:'본점 회의실',chair:'대표이사 홍길동',shTotal:20000,shAttend:18000,shYes:18000,exPos:'0',exSal:12000000,exYears:15,exAnnual:150000000});}
   else if(doc==='tax'){S.tax=Object.assign({},DEF.tax,{cName:'주식회사 예시상사',cRep:'홍길동',cType:'corp',cBiz:'123-45-67891',cTel:'02-000-0000',cEmail:'admin@example.com',cAddr:'서울특별시 중구 ○○로 00, 0층',start:today(),fee:330000,feeVat:'in',court:'서울중앙지방법원',signDate:today()});}
   else{S.loan=Object.assign({},DEF.loan,{lName:'주식회사 예시상사',lType:'corp',lId:'123-45-67891',lTel:'02-000-0000',lAddr:'서울특별시 중구 ○○로 00',bName:'홍길동',bType:'ind',bId:'1975-05-05',bTel:'010-0000-0000',bAddr:'서울특별시 강남구 ○○로 00',rel:'corp-rep',amt:60000000,loanDate:today(),dueDate:addMonths(today(),24),acct:'○○은행 000-000-000000 홍길동',rate:4.6,intHow:'monthly',repay:'bullet',lateRate:12,court:'서울중앙지방법원',signDate:today()});}
   persist();refill();render();
@@ -603,7 +689,7 @@ function fromBoard(){
   if(!cl.length){alert('이 브라우저의 「거래처 업무판」에 등록된 거래처가 없습니다. 업무판에서 거래처를 먼저 등록하면 여기서 바로 불러옵니다.');return;}
   const pick=prompt('불러올 거래처 번호를 입력하십시오.\n\n'+cl.map((c,i)=>(i+1)+'. '+c.name+(c.rep?' ('+c.rep+')':'')).join('\n'));
   const c=cl[(+pick||0)-1];if(!c)return;
-  if(doc==='labor'||doc==='free'){Object.assign(S[doc],{coName:c.name,coRep:c.rep||'',coBiz:c.biz||'',coTel:c.tel||'',coAddr:c.addr||S[doc].coAddr});}
+  if(doc==='labor'||doc==='free'||doc==='exec'){Object.assign(S[doc],{coName:c.name,coRep:c.rep||'',coBiz:c.biz||'',coTel:c.tel||'',coAddr:c.addr||S[doc].coAddr});}
   else if(doc==='tax'){Object.assign(S.tax,{cName:c.name,cRep:c.rep||'',cBiz:c.biz||'',cTel:c.tel||'',cAddr:c.addr||S.tax.cAddr,cType:(c.type||'').indexOf('법인')>=0?'corp':'biz'});}
   else{const isCorp=(c.type||'').indexOf('법인')>=0;Object.assign(S.loan,{lName:c.name,lType:isCorp?'corp':'biz',lId:c.biz||'',lTel:c.tel||'',lAddr:c.addr||S.loan.lAddr});}
   persist();refill();render();
@@ -1277,8 +1363,138 @@ function taxHtml(d,c){
   (d.showTool?'<div class="foot">세무법인 한백택스 계약서 작성기 · 02-2277-3101 · hb090@hanbaektax.kr</div>':'');
 }
 
-function render(){if(doc==='labor')renderLabor();else if(doc==='loan')renderLoan();else if(doc==='tax')renderTax();else renderFree();}
-bind();renderDays();renderAllow();
+
+/* ═══════ 임원퇴직금 지급규정(정관) ═══════
+ * 근거는 파일 머리 주석. 정관 배수는 법인세법상 손금 한도를 정할 뿐이고,
+ * 소득세법 제22조 ③의 퇴직소득 한도(2020년 이후 근무분: 연평균 총급여 × 1/10 × 근속연수 × 2)는 정관으로 늘릴 수 없다. */
+const EXEC_BASE={
+  avg3m:{t:'퇴직 전 3개월간 지급받은 월평균 급여',f:'퇴직 전 3개월 평균 월급여 × 근속연수 × 지급배수',fx:'기준급여(퇴직 전 3개월 평균 월급여) × 근속연수 × 직위별 지급배수',unit:1,lbl:'퇴직 전 3개월 평균 월급여 (원)'},
+  year1:{t:'퇴직 전 1년간 지급받은 총급여',f:'퇴직 전 1년 총급여 × 1/10 × 근속연수 × 지급배수',fx:'기준급여(퇴직 전 1년 총급여) × 1/10 × 근속연수 × 직위별 지급배수',unit:0.1,lbl:'퇴직 전 1년 총급여 (원)'},
+  avg3y:{t:'퇴직 전 3년간 지급받은 총급여의 연평균액',f:'퇴직 전 3년 연평균 총급여 × 1/10 × 근속연수 × 지급배수',fx:'기준급여(퇴직 전 3년 연평균 총급여) × 1/10 × 근속연수 × 직위별 지급배수',unit:0.1,lbl:'퇴직 전 3년 연평균 총급여 (원)'}
+};
+/* 기준급여가 연간이면 1/10, 월이면 그대로. 소득세법 한도(연평균 × 1/10 × 2)와 견준 「연봉 기준 환산 배수」 */
+const execEqX=(d,x)=>d.baseType==='avg3m'?x*10/12:x;
+function renderExecRows(){
+  const box=$('execRows');if(!box)return;box.innerHTML='';
+  S.exec.rows.forEach((r,idx)=>{
+    const el=document.createElement('div');el.className='allow';el.style.gridTemplateColumns='1.6fr .8fr auto';
+    el.innerHTML='<input placeholder="직위(예: 대표이사)" value="'+esc(r.pos)+'"><input class="num" type="number" step="0.1" min="0" placeholder="배수" value="'+(r.x===''||r.x==null?'':r.x)+'"><button type="button" class="btn sm">삭제</button>';
+    const [a,b,c]=el.children;
+    a.addEventListener('input',()=>{r.pos=a.value;persist();fillExPos();render();});
+    b.addEventListener('input',()=>{r.x=b.value===''?'':+b.value;persist();render();});
+    c.addEventListener('click',()=>{S.exec.rows.splice(idx,1);persist();renderExecRows();render();});
+    box.appendChild(el);
+  });
+  fillExPos();
+}
+function addExecRow(){S.exec.rows.push({pos:'',x:1});persist();renderExecRows();render();}
+function fillExPos(){
+  const sel=$('exPosSel');if(!sel)return;
+  sel.innerHTML=S.exec.rows.map((r,i)=>'<option value="'+i+'">'+esc(r.pos||'(직위 '+(i+1)+')')+' · '+(r.x||0)+'배</option>').join('');
+  sel.value=String(Math.min(+S.exec.exPos||0,Math.max(0,S.exec.rows.length-1)));
+}
+function execYears(d,y){y=+y||0;if(d.yrsMode==='up')return Math.ceil(y-1e-9);if(d.yrsMode==='down')return Math.floor(y+1e-9);return Math.floor(y*12+1e-9)/12;}
+function execCalc(d){
+  const b=EXEC_BASE[d.baseType]||EXEC_BASE.avg3m;
+  const r=d.rows[+d.exPos||0]||{pos:'',x:0};const x=+r.x||0;
+  const sal=+d.exSal||0,yrs=execYears(d,d.exYears);
+  const amt=Math.floor(sal*b.unit*yrs*x);                                           /* 정관(규정) 퇴직금 = 법인세법 손금 한도 */
+  const annual=+d.exAnnual||(d.baseType==='avg3m'?sal*12:sal);                     /* 소득세법 한도용 연평균 총급여 */
+  const taxLim=Math.floor(annual*0.1*yrs*2);                                        /* 2020년 이후 근무분 2배 가정 */
+  return {b,r,x,sal,yrs,amt,annual,taxLim,over:Math.max(0,amt-taxLim)};
+}
+function execChecks(d,c){
+  const L=[];const add=(lv,t)=>L.push({lv,t});
+  const miss=[['coName','상호'],['coRep','대표이사'],['effDate','시행일']].filter(([k])=>!d[k]).map(([,n])=>n);
+  if(miss.length)add('err','<b>필수 기재 누락</b>: '+miss.join(', '));
+  if(!d.rows.length)add('err','<b>직위별 지급배수</b>를 한 줄 이상 넣으십시오.');
+  if(d.rows.some(r=>!r.pos||!(+r.x>0)))add('err','직위 이름이나 지급배수가 빈 줄이 있습니다.');
+  if(d.coBiz&&!bizOk(d.coBiz))add('warn','사업자등록번호 형식이 맞지 않습니다: '+esc(d.coBiz));
+  add('info','<b>효력</b>: 정관 또는 정관이 위임한 퇴직급여 지급규정에 정한 금액이 법인세법상 임원 퇴직급여 손금 한도가 됩니다(법인세법 시행령 제44조 ④ 1호·⑤). 규정이 없으면 퇴직 전 1년 총급여 × 1/10 × 근속연수까지만 손금입니다(같은 항 2호).');
+  add('info','<b>상법 절차</b>: 이사의 보수는 정관에 정하지 않으면 주주총회 결의로 정하며(상법 제388조, 감사는 제415조 준용), 정관 변경은 주주총회 특별결의(출석 의결권 2/3 이상 + 발행주식총수 1/3 이상, 제433조 ①·제434조)가 필요합니다.'+(d.mode==='delegate'?' 위임형은 정관에 위임 조항을 둔 뒤, 지급규정 자체를 주주총회 결의(보통결의: 출석 과반수 + 발행주식총수 1/4 이상, 제368조 ①)로 승인합니다.':''));
+  const hi=d.rows.filter(r=>execEqX(d,+r.x||0)>2);
+  if(hi.length)add('warn','<b>소득세법 퇴직소득 한도</b>: 2020년 이후 근무분 임원 퇴직소득은 연평균 총급여 × 1/10 × 근속연수 × <b>2배</b>까지만 퇴직소득이고 넘는 금액은 근로소득입니다(소득세법 제22조 ③). 연봉 기준으로 환산하면 '+hi.map(r=>esc(r.pos||'?')+' '+(+r.x)+'배'+(d.baseType==='avg3m'?'(연봉 기준 약 '+execEqX(d,+r.x).toFixed(2)+'배)':'')).join(', ')+'가 2배를 넘습니다. 손금은 인정되어도 초과분은 근로소득으로 과세됩니다.'+(d.baseType==='avg3m'?' 월급여 기준 배수는 약 2.4배가 연봉 기준 2배에 해당합니다(기준급여에 상여가 빠지면 더 여유가 있음).':''));
+  if(d.rows.some(r=>+r.x>3))add('warn','<b>지급배수 3배 초과</b>: 근속기간·기여에 비해 과다하면 정관 규정이 있어도 손금이 부인될 수 있습니다(대법원 2016.2.18. 선고 2015두50153).');
+  add('warn','<b>부인 위험</b>: 퇴직을 앞둔 특정 임원(특히 지배주주)을 위해 규정을 급격히 올려 제정·개정하면 정관상 규정으로 보지 않고 1년 총급여 × 1/10 × 근속연수를 넘는 금액을 손금불산입합니다(대법원 2015두50153; 서울행정법원 2018.5.18. 선고 2017구합5034). 퇴직 직전 합리적 이유 없는 급여 인상분도 기준급여에서 빠집니다(같은 대법원 판결). 제정은 퇴직 예정과 무관한 시점에, 모든 임원에게 똑같이 적용되게 하십시오.');
+  if(d.retro)add('warn','<b>소급 적용</b>: 시행 전 근속기간에도 새 배수를 적용하면 한꺼번에 퇴직금이 커집니다. 종전 규정이 있었다면 시행 전 기간은 종전 기준으로 계산하는 방식이 더 안전합니다.');
+  if(d.countStaff)add('info','<b>직원 기간 통산</b>: 직원에서 임원이 될 때 퇴직금을 받지 않았다면 직원 근무기간을 근속연수에 합산할 수 있습니다(법인세법 시행령 제44조 ④ 2호 후단 — 정관 규정이 없는 경우의 산식에 둔 규정이므로 지급규정에 명시해 둡니다).');
+  if(d.midSettle)add('info','<b>중간정산</b>: 임원 퇴직급여 중간정산은 정관 또는 정관이 위임한 지급규정에 따라 무주택 세대주 주택 구입, 본인·배우자·부양가족 3개월 이상 요양, 천재지변 등 재해 사유로 지급할 때만 현실적 퇴직으로 봅니다(법인세법 시행령 제44조 ② 5호, 시행규칙 제22조 ③). 그 밖의 중간정산은 업무무관 가지급금이 됩니다.');
+  const T=+d.shTotal||0,A=+d.shAttend||0,Y=+d.shYes||0;
+  if(d.minutes&&T&&A&&Y){
+    const sp=Y*3>=A*2&&Y*3>=T, ord=Y*2>A&&Y*4>=T;
+    if(A>T||Y>A)add('err','주식수가 맞지 않습니다(찬성 ≤ 출석 ≤ 발행주식 총수).');
+    else{
+      add(sp?'ok':'err','정관 변경(특별결의): 찬성 '+fmt(Y)+'주 / 출석 '+fmt(A)+'주('+(Y/A*100).toFixed(2)+'%) · 발행주식 '+fmt(T)+'주('+(Y/T*100).toFixed(2)+'%) — '+(sp?'요건 충족':'<b>요건 미달</b>(출석 2/3 이상과 발행주식 1/3 이상 모두 필요)'));
+      if(d.mode==='delegate')add(ord?'ok':'err','지급규정 승인(보통결의): '+(ord?'요건 충족':'<b>요건 미달</b>(출석 과반수와 발행주식 1/4 이상 모두 필요)'));
+    }
+  }else if(d.minutes)add('warn','의사록을 붙이려면 <b>발행주식 총수·출석·찬성 주식수</b>를 넣으십시오(결의 요건을 점검합니다).');
+  if(c.sal&&c.yrs&&c.x){
+    add(c.over>0?'warn':'ok','<b>예시</b> '+esc(c.r.pos||'')+': 정관 퇴직금 '+fmt(c.amt)+'원 · 소득세법 퇴직소득 한도(2020년 이후 근무·연평균 '+fmt(c.annual)+'원 가정) '+fmt(c.taxLim)+'원'+(c.over>0?' → 초과 <b>'+fmt(c.over)+'원은 근로소득</b>':' → 한도 이내')+'. 정확한 계산은 「임원 퇴직소득 한도초과액 계산기」에서 하십시오(2012~2019 근무분은 3배).');
+  }
+  return L;
+}
+function renderExec(){
+  const d=S.exec,c=execCalc(d);
+  const lb=$('exSalLbl');if(lb&&lb.firstChild)lb.firstChild.nodeValue=c.b.lbl+' ';
+  $('execCalc').innerHTML='산식: <b>'+c.b.f+'</b>'+(c.sal&&c.yrs&&c.x?'<br>예시 — '+esc(c.r.pos||'')+' '+c.x+'배 · 근속 '+(Math.round(c.yrs*100)/100)+'년 → 퇴직금 <b>'+fmt(c.amt)+'원</b> (금 '+hangulMoney(c.amt)+') · 소득세법 한도 추정 '+fmt(c.taxLim)+'원'+(c.over?' · <b style="color:#B91C1C">초과 '+fmt(c.over)+'원 근로소득</b>':''):'<br>예시 칸에 기준급여·근속연수를 넣으면 퇴직금과 소득세법 한도를 견줘 봅니다.');
+  $('execChecks').innerHTML=execChecks(d,c).map(x=>'<li class="'+x.lv+'">'+x.t+'</li>').join('');
+  $('sheet').innerHTML=execHtml(d,c);
+}
+function execHtml(d,c){
+  const co=esc(d.coName||'주식회사 ________');
+  const b=c.b;
+  const yrsT={month:'근속연수는 취임일부터 퇴직일까지로 하되, 1년 미만의 기간은 월수로 계산하고 1개월 미만의 기간은 산입하지 아니한다.',up:'근속연수는 취임일부터 퇴직일까지로 하되, 1년 미만의 기간은 1년으로 한다.',down:'근속연수는 취임일부터 퇴직일까지로 하되, 1년 미만의 기간은 산입하지 아니한다.'}[d.yrsMode];
+  const baseT=b.t+(d.baseType==='avg3m'?'(퇴직일 이전 3개월간 지급받은 급여 총액을 그 기간의 월수로 나눈 금액)':'')+'로 하며, 「소득세법」 제20조 제1항 제1호 및 제2호에 따른 근로소득(비과세소득은 제외한다)'+(d.inclBonus?'으로서 정기적으로 지급된 상여를 포함한다':'으로서 상여는 제외한다')+'. 다만, 퇴직 직전에 합리적인 이유 없이 인상된 급여는 인상 전의 급여를 기준으로 한다.';
+  const table='<table><tr><th style="width:55%">직 위</th><th>지급배수</th></tr>'+d.rows.map(r=>'<tr><td class="c">'+esc(r.pos||'')+'</td><td class="c">'+(+r.x||0)+'배</td></tr>').join('')+'</table>';
+  const formula='<p style="text-align:center;margin:6pt 0"><b>퇴직금 = '+b.fx+'</b></p>';
+  const art=(n,t)=>'<h2>제'+n+'조 ('+t+')</h2>';
+  const artNo=d.artNo||'○○';
+  /* ① 정관 */
+  let teikan='<h1>정관 변경(안)</h1><p style="text-align:center;margin:-6pt 0 10pt">'+co+' · 임원의 보수와 퇴직금</p>';
+  if(d.mode==='delegate'){
+    teikan+='<h2>제'+esc(artNo)+'조 (임원의 보수와 퇴직금)</h2><p>① 이사와 감사의 보수는 주주총회의 결의로 정한다.</p><p>② 임원의 퇴직금은 주주총회의 결의를 거친 「임원퇴직금 지급규정」에 따른다.</p><p>③ 「임원퇴직금 지급규정」의 제정 및 개정은 주주총회의 결의에 의한다.</p>';
+  }else{
+    teikan+='<h2>제'+esc(artNo)+'조 (임원의 보수와 퇴직금)</h2><p>① 이사와 감사의 보수는 주주총회의 결의로 정한다.</p><p>② 임원이 퇴직한 때에는 다음 산식에 따른 퇴직금을 지급한다.</p>'+formula+'<p>③ 제2항의 기준급여는 '+baseT+'</p><p>④ '+yrsT+(d.countStaff?' 직원에서 임원으로 취임할 때 퇴직금을 지급받지 아니한 경우에는 직원으로 근무한 기간을 근속연수에 합산한다.':'')+'</p><p>⑤ 직위별 지급배수는 다음과 같다. 퇴직 당시 직위를 기준으로 한다.</p>'+table+'<p>⑥ 제2항부터 제5항까지에서 정하지 아니한 지급 절차 등 세부 사항은 이사회가 정한다.</p>';
+  }
+  teikan+='<p style="margin-top:6pt">부 칙<br>이 정관은 '+kd(d.effDate)+'부터 시행한다.</p>';
+  /* ② 지급규정 */
+  let rule='';
+  if(d.mode==='delegate'){
+    let n=0;const A=t=>art(++n,t);
+    rule='<div class="pb"></div><h1>임원퇴직금 지급규정</h1><p style="text-align:center;margin:-6pt 0 10pt">'+co+'</p>'+
+    A('목적')+'<p>이 규정은 정관 제'+esc(artNo)+'조에 따라 '+co+'(이하 "회사"라 한다)의 임원이 퇴직하는 경우 지급할 퇴직금에 관한 사항을 정함을 목적으로 한다.</p>'+
+    A('적용 범위')+'<p>이 규정은 주주총회에서 선임되어 등기된 이사(대표이사를 포함한다)와 감사에게 적용한다. 그 밖에 「법인세법 시행령」 제40조 제1항 각 호의 직무에 종사하는 자로서 이사회가 임원으로 정한 자에게도 같다.</p>'+
+    A('퇴직금의 산정')+'<p>① 임원이 퇴직한 때에는 다음 산식에 따른 퇴직금을 지급한다.</p>'+formula+'<p>② 지급배수는 퇴직 당시 직위를 기준으로 제'+(n+3)+'조의 표에 따른다.</p>'+
+    A('기준급여')+'<p>기준급여는 '+baseT+'</p>'+
+    A('근속연수')+'<p>① '+yrsT+'</p>'+(d.countStaff?'<p>② 직원에서 임원으로 취임할 때 퇴직금을 지급받지 아니한 경우에는 직원으로 근무한 기간을 근속연수에 합산한다. 다만, 그 기간에 대하여는 직원 퇴직금 산정 기준에 따른 금액을 한도로 한다.</p>':'')+
+    A('직위별 지급배수')+'<p>직위별 지급배수는 다음과 같다. 재임 중 직위가 바뀐 경우에는 퇴직 당시의 직위에 따른다.</p>'+table+
+    (d.midSettle?A('중간정산')+'<p>① 임원이 다음 각 호의 어느 하나에 해당하여 요청하는 경우 그 때까지의 근속기간에 대한 퇴직금을 중간정산하여 지급할 수 있다.</p><p>1. 중간정산일 현재 1년 이상 주택을 소유하지 아니한 세대의 세대주인 임원이 주택을 구입하려는 경우(중간정산일부터 3개월 내에 해당 주택을 취득하는 경우만 해당한다)<br>2. 임원(임원의 배우자 및 「소득세법」 제50조 제1항 제3호에 따른 생계를 같이 하는 부양가족을 포함한다)이 3개월 이상의 질병 치료 또는 요양을 필요로 하는 경우<br>3. 천재지변, 그 밖에 이에 준하는 재해를 입은 경우</p><p>② 중간정산을 한 경우 근속연수는 중간정산일 다음 날부터 새로 계산한다.</p>':'')+
+    (d.pension?A('퇴직연금과의 관계')+'<p>회사가 임원을 위하여 확정급여형 또는 확정기여형 퇴직연금에 가입한 경우, 제3조에 따른 퇴직금에서 퇴직연금으로 지급되거나 적립된 금액(확정기여형은 회사 부담금)을 뺀 금액을 지급한다.</p>':'')+
+    (d.limitPay?A('지급의 제한')+'<p>임원이 고의 또는 중대한 과실로 회사에 손해를 끼치거나 배임·횡령 등 범죄행위로 해임된 경우에는 이사회 결의로 퇴직금의 전부 또는 일부를 지급하지 아니하거나 손해액과 상계할 수 있다.</p>':'')+
+    A('지급 시기 및 방법')+'<p>퇴직금은 퇴직일부터 '+d.payDays+'일 이내에 임원이 지정한 본인 명의 예금계좌로 지급하며, 관계 법령에 따라 원천징수할 세액을 공제한다. 당사자 간 합의가 있는 경우 지급 기일을 연장할 수 있다.</p>'+
+    (d.heir?A('사망 시 지급')+'<p>임원이 재임 중 사망한 경우 퇴직금은 「민법」에 따른 상속인에게 지급한다. 이때 사망일을 퇴직일로 본다.</p>':'')+
+    A('규정의 개정')+'<p>이 규정의 제정 및 개정은 주주총회의 결의에 의한다. 개정된 규정은 개정 이후의 근속기간에 적용함을 원칙으로 한다.</p>'+
+    A('준용')+'<p>이 규정에서 정하지 아니한 사항은 관계 법령과 회사의 정관 및 이사회 결의에 따른다.</p>'+
+    '<h2 style="text-align:center;margin-top:10pt">부 칙</h2><p>① (시행일) 이 규정은 '+kd(d.effDate)+'부터 시행한다.</p><p>② (적용례) '+(d.retro?'이 규정은 시행일 현재 재임 중인 임원의 시행일 전 근속기간에 대하여도 적용한다.':'이 규정 시행 전의 근속기간에 대한 퇴직금은 종전의 규정(종전 규정이 없는 경우에는 「법인세법 시행령」 제44조 제4항 제2호에 따른 금액)에 따라 산정하고, 시행일 이후의 근속기간에 대하여는 이 규정에 따라 산정하여 합산한다.')+'</p>';
+  }
+  /* ③ 주주총회 의사록 */
+  let mins='';
+  if(d.minutes){
+    const T=+d.shTotal||0,A2=+d.shAttend||0,Y=+d.shYes||0;
+    mins='<div class="pb"></div><h1>임시주주총회 의사록</h1>'+
+    '<table class="party"><tr><td>일시</td><td>'+kd(d.meetDate)+'</td></tr><tr><td>장소</td><td>'+esc(d.meetPlace||'본점 회의실')+'</td></tr><tr><td>발행주식 총수</td><td>'+(T?fmt(T)+'주':'________주')+'</td></tr><tr><td>출석 주주의 주식수</td><td>'+(A2?fmt(A2)+'주'+(T?' (발행주식 총수의 '+(A2/T*100).toFixed(2)+'%)':''):'________주')+'</td></tr><tr><td>의장</td><td>'+esc(d.chair||'대표이사 '+(d.coRep||'________'))+'</td></tr></table>'+
+    '<p>의장은 위와 같이 법정 수의 주주가 출석하여 이 총회가 적법하게 성립되었음을 알리고 개회를 선언한 뒤 다음 의안을 부의하였다.</p>'+
+    '<h2>제1호 의안: 정관 일부 변경의 건 (특별결의)</h2><p>의장은 임원의 보수와 퇴직금에 관한 정관 제'+esc(artNo)+'조를 별첨 「정관 변경(안)」과 같이 '+(d.mode==='delegate'?'임원 퇴직금을 주주총회 결의를 거친 「임원퇴직금 지급규정」에 따르도록':'임원 퇴직금 산식과 직위별 지급배수를 정하도록')+' 변경할 것을 제안하고 그 이유를 설명한 후 가부를 물은바, 출석 주주 의결권 '+(A2?fmt(A2)+'주':'____주')+' 중 '+(Y?fmt(Y)+'주':'____주')+'의 찬성으로 원안대로 승인 가결하였다.</p>'+
+    (d.mode==='delegate'?'<h2>제2호 의안: 임원퇴직금 지급규정 제정의 건</h2><p>의장은 별첨 「임원퇴직금 지급규정」의 제정을 제안하고 직위별 지급배수('+d.rows.map(r=>esc(r.pos||'')+' '+(+r.x||0)+'배').join(', ')+')와 산정 기준을 설명한 후 가부를 물은바, 출석 주주 의결권 '+(A2?fmt(A2)+'주':'____주')+' 중 '+(Y?fmt(Y)+'주':'____주')+'의 찬성으로 원안대로 승인 가결하였다.</p>':'')+
+    '<p>의장은 이상으로 의안 전부를 심의 종료하였으므로 폐회를 선언하였다.</p><p>위 의사의 경과 요령과 결과를 명확히 하기 위하여 이 의사록을 작성하고 의장과 출석한 이사가 기명날인 또는 서명한다.</p>'+
+    '<div class="sign"><p style="text-align:center;margin:10pt 0">'+kd(d.meetDate)+'</p><p style="text-align:center">'+co+'</p>'+
+    '<table class="party"><tr><td>의장 겸 대표이사</td><td>'+esc(d.coRep)+' <span class="stamp">(인)</span></td></tr><tr><td>이사</td><td>&nbsp;<span class="stamp">(인)</span></td></tr><tr><td>이사</td><td>&nbsp;<span class="stamp">(인)</span></td></tr></table></div>';
+  }
+  return teikan+rule+mins+(d.showTool?'<div class="foot">세무법인 한백택스 계약서 작성기 · 02-2277-3101 · hb090@hanbaektax.kr</div>':'');
+}
+
+function render(){if(doc==='labor')renderLabor();else if(doc==='loan')renderLoan();else if(doc==='tax')renderTax();else if(doc==='exec')renderExec();else renderFree();}
+bind();renderDays();renderAllow();renderExecRows();
 initStaff();
 PADS.client=sigPad('padClient','tax','sigClient','client');
 showDoc(doc);
