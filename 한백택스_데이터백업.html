@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>한백택스 데이터 백업 · 복원 · 정리</title>
+<!--
+  세무법인 한백택스 데이터 백업 · 복원 · 정리 v1 (2026-09-19)
+  각 도구는 입력값을 브라우저 저장소(localStorage)에만 둔다. 저장소는 사이트 주소(출처)마다 하나라서
+  이 페이지를 같은 주소에서 열면 모든 도구의 저장값을 한꺼번에 내보내고(JSON 파일) 되돌릴 수 있다.
+  - 비밀값(사무소 확인 코드 hbt_staff_token, AI API 키 ksic_ai_key)은 기본으로 백업에서 뺀다.
+  - 공용 PC 정리: 개인정보(주민번호·계좌·연락처)가 들 수 있는 항목만 지운다.
+  - PC 브라우저 · 휴대폰 · 안드로이드 앱(오프라인 화면)은 저장소가 서로 다르다 — 기기마다 따로 백업한다.
+-->
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1B3A5C;--gold:#C8963E;--bg:#F4F6F9;--line:#DCE3EC;--gray:#5F6E80;--red:#B91C1C;--green:#166534;--amber:#92400E}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:14px}
+main{max-width:980px;margin:0 auto;padding:18px 16px 50px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+h1{font-size:21px;color:var(--navy);margin:0 0 4px}
+.sub{color:var(--gray);font-size:13px;line-height:1.7}
+h2{font-size:15px;color:var(--navy);margin:0 0 8px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;color:var(--navy);font-family:inherit;font-size:13px}
+.btn.p{background:var(--gold);color:#fff;border-color:var(--gold)}
+.btn.n{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn.r{color:var(--red);border-color:#fca5a5}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:#EEF2F7;color:var(--navy);white-space:nowrap}
+td.r{text-align:right;white-space:nowrap}
+.tag{display:inline-block;font-size:11px;font-weight:800;border-radius:4px;padding:0 6px;margin-left:4px}
+.tag.pii{background:#FEE2E2;color:var(--red)}
+.tag.sec{background:#FEF3C7;color:var(--amber)}
+.chk{display:flex;gap:6px;align-items:flex-start;font-size:13px;margin-top:6px}
+.chk input{margin-top:3px}
+#msg{margin-top:8px;font-size:13px;line-height:1.6}
+#msg.ok{color:var(--green);font-weight:700}
+#msg.err{color:var(--red);font-weight:700}
+.hint{font-size:12px;color:var(--gray);line-height:1.6}
+@media(max-width:640px){table{font-size:12px}th,td{padding:5px}}
+</style>
+</head>
+<body>
+<!-- HB-HOME v1 -->
+<script>
+/* 한백택스 홈 바 — 생성기: 02-도구 & 스크립트/Python 스크립트/홈바_주입.py
+   이 블록은 자동 생성이다. 직접 고치지 말고 생성기를 고쳐 다시 실행한다. */
+(function(){
+  if (window.self !== window.top) return;          /* 포털 iframe 안에서는 부모의 바를 쓴다 */
+  if (window.__hbHome) return;
+  window.__hbHome = 1;
+  var me = decodeURIComponent((location.pathname.split('/').pop() || '').toLowerCase());
+  var host = document.createElement('div');
+  host.id = 'hbHome';
+  host.setAttribute('data-nogate', '1');
+  host.style.cssText = 'display:block;position:sticky;top:0;z-index:2147483000;margin:0;padding:0;line-height:0';
+  var links = [
+    ['한백택스_세무계산_포털.html', '세무계산 포털'],
+    ['한백택스_모바일.html', '모바일 포털']
+  ].filter(function(l){ return l[0].toLowerCase() !== me; });
+  var sh = host.attachShadow({ mode: 'open' });
+  sh.innerHTML =
+    '<style>' +
+    ':host{all:initial;display:block}' +
+    '.bar{box-sizing:border-box;display:flex;align-items:center;gap:10px;height:42px;padding:0 16px;' +
+      'background:#fff;border-bottom:2px solid #C8963E;box-shadow:0 2px 8px rgba(15,36,64,.08);' +
+      'font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:13px;line-height:1;color:#1B3A5C}' +
+    '.home{display:inline-flex;align-items:center;gap:6px;background:#C8963E;color:#fff;font-weight:800;' +
+      'padding:7px 13px;border-radius:999px;text-decoration:none;white-space:nowrap;letter-spacing:-.2px}' +
+    '.home:hover{background:#b8862f}' +
+    '.ttl{font-weight:700;color:#1B3A5C;white-space:nowrap;opacity:.85}' +
+    '.sp{flex:1}' +
+    '.lnk{color:#35507A;font-weight:700;text-decoration:none;padding:6px 10px;border:1px solid #DCE5F0;border-radius:999px;white-space:nowrap;background:#F5F8FC}' +
+    '.lnk:hover{border-color:#C8963E;color:#1B3A5C}' +
+    '@media(max-width:640px){.bar{padding:0 10px;gap:6px;height:40px}.ttl{display:none}.lnk{padding:6px 8px;font-size:12px}}' +
+    '@media print{.bar{display:none}}' +
+    '</style>' +
+    '<div class="bar">' +
+      '<a class="home" href="index.html" title="한백택스 세무 도구 모음(메인 화면)으로">&#8592; 메인 화면</a>' +
+      '<span class="ttl">세무법인 한백택스 · 세무 도구</span>' +
+      '<span class="sp"></span>' +
+      links.map(function(l){ return '<a class="lnk" href="' + l[0] + '">' + l[1] + '</a>'; }).join('') +
+    '</div>';
+  var s = document.currentScript;
+  if (s && s.parentNode) s.parentNode.insertBefore(host, s);
+  else document.body.insertBefore(host, document.body.firstChild);
+})();
+</script>
+<!-- /HB-HOME -->
+<main>
+<div class="card">
+  <h1>데이터 백업 · 복원 · 정리</h1>
+  <div class="sub">세무 도구에 입력한 내용(업무판 거래처, 보관한 계약서·CMS 신청서, 서명, 계산기 입력값 등)은 <b>이 기기의 브라우저에만</b> 저장됩니다. 브라우저 데이터를 지우거나 PC를 바꾸면 사라지므로, 이 화면에서 파일로 백업해 두고 새 PC에서 복원하십시오. PC 브라우저·휴대폰·앱은 저장소가 서로 달라 기기마다 따로 백업합니다.</div>
+</div>
+
+<div class="card">
+  <h2>이 기기에 저장된 항목</h2>
+  <div id="list"></div>
+  <div class="hint" style="margin-top:6px"><span class="tag pii">개인정보</span> 주민번호·계좌·연락처가 들어 있을 수 있음 · <span class="tag sec">비밀값</span> 사무소 확인 코드·AI API 키</div>
+</div>
+
+<div class="card">
+  <h2>① 백업 — 파일로 내보내기</h2>
+  <label class="chk"><input type="checkbox" id="inclSecret">비밀값(사무소 확인 코드·AI API 키)도 함께 백업 <span class="hint">— 기본은 뺍니다. 넣으면 파일 관리에 특히 주의하십시오.</span></label>
+  <div class="bar"><button type="button" class="btn p" onclick="doExport()">💾 백업 파일 저장</button><span class="hint">백업 파일에는 주민번호·계좌번호가 들어 있을 수 있습니다. 사무소 PC·사무소 드라이브에만 보관하십시오.</span></div>
+</div>
+
+<div class="card">
+  <h2>② 복원 — 백업 파일 불러오기</h2>
+  <div class="bar">
+    <button type="button" class="btn n" onclick="document.getElementById('file').click()">📂 백업 파일 고르기</button>
+    <label class="chk" style="margin:0"><input type="checkbox" id="overwrite">이미 있는 항목도 덮어쓰기 <span class="hint">(끄면 없는 항목만 채움)</span></label>
+    <input type="file" id="file" accept=".json,application/json" style="display:none" onchange="doImport(this)">
+  </div>
+</div>
+
+<div class="card">
+  <h2>③ 정리 — 공용 PC에서 쓴 뒤</h2>
+  <div class="hint">개인정보가 들 수 있는 항목만 지웁니다(업무판·계약서·CMS 보관분·간편 포털 신청 기록 등). 계산기 입력값과 화면 설정은 남깁니다. 지우기 전에 필요하면 ①로 백업하십시오.</div>
+  <div class="bar">
+    <button type="button" class="btn r" onclick="wipe('pii')">🧹 개인정보 항목 지우기</button>
+    <button type="button" class="btn r" onclick="wipe('secret')">🔑 비밀값 지우기</button>
+    <button type="button" class="btn r" onclick="wipe('all')">전체 지우기</button>
+  </div>
+  <div id="msg"></div>
+</div>
+</main>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* 알려진 저장 항목. pii: 개인정보가 들 수 있음 · sec: 비밀값 */
+const KNOWN={
+  hanbaek_board_v1:{t:'거래처 업무판 (거래처 명부·업무·통지 기록)',pii:1},
+  hbt_contract_v1:{t:'약정서·계약서 작성기 (입력값·서명)',pii:1},
+  hbt_cms_v1:{t:'CMS 자동이체 신청서 (입력값·보관분·서명)',pii:1},
+  hanbaek_vehicle_log_v2:{t:'업무용승용차 운행일지',pii:1},
+  hanbaek_vehicle_log_v1:{t:'업무용승용차 운행일지 (예전 형식)',pii:1},
+  hanbaek_tax_calendar_v1:{t:'세금신고기한 캘린더'},
+  hbt_exec_retire_v1:{t:'임원 퇴직소득 한도계산기'},
+  hbt_apportion_v1:{t:'토지·건물 가액 안분 계산기'},
+  hbt_jongso_year:{t:'종소세 확정신고 계산기 (귀속연도)'},
+  hbt_fxcalc_latest:{t:'환차손익 계산기 (최근 환율)'},
+  hbt_biz_recent:{t:'업종코드 검색 (최근 검색어)'},
+  hbt_theme:{t:'화면 테마'},theme:{t:'간편 세무 포털 테마'},
+  hbSenderName:{t:'경정청구 보낸 분 성명',pii:1},hbSenderPhone:{t:'경정청구 보낸 분 연락처',pii:1},
+  senderName:{t:'간편 세무 포털 보낸 분 성명',pii:1},senderPhone:{t:'간편 세무 포털 보낸 분 연락처',pii:1},userName:{t:'간편 세무 포털 이용자 성명',pii:1},
+  onboard:{t:'간편 세무 포털 수임 신청',pii:1},archive:{t:'간편 세무 포털 자료 제출 기록',pii:1},remoteLog:{t:'간편 세무 포털 원격지원 기록',pii:1},taxStatus:{t:'간편 세무 포털 신고 현황'},
+  hbt_staff_token:{t:'사무소 확인 코드',sec:1},hbt_staff_by:{t:'확정 담당자 이름'},
+  ksic_ai_key:{t:'업종코드 AI 검색 API 키',sec:1}
+};
+const info=k=>KNOWN[k]||(/^chk_/.test(k)?{t:'간편 세무 포털 체크 표시'}:{t:'(기타)'});
+function keys(){const a=[];try{for(let i=0;i<localStorage.length;i++)a.push(localStorage.key(i));}catch(e){}return a.sort();}
+function size(k){try{return (localStorage.getItem(k)||'').length;}catch(e){return 0;}}
+function kb(n){return n<1024?n+' B':(n/1024).toFixed(1)+' KB';}
+function render(){
+  const ks=keys();
+  if(!ks.length){$('list').innerHTML='<div class="hint">이 기기에 저장된 항목이 없습니다.</div>';return;}
+  $('list').innerHTML='<table><tr><th>도구</th><th>저장 키</th><th>크기</th></tr>'+ks.map(k=>{const i=info(k);
+    return '<tr><td>'+esc(i.t)+(i.pii?'<span class="tag pii">개인정보</span>':'')+(i.sec?'<span class="tag sec">비밀값</span>':'')+'</td><td><code>'+esc(k)+'</code></td><td class="r">'+kb(size(k))+'</td></tr>';}).join('')+
+    '<tr><th colspan="2">합계 '+ks.length+'개</th><td class="r"><b>'+kb(ks.reduce((s,k)=>s+size(k),0))+'</b></td></tr></table>';
+}
+function msg(t,cls){const m=$('msg');m.textContent=t;m.className=cls||'';}
+function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'_'+p(d.getHours())+p(d.getMinutes());}
+function doExport(){
+  const inc=$('inclSecret').checked,data={};
+  keys().forEach(k=>{if(!inc&&info(k).sec)return;data[k]=localStorage.getItem(k);});
+  const n=Object.keys(data).length;
+  if(!n){msg('백업할 항목이 없습니다.','err');return;}
+  const blob=new Blob([JSON.stringify({app:'hanbaektax-backup',ver:1,at:new Date().toISOString(),origin:location.origin,data},null,1)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='한백택스_데이터백업_'+stamp()+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  msg('백업 파일을 저장했습니다 — '+n+'개 항목'+(inc?' (비밀값 포함)':' (비밀값 제외)')+'.','ok');
+}
+function doImport(inp){
+  const f=inp.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const o=JSON.parse(rd.result);
+      if(o.app!=='hanbaektax-backup'||!o.data||typeof o.data!=='object')throw new Error('한백택스 백업 파일이 아닙니다.');
+      const ow=$('overwrite').checked,ks=Object.keys(o.data);
+      const exist=ks.filter(k=>localStorage.getItem(k)!=null);
+      if(!confirm('백업('+(o.at||'').slice(0,16).replace('T',' ')+')의 '+ks.length+'개 항목을 복원합니다.\n이미 있는 항목 '+exist.length+'개는 '+(ow?'덮어씁니다.':'그대로 둡니다.')+'\n계속할까요?')){inp.value='';return;}
+      let n=0;ks.forEach(k=>{if(!ow&&localStorage.getItem(k)!=null)return;if(typeof o.data[k]==='string'){localStorage.setItem(k,o.data[k]);n++;}});
+      msg('복원했습니다 — '+n+'개 항목. 각 도구를 다시 열면 반영됩니다.','ok');render();
+    }catch(e){msg('복원하지 못했습니다: '+e.message,'err');}
+    inp.value='';
+  };
+  rd.readAsText(f);
+}
+function wipe(kind){
+  const ks=keys().filter(k=>kind==='all'||(kind==='pii'&&info(k).pii)||(kind==='secret'&&info(k).sec));
+  if(!ks.length){msg('지울 항목이 없습니다.');return;}
+  const label={pii:'개인정보가 들 수 있는 항목',secret:'비밀값',all:'모든 항목'}[kind];
+  if(!confirm(label+' '+ks.length+'개를 이 기기에서 지웁니다. 되돌릴 수 없습니다.\n\n'+ks.map(k=>'· '+info(k).t).join('\n')+'\n\n계속할까요?'))return;
+  ks.forEach(k=>{try{localStorage.removeItem(k);}catch(e){}});
+  msg(label+' '+ks.length+'개를 지웠습니다.','ok');render();
+}
+render();
+</script>
+</body>
+</html>

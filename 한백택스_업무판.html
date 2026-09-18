@@ -402,9 +402,15 @@ function renderContact(){
 }
 function logSend(ym,key,kind,how){(DB.log=DB.log||[]).push({key,kind,how,at:new Date().toISOString().slice(0,16).replace('T',' ')});persist();}
 async function copyMsg(id,ym,key,kind){const txt=$('msg_'+id).textContent;try{await navigator.clipboard.writeText(txt);}catch(e){const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();}logSend(ym,key,kind,'copy');toast('복사했습니다 — 카카오톡 채널에 붙여 넣으십시오');renderContact();}
+/* 메일중계 notify 는 사무소 확인 코드가 있어야 발송된다(2026-09-19). 계약서 작성기와 같은 저장 칸(hbt_staff_token)을 쓴다 */
+function staffCode(){let t='';try{t=(localStorage.getItem('hbt_staff_token')||'').trim();}catch(e){}
+  if(!t){t=(prompt('거래처에 메일을 보내려면 사무소 확인 코드가 필요합니다. 코드를 입력하십시오(이 PC에 저장됩니다).')||'').trim();if(t){try{localStorage.setItem('hbt_staff_token',t);}catch(e){}}}
+  return t;}
 async function relayMsg(id,ym,key,kind){const t=DB.tasks[ym][key];const c=clientOf(t.client);if(!c.email){toast('거래처 이메일이 없습니다');return;}
-  try{const r=await fetch(DB.settings.relay,{method:'POST',body:JSON.stringify({token:DB.settings.token,type:'notify',to:c.email,subject:'['+DB.settings.office+'] '+t.title+' 안내',text:$('msg_'+id).textContent,client:c.name,page:'업무판'})});const j=await r.json().catch(()=>({}));if(!r.ok||!j.ok)throw new Error(j.error||('HTTP '+r.status));logSend(ym,key,kind,'relay');toast('발송했습니다');renderContact();}
-  catch(e){toast('발송 실패: '+e.message+' (메일중계 Code.gs 에 notify 유형이 있어야 합니다)');}}
+  const sc=staffCode();if(!sc){toast('사무소 확인 코드가 없어 보내지 않았습니다');return;}
+  try{const r=await fetch(DB.settings.relay,{method:'POST',body:JSON.stringify({token:DB.settings.token,staff:sc,type:'notify',to:c.email,subject:'['+DB.settings.office+'] '+t.title+' 안내',text:$('msg_'+id).textContent,client:c.name,page:'업무판'})});const j=await r.json().catch(()=>({}));if(!r.ok||!j.ok)throw new Error(j.error||('HTTP '+r.status));logSend(ym,key,kind,'relay');toast('발송했습니다');renderContact();}
+  catch(e){if(/staff_/.test(e.message)){try{localStorage.removeItem('hbt_staff_token');}catch(_){}toast('사무소 확인 코드가 맞지 않습니다 — 다시 보내면 코드를 새로 묻습니다');}
+    else toast('발송 실패: '+e.message+(e.message==='rate_limited'||e.message==='quota_low'?' (메일중계 발송 한도 초과 — 잠시 뒤 다시 보내십시오)':''));}}
 
 /* ===== 설정 ===== */
 function loadSettings(){$('st_staff').value=DB.staff.join(', ');const s=DB.settings;$('st_office').value=s.office;$('st_tel').value=s.tel;$('st_mail').value=s.mail;$('st_relay').value=s.relay||'';$('st_token').value=s.token||'hbtax-relay';$('st_hol').value=(s.hol||[]).join('\n');['req','remind','done','pay'].forEach(k=>$('tp_'+k).value=DB.tpl[k]||'');}

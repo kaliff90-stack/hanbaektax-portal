@@ -118,7 +118,7 @@ const {useState,useEffect,useRef,useMemo,useCallback}=React;
 
 /* ── 세무법인 한백택스 연락처 (문서 머리글·바닥글과 동일) ── */
 const HB={ name:'세무법인 한백택스', tel:'02-2277-3101', telHref:'+82222773101',
-  fax:'02-2277-3161', email:'hb090@hanbaektax.kr', email2:'hb3101@naver.com',
+  fax:'02-2277-3161', email:'hb090@hanbaektax.kr', email2:'hb3101@nate.com',
   addr:'서울특별시 중구 동호로 315, 신안빌딩 2층' };
 
 /* ── 자료 접수 메일중계 (Google Apps Script 웹 앱) ──
@@ -634,6 +634,7 @@ function ConsultSheet({open,onClose,summary}){
         <textarea value={memo} onChange={e=>setMemo(e.target.value)} rows={3} placeholder="예) 2021~2023년 고용증대세액공제 누락분 경정청구 상담 요청드립니다."
           style={{...inp,resize:'vertical',lineHeight:1.7,marginBottom:16}}/>
 
+        <p style={{fontSize:11,color:'var(--text2,#6B7A8D)',margin:'0 0 8px'}}>보내신 자료는 1년 보관 후 자동 삭제됩니다 · <a href="한백택스_개인정보처리방침.html" target="_blank" rel="noopener">개인정보 처리방침</a></p>
         {msg&&<p style={{fontSize:12,fontWeight:700,color:'var(--p2)',background:'var(--p1)',padding:'10px 14px',borderRadius:12,marginBottom:12,lineHeight:1.6}}>{msg}</p>}
 
         <button onClick={send} disabled={busy} className="btn-p" style={{width:'100%',padding:'16px 0',fontSize:15}}>

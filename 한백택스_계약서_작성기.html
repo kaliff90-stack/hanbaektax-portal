@@ -559,6 +559,7 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
       <label class="fld">남길 말 <span class="hint">(선택)</span><textarea id="taxSendMemo" placeholder="예: 3월분부터 기장 시작 부탁드립니다"></textarea></label>
     </div>
     <label class="chk" style="margin-top:6px"><input type="checkbox" id="taxSendAgree">서명된 약정서와 위 첨부를 세무대리 수임 목적으로 세무법인 한백택스에 보내는 데 동의합니다.</label>
+    <div class="hint" style="margin:2px 0 0 22px">자세한 처리 기준은 <a href="한백택스_개인정보처리방침.html" target="_blank" rel="noopener">개인정보 처리방침</a>을 확인하십시오. 접수 자료는 1년 보관 후 자동 삭제됩니다.</div>
     <label class="chk" id="taxCopyRow" style="display:none"><input type="checkbox" id="taxSendCopy" checked>접수 확인 메일을 <span id="taxCopyTo">위 이메일</span>로 받기</label>
     <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
       <button type="button" class="btn p" id="taxSendBtn" onclick="sendTaxToOffice()">📨 약정 신청 보내기</button>
@@ -1059,11 +1060,12 @@ async function sendTaxToOffice(){
       type:'agreement', subject:'세무대리 약정'+(S.tax.sigClient?' (화면 서명)':''),
       docId:'TAX-'+today().replace(/-/g,'')+'-'+(String(S.tax.cBiz||'').replace(/\D/g,'').slice(-4)||'0000'),
       name:S.tax.cName.trim(), phone:(S.tax.cTel||'').trim(), email:(S.tax.cEmail||'').trim(),
-      text:taxSendText(memo), files:enc
+      text:taxSendText(memo), files:enc,
+      ack:$('taxSendCopy').checked, ackSummary:['상호: '+S.tax.cName.trim(),'월 기장료(신청): '+(S.tax.fee?fmt(S.tax.fee)+'원':'-'),'보수와 업무 범위는 사무소 확인·확정 후 확정본으로 보내 드립니다.'].join(String.fromCharCode(10))
     });
-    let copied=false;
+    let copied=!!r.ack;
     const to=(S.tax.cEmail||'').trim();
-    if($('taxSendCopy').checked&&mailOk(to)){
+    if(!copied&&r.ack===undefined&&$('taxSendCopy').checked&&mailOk(to)){   /* 예전 메일중계(ack 미지원) 대비 */
       try{
         await relaySend({type:'notify',to,client:S.tax.cName.trim(),
           subject:'[세무법인 한백택스] 세무대리 약정 접수 확인'+(r.id?' ('+r.id+')':''),

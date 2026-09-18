@@ -374,6 +374,7 @@ body.staff .clientonly{display:none}
     <div class="list" id="sendFileList"></div>
     <label class="fld" style="margin-top:8px">전할 말 <span class="hint">(선택)</span><textarea id="sendMemo" rows="2" placeholder="예: 다음 달부터 출금해 주세요. 서명본은 우편으로 보냅니다."></textarea></label>
     <label class="chk" style="margin-top:6px"><input type="checkbox" id="sendAgree">계좌번호·주민(사업자)등록번호가 담긴 신청 내용을 자동이체 등록 목적으로 세무법인 한백택스에 보내는 데 동의합니다.</label>
+    <div class="hint" style="margin:2px 0 0 22px">자세한 처리 기준은 <a href="한백택스_개인정보처리방침.html" target="_blank" rel="noopener">개인정보 처리방침</a>을 확인하십시오. 접수 자료는 1년 보관 후 자동 삭제됩니다.</div>
     <label class="chk" id="sendCopyRow"><input type="checkbox" id="sendCopy" checked>접수 확인 메일을 <span id="sendCopyTo">위 이메일</span>로 받기 <span class="hint">(계좌·주민번호는 가려서 보냅니다)</span></label>
     <div class="toolbar" style="margin:8px 0 0">
       <button type="button" class="btn n" id="sendBtn" onclick="sendToOffice()" style="font-size:15px;padding:10px 22px">📨 신청하기</button>
@@ -956,11 +957,13 @@ async function sendToOffice(){
     const r=await relaySend({
       type:'cms', subject:'CMS 자동이체 신청'+(S.sigApplicant?' (화면 서명)':''), docId, hash,
       name:S.applicant.trim(), phone:(S.mobile||S.tel||'').trim(), email:(S.email||'').trim(),
-      text:sendText(memo), files:enc
+      text:sendText(memo), files:enc,
+      /* 접수 확인 메일은 서버가 신청서의 이메일로만 보낸다(ack). 요약에는 계좌·주민번호를 가린 내용만 */
+      ack:$('sendCopy').checked, ackSummary:copyText('').split(String.fromCharCode(10)).slice(3,11).join(String.fromCharCode(10))
     });
-    let copied=false;
+    let copied=!!r.ack;
     const to=(S.email||'').trim();
-    if($('sendCopy').checked&&/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)){
+    if(!copied&&r.ack===undefined&&$('sendCopy').checked&&/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)){   /* 예전 메일중계(ack 미지원) 대비 */
       try{
         await relaySend({type:'notify',to,client:S.applicant.trim(),
           subject:'[세무법인 한백택스] CMS 자동이체 신청 접수 확인'+(r.id?' ('+r.id+')':''),

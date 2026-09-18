@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>세무법인 한백택스 개인정보 처리방침</title>
+<!--
+  세무법인 한백택스 개인정보 처리방침 v1 (시행 2026-09-19)
+  근거: 개인정보 보호법 제30조 ①(처리방침 기재 사항)·②(공개) — K-Law MCP 원문 확인 2026-09-19 (시행 2026-09-11 본문)
+  기재 사실(보관 기간 1년·메일 수신처·드라이브 보관·브라우저 저장)은 메일중계 Code.gs(CONFIG.RETAIN_DAYS=365, TO)와 각 도구 코드 기준.
+  개정 시 부칙의 시행일과 「이전 처리방침」 목록을 함께 고친다.
+-->
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1B3A5C;--gold:#C8963E;--bg:#F4F6F9;--line:#DCE3EC;--gray:#5F6E80}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:15px;line-height:1.75}
+main{max-width:860px;margin:0 auto;padding:22px 18px 60px}
+.doc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:26px 30px}
+h1{font-size:23px;color:var(--navy);margin:0 0 4px;text-align:center}
+.eff{text-align:center;color:var(--gray);font-size:13px;margin-bottom:18px}
+.lead{border-left:4px solid var(--gold);background:#fffdf7;padding:10px 14px;border-radius:6px;margin-bottom:14px}
+h2{font-size:17px;color:var(--navy);margin:22px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:14px;margin:6px 0}
+th,td{border:1px solid var(--line);padding:7px 9px;vertical-align:top;text-align:left}
+th{background:#EEF2F7;color:var(--navy);white-space:nowrap}
+ul,ol{margin:4px 0;padding-left:22px}
+.muted{color:var(--gray);font-size:13px}
+@media(max-width:640px){.doc{padding:18px 14px}table{font-size:13px}th{white-space:normal}}
+@media print{#hbHome{display:none!important}html,body{background:#fff}.doc{border:none;padding:0}}
+</style>
+</head>
+<body>
+<!-- HB-HOME v1 -->
+<script>
+/* 한백택스 홈 바 — 생성기: 02-도구 & 스크립트/Python 스크립트/홈바_주입.py
+   이 블록은 자동 생성이다. 직접 고치지 말고 생성기를 고쳐 다시 실행한다. */
+(function(){
+  if (window.self !== window.top) return;          /* 포털 iframe 안에서는 부모의 바를 쓴다 */
+  if (window.__hbHome) return;
+  window.__hbHome = 1;
+  var me = decodeURIComponent((location.pathname.split('/').pop() || '').toLowerCase());
+  var host = document.createElement('div');
+  host.id = 'hbHome';
+  host.setAttribute('data-nogate', '1');
+  host.style.cssText = 'display:block;position:sticky;top:0;z-index:2147483000;margin:0;padding:0;line-height:0';
+  var links = [
+    ['한백택스_세무계산_포털.html', '세무계산 포털'],
+    ['한백택스_모바일.html', '모바일 포털']
+  ].filter(function(l){ return l[0].toLowerCase() !== me; });
+  var sh = host.attachShadow({ mode: 'open' });
+  sh.innerHTML =
+    '<style>' +
+    ':host{all:initial;display:block}' +
+    '.bar{box-sizing:border-box;display:flex;align-items:center;gap:10px;height:42px;padding:0 16px;' +
+      'background:#fff;border-bottom:2px solid #C8963E;box-shadow:0 2px 8px rgba(15,36,64,.08);' +
+      'font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:13px;line-height:1;color:#1B3A5C}' +
+    '.home{display:inline-flex;align-items:center;gap:6px;background:#C8963E;color:#fff;font-weight:800;' +
+      'padding:7px 13px;border-radius:999px;text-decoration:none;white-space:nowrap;letter-spacing:-.2px}' +
+    '.home:hover{background:#b8862f}' +
+    '.ttl{font-weight:700;color:#1B3A5C;white-space:nowrap;opacity:.85}' +
+    '.sp{flex:1}' +
+    '.lnk{color:#35507A;font-weight:700;text-decoration:none;padding:6px 10px;border:1px solid #DCE5F0;border-radius:999px;white-space:nowrap;background:#F5F8FC}' +
+    '.lnk:hover{border-color:#C8963E;color:#1B3A5C}' +
+    '@media(max-width:640px){.bar{padding:0 10px;gap:6px;height:40px}.ttl{display:none}.lnk{padding:6px 8px;font-size:12px}}' +
+    '@media print{.bar{display:none}}' +
+    '</style>' +
+    '<div class="bar">' +
+      '<a class="home" href="index.html" title="한백택스 세무 도구 모음(메인 화면)으로">&#8592; 메인 화면</a>' +
+      '<span class="ttl">세무법인 한백택스 · 세무 도구</span>' +
+      '<span class="sp"></span>' +
+      links.map(function(l){ return '<a class="lnk" href="' + l[0] + '">' + l[1] + '</a>'; }).join('') +
+    '</div>';
+  var s = document.currentScript;
+  if (s && s.parentNode) s.parentNode.insertBefore(host, s);
+  else document.body.insertBefore(host, document.body.firstChild);
+})();
+</script>
+<!-- /HB-HOME -->
+<main><div class="doc">
+<h1>개인정보 처리방침</h1>
+<div class="eff">세무법인 한백택스 · 시행일 2026년 9월 19일</div>
+<div class="lead">세무법인 한백택스(이하 「사무소」)는 「개인정보 보호법」 제30조에 따라 이 누리집(세무 도구 모음)과 연결된 신청·접수 기능에서 개인정보를 어떻게 처리하는지 알려 드립니다. <b>계산기·시뮬레이터에 입력한 값은 이용자의 기기(브라우저)에만 저장되며 사무소로 전송되지 않습니다.</b> 이용자가 「보내기」·「신청하기」를 누른 경우에만 아래와 같이 처리합니다.</div>
+
+<h2>1. 처리하는 개인정보와 목적</h2>
+<table>
+<tr><th>기능</th><th>항목</th><th>목적</th></tr>
+<tr><td>상담 신청 · 자료 제출 · 원격지원 요청 (간편 세무 포털)</td><td>성명(상호), 연락처, 이메일, 문의 내용, 이용자가 첨부한 자료</td><td>상담 회신, 제출 자료 접수, 원격지원 연결</td></tr>
+<tr><td>세무대리 수임 신청 · 세무대리 약정서 (간편 세무 포털 · 약정서·계약서 작성기)</td><td>상호, 대표자, 사업자등록번호, 연락처, 이메일, 주소, 신청 보수, 전자서명, 첨부 서류</td><td>세무대리 계약 체결, 수임 업무 수행</td></tr>
+<tr><td>CMS 자동이체 신청</td><td>신청인(상호), 예금주, 거래은행, 계좌번호, 예금주 주민등록번호(법인은 사업자등록번호), 연락처, 이메일, 주소, 이체일, 월 기장료, 전자서명, 대리인 성명·주민등록번호(대리 신청 시), 통장 사본</td><td>기장료 자동이체(출금이체) 등록</td></tr>
+<tr><td>경정청구 상담</td><td>성명, 연락처, 이용자가 입력한 소득·세액 정보</td><td>경정청구 가능 여부 검토와 회신</td></tr>
+</table>
+<p class="muted">주민등록번호는 법령이 처리를 요구하거나 허용한 경우에만 처리하며(개인정보 보호법 제24조의2), 사무소로 가는 접수 메일 본문과 접수대장에는 뒷자리를 가려 적습니다.</p>
+
+<h2>2. 보유 기간과 파기</h2>
+<ul>
+<li><b>접수 메일의 첨부 원본과 접수대장</b>: 사무소 구글 드라이브에 보관하며, <b>접수일부터 1년</b>이 지나면 매일 자동으로 삭제합니다(삭제된 파일은 구글 휴지통 보관 기간이 지나면 완전히 지워집니다).</li>
+<li><b>세무대리 계약이 체결된 경우</b>: 그 업무 수행에 필요한 자료는 사무소 업무 시스템으로 옮겨 관계 법령과 수임 계약에서 정한 기간 동안 보관하고, 기간이 지나면 복구할 수 없는 방법으로 파기합니다.</li>
+<li><b>이용자 기기에 저장된 입력값</b>: 이용자가 각 도구의 「초기화」를 누르거나 브라우저 저장 데이터를 지우면 삭제됩니다.</li>
+</ul>
+
+<h2>3. 제3자 제공</h2>
+<p>사무소는 개인정보를 제3자에게 제공하지 않습니다. 다만 CMS 자동이체 신청의 경우 출금이체 등록을 위해 필요한 범위(예금주·거래은행·계좌번호 등)에서 출금이체를 처리하는 기관에 제공하며, 법령에 따라 요구되는 경우에는 그에 따릅니다.</p>
+
+<h2>4. 처리 위탁과 국외 보관</h2>
+<table>
+<tr><th>받는 자</th><th>위탁·보관 내용</th><th>보관 위치</th></tr>
+<tr><td>Google LLC</td><td>접수 메일 발송(Gmail), 첨부 원본·접수대장 보관(Google 드라이브·스프레드시트), 신청 접수 처리(Google Apps Script)</td><td>Google 데이터센터(국외 포함)</td></tr>
+<tr><td>GitHub, Inc.</td><td>누리집 파일 제공(GitHub Pages). 개인정보를 저장하지 않습니다.</td><td>국외</td></tr>
+</table>
+<p class="muted">업종코드 검색의 「AI 검색」은 이용자가 직접 입력한 본인 API 키로 Anthropic의 AI 서비스에 검색어를 보냅니다. 사무소는 이 내용을 받지 않습니다.</p>
+
+<h2>5. 정보주체의 권리와 행사 방법</h2>
+<p>이용자는 사무소에 자신의 개인정보 열람, 정정·삭제, 처리 정지를 요구할 수 있습니다. 아래 연락처로 전화·이메일·서면으로 요청하시면 지체 없이 조치하고 결과를 알려 드립니다. 법정대리인이나 위임을 받은 사람을 통해서도 요청할 수 있습니다.</p>
+
+<h2>6. 자동으로 수집하는 장치</h2>
+<p>누리집은 방문 기록 분석 도구나 광고용 쿠키를 쓰지 않습니다. 각 도구는 입력값을 다시 쓰기 편하도록 브라우저 저장소(localStorage)에 저장하며, 이 값은 이용자 기기에만 있고 사무소로 전송되지 않습니다. 브라우저 설정에서 사이트 데이터를 지우면 삭제됩니다. 공용 PC에서는 작업 후 각 도구의 「초기화」를 눌러 주십시오.</p>
+
+<h2>7. 안전성 확보 조치</h2>
+<ul>
+<li>접수는 암호화된 연결(HTTPS)로만 받습니다.</li>
+<li>메일 본문과 접수대장에는 주민등록번호 뒷자리를 가려 적고, 원본은 첨부 파일로만 보관합니다.</li>
+<li>사무소 이름으로 외부에 메일을 보내는 기능은 사무소 확인 코드를 가진 직원만 쓸 수 있고, 접수·발송 횟수에 한도를 둡니다.</li>
+<li>보관 기간이 지난 자료는 자동으로 삭제합니다.</li>
+</ul>
+
+<h2>8. 개인정보 보호책임자</h2>
+<table>
+<tr><th>보호책임자</th><td>대표세무사 차재영</td></tr>
+<tr><th>연락처</th><td>전화 02-2277-3101 · 팩스 02-2277-3161 · 이메일 hb090@hanbaektax.kr</td></tr>
+<tr><th>주소</th><td>서울특별시 중구 동호로 315, 신안빌딩 2층 (장충동2가 173-1)</td></tr>
+</table>
+<p class="muted">개인정보 침해에 대한 신고·상담은 개인정보침해신고센터(국번 없이 118), 개인정보 분쟁조정위원회(1833-6972) 등에 할 수 있습니다.</p>
+
+<h2>9. 처리방침의 변경</h2>
+<p>이 처리방침은 2026년 9월 19일부터 적용합니다. 내용이 바뀌면 이 페이지에 시행일과 함께 알립니다.</p>
+</div></main>
+</body>
+</html>
