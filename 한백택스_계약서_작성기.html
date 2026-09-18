@@ -23,7 +23,7 @@
   - 데이터는 이 브라우저(localStorage)에만 저장된다. 서버로 보내지 않는다. JSON 저장·불러오기 지원.
   - 인쇄: A4, 나눔고딕 11pt 이상.
 -->
-<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Nanum+Myeongjo:wght@700;800&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#1B3A5C;--gold:#C8963E;--blue:#2F5D8A;--bg:#F4F6F9;--line:#DCE3EC;--gray:#6B7A8C;--red:#B91C1C;--amber:#92400E;--green:#166534}
 *{box-sizing:border-box}
@@ -64,7 +64,7 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
 .sigbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px;font-size:11px;color:var(--gray)}
 .sigbar .tool.on{background:var(--navy);color:#fff;border-color:var(--navy)}
 .sheet .sigimg{height:32pt;max-width:130pt;vertical-align:middle;margin:0 2pt}
-.sheet .sealimg{height:54pt;width:54pt;vertical-align:middle;margin:0 4pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.sheet .sealimg{height:58pt;width:58pt;vertical-align:middle;margin:0 4pt;mix-blend-mode:multiply;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .btn:hover{filter:brightness(.96)}
 .allow{display:grid;grid-template-columns:1.2fr 1fr .6fr auto;gap:6px;margin-bottom:6px;align-items:center}
 .allow input,.allow select{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;width:100%}
@@ -430,10 +430,9 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
     <div class="row c3">
       <label class="fld num">월 기장료 (원)<input type="text" data-k="fee" inputmode="numeric" placeholder="330,000"></label>
       <label class="fld">부가가치세<select data-k="feeVat"><option value="in">부가세 포함 금액</option><option value="ex">부가세 별도</option></select></label>
-      <label class="fld num">결산 · 세무조정 보수 (원)<input type="text" data-k="adjFee" inputmode="numeric" placeholder="연 1회, 660,000"></label>
       <label class="fld">기장료 지급일<select data-k="payDay"><option value="10">매월 10일</option><option value="15">매월 15일</option><option value="25">매월 25일</option><option value="last">매월 말일</option></select></label>
       <label class="fld">지급 방법<select data-k="payHow"><option value="cms">CMS 자동이체</option><option value="bank">계좌이체</option></select></label>
-      <label class="fld">조정 보수 청구 시기<select data-k="adjWhen"><option value="filing">신고 완료 시</option><option value="split">결산 착수 시 · 신고 완료 시 분할</option></select></label>
+      <div class="fld" style="grid-column:1/-1;color:var(--gray);font-weight:400">결산 · 세무조정 보수는 <b>세무법인 한백택스의 보수 기준에 따라 별도 청구</b>됩니다(약정서 제4조 ②에 그대로 들어갑니다).</div>
     </div>
     <h2>⑥ 넣을 조항</h2>
     <div class="row">
@@ -466,6 +465,23 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
       </div>
       <div class="hint" style="line-height:1.6;margin-top:4px">거래처에 화면을 보여 주고 손가락이나 마우스로 서명을 받으면 약정서가 그대로 완성됩니다. 잘못 쓴 곳은 <b>🧽 지우개</b>로 문지르거나 <b>↶ 되돌리기</b>로 한 획씩 되돌립니다. 서명은 이 브라우저에만 저장되며, 서명한 뒤 약정 내용을 고치면 다시 받으라고 알려 줍니다.</div>
     </div>
+    <h2><span class="n">✉</span>한백택스로 보내기 <span class="hint">(서명된 약정서가 이미지로 hb090@hanbaektax.kr 에 접수됩니다)</span></h2>
+    <div class="row c1">
+      <div>
+        <div class="fld" style="margin-bottom:4px">첨부 <span class="hint">(사업자등록증 사본 등 — 선택, 5개 · 15MB 까지)</span></div>
+        <button type="button" class="btn sm" onclick="document.getElementById('taxSendFile').click()">📎 파일 고르기</button>
+        <input type="file" id="taxSendFile" multiple accept="image/*,.pdf" style="display:none" onchange="addTaxFiles(this)">
+        <div id="taxSendFileList" class="hint" style="margin-top:4px">아직 없습니다.</div>
+      </div>
+      <label class="fld">남길 말 <span class="hint">(선택)</span><textarea id="taxSendMemo" placeholder="예: 3월분부터 기장 시작 부탁드립니다"></textarea></label>
+    </div>
+    <label class="chk" style="margin-top:6px"><input type="checkbox" id="taxSendAgree">서명된 약정서와 위 첨부를 세무대리 수임 목적으로 세무법인 한백택스에 보내는 데 동의합니다.</label>
+    <label class="chk" id="taxCopyRow" style="display:none"><input type="checkbox" id="taxSendCopy" checked>접수 확인 메일을 <span id="taxCopyTo">위 이메일</span>로 받기</label>
+    <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+      <button type="button" class="btn p" id="taxSendBtn" onclick="sendTaxToOffice()">📨 서명본 보내기</button>
+      <button type="button" class="btn" onclick="mailTaxToOffice()">✉ 메일 앱으로</button>
+    </div>
+    <div id="taxSendStatus" class="hint" style="margin-top:6px;line-height:1.6"></div>
     <div class="calc" id="taxCalc"></div>
     <ul class="checks" id="taxChecks"></ul>
   </div>
@@ -507,7 +523,7 @@ const DEF={
   labor:{kind:'perm',start:'',end:'',coName:'',coRep:'',coBiz:'',coTel:'',coAddr:'',wName:'',wBirth:'',wTel:'',wRrn:'',wAddr:'',place:'',job:'',tIn:'09:00',tOut:'18:00',rest:60,restTime:'12:00~13:00',offDay:'일요일',daysPerWeek:5,dayHours:{월:8,화:8,수:8,목:8,금:8,토:'',일:''},payType:'month',base:'',bonus:'none',bonusDesc:'',allow:[],payDay:'10',payPeriod:'prev',payHow:'bank',probation:'0',probPay:'100',simple:'n',insNP:true,insHI:true,insEI:true,insWC:true,extra:'',signDate:'',showTool:false},
   loan:{lName:'',lType:'ind',lId:'',lTel:'',lAddr:'',bName:'',bType:'ind',bId:'',bTel:'',bAddr:'',rel:'none',amt:'',loanDate:'',dueDate:'',give:'bank',acct:'',rate:'',intHow:'monthly',intDay:'last',repay:'bullet',lateRate:'',prepay:'ok',gName:'',gId:'',gAddr:'',collateral:'',court:'',signDate:'',extra:'',lossClause:true,showSched:true,notary:false,showTool:false},
   free:{coName:'',coRep:'',coBiz:'',coTel:'',coAddr:'',fName:'',fRrn:'',fTel:'',fBiz:'n',fAddr:'',fAcct:'',job:'',deliver:'',start:'',end:'',where:'free',termDays:'30',feeType:'month',fee:'',taxMode:'wht',payDay:'10',expense:'self',ip:'client',confid:true,noSub:true,notWorker:true,showTool:false,rFixed:false,rOrder:false,rExcl:false,rTool:false,court:'',signDate:'',extra:''},
-  tax:{cName:'',cRep:'',cType:'corp',cBiz:'',cTel:'',cEmail:'',cAddr:'',oName:'세무법인 한백택스',oRep:'차재영',oBiz:'522-85-00152',oTel:'02-2277-3101',oAddr:'서울특별시 중구 동호로 315, 신안빌딩 2층',oStaff:'',wBook:true,wVat:true,wWht:true,wIncome:true,wYear:false,wIns:false,wConsult:true,wSincere:false,wEtc:'',start:'',end:'',renew:'auto',fee:'',feeVat:'in',adjFee:'',payDay:'10',payHow:'cms',adjWhen:'filing',confid:true,dataResp:true,capLiab:false,handover:true,eDoc:true,showTool:false,court:'',signDate:'',extra:'',useSeal:true,agree:false,sigClient:'',sigAt:'',sigFor:''}
+  tax:{cName:'',cRep:'',cType:'corp',cBiz:'',cTel:'',cEmail:'',cAddr:'',oName:'세무법인 한백택스',oRep:'차재영',oBiz:'522-85-00152',oTel:'02-2277-3101',oAddr:'서울특별시 중구 동호로 315, 신안빌딩 2층',oStaff:'',wBook:true,wVat:true,wWht:true,wIncome:true,wYear:false,wIns:false,wConsult:true,wSincere:false,wEtc:'',start:'',end:'',renew:'auto',fee:'',feeVat:'in',payDay:'10',payHow:'cms',confid:true,dataResp:true,capLiab:false,handover:true,eDoc:true,showTool:false,court:'',signDate:'',extra:'',useSeal:true,agree:false,sigClient:'',sigAt:'',sigFor:''}
 };
 const LSKEY='hbt_contract_v1';
 let S={labor:JSON.parse(JSON.stringify(DEF.labor)),loan:JSON.parse(JSON.stringify(DEF.loan)),free:JSON.parse(JSON.stringify(DEF.free)),tax:JSON.parse(JSON.stringify(DEF.tax))};
@@ -520,17 +536,17 @@ function bind(){
   document.querySelectorAll('[data-k]').forEach(el=>{
     const form=formOf(el);
     const k=el.dataset.k;
-    const set=()=>{const v=S[form][k];if(el.type==='checkbox')el.checked=!!v;else el.value=(v==null?'':v);if(el.inputMode==='numeric'&&/^(base|amt|fee|adjFee)$/.test(k)&&v)el.value=fmt(v);};
+    const set=()=>{const v=S[form][k];if(el.type==='checkbox')el.checked=!!v;else el.value=(v==null?'':v);if(el.inputMode==='numeric'&&/^(base|amt|fee)$/.test(k)&&v)el.value=fmt(v);};
     set();
     el.addEventListener('input',()=>{
       let v=el.type==='checkbox'?el.checked:el.value;
-      if(/^(base|amt|fee|adjFee)$/.test(k)){v=num(v);}
+      if(/^(base|amt|fee)$/.test(k)){v=num(v);}
       S[form][k]=v;persist();render();
     });
-    el.addEventListener('blur',()=>{if(/^(base|amt|fee|adjFee)$/.test(k)&&S[form][k])el.value=fmt(S[form][k]);});
+    el.addEventListener('blur',()=>{if(/^(base|amt|fee)$/.test(k)&&S[form][k])el.value=fmt(S[form][k]);});
   });
 }
-function refill(){document.querySelectorAll('[data-k]').forEach(el=>{const form=formOf(el);const k=el.dataset.k;const v=S[form][k];if(el.type==='checkbox')el.checked=!!v;else el.value=(v==null?'':v);if(/^(base|amt|fee|adjFee)$/.test(k)&&v)el.value=fmt(v);});renderDays();renderAllow();}
+function refill(){document.querySelectorAll('[data-k]').forEach(el=>{const form=formOf(el);const k=el.dataset.k;const v=S[form][k];if(el.type==='checkbox')el.checked=!!v;else el.value=(v==null?'':v);if(/^(base|amt|fee)$/.test(k)&&v)el.value=fmt(v);});renderDays();renderAllow();}
 function renderDays(){
   const box=$('dayHours');box.innerHTML='';
   DAYS.forEach(d=>{const l=document.createElement('label');l.innerHTML='<span>'+d+'</span>';const i=document.createElement('input');i.type='number';i.min=0;i.max=24;i.step=0.5;i.value=S.labor.dayHours[d]===''||S.labor.dayHours[d]==null?'':S.labor.dayHours[d];i.addEventListener('input',()=>{S.labor.dayHours[d]=i.value===''?'':+i.value;persist();render();});l.appendChild(i);box.appendChild(l);});
@@ -561,7 +577,7 @@ function resetDoc(){if(!confirm('현재 문서의 입력을 모두 지웁니다.
 function fillSample(){
   if(doc==='labor'){S.labor=Object.assign({},DEF.labor,{kind:'perm',start:today(),coName:'주식회사 예시상사',coRep:'홍길동',coBiz:'123-45-67891',coTel:'02-000-0000',coAddr:'서울특별시 중구 ○○로 00, 0층',wName:'김예시',wBirth:'1995-03-15',wTel:'010-0000-0000',wAddr:'서울특별시 성동구 ○○로 00',place:'본사 사무실(서울 중구)',job:'경리·회계 사무 및 부수 업무',base:2400000,allow:[{name:'식대',amt:200000,ordinary:true},{name:'자가운전보조금',amt:200000,ordinary:false}],probation:'3',probPay:'100',signDate:today(),dayHours:{월:8,화:8,수:8,목:8,금:8,토:'',일:''}});}
   else if(doc==='free'){S.free=Object.assign({},DEF.free,{coName:'주식회사 예시상사',coRep:'홍길동',coBiz:'123-45-67891',coTel:'02-000-0000',coAddr:'서울특별시 중구 ○○로 00, 0층',fName:'이예시',fTel:'010-0000-0000',fAddr:'경기도 성남시 분당구 ○○로 00',fAcct:'○○은행 000-000-000000 이예시',job:'온라인 마케팅 콘텐츠(카드뉴스·블로그) 기획 및 제작',deliver:'매월 카드뉴스 8건·블로그 4건 납품(시안 수정 2회 포함), 매월 말일 검수',start:today(),end:addMonths(today(),12),fee:3000000,court:'서울중앙지방법원',signDate:today()});}
-  else if(doc==='tax'){S.tax=Object.assign({},DEF.tax,{cName:'주식회사 예시상사',cRep:'홍길동',cType:'corp',cBiz:'123-45-67891',cTel:'02-000-0000',cEmail:'admin@example.com',cAddr:'서울특별시 중구 ○○로 00, 0층',start:today(),fee:330000,feeVat:'in',adjFee:660000,court:'서울중앙지방법원',signDate:today()});}
+  else if(doc==='tax'){S.tax=Object.assign({},DEF.tax,{cName:'주식회사 예시상사',cRep:'홍길동',cType:'corp',cBiz:'123-45-67891',cTel:'02-000-0000',cEmail:'admin@example.com',cAddr:'서울특별시 중구 ○○로 00, 0층',start:today(),fee:330000,feeVat:'in',court:'서울중앙지방법원',signDate:today()});}
   else{S.loan=Object.assign({},DEF.loan,{lName:'주식회사 예시상사',lType:'corp',lId:'123-45-67891',lTel:'02-000-0000',lAddr:'서울특별시 중구 ○○로 00',bName:'홍길동',bType:'ind',bId:'1975-05-05',bTel:'010-0000-0000',bAddr:'서울특별시 강남구 ○○로 00',rel:'corp-rep',amt:60000000,loanDate:today(),dueDate:addMonths(today(),24),acct:'○○은행 000-000-000000 홍길동',rate:4.6,intHow:'monthly',repay:'bullet',lateRate:12,court:'서울중앙지방법원',signDate:today()});}
   persist();refill();render();
 }
@@ -829,20 +845,170 @@ function freeHtml(d,c){
   (d.showTool?'<div class="foot">세무법인 한백택스 계약서 작성기 · 02-2277-3101 · hb090@hanbaektax.kr</div>':'');
 }
 
-/* ═══════ 직인 · 서명 ═══════ */
-const SEAL_RED='#C0392B';
-/* 도장 이미지를 따로 두지 않고 그때그때 그린다 — 사무소명·대표자를 고치면 같이 바뀐다. */
+/* ═══════ 한백택스로 바로 보내기 ═══════
+ * 같은 사이트의 CMS 자동이체 신청서가 쓰는 자료전송 메일중계와 같은 주소·토큰을 쓴다.
+ * 서명된 약정서를 이미지로 만들어 사무소 메일(hb090@hanbaektax.kr)로 접수한다.
+ * 중계가 없거나 실패하면 메일 앱(mailto)으로 대체한다. */
+const RELAY={url:'https://script.google.com/macros/s/AKfycbxtBSiGZjkoJEl87cttAm1HUrR4A1D2zyz03S65NOkC6ezSUsHW_8BW5Pq5fkIyBZAK7A/exec',token:'hbtax-relay'};
+const OFFICE_MAIL='hb090@hanbaektax.kr';
+const SEND_MAX_FILES=5, SEND_MAX_BYTES=15*1024*1024;
+let taxFiles=[];
+const relayReady=()=>/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(RELAY.url||'');
+const mb=n=>(n/1048576).toFixed(1)+'MB';
+const mailOk=s=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(s||'').trim());
+function fileToB64(f){return new Promise((ok,ng)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]||'');r.onerror=()=>ng(r.error||new Error('read'));r.readAsDataURL(f);});}
+async function relaySend(payload){
+  const body=JSON.stringify(Object.assign({token:RELAY.token,page:location.href.split('?')[0],ua:navigator.userAgent},payload));
+  const res=await fetch(RELAY.url,{method:'POST',body});     /* Content-Type 지정 안 함 → preflight 없이 전송 */
+  let j={};try{j=await res.json();}catch(e){}
+  if(!res.ok||!j.ok)throw new Error(j.error||('HTTP '+res.status));
+  return j;
+}
+function loadScript(src){return new Promise((ok,ng)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>ng(new Error('load'));document.head.appendChild(s);});}
+function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);}
+/* 약정서 미리보기를 이미지로. 휴대폰에서 미리보기가 숨겨져 있으면 잠깐 보이게 한 뒤 찍는다.
+   복제 화면 폭을 PC 폭(1280px)으로 고정해야 좁은 화면 규칙에 걸려 0×0 이 나오지 않는다. */
+async function sheetJpg(){
+  if(!window.html2canvas)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+  const el=$('sheet'),pv=$('pvPanel'),hidden=getComputedStyle(pv).display==='none';
+  if(hidden)pv.style.setProperty('display','block','important');
+  try{
+    const cv=await html2canvas(el,{scale:2,backgroundColor:'#ffffff',useCORS:true,windowWidth:1280});
+    return await new Promise((ok,ng)=>cv.toBlob(b=>b&&b.size>1000?ok(b):ng(new Error('image')),'image/jpeg',0.92));
+  }finally{ if(hidden)pv.style.removeProperty('display'); }
+}
+const taxBaseName=()=>'세무대리약정서_'+String(S.tax.cName||'미정').replace(/[\\/:*?"<>|]/g,'')+'_'+today();
+function addTaxFiles(inp){
+  const add=Array.from(inp.files||[]);inp.value='';
+  for(const f of add){
+    if(taxFiles.length>=SEND_MAX_FILES){alert('첨부는 '+SEND_MAX_FILES+'개까지입니다.');break;}
+    if(taxFiles.reduce((a,x)=>a+x.size,0)+f.size>SEND_MAX_BYTES){alert(f.name+' — 첨부 합계가 15MB를 넘습니다.');continue;}
+    taxFiles.push(f);
+  }
+  renderTaxFiles();
+}
+function delTaxFile(i){taxFiles.splice(i,1);renderTaxFiles();}
+function renderTaxFiles(){
+  $('taxSendFileList').innerHTML=taxFiles.length
+    ? taxFiles.map((f,i)=>'· '+esc(f.name)+' ('+mb(f.size)+') <a href="#" onclick="delTaxFile('+i+');return false" style="color:#B91C1C">삭제</a>').join('<br>')
+    : '아직 없습니다.';
+}
+function setTaxSendStatus(t,lv){
+  const el=$('taxSendStatus');el.textContent=t||'';
+  el.style.color=lv==='err'?'#B91C1C':lv==='ok'?'#166534':'';el.style.fontWeight=lv?'700':'';
+}
+function refreshTaxCopyRow(){
+  const ok=mailOk(S.tax.cEmail);
+  $('taxCopyRow').style.display=ok?'':'none';
+  $('taxCopyTo').textContent=ok?S.tax.cEmail.trim():'위 이메일';
+}
+/* 사무소가 그대로 옮겨 적을 수 있도록 약정 내용을 모두 적는다 */
+function taxSendText(memo){
+  const d=S.tax,c=taxCalc(d);
+  const L=['[세무대리 약정 접수]','',
+    '위임인: '+(d.cName||'')+(d.cRep?' (대표 '+d.cRep+')':''),
+    '구분: '+({corp:'법인',biz:'개인사업자',ind:'개인'}[d.cType]||''),
+    '사업자등록번호: '+(d.cBiz||''),
+    '연락처: '+(d.cTel||'')+'   이메일: '+(d.cEmail||''),
+    '주소: '+(d.cAddr||''),'',
+    '약정기간: '+(d.start||'')+' ~ '+(d.end||'(1년)')+(d.renew==='auto'?' · 이의 없으면 1년씩 자동 연장':''),
+    '수임 업무: '+(c.works.map(([,t])=>t).join(' / ')||'(고르지 않음)')+(d.wEtc?' / '+d.wEtc:''),'',
+    '월 기장료: '+(c.fee?fmt(c.fee)+'원 ('+(c.ex?'부가세 별도 → 실지급 '+fmt(c.feePay)+'원':'부가세 포함')+')':'(미정)'),
+    '결산·세무조정 보수: 세무법인 한백택스 보수 기준에 따라 별도 청구',
+    '지급: '+(d.payDay==='last'?'매월 말일':'매월 '+d.payDay+'일')+' · '+(d.payHow==='cms'?'CMS 자동이체':'계좌이체'),
+    '연 보수(기장료 기준, 참고): '+fmt(c.year)+'원  ※ 결산·세무조정 보수 별도','',
+    '갑 서명: '+(d.sigClient?'화면 서명함 ('+d.sigAt+')':'없음 — 서명본 필요'),
+    '을 직인: '+(d.useSeal?'약정서에 찍힘':'인쇄 후 날인 필요')];
+  if(memo)L.push('','[남긴 말]',memo);
+  L.push('','— 세무법인 한백택스 계약서 작성기에서 보냈습니다.');
+  return L.join('\n');
+}
+function taxSendPreflight(){
+  if(!S.tax.cName.trim()){alert('위임인(상호)을 먼저 적어 주십시오.');return false;}
+  const errs=Array.from($('taxChecks').querySelectorAll('li.err')).map(li=>'· '+li.textContent.replace(/^✕\s*/,''));
+  if(errs.length&&!confirm('아직 채우지 않았거나 맞지 않는 항목이 있습니다.\n\n'+errs.join('\n')+'\n\n그래도 보낼까요?'))return false;
+  if(!S.tax.sigClient&&!confirm('갑(위임인) 서명 없이 보냅니다.\n그래도 보낼까요?'))return false;
+  if(!$('taxSendAgree').checked){alert('전송 동의란에 체크해 주십시오.');$('taxSendAgree').focus();return false;}
+  return true;
+}
+async function sendTaxToOffice(){
+  if(!taxSendPreflight())return;
+  if(!relayReady()){mailTaxToOffice(true);return;}
+  const btn=$('taxSendBtn');btn.disabled=true;
+  const memo=($('taxSendMemo').value||'').trim();
+  try{
+    setTaxSendStatus('약정서 이미지를 만드는 중…');
+    let img;
+    try{ img=await sheetJpg(); }
+    catch(e){                                    /* 이미지 없는 접수는 쓸 수 없다 — 보내지 않는다 */
+      setTaxSendStatus('약정서 이미지를 만들지 못해 보내지 않았습니다. 인터넷 연결을 확인하고 다시 누르거나, 「인쇄 · PDF 저장」으로 저장해 보내 주십시오.','err');
+      alert('약정서 이미지를 만들지 못해 보내지 않았습니다.\n인터넷 연결을 확인한 뒤 다시 눌러 주십시오.');
+      return;
+    }
+    const enc=[{name:taxBaseName()+'.jpg',type:'image/jpeg',size:img.size,data:await fileToB64(img)}];
+    for(const f of taxFiles)enc.push({name:f.name,type:f.type||'application/octet-stream',size:f.size,data:await fileToB64(f)});
+    setTaxSendStatus('한백택스로 보내는 중… ('+mb(enc.reduce((a,x)=>a+x.size,0))+')');
+    const r=await relaySend({
+      type:'agreement', subject:'세무대리 약정'+(S.tax.sigClient?' (화면 서명)':''),
+      docId:'TAX-'+today().replace(/-/g,'')+'-'+(String(S.tax.cBiz||'').replace(/\D/g,'').slice(-4)||'0000'),
+      name:S.tax.cName.trim(), phone:(S.tax.cTel||'').trim(), email:(S.tax.cEmail||'').trim(),
+      text:taxSendText(memo), files:enc
+    });
+    let copied=false;
+    const to=(S.tax.cEmail||'').trim();
+    if($('taxSendCopy').checked&&mailOk(to)){
+      try{
+        await relaySend({type:'notify',to,client:S.tax.cName.trim(),
+          subject:'[세무법인 한백택스] 세무대리 약정 접수 확인'+(r.id?' ('+r.id+')':''),
+          text:'세무대리 약정서가 접수되었습니다.'+(r.id?'\n접수번호 '+r.id:'')+'\n\n확인 후 담당자가 연락드립니다.\n문의 02-2277-3101 · hb090@hanbaektax.kr\n\n세무법인 한백택스'});
+        copied=true;
+      }catch(e){}
+    }
+    setTaxSendStatus('접수되었습니다'+(r.id?' · 접수번호 '+r.id:'')+(copied?' · 확인 메일을 '+to+' 로 보냈습니다':'')+' — 확인 후 연락드립니다. (문의 02-2277-3101)','ok');
+    alert('세무대리 약정서가 한백택스로 접수되었습니다.'+(r.id?'\n접수번호 '+r.id:''));
+    taxFiles=[];renderTaxFiles();$('taxSendMemo').value='';
+  }catch(err){
+    setTaxSendStatus('자동 접수 실패('+err.message+') — 「메일 앱으로」를 누르면 약정서 이미지를 저장한 뒤 메일 앱을 엽니다.','err');
+    if(confirm('자동 접수에 실패했습니다 ('+err.message+').\n메일 앱으로 대신 보낼까요?'))mailTaxToOffice(true);
+  }finally{btn.disabled=false;}
+}
+async function mailTaxToOffice(checked){
+  if(!checked&&!taxSendPreflight())return;
+  const memo=($('taxSendMemo').value||'').trim();
+  let saved=false;
+  try{ download(await sheetJpg(),taxBaseName()+'.jpg'); saved=true; }catch(e){}
+  const sub='[한백택스] 세무대리 약정 - '+(S.tax.cName||'');
+  const body=taxSendText(memo)+'\n\n※ '+(saved?'방금 저장된 약정서 이미지('+taxBaseName()+'.jpg)':'약정서 이미지(「인쇄 · PDF 저장」으로 저장)')+'를 이 메일에 꼭 첨부해 주십시오.';
+  location.href='mailto:'+OFFICE_MAIL+'?subject='+encodeURIComponent(sub)+'&body='+encodeURIComponent(body);
+  setTaxSendStatus((saved?'약정서 이미지를 저장하고 ':'')+'메일 앱을 열었습니다. 약정서 이미지를 첨부해 보내 주십시오.');
+}
+
+/* ═══════ 직인 ═══════
+ * 도장 이미지 파일을 두지 않고 사무소명·대표자로 그때그때 그린다 — 이름을 고치면 도장도 바뀐다.
+ * 실제 인영처럼 보이게: 바깥 굵은 테 + 안쪽 가는 테, 위 호에 법인명, 아래 호에 대표자,
+ * 가운데 「印」, 명조 계열 굵은 글씨, feTurbulence 로 가장자리를 번지게 하고 살짝 기울인다.
+ * 종이 위 인주처럼 보이도록 CSS 에서 mix-blend-mode:multiply 를 준다. */
 function sealSvg(office,rep){
-  const F='NanumGothic,\'Nanum Gothic\',\'Malgun Gothic\',sans-serif';
-  const top=/^세무법인/.test(office||'')?'세무법인':'',
-        mid=(office||'').replace(/^세무법인\s*/,'')||'한백택스',
-        bot=rep?('대표 '+rep):'';
-  const t=(y,size,weight,s)=>s?'<text x="50" y="'+y+'" text-anchor="middle" fill="'+SEAL_RED+'" font-family="'+F+'" font-size="'+size+'" font-weight="'+weight+'">'+esc(s)+'</text>':'';
-  const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">'+
-    '<circle cx="50" cy="50" r="46" fill="none" stroke="'+SEAL_RED+'" stroke-width="4"/>'+
-    '<circle cx="50" cy="50" r="40" fill="none" stroke="'+SEAL_RED+'" stroke-width="1.2"/>'+
-    t(top?37:45,12,700,top)+t(top?57:58,18,800,mid)+t(73,9,700,bot)+
-    '</svg>';
+  const RED='#B01F16', F="'Nanum Myeongjo',Batang,'바탕',serif";
+  const ring=String(office||'세무법인 한백택스').replace(/\s+/g,'');
+  const bot=rep?('代表 '+rep):'';
+  const RT=36, RB=33;
+  const arc=(r,sweep)=>'M '+(50-r)+',50 A '+r+','+r+' 0 0,'+sweep+' '+(50+r)+',50';
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="220" height="220">'+
+  '<defs><path id="hbSealTop" d="'+arc(RT,1)+'"/><path id="hbSealBot" d="'+arc(RB,0)+'"/>'+
+    '<filter id="hbSealInk" x="-25%" y="-25%" width="150%" height="150%">'+
+      '<feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="4" seed="11" result="n"/>'+
+      '<feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G"/>'+
+    '</filter></defs>'+
+  '<g filter="url(#hbSealInk)" fill="'+RED+'" opacity="0.96" transform="rotate(-4 50 50)">'+
+    '<circle cx="50" cy="50" r="46.5" fill="none" stroke="'+RED+'" stroke-width="4"/>'+
+    '<circle cx="50" cy="50" r="28" fill="none" stroke="'+RED+'" stroke-width="1.6"/>'+
+    '<text font-family="'+F+'" font-size="11" font-weight="800" letter-spacing="1.6">'+
+      '<textPath href="#hbSealTop" startOffset="50%" text-anchor="middle">'+esc(ring)+'</textPath></text>'+
+    (bot?'<text font-family="'+F+'" font-size="8.6" font-weight="700" letter-spacing="1">'+
+      '<textPath href="#hbSealBot" startOffset="50%" text-anchor="middle">'+esc(bot)+'</textPath></text>':'')+
+    '<text x="50" y="58" text-anchor="middle" font-family="'+F+'" font-size="24" font-weight="800">印</text>'+
+  '</g></svg>';
   return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
 }
 const sigOr=(src,txt)=>/^data:image\//.test(src||'')?'<img class="sigimg" alt="서명" src="'+src+'">':txt;
@@ -948,13 +1114,12 @@ const TAX_WORKS=[
   ['wSincere','「소득세법」 또는 「법인세법」에 따른 성실신고확인'],
 ];
 function taxCalc(d){
-  const fee=+d.fee||0, adj=+d.adjFee||0, ex=d.feeVat==='ex';
+  const fee=+d.fee||0, ex=d.feeVat==='ex';
   const feePay=ex?Math.round(fee*1.1):fee;            /* 실제로 나가는 월 금액 */
   const feeNet=ex?fee:Math.round(fee/1.1);            /* 공급가액 */
-  const adjPay=ex?Math.round(adj*1.1):adj;
-  const year=feePay*12+adjPay;
+  const year=feePay*12;                               /* 기장료만 — 조정 보수는 사무소 기준에 따라 별도 청구 */
   const works=TAX_WORKS.filter(([k])=>d[k]);
-  return {fee,adj,ex,feePay,feeNet,adjPay,year,works};
+  return {fee,ex,feePay,feeNet,year,works};
 }
 function taxChecks(d,c){
   const L=[];const add=(lv,t)=>L.push({lv,t});
@@ -966,8 +1131,8 @@ function taxChecks(d,c){
   if(d.cBiz&&!bizOk(d.cBiz))add('warn','위임인 사업자등록번호 형식이 맞지 않습니다(10자리·검증식): '+esc(d.cBiz));
   if(d.oBiz&&!bizOk(d.oBiz))add('warn','수임인 사업자등록번호 형식이 맞지 않습니다(10자리·검증식): '+esc(d.oBiz));
   if(d.cType!=='ind'&&!d.cBiz)add('warn','사업자는 <b>사업자등록번호</b>를 적어야 홈택스 수임동의·신고 대리에 쓸 수 있습니다.');
-  if(c.fee)add('ok','<b>월 기장료</b> '+fmt(c.fee)+'원('+(c.ex?'부가세 별도 → 실지급 '+fmt(c.feePay)+'원':'부가세 포함 → 공급가액 '+fmt(c.feeNet)+'원')+')'+(c.adj?' · <b>조정 보수</b> '+fmt(c.adj)+'원'+(c.ex?'(실지급 '+fmt(c.adjPay)+'원)':''):'')+' · <b>연 '+fmt(c.year)+'원</b>');
-  if(!c.adj)add('warn','<b>결산·세무조정 보수</b>가 비어 있습니다. 기장료와 조정료를 나누어 적지 않으면 신고 때 보수 다툼이 생깁니다. 금액이 아직 정해지지 않았으면 특약에 산정 기준을 적어 두십시오.');
+  if(c.fee)add('ok','<b>월 기장료</b> '+fmt(c.fee)+'원('+(c.ex?'부가세 별도 → 실지급 '+fmt(c.feePay)+'원':'부가세 포함 → 공급가액 '+fmt(c.feeNet)+'원')+') · 기장료 기준 <b>연 '+fmt(c.year)+'원</b>');
+  add('info','<b>결산·세무조정 보수는 세무법인 한백택스의 보수 기준에 따라 별도 청구</b>됩니다(제4조 ②). 위 연 보수에는 들어 있지 않습니다.');
   if(d.payHow==='cms')add('info','CMS 자동이체로 받기로 했습니다. 이 약정서와 함께 <b>「CMS 자동이체 신청서」</b>를 받아 두십시오(포털 CMS 탭).');
   add('info','<b>수임 범위 밖</b>(제2조 ②): 세무조사 입회·대리, 불복 청구(과세전적부심사·이의신청·심사·심판), 경정청구, 양도소득세·상속세·증여세 등 재산제세 신고는 별도 약정·보수입니다. 이 문구가 없으면 월 기장료에 포함된 것으로 오해받습니다.');
   if(!d.dataResp)add('warn','자료 미제출·허위 자료에 따른 <b>가산세 부담 주체</b> 조항을 빼셨습니다. 넣어 두는 편이 분쟁을 줄입니다.');
@@ -983,10 +1148,10 @@ function taxChecks(d,c){
 }
 function renderTax(){
   const d=S.tax,c=taxCalc(d);
-  $('taxCalc').innerHTML=c.fee?('월 기장료 <b>'+fmt(c.feePay)+'원</b>'+(c.ex?' (부가세 포함 실지급)':' (부가세 포함)')+(c.adj?' · 조정 보수 <b>'+fmt(c.adjPay)+'원</b>':'')+' · 연 <b>'+fmt(c.year)+'원</b> · 수임 업무 <b>'+c.works.length+'건</b>'):'월 기장료를 넣으면 연간 보수가 계산됩니다.';
+  $('taxCalc').innerHTML=c.fee?('월 기장료 <b>'+fmt(c.feePay)+'원</b>'+(c.ex?' (부가세 포함 실지급)':' (부가세 포함)')+' · 기장료 기준 연 <b>'+fmt(c.year)+'원</b> · 수임 업무 <b>'+c.works.length+'건</b> · 결산·세무조정 보수 별도'):'월 기장료를 넣으면 연간 보수가 계산됩니다.';
   $('taxChecks').innerHTML=taxChecks(d,c).map(x=>'<li class="'+x.lv+'">'+x.t+'</li>').join('');
   $('sheet').innerHTML=taxHtml(d,c);
-  refreshPads();
+  refreshPads();refreshTaxCopyRow();
 }
 function taxHtml(d,c){
   let n=0;const art=t=>'<h2>제'+(++n)+'조 ('+t+')</h2>';
@@ -1001,9 +1166,7 @@ function taxHtml(d,c){
   const payT=d.payDay==='last'?'매월 말일':'매월 '+d.payDay+'일';
   const howT=d.payHow==='cms'?'갑이 지정한 계좌에서 CMS 자동이체로 출금하는 방법으로':'갑이 을이 지정한 계좌로 이체하는 방법으로';
   const vatT=c.ex?'위 보수는 부가가치세를 포함하지 아니한 금액이며, 을은 보수에 부가가치세를 더하여 청구하고 세금계산서를 발행한다.':'위 보수는 부가가치세를 포함한 금액이며, 을은 보수를 청구할 때 세금계산서를 발행한다.';
-  const adjT=c.adj
-    ? '② 결산 및 세무조정에 관한 보수는 '+fmt(c.adj)+'원으로 하고, '+(d.adjWhen==='split'?'결산에 착수할 때와 신고를 마쳤을 때 절반씩 나누어':'해당 신고를 마쳤을 때')+' 청구한다.'
-    : '② 결산 및 세무조정에 관한 보수는 갑과 을이 신고 전에 따로 정한다.';
+  const adjT='② 결산 및 세무조정에 관한 보수는 제1항의 기장 보수에 포함되지 아니하며, 세무법인 한백택스의 보수 기준에 따라 별도로 청구한다.';
   return '<h1>세무대리 약정서</h1>'+
   '<p><b>'+esc(d.cName||'________')+'</b>(이하 "갑"이라 한다)과(와) <b>'+esc(d.oName||'________')+'</b>(이하 "을"이라 한다)은 「세무사법」 제2조에 따른 세무대리 업무의 위임에 관하여 다음과 같이 약정한다.</p>'+
   art('목적')+'<p>이 약정은 갑이 을에게 아래의 세무대리 업무를 위임하고 을이 이를 수임하여 처리하는 데 필요한 사항을 정함을 목적으로 하며, 「민법」 제680조에 따른 위임계약으로 한다.</p>'+
