@@ -104,6 +104,9 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
 .linkbox textarea{width:100%;min-height:58px;font:inherit;font-size:11px;padding:7px;border:1px solid var(--line);border-radius:8px;resize:vertical}
 .staffonly{display:none}
 body.staff .staffonly{display:block}
+.confirmpanel{border:1px dashed var(--gold);border-radius:10px;padding:8px 12px;margin-top:6px;background:#fffdf7}
+.sheet .confirmbox{margin-top:6pt;border:1px solid #1B3A5C;border-radius:3pt;padding:3pt 8pt;font-size:9pt;display:flex;align-items:center;justify-content:flex-end;gap:8pt;color:#000}
+.sheet .csealimg{height:40pt;width:40pt;mix-blend-mode:multiply;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 body.staff .clientonly{display:none}
 /* ── 미리보기(신청서) ── */
 .sheet{background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 18px rgba(15,36,64,.08);padding:13mm 13mm;min-height:287mm;width:100%;max-width:210mm;margin:0 auto;font-size:10.5pt;line-height:1.6;color:#000}
@@ -269,7 +272,7 @@ body.staff .clientonly{display:none}
     <ol>
       <li>아래 칸을 채웁니다. 오른쪽(휴대폰은 「미리보기」)에 신청서가 그대로 만들어집니다.</li>
       <li><b>「서명」 칸에 손가락이나 마우스로 서명</b>합니다. 예금주가 신청인과 다르면 <b>예금주 동의 서명</b>도 받습니다.</li>
-      <li>맨 아래에서 <b>통장 사본</b>을 첨부하고 <b>「신청하기」</b>를 누릅니다. 서명된 신청서가 <b>이미지로</b> 한백택스 메일(hb090@hanbaektax.kr)에 바로 접수됩니다.</li>
+      <li>맨 아래에서 <b>통장 사본</b>을 첨부하고 <b>「신청하기」</b>를 누릅니다. 서명된 신청서가 <b>이미지로</b> 한백택스 메일(hb090@hanbaektax.kr · hb3101@nate.com)에 바로 접수됩니다. 사무소가 출금액을 약정된 기장료와 대조·확정한 뒤 자동이체를 등록합니다.</li>
     </ol>
     <div style="margin-top:6px">종이로 내시려면 「인쇄 · PDF 저장」으로 출력해 서명·날인한 뒤 카카오톡 사진·팩스 02-2277-3161 로 보내셔도 됩니다. (문의 02-2277-3101)</div>
   </div>
@@ -344,6 +347,19 @@ body.staff .clientonly{display:none}
       <label class="fld" style="grid-column:1/-1">사무소명 <span class="hint">(신청서 아래 띠와 인사말에 들어갑니다)</span><input data-k="office"></label>
       <label class="fld" style="grid-column:1/-1">연락처 표기 <span class="hint">(신청서 맨 아래 줄)</span><input data-k="officeFoot"></label>
     </div>
+    <h2>사무소 확인 · 확정 <span class="hint">(출금액을 약정 보수와 대조한 뒤)</span></h2>
+    <div class="confirmpanel">
+      <div class="hint" style="line-height:1.7;margin-bottom:6px">업체가 보낸 신청서(접수 메일의 JSON 을 「📂 불러오기」)를 열어 <b>월 기장료·이체일·계좌</b>를 약정서 확정 보수와 대조하고, 맞으면 <b>「출금 내용 확인 · 확정」</b>을 누릅니다. 신청서 아래에 확정번호·직인이 찍히고 사무실 메일·접수대장에 기록됩니다. 확정 뒤 계좌·금액·이체일을 고치면 확정 표시가 빠집니다.</div>
+      <div class="row">
+        <label class="fld">사무소 확인 코드 <span class="hint">(이 브라우저에 저장)</span><input id="staffToken" type="password" autocomplete="off" placeholder="HB-…"></label>
+        <label class="fld">확인 담당자<input id="staffBy" placeholder="예: 차재영"></label>
+      </div>
+      <div class="toolbar" style="margin:8px 0 0">
+        <button type="button" class="btn n" id="btnCmsConfirm" onclick="cmsConfirm()">✅ 출금 내용 확인 · 확정</button>
+        <button type="button" class="btn" onclick="cmsUnconfirm()">확정 취소</button>
+      </div>
+      <div id="cmsConfirmStatus" class="hint" style="margin-top:6px;line-height:1.6"></div>
+    </div>
     <h2>보관한 신청서</h2>
     <div class="list" id="savedList"></div>
   </div>
@@ -351,7 +367,7 @@ body.staff .clientonly{display:none}
   <ul class="checks" id="checks"></ul>
 
   <div class="sendbox" id="sendBox">
-    <h2 style="margin-top:0"><span class="n">✉</span>신청하기 <span class="hint">(서명된 신청서가 이미지로 hb090@hanbaektax.kr 에 접수됩니다)</span></h2>
+    <h2 style="margin-top:0"><span class="n">✉</span>신청하기 <span class="hint">(서명된 신청서가 이미지로 hb090@hanbaektax.kr · hb3101@nate.com 에 접수됩니다)</span></h2>
     <div class="fld">통장 사본 첨부 <span class="hint">(사진·PDF — 최대 5개, 합계 15MB)</span>
       <input type="file" id="sendFiles" multiple accept="image/*,application/pdf" onchange="addSendFiles(this)">
     </div>
@@ -390,7 +406,7 @@ body.staff .clientonly{display:none}
 const BANKS=['경남','광주','국민','기업','농협','대구','부산','새마을금고','시티','신한','신협','외환','우리','우체국','전북','제일','제주','수협','하나'];
 const DAYS=[1,5,10,15,25,30];                   /* 사무소 이체일 — 이 여섯 날만 고른다 */
 const OFFICE='세무법인 한백택스';
-const OFFICE_FOOT='서울특별시 중구 동호로 315, 신안빌딩 2층 · 전화 02-2277-3101 · 팩스 02-2277-3161 · hb090@hanbaektax.kr';
+const OFFICE_FOOT='서울특별시 중구 동호로 315, 신안빌딩 2층 · 전화 02-2277-3101 · 팩스 02-2277-3161 · hb090@hanbaektax.kr · hb3101@nate.com';
 const GREET=[
  '전자금융(인터넷뱅킹)의 발달로 인하여 모든 은행 업무가 자동화 되고 기존에 이용하던 지로에 대한 수요가 갈수록 감소하고 있습니다.',
  '이에 저희 사무소에서도 수납업무의 간소화로 보다 나은 세무서비스를 고객님께 제공해 드리고자 기장료 자동이체 서비스를 도입하게 되었습니다.',
@@ -432,7 +448,8 @@ const DEF={
   bank:'', bankEtc:'', acct:'', holderName:'', holderSame:false, holderId:'',
   days:DAYS.slice(), day:'', fee:'', signDate:'',
   useDeleg:false, agentName:'', agentRrn:'', agentRel:'', delegDate:'',
-  sigApplicant:'', sigHolder:'', sigAt:'', sigFor:'', sigConsent:false
+  sigApplicant:'', sigHolder:'', sigAt:'', sigFor:'', sigConsent:false,
+  confirm:null            /* 사무소 확인·확정 {no,at,by,seal,key} — 직원용 화면에서만 만들어진다 */
 };
 const LSKEY='hbt_cms_v1';
 let mode='client';
@@ -539,8 +556,11 @@ function checks(){
   else if(d.sigFor&&d.sigFor!==sigKey(d))add('warn','서명한 뒤 <b>신청 내용(계좌·금액·이체일 등)이 바뀌었습니다</b>. 내용을 확인하고 다시 서명해 주십시오.');
   if(holderDiff(d)&&!d.sigHolder)add('warn','예금주가 신청인과 다릅니다. <b>예금주 동의 서명</b>을 받아 주십시오.');
   if(d.sigApplicant&&!d.sigConsent)add('warn','서명 아래 <b>본인 서명·출금 동의</b> 확인란에 체크해 주십시오.');
+  if(cmsConfirmValid(d))add('ok','<b>사무소 확정</b> '+esc(d.confirm.no)+' ('+esc(d.confirm.at)+(d.confirm.by?' · '+esc(d.confirm.by):'')+') — 신청서 아래에 확정번호와 직인이 찍힙니다.');
+  else if(d.confirm&&d.confirm.seal)add('warn','사무소 확정 뒤 <b>계좌·금액·이체일이 바뀌어 확정 표시가 빠졌습니다</b>. 직원용 화면에서 다시 확정하십시오.');
+  else if(mode==='staff')add('info','아직 <b>사무소 확정 전</b>입니다. 월 기장료를 약정서 확정 보수와 대조한 뒤 「출금 내용 확인 · 확정」을 누르십시오.');
   if(!c.some(x=>x.t==='err'))add('ok',d.sigApplicant?'필수 항목과 서명이 준비되었습니다. 통장 사본을 첨부해 「한백택스로 보내기」를 누르십시오.':'필수 항목이 채워졌습니다. 화면에서 서명하거나, 인쇄한 뒤 <b>신청인 도장(인) 또는 서명</b>을 받아 통장 사본과 함께 보내 주십시오.');
-  $('checks').innerHTML=c.map(x=>'<li class="'+x.t+'">'+(x.t==='err'?'✕ ':x.t==='warn'?'! ':'✓ ')+x.m+'</li>').join('');
+  $('checks').innerHTML=c.map(x=>'<li class="'+x.t+'">'+(x.t==='err'?'✕ ':x.t==='warn'?'! ':x.t==='info'?'ℹ ':'✓ ')+x.m+'</li>').join('');
 }
 
 /* ═══════ 신청서 만들기 ═══════ */
@@ -597,8 +617,10 @@ function sheetHtml(d,wd){
       '<div class="note">* 신청인과 예금주가 같을 경우는 작성할 필요가 없습니다.</div>'+
   '</td></tr>'+
   '</table>'+
-  '<div class="foot"><div class="of">'+esc(office)+'</div><div>'+esc(d.officeFoot||OFFICE_FOOT)+'</div></div>';
+  '<div class="foot"><div class="of">'+esc(office)+'</div><div>'+esc(d.officeFoot||OFFICE_FOOT)+'</div></div>'+
+  (cmsConfirmValid(d)?'<div class="confirmbox"><span>사무소 확인 · 확정번호 <b>'+esc(d.confirm.no)+'</b> · '+esc(d.confirm.at)+(d.confirm.by?' · 담당 '+esc(d.confirm.by):'')+'</span><img class="csealimg" alt="직인" src="'+d.confirm.seal+'"></div>':'');
 }
+function cmsConfirmValid(d){return !!(d&&d.confirm&&d.confirm.seal&&d.confirm.key===sigKey(d));}
 function render(){
   if(S.holderSame)S.holderName=S.applicant;
   $('sheet').innerHTML=sheetHtml(S);
@@ -658,7 +680,7 @@ function fromBoard(){
 }
 
 /* ═══════ 업체 작성 링크 ═══════ */
-const LINK_SKIP={acct:1,holderId:1,agentRrn:1,sigApplicant:1,sigHolder:1,sigAt:1,sigFor:1,sigConsent:1};
+const LINK_SKIP={acct:1,holderId:1,agentRrn:1,sigApplicant:1,sigHolder:1,sigAt:1,sigFor:1,sigConsent:1,confirm:1};
 function makeLink(){
   const o={};
   Object.keys(DEF).forEach(k=>{if(!LINK_SKIP[k]&&JSON.stringify(S[k])!==JSON.stringify(DEF[k]))o[k]=S[k];});
@@ -812,7 +834,7 @@ function fillSample(){
  * 중계(02-도구 & 스크립트/자료전송_메일중계/Code.gs)는 type 을 모르면 consult 로 받고
  * subject 를 메일 제목 꼬리표로, files 를 첨부로 쓴다. email 이 있으면 답장이 신청인에게 간다. */
 const RELAY={url:'https://script.google.com/macros/s/AKfycbxtBSiGZjkoJEl87cttAm1HUrR4A1D2zyz03S65NOkC6ezSUsHW_8BW5Pq5fkIyBZAK7A/exec',token:'hbtax-relay'};
-const OFFICE_MAIL='hb090@hanbaektax.kr';
+const OFFICE_MAIL='hb090@hanbaektax.kr,hb3101@nate.com';   /* 메일 앱(mailto) 대체 경로 — 두 곳 */
 const SEND_MAX_FILES=5, SEND_MAX_BYTES=15*1024*1024;   /* 중계 한도 20MB 안에서 신청서 PNG 몫을 남긴다 */
 let sendFiles=[];
 function relayReady(){return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(RELAY.url||'');}
@@ -867,7 +889,8 @@ function sendText(memo){
   if(errs.length)L.push('','[작성 화면 점검 결과]',...errs);
   L.push('','[서명]','신청인 서명: '+(d.sigApplicant?'화면 서명함 ('+d.sigAt+')':'없음 — 인쇄본 서명 필요'),
     holderDiff(d)?'예금주 동의 서명: '+(d.sigHolder?'화면 서명함':'없음'):'예금주: 신청인과 같음',
-    '본인 서명·출금 동의 확인: '+(d.sigConsent?'체크함':'체크 안 함'));
+    '본인 서명·출금 동의 확인: '+(d.sigConsent?'체크함':'체크 안 함'),
+    '사무소 확정: '+(cmsConfirmValid(d)?d.confirm.no+' ('+d.confirm.at+')':'확정 전 — 직원용 화면에서 월 기장료를 약정 보수와 대조한 뒤 확정'));
   L.push('','첨부: 신청서 이미지 '+baseName()+'.jpg'+(sendFiles.length?' · '+sendFiles.map(f=>f.name).join(', '):' (통장 사본 없음)'));
   if(memo)L.push('','전할 말: '+memo);
   return L.join('\n');
@@ -963,6 +986,41 @@ async function mailToOffice(checked){
   location.href='mailto:'+OFFICE_MAIL+'?subject='+encodeURIComponent(sub)+'&body='+encodeURIComponent(body);
   setSendStatus((saved?'신청서 이미지('+baseName()+'.jpg)를 저장하고 ':'')+'메일 앱을 열었습니다. 신청서 이미지와 통장 사본을 첨부해 보내 주십시오.');
 }
+
+/* ═══════ 사무소 확인 · 확정(직원용) ═══════
+ * 확인 코드(중계 STAFF_TOKEN)로 type:confirm 을 요청하면 확정번호와 직인이 내려온다. 직인 이미지는 이 파일에 없다.
+ * 확정 당시 내용(sigKey)과 지금 내용이 같을 때만 신청서에 확정 표시가 찍힌다. */
+const STAFF_KEY='hbt_staff_token', STAFF_BY='hbt_staff_by';   /* 계약서 작성기와 같은 키 — 한 번 넣으면 두 앱에서 쓴다 */
+function initStaff(){
+  const t=$('staffToken'),b=$('staffBy');if(!t)return;
+  try{t.value=localStorage.getItem(STAFF_KEY)||'';b.value=localStorage.getItem(STAFF_BY)||'';}catch(e){}
+  t.addEventListener('change',()=>{try{localStorage.setItem(STAFF_KEY,t.value.trim());}catch(e){}});
+  b.addEventListener('change',()=>{try{localStorage.setItem(STAFF_BY,b.value.trim());}catch(e){}});
+}
+function setCmsConfirmStatus(t,lv){const el=$('cmsConfirmStatus');if(!el)return;el.textContent=t||'';el.style.color=lv==='err'?'#B91C1C':lv==='ok'?'#166534':'';el.style.fontWeight=lv?'700':'';}
+async function cmsConfirm(){
+  const tok=($('staffToken').value||'').trim();if(!tok){alert('사무소 확인 코드를 넣어 주십시오.');$('staffToken').focus();return;}
+  try{localStorage.setItem(STAFF_KEY,tok);localStorage.setItem(STAFF_BY,($('staffBy').value||'').trim());}catch(e){}
+  if(!S.applicant.trim()){alert('신청인(상호)이 비어 있습니다.');return;}
+  if(!num(S.fee)){alert('월 기장료가 비어 있습니다. 약정 보수를 넣은 뒤 확정하십시오.');return;}
+  const errs=Array.from($('checks').querySelectorAll('li.err')).map(li=>'· '+li.textContent.replace(/^✕\s*/,''));
+  if(errs.length&&!confirm('오류 항목이 있습니다.\n\n'+errs.join('\n')+'\n\n그래도 확정할까요?'))return;
+  if(!confirm(S.applicant+' — '+(bankName(S)||'')+' 계좌에서 매월 '+(S.day||'?')+'일 '+fmt(S.fee)+'원 출금으로 확정합니다.\n확정 기록이 사무실 메일과 접수대장에 남습니다.'))return;
+  const btn=$('btnCmsConfirm');btn.disabled=true;setCmsConfirmStatus('사무소 확정 요청 중…');
+  try{
+    const key=sigKey(S);
+    const r=await relaySend({type:'confirm',staff:tok,kind:'cms',by:($('staffBy').value||'').trim(),
+      docId:'CMS-'+today().replace(/-/g,'')+'-'+(dg(S.acct).slice(-4)||'0000'),
+      client:S.applicant.trim(),phone:(S.mobile||S.tel||'').trim(),email:(S.email||'').trim(),fee:num(S.fee),hash:key,text:sendText('')});
+    S.confirm={no:r.id,at:r.at,by:($('staffBy').value||'').trim(),seal:r.seal,key};
+    persist();render();
+    setCmsConfirmStatus('확정되었습니다 · 확정번호 '+r.id+' · '+r.at+' — 신청서 아래에 확정 표시가 찍혔습니다. 「➕ 목록에 보관」으로 남겨 두십시오.','ok');
+  }catch(err){
+    const m=err.message==='staff_unauthorized'?'사무소 확인 코드가 맞지 않습니다.':err.message;
+    setCmsConfirmStatus('확정 실패: '+m,'err');alert('확정 실패: '+m);
+  }finally{btn.disabled=false;}
+}
+function cmsUnconfirm(){if(!S.confirm)return;if(!confirm('이 신청서의 확정 표시와 직인을 지웁니다(사무실 기록은 남습니다).'))return;S.confirm=null;persist();render();setCmsConfirmStatus('확정을 취소했습니다.');}
 
 /* ═══════ 서명 패드 ═══════
  * 포인터 이벤트로 그린다(터치·펜·마우스). 도구: 펜 / 지우개(destination-out) / 되돌리기(획 단위, 20단계) / 전체 지우기.
@@ -1080,6 +1138,7 @@ window.addEventListener('resize',()=>{if(PADS.applicant){PADS.applicant.fit(true
   }catch(e){}
   if(!S.signDate)S.signDate=today();
   document.querySelectorAll('#modeTabs button').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
+  initStaff();
   PADS.applicant=sigPad('padApplicant','sigApplicant','applicant');PADS.holder=sigPad('padHolder','sigHolder','holder');
   bind();setMode(mode);renderSendFiles();refreshPads();
 })();
