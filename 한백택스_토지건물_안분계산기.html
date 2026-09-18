@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>한백택스 토지·건물 가액 안분 계산기 — 양도가액·취득가액 기준시가 비례 안분</title>
+<!--
+  세무법인 한백택스 토지·건물 가액 안분 계산기 v1 (2026-09-18)
+  토지와 건물(구축물) 등을 함께 양도·취득했을 때 일괄 가액을 자산별로 나눈다.
+  근거(K-Law MCP 원문 확인 2026-09-18)
+    소득세법 제100조 ② 토지와 건물 등의 가액 구분이 불분명하면 기준시가 등을 고려해 안분, 공통 취득가액·양도비용은 가액 비례 안분
+                     ③ 구분 기장한 가액이 안분액과 100분의 30 이상 차이 나면 불분명한 것으로 봄(단서: 대통령령 사유 제외)
+    소득세법 시행령 제166조 ⑥ 부가가치세법 시행령 제64조 ① 에 따라 안분
+                          ⑧ 제100조 ③ 단서 사유: 1. 다른 법령에 따라 가액을 구분한 경우 2. 함께 취득한 뒤 건물 등을 철거하고 토지만 사용하는 경우
+    부가가치세법 제29조 ③ 공급가액에는 부가가치세를 포함하지 않음 · ⑦ 부가세 포함 여부 불분명 → 110분의 100
+                        ⑨ 토지·건물 함께 공급 → 건물 실지거래가액, 불분명하거나 안분액과 30% 이상 차이 → 안분
+    부가가치세법 시행령 제64조 ① 1. 기준시가 모두 있음 → 공급계약일 현재 기준시가 비례(감정평가가액이 있으면 감정가 비례)
+                               2. 기준시가 없는 자산 있음 → 감정가 비례, 없으면 장부가액(없으면 취득가액) 비례 후 기준시가 있는 자산끼리 기준시가로 재안분
+                               3. 적용 곤란 → 국세청장이 정하는 바
+                             ② 건물 실지거래가액 인정 사유(위 ⑧과 같음)
+  부가세 포함 총액의 안분: 공급가액 비율이 기준시가 비율과 같고(령 §64①) 총액 = 공급가액 합계 + 과세 건물분 부가세(법 §29③)이므로
+    과세 자산 공급가액 = 총액 × 기준시가 ÷ (면세·토지 기준시가 합 + 과세 자산 기준시가 합 × 1.1) 로 계산한다.
+    이 산식은 위 조문에서 계산상 도출한 것이며 국세청 집행기준 원문은 확인하지 못했다(화면에 표시).
+  원 미만은 자산별 안분액에서 절사하고, 끝수는 마지막(토지) 자산에 붙여 합계를 총액과 맞춘다.
+-->
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1B3A5C;--gold:#C8963E;--bg:#F4F6F9;--line:#DCE3EC;--gray:#5F6E80;--red:#B91C1C;--amber:#92400E;--green:#166534;--auto:#F3F7FC}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:14px}
+.top{background:#fff;border-bottom:2px solid var(--gold);padding:12px 20px}
+.top h1{margin:0;font-size:20px;color:var(--navy)}
+.top .sub{color:var(--gray);font-size:12.5px;line-height:1.6;margin-top:3px}
+.wrap{display:grid;grid-template-columns:minmax(380px,540px) 1fr;gap:18px;padding:16px 20px 40px;max-width:1500px;margin:0 auto}
+.panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.panel h2{font-size:15px;color:var(--navy);margin:18px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--line)}
+.panel h2:first-child{margin-top:0}
+.panel h2 .n{display:inline-block;background:var(--navy);color:#fff;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;font-size:11px;margin-right:6px;font-weight:800}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}
+.fld{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--gray);font-weight:700}
+.fld.full{grid-column:1/-1}
+.fld input,.fld select{font:inherit;font-size:14px;color:#111;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;width:100%}
+.fld input:focus,.fld select:focus{outline:2px solid #C8963E55;border-color:var(--gold)}
+.fld.num input,input.num{text-align:right}
+.hint{font-size:11.5px;color:var(--gray);font-weight:400;line-height:1.55}
+.chk{display:flex;align-items:flex-start;gap:6px;font-size:13px;color:#111;font-weight:400;padding:3px 0;line-height:1.5}
+.chk input{margin-top:3px;width:auto}
+.toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;font-weight:700;cursor:pointer;color:var(--navy);font-family:inherit;font-size:12.5px}
+.btn.p{background:var(--gold);color:#fff;border-color:var(--gold)}
+.btn.n{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn.sm{padding:4px 9px;font-size:11.5px}
+.asset{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:#fafbfd}
+.asset .hd{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.asset .hd b{color:var(--navy);flex:1}
+.asset .row{grid-template-columns:1fr 1fr}
+.landhelp{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:end;font-size:12px}
+.hero{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.hero .k{border-radius:10px;padding:12px 14px;border:1px solid var(--line);background:#fff}
+.hero .k .l{font-size:12px;color:var(--gray);font-weight:700}
+.hero .k .v{font-size:19px;font-weight:800;color:var(--navy);margin-top:4px;text-align:right;white-space:nowrap}
+table.t{border-collapse:collapse;width:100%;font-size:13px;margin:4px 0 12px}
+table.t th,table.t td{border:1px solid var(--line);padding:6px 8px;vertical-align:middle}
+table.t th{background:#EEF2F7;color:var(--navy);font-weight:800;text-align:center}
+table.t td.r{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+table.t td.c{text-align:center}
+table.t td.f{color:var(--gray);font-size:12px}
+table.t tr.sum td{background:#FBF6EC;font-weight:800}
+table.t td.bad{color:var(--red);font-weight:800}
+table.t td.good{color:var(--green);font-weight:800}
+.sec{font-size:15px;color:var(--navy);font-weight:800;margin:16px 0 4px;display:flex;align-items:center;gap:8px}
+.sec:before{content:"";width:4px;height:16px;background:var(--gold);border-radius:2px}
+.unit{font-size:11.5px;color:var(--gray);font-weight:400;margin-left:auto}
+.checks{margin:8px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px}
+.checks li{font-size:12.5px;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:#fafbfd;line-height:1.6}
+.checks li.err{border-color:#fca5a5;background:#fef2f2;color:var(--red)}
+.checks li.warn{border-color:#fcd34d;background:#fffbeb;color:var(--amber)}
+.checks li.ok{border-color:#86efac;background:#f0fdf4;color:var(--green)}
+.law{font-size:12.5px;line-height:1.8;border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:8px;padding:10px 13px;background:#fffdf7;margin-top:8px}
+.law b{color:var(--navy)}
+.law ul{margin:4px 0 0;padding-left:18px}
+@media(max-width:980px){
+  .wrap{grid-template-columns:1fr;padding:10px 10px 30px}
+  .row,.asset .row{grid-template-columns:1fr}
+  .landhelp{grid-template-columns:1fr 1fr}
+  .hero{grid-template-columns:1fr}
+  .fld input,.fld select{font-size:16px;padding:9px}
+  table.t{font-size:12px}
+}
+@page{size:A4;margin:12mm}
+@media print{
+  html,body{background:#fff}
+  #hbHome,.toolbar,#formPanel{display:none!important}
+  .wrap{display:block;padding:0}
+  .panel{border:none;padding:0}
+}
+</style>
+</head>
+<body>
+<!-- HB-HOME v1 -->
+<script>
+/* 한백택스 홈 바 — 생성기: 02-도구 & 스크립트/Python 스크립트/홈바_주입.py
+   이 블록은 자동 생성이다. 직접 고치지 말고 생성기를 고쳐 다시 실행한다. */
+(function(){
+  if (window.self !== window.top) return;          /* 포털 iframe 안에서는 부모의 바를 쓴다 */
+  if (window.__hbHome) return;
+  window.__hbHome = 1;
+  var me = decodeURIComponent((location.pathname.split('/').pop() || '').toLowerCase());
+  var host = document.createElement('div');
+  host.id = 'hbHome';
+  host.setAttribute('data-nogate', '1');
+  host.style.cssText = 'display:block;position:sticky;top:0;z-index:2147483000;margin:0;padding:0;line-height:0';
+  var links = [
+    ['한백택스_세무계산_포털.html', '세무계산 포털'],
+    ['한백택스_모바일.html', '모바일 포털']
+  ].filter(function(l){ return l[0].toLowerCase() !== me; });
+  var sh = host.attachShadow({ mode: 'open' });
+  sh.innerHTML =
+    '<style>' +
+    ':host{all:initial;display:block}' +
+    '.bar{box-sizing:border-box;display:flex;align-items:center;gap:10px;height:42px;padding:0 16px;' +
+      'background:#fff;border-bottom:2px solid #C8963E;box-shadow:0 2px 8px rgba(15,36,64,.08);' +
+      'font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:13px;line-height:1;color:#1B3A5C}' +
+    '.home{display:inline-flex;align-items:center;gap:6px;background:#C8963E;color:#fff;font-weight:800;' +
+      'padding:7px 13px;border-radius:999px;text-decoration:none;white-space:nowrap;letter-spacing:-.2px}' +
+    '.home:hover{background:#b8862f}' +
+    '.ttl{font-weight:700;color:#1B3A5C;white-space:nowrap;opacity:.85}' +
+    '.sp{flex:1}' +
+    '.lnk{color:#35507A;font-weight:700;text-decoration:none;padding:6px 10px;border:1px solid #DCE5F0;border-radius:999px;white-space:nowrap;background:#F5F8FC}' +
+    '.lnk:hover{border-color:#C8963E;color:#1B3A5C}' +
+    '@media(max-width:640px){.bar{padding:0 10px;gap:6px;height:40px}.ttl{display:none}.lnk{padding:6px 8px;font-size:12px}}' +
+    '@media print{.bar{display:none}}' +
+    '</style>' +
+    '<div class="bar">' +
+      '<a class="home" href="index.html" title="한백택스 세무 도구 모음(메인 화면)으로">&#8592; 메인 화면</a>' +
+      '<span class="ttl">세무법인 한백택스 · 세무 도구</span>' +
+      '<span class="sp"></span>' +
+      links.map(function(l){ return '<a class="lnk" href="' + l[0] + '">' + l[1] + '</a>'; }).join('') +
+    '</div>';
+  var s = document.currentScript;
+  if (s && s.parentNode) s.parentNode.insertBefore(host, s);
+  else document.body.insertBefore(host, document.body.firstChild);
+})();
+</script>
+<!-- /HB-HOME -->
+<div class="top">
+  <h1>토지·건물 가액 안분 계산기</h1>
+  <div class="sub">토지와 건물(구축물)을 한 번에 사고팔았을 때 일괄 가액을 <b>기준시가 비례</b>(감정가액이 있으면 감정가 비례)로 자산별로 나눕니다. 계약서에 나눠 적은 금액이 안분액과 30% 이상 차이 나는지 판정하고, 건물분 부가가치세와 공통 비용 안분까지 계산합니다.</div>
+</div>
+
+<div class="wrap">
+<div class="panel" id="formPanel">
+  <div class="toolbar">
+    <button type="button" class="btn n" onclick="fillSample()">예시 채우기</button>
+    <button type="button" class="btn p" onclick="window.print()">🖨 인쇄 · PDF</button>
+    <button type="button" class="btn" onclick="resetAll()">초기화</button>
+    <a class="btn" href="한백택스_건물기준시가_계산기_v3.html" target="_blank" rel="noopener" style="text-decoration:none">🏗 건물 기준시가 계산기</a>
+  </div>
+
+  <h2><span class="n">1</span>거래</h2>
+  <div class="row">
+    <label class="fld">구분<select id="kind"><option value="sell">양도 (양도가액 안분)</option><option value="buy">취득 (취득가액 안분)</option></select></label>
+    <label class="fld">계약일 <span class="hint">(기준시가 기준일)</span><input type="date" id="cDate"></label>
+    <label class="fld full num">일괄 거래가액 (원)<input id="total" inputmode="numeric" placeholder="0"></label>
+    <label class="fld full">부가가치세<select id="vat">
+      <option value="none">부가세 없음 — 비사업자 양도·면세 자산만 (소득세만 따짐)</option>
+      <option value="incl">위 금액에 건물분 부가세가 포함돼 있음</option>
+      <option value="excl">위 금액은 부가세 별도 (부가세는 따로 받음)</option>
+      <option value="unclear">부가세 포함 여부가 분명하지 않음 (부가가치세법 제29조 ⑦)</option>
+    </select></label>
+  </div>
+
+  <h2><span class="n">2</span>자산별 기준 금액</h2>
+  <div class="hint" style="margin-bottom:6px">기준시가는 <b>계약일 현재</b> 금액입니다. 토지 = 개별공시지가 × 면적, 건물 = 국세청 고시 건물 기준시가. 감정평가가액은 공급시기가 속하는 과세기간의 직전 과세기간 개시일부터 그 과세기간 종료일까지 평가한 것만 씁니다(부가가치세법 시행령 제64조 ① 1호 단서).</div>
+  <div id="assets"></div>
+  <button type="button" class="btn sm" onclick="addAsset()">＋ 자산 추가</button>
+  <span class="hint" style="margin-left:6px">예: 토지 2필지, 건물 + 구축물</span>
+
+  <h2><span class="n">3</span>안분 기준</h2>
+  <div class="row">
+    <label class="fld full">적용 순서<select id="basis">
+      <option value="auto">법령 순서대로 자동 (감정가 → 기준시가 → 장부가액)</option>
+      <option value="std">기준시가 비례로 계산 (감정가가 있어도 비교용으로)</option>
+      <option value="appr">감정평가가액 비례</option>
+      <option value="book">장부가액 비례 후 기준시가 재안분</option>
+    </select></label>
+    <label class="chk" style="grid-column:1/-1"><input type="checkbox" id="exLaw">토지·건물 가액을 <b>다른 법령에 따라 구분</b>한 경우 (소득세법 시행령 제166조 ⑧ 1호)</label>
+    <label class="chk" style="grid-column:1/-1"><input type="checkbox" id="exDemol">함께 취득한 뒤 <b>건물을 철거하고 토지만 사용</b>하는 경우 (같은 항 2호)</label>
+  </div>
+
+  <h2><span class="n">4</span>공통 비용 <span class="hint">(선택)</span></h2>
+  <div class="row">
+    <label class="fld full num">토지·건물 공통 비용 (원) <span class="hint">중개보수·법무비용 등 — 확정 가액 비례로 나눔 (소득세법 제100조 ② 후단)</span><input id="common" inputmode="numeric" placeholder="0"></label>
+  </div>
+
+  <ul class="checks" id="checks"></ul>
+</div>
+
+<div class="panel" id="outPanel">
+  <div class="hero" id="hero"></div>
+  <div id="out"></div>
+  <div class="law">
+    <b>근거</b> (국가법령정보 원문 확인 2026-09-18)
+    <ul>
+      <li><b>소득세법 제100조 ②</b> 토지·건물 가액 구분이 불분명하면 기준시가 등을 고려해 안분, 공통 취득가액·양도비용은 가액 비례 안분 · <b>③</b> 구분 기장액이 안분액과 30% 이상 차이 나면 불분명한 것으로 봄</li>
+      <li><b>소득세법 시행령 제166조 ⑥</b> 부가가치세법 시행령 제64조 ① 에 따라 안분 · <b>⑧</b> 예외: 다른 법령에 따라 구분 / 건물 철거 후 토지만 사용</li>
+      <li><b>부가가치세법 제29조 ⑨</b> 건물 실지거래가액이 원칙, 불분명·30% 이상 차이는 안분 · <b>③</b> 공급가액에 부가세 불포함 · <b>⑦</b> 포함 여부 불분명 → 110분의 100</li>
+      <li><b>부가가치세법 시행령 제64조 ①</b> 기준시가 모두 있음 → 계약일 기준시가 비례(감정가 있으면 감정가) / 기준시가 없는 자산 → 감정가, 없으면 장부가액(취득가액) 비례 후 기준시가로 재안분 / 곤란하면 국세청장 · <b>②</b> 실지거래가액 인정 사유</li>
+    </ul>
+    <div class="hint" style="margin-top:6px">부가세 포함 총액은 「과세 자산 공급가액 = 총액 × 그 자산 기준 금액 ÷ (면세 자산 기준 금액 합 + 과세 자산 기준 금액 합 × 1.1)」로 나눕니다. 이 식은 위 조문(공급가액 비율 = 기준 금액 비율, 총액 = 공급가액 + 부가세)에서 계산상 도출한 것이며 국세청 집행기준 원문은 확인하지 못했습니다. 30% 판정은 「|구분 금액 − 안분액| ÷ 안분액」으로 계산합니다.</div>
+  </div>
+</div>
+</div>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const num=s=>{const v=parseFloat(String(s==null?'':s).replace(/[^\d.-]/g,''));return isNaN(v)?0:v;};
+const fmt=n=>(Math.round(+n||0)).toLocaleString('ko-KR');
+const floor=n=>Math.floor((+n||0)+1e-7);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pct=x=>(Math.round(x*10000)/100).toFixed(2)+'%';
+const TYPES={land:'토지',bldg:'건물',struct:'구축물',etc:'기타(기계장치 등)'};
+
+/* ═══════ 상태 ═══════ */
+const DEF={kind:'sell',cDate:'',total:'',vat:'none',basis:'auto',exLaw:false,exDemol:false,common:'',
+  assets:[{name:'토지',type:'land',taxable:false,std:'',appr:'',book:'',split:'',area:'',price:''},
+          {name:'건물',type:'bldg',taxable:true,std:'',appr:'',book:'',split:'',area:'',price:''}]};
+const LS='hbt_apportion_v1';
+let S=JSON.parse(JSON.stringify(DEF));
+try{const o=JSON.parse(localStorage.getItem(LS)||'null');if(o)S=Object.assign(JSON.parse(JSON.stringify(DEF)),o);}catch(e){}
+function save(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
+const TOP=['kind','cDate','total','vat','basis','exLaw','exDemol','common'];
+const MONEY=['total','common'];
+
+function renderAssets(){
+  const box=$('assets');box.innerHTML='';
+  S.assets.forEach((a,i)=>{
+    const el=document.createElement('div');el.className='asset';
+    el.innerHTML=
+      '<div class="hd"><b>자산 '+(i+1)+'</b>'+(S.assets.length>1?'<button type="button" class="btn sm" data-del>삭제</button>':'')+'</div>'+
+      '<div class="row">'+
+        '<label class="fld">이름<input data-f="name" value="'+esc(a.name)+'" placeholder="예: 토지(○○동 123)"></label>'+
+        '<label class="fld">종류<select data-f="type">'+Object.keys(TYPES).map(k=>'<option value="'+k+'"'+(a.type===k?' selected':'')+'>'+TYPES[k]+'</option>').join('')+'</select></label>'+
+        '<label class="chk" style="grid-column:1/-1"><input type="checkbox" data-f="taxable"'+(a.taxable?' checked':'')+'>부가세 과세 자산 <span class="hint">(사업용 건물·구축물 — 토지와 국민주택 규모 이하 주택은 면세)</span></label>'+
+        '<label class="fld num">기준시가 (원, 계약일 현재)<input data-f="std" inputmode="numeric" value="'+(a.std?fmt(a.std):'')+'" placeholder="0"></label>'+
+        '<label class="fld num">감정평가가액 (원, 선택)<input data-f="appr" inputmode="numeric" value="'+(a.appr?fmt(a.appr):'')+'" placeholder="없으면 비움"></label>'+
+        '<label class="fld num">장부가액 (원, 선택) <span class="hint">없으면 취득가액</span><input data-f="book" inputmode="numeric" value="'+(a.book?fmt(a.book):'')+'" placeholder="기준시가 없을 때"></label>'+
+        '<label class="fld num">계약서에 나눠 적은 금액 (원, 선택)<input data-f="split" inputmode="numeric" value="'+(a.split?fmt(a.split):'')+'" placeholder="구분 기재가 없으면 비움"></label>'+
+        (a.type==='land'?'<div class="landhelp"><label class="fld num">면적 (㎡)<input data-f="area" inputmode="decimal" value="'+esc(a.area)+'"></label><label class="fld num">개별공시지가 (원/㎡)<input data-f="price" inputmode="numeric" value="'+(a.price?fmt(a.price):'')+'"></label><button type="button" class="btn sm" data-land>기준시가에 넣기</button></div>':'')+
+      '</div>';
+    el.querySelectorAll('[data-f]').forEach(inp=>{
+      const f=inp.dataset.f;
+      inp.addEventListener(inp.tagName==='SELECT'||inp.type==='checkbox'?'change':'input',()=>{
+        let v=inp.type==='checkbox'?inp.checked:inp.value;
+        if(['std','appr','book','split','price'].indexOf(f)>=0)v=num(v);
+        if(f==='area')v=inp.value;
+        a[f]=v;
+        if(f==='type'){if(v==='land')a.taxable=false;else if(v==='bldg'||v==='struct')a.taxable=true;save();renderAssets();calc();return;}
+        save();calc();
+      });
+      if(['std','appr','book','split','price'].indexOf(f)>=0)inp.addEventListener('blur',()=>{if(a[f])inp.value=fmt(a[f]);});
+    });
+    const d=el.querySelector('[data-del]');if(d)d.addEventListener('click',()=>{S.assets.splice(i,1);save();renderAssets();calc();});
+    const lh=el.querySelector('[data-land]');if(lh)lh.addEventListener('click',()=>{a.std=floor(num(a.area)*num(a.price));save();renderAssets();calc();});
+    box.appendChild(el);
+  });
+}
+function addAsset(){S.assets.push({name:'',type:'bldg',taxable:true,std:'',appr:'',book:'',split:'',area:'',price:''});save();renderAssets();calc();}
+
+/* ═══════ 안분 ═══════
+ * weights: 자산별 안분 기준 금액. 부가세 포함 총액이면 과세 자산의 기준 금액에 1.1 을 곱한 값으로 총액을 나눈 뒤
+ * 과세 자산의 공급가액·부가세를 구한다. 끝수는 토지(없으면 마지막 자산)에 붙인다. */
+function pickBasis(){
+  const A=S.assets, allStd=A.every(a=>+a.std>0), allAppr=A.every(a=>+a.appr>0), allBook=A.every(a=>+a.book>0);
+  const want=S.basis;
+  if(want==='std')return allStd?{k:'std',why:'기준시가 비례 (선택)'}:{k:null,why:'기준시가가 없는 자산이 있어 기준시가만으로는 안분할 수 없습니다.'};
+  if(want==='appr')return allAppr?{k:'appr',why:'감정평가가액 비례 (선택)'}:{k:null,why:'감정평가가액이 없는 자산이 있습니다.'};
+  if(want==='book')return allBook?{k:'book',why:'장부가액 비례 후 기준시가 재안분 (선택)'}:{k:null,why:'장부가액(취득가액)이 없는 자산이 있습니다.'};
+  if(allAppr)return {k:'appr',why:'모든 자산에 감정평가가액이 있어 감정가 비례 (시행령 제64조 ① 1호 단서·2호)'};
+  if(allStd)return {k:'std',why:'모든 자산에 기준시가가 있어 계약일 현재 기준시가 비례 (시행령 제64조 ① 1호)'};
+  if(allBook)return {k:'book',why:'기준시가가 없는 자산이 있고 감정가도 없어 장부가액(취득가액) 비례 후 기준시가 있는 자산끼리 재안분 (시행령 제64조 ① 2호 단서)'};
+  return {k:null,why:'기준시가·감정가·장부가액이 모두 갖춰지지 않아 법령 산식으로 안분할 수 없습니다(시행령 제64조 ① 3호: 국세청장이 정하는 바).'};
+}
+/* 장부가액 방식: 장부가액 비례로 나눈 뒤, 기준시가 있는 자산들의 합계를 다시 기준시가 비례로 나눈다 → 최종 가중치 */
+function weightsOf(k){
+  const A=S.assets;
+  if(k!=='book')return A.map(a=>+a[k]||0);
+  const bsum=A.reduce((s,a)=>s+(+a.book||0),0);
+  const share=A.map(a=>(+a.book||0)/bsum);
+  const withStd=A.map((a,i)=>+a.std>0?i:-1).filter(i=>i>=0);
+  const pool=withStd.reduce((s,i)=>s+share[i],0), ssum=withStd.reduce((s,i)=>s+(+A[i].std),0);
+  return A.map((a,i)=>+a.std>0&&ssum?pool*(+a.std)/ssum:share[i]);
+}
+function apportion(){
+  const T=num(S.total), vat=S.vat, A=S.assets;
+  const b=pickBasis();
+  if(!b.k||!T)return {b,T,rows:[],ok:false};
+  const w=weightsOf(b.k);
+  const withVat=vat==='incl'||vat==='unclear';
+  const tax=A.map(a=>!!a.taxable&&vat!=='none');
+  const den=w.reduce((s,x,i)=>s+x*(withVat&&tax[i]?1.1:1),0);
+  let rows=A.map((a,i)=>{
+    const supply=withVat?T*w[i]/den:T*w[i]/w.reduce((s,x)=>s+x,0);
+    return {a,i,w:w[i],supply};
+  });
+  /* 원 미만 절사 · 끝수는 토지(없으면 마지막)에 */
+  rows.forEach(r=>{r.supply=floor(r.supply);r.vatAmt=tax[r.i]?floor(r.supply*0.1):0;});
+  /* 끝수 자산(토지, 없으면 마지막)은 총액에서 나머지를 뺀다.
+     부가세 포함이면 「공급가액 + 부가세」 합계가 총액, 그 밖에는 공급가액 합계가 총액이다. */
+  let li=A.findIndex(a=>a.type==='land'&&!tax[A.indexOf(a)]);if(li<0)li=A.length-1;
+  const others=rows.reduce((s,r,idx)=>idx===li?s:s+r.supply+(withVat?r.vatAmt:0),0);
+  const rest=T-others, r0=rows[li];
+  if(withVat&&tax[li]){r0.supply=floor(rest/1.1);r0.vatAmt=rest-r0.supply;}
+  else{r0.supply=rest;r0.vatAmt=tax[li]?floor(rest*0.1):0;}
+  const wsum=w.reduce((s,x)=>s+x,0);
+  rows.forEach(r=>{r.ratio=r.w/wsum;});
+  return {b,T,rows,ok:true,withVat,tax};
+}
+
+function calc(){
+  const C=[],add=(t,m)=>C.push({t,m});
+  const R=apportion(), T=R.T, A=S.assets;
+  const verb=S.kind==='sell'?'양도':'취득';
+  if(!T)add('err','<b>일괄 거래가액</b>을 넣으십시오.');
+  if(!S.cDate)add('warn','<b>계약일</b>을 넣으십시오. 기준시가는 계약일 현재 금액을 씁니다(시행령 제64조 ① 1호).');
+  if(!R.b.k)add('err',R.b.why);
+  if(S.vat!=='none'&&!A.some(a=>a.taxable))add('warn','부가세를 골랐는데 과세 자산(건물·구축물)이 없습니다. 토지만이면 부가세가 없습니다.');
+  if(S.vat==='unclear')add('warn','부가세 포함 여부가 불분명하면 받은 금액에 110분의 100 을 곱한 금액을 공급가액으로 봅니다(부가가치세법 제29조 ⑦). 이 계산기는 총액에 과세 자산분 부가세가 들어 있는 것으로 보고 나눕니다.');
+  if(A.some(a=>a.type==='bldg'&&!a.taxable)&&S.vat!=='none')add('info','면세로 표시한 건물이 있습니다. 국민주택 규모 이하 주택 등 면세 여부는 부가가치세법 제26조에 따라 확인하십시오.');
+  const exc=S.exLaw||S.exDemol;
+  if(exc)add('ok','<b>예외 사유</b>('+(S.exLaw?'다른 법령에 따른 구분':'')+(S.exLaw&&S.exDemol?' · ':'')+(S.exDemol?'건물 철거 후 토지만 사용':'')+'): 30% 이상 차이가 나도 계약서 구분 금액(실지거래가액)을 인정합니다(소득세법 제100조 ③ 단서·시행령 제166조 ⑧, 부가가치세법 시행령 제64조 ②).');
+
+  /* 30% 판정 */
+  const hasSplit=A.some(a=>+a.split>0);
+  let use='apport';
+  if(R.ok&&hasSplit){
+    const allSplit=A.every(a=>+a.split>0);
+    const splitSum=A.reduce((s,a)=>s+(+a.split||0),0);
+    const target=R.withVat?R.rows.reduce((s,r)=>s+r.supply,0):T;
+    if(!allSplit)add('warn','계약서 구분 금액이 일부 자산에만 있습니다. 모든 자산의 구분 금액을 넣어야 30% 판정을 할 수 있습니다.');
+    else{
+      if(Math.abs(splitSum-target)>1)add('warn','계약서 구분 금액 합계 '+fmt(splitSum)+'원이 '+(R.withVat?'공급가액 합계 ':'일괄 거래가액 ')+fmt(target)+'원과 다릅니다. '+(R.withVat?'구분 금액은 부가세를 뺀 공급가액으로 넣으십시오.':''));
+      R.rows.forEach(r=>{const s=+r.a.split;r.dev=r.supply?Math.abs(s-r.supply)/r.supply:0;});
+      const over=R.rows.filter(r=>r.dev>=0.3);
+      if(over.length&&!exc){use='apport';add('warn','<b>30% 이상 차이</b>: '+over.map(r=>esc(r.a.name||TYPES[r.a.type])+' '+pct(r.dev)).join(', ')+' — 가액 구분이 불분명한 것으로 보아 <b>안분액을 '+verb+'가액으로</b> 씁니다(소득세법 제100조 ③, 부가가치세법 제29조 ⑨ 2호).');}
+      else if(over.length&&exc){use='split';}
+      else{use='split';add('ok','계약서 구분 금액이 안분액과 모두 30% 미만 차이입니다 — <b>계약서 구분 금액(실지거래가액)</b>을 그대로 씁니다.');}
+    }
+  }
+  if(R.ok&&!hasSplit)add('info','계약서에 토지·건물 가액을 나눠 적지 않았으므로 가액 구분이 불분명한 경우입니다 — 안분액을 씁니다(소득세법 제100조 ②).');
+  if(R.ok&&R.b.k==='appr'&&S.basis==='auto'&&A.every(a=>+a.std>0))add('info','감정평가가액이 있으면 기준시가보다 감정가가 먼저입니다(시행령 제64조 ① 1호 단서). 감정평가가 공급시기가 속하는 과세기간의 직전 과세기간 개시일부터 그 과세기간 종료일 사이에 한 것인지 확인하십시오. 기준시가 결과와 비교하려면 「안분 기준」에서 기준시가를 고르십시오.');
+
+  /* 확정 가액 */
+  /* 계약서 구분 금액을 쓰면 부가세도 그 공급가액의 10% (구분 금액은 부가세를 뺀 공급가액으로 입력) */
+  if(R.ok)R.rows.forEach(r=>{r.final=use==='split'?+r.a.split:r.supply;r.finalVat=use==='split'?(R.tax&&R.tax[r.i]?floor(r.final*0.1):0):(r.vatAmt||0);});
+  const common=num(S.common);
+  if(R.ok&&common){const fs=R.rows.reduce((s,r)=>s+r.final,0);let acc=0;R.rows.forEach((r,idx)=>{r.cost=idx===R.rows.length-1?common-acc:floor(common*r.final/fs);acc+=r.cost;});}
+
+  /* 출력 */
+  const bld=R.ok?R.rows.filter(r=>r.a.type!=='land').reduce((s,r)=>s+r.final,0):0;
+  const land=R.ok?R.rows.filter(r=>r.a.type==='land').reduce((s,r)=>s+r.final,0):0;
+  const vatSum=R.ok?R.rows.reduce((s,r)=>s+(r.finalVat||0),0):0;   /* 확정 가액 기준 부가세 */
+  const apVat=R.ok?R.rows.reduce((s,r)=>s+(r.vatAmt||0),0):0;       /* 안분표의 부가세 */
+  $('hero').innerHTML=
+    '<div class="k"><div class="l">토지 '+verb+'가액</div><div class="v">'+fmt(land)+'원</div></div>'+
+    '<div class="k"><div class="l">건물 등 '+verb+'가액'+(R.withVat||S.vat==='excl'?' (공급가액)':'')+'</div><div class="v">'+fmt(bld)+'원</div></div>'+
+    '<div class="k"><div class="l">건물분 부가가치세</div><div class="v">'+(S.vat==='none'?'해당 없음':fmt(vatSum)+'원')+'</div></div>';
+  let h='';
+  if(R.ok){
+    const kname={std:'기준시가',appr:'감정평가가액',book:'장부가액→기준시가'}[R.b.k];
+    h+='<div class="sec">가. 안분 계산 — '+kname+' 비례<span class="unit">단위: 원</span></div>'+
+      '<div class="hint" style="margin-bottom:4px">'+R.b.why+(R.withVat?' · 총액에 과세 자산분 부가세 포함 → 과세 자산 기준 금액에 1.1 을 곱해 나눔':'')+'</div>'+
+      '<table class="t"><tr><th>자산</th><th>안분 기준 금액</th><th>비율</th><th>안분 '+(R.withVat||S.vat==='excl'?'공급가액':verb+'가액')+'</th><th>부가세</th><th>계</th></tr>'+
+      R.rows.map(r=>'<tr><td>'+esc(r.a.name||TYPES[r.a.type])+' <span class="hint">('+TYPES[r.a.type]+(r.a.taxable&&S.vat!=='none'?'·과세':'')+')</span></td><td class="r">'+fmt(r.w)+'</td><td class="r">'+pct(r.ratio)+'</td><td class="r">'+fmt(r.supply)+'</td><td class="r">'+(r.vatAmt?fmt(r.vatAmt):'-')+'</td><td class="r">'+fmt(r.supply+(r.vatAmt||0))+'</td></tr>').join('')+
+      '<tr class="sum"><td>합계</td><td class="r">'+fmt(R.rows.reduce((s,r)=>s+r.w,0))+'</td><td class="r">100.00%</td><td class="r">'+fmt(R.rows.reduce((s,r)=>s+r.supply,0))+'</td><td class="r">'+fmt(apVat)+'</td><td class="r">'+fmt(R.rows.reduce((s,r)=>s+r.supply+(r.vatAmt||0),0))+'</td></tr></table>';
+    if(R.withVat){
+      const denTxt=R.rows.map(r=>(R.tax[r.i]?fmt(r.w)+'×1.1':fmt(r.w))).join(' + ');
+      h+='<div class="hint" style="margin:-6px 0 10px">식: 자산별 공급가액 = 총액 '+fmt(T)+' × 기준 금액 ÷ ('+denTxt+'), 원 미만 절사 · 끝수는 토지에</div>';
+    }
+    if(hasSplit&&R.rows[0].dev!=null){
+      h+='<div class="sec">나. 계약서 구분 금액과 비교 (30% 판정)<span class="unit">단위: 원</span></div>'+
+        '<table class="t"><tr><th>자산</th><th>계약서 구분 금액</th><th>안분액</th><th>차이</th><th>차이율</th><th>판정</th></tr>'+
+        R.rows.map(r=>'<tr><td>'+esc(r.a.name||TYPES[r.a.type])+'</td><td class="r">'+fmt(r.a.split)+'</td><td class="r">'+fmt(r.supply)+'</td><td class="r">'+fmt(+r.a.split-r.supply)+'</td><td class="r">'+pct(r.dev)+'</td><td class="c '+(r.dev>=0.3?'bad':'good')+'">'+(r.dev>=0.3?'30% 이상':'30% 미만')+'</td></tr>').join('')+
+        '</table>';
+    }
+    h+='<div class="sec">'+(hasSplit&&R.rows[0].dev!=null?'다':'나')+'. 확정 '+verb+'가액'+(common?' · 공통 비용 안분':'')+'<span class="unit">단위: 원</span></div>'+
+      '<table class="t"><tr><th>자산</th><th>적용</th><th>'+verb+'가액'+(R.withVat||S.vat==='excl'?'(공급가액)':'')+'</th>'+(S.vat!=='none'?'<th>부가세</th>':'')+(common?'<th>공통 비용 안분</th>':'')+'</tr>'+
+      R.rows.map(r=>'<tr><td>'+esc(r.a.name||TYPES[r.a.type])+'</td><td class="c">'+(use==='split'?'계약서 구분 금액':'안분액')+'</td><td class="r">'+fmt(r.final)+'</td>'+(S.vat!=='none'?'<td class="r">'+(r.finalVat?fmt(r.finalVat):'-')+'</td>':'')+(common?'<td class="r">'+fmt(r.cost)+'</td>':'')+'</tr>').join('')+
+      '<tr class="sum"><td>합계</td><td></td><td class="r">'+fmt(R.rows.reduce((s,r)=>s+r.final,0))+'</td>'+(S.vat!=='none'?'<td class="r">'+fmt(vatSum)+'</td>':'')+(common?'<td class="r">'+fmt(common)+'</td>':'')+'</tr></table>'+
+      '<div class="hint">'+(S.kind==='sell'?'양도소득세는 토지와 건물을 각각의 취득일·보유기간으로 계산하므로 위 확정 가액을 자산별 양도가액으로 씁니다. 취득가액도 같은 방법(취득 당시 기준시가)으로 나누십시오 — 「구분」을 취득으로 바꿔 계산합니다.':'취득가액 안분은 취득 계약일 현재 기준시가로 합니다. 건물분은 감가상각·양도 때 건물 취득가액이 됩니다.')+(S.vat!=='none'?' 세금계산서는 과세 자산(건물 등) 공급가액과 부가세로 발급합니다(토지는 계산서 발급 대상 아님).':'')+'</div>';
+  }else h='<div class="hint">왼쪽에 일괄 거래가액과 자산별 기준시가(또는 감정가·장부가액)를 넣으면 안분 결과가 나옵니다.</div>';
+  $('out').innerHTML=h;
+  $('checks').innerHTML=C.map(x=>'<li class="'+x.t+'">'+(x.t==='err'?'✕ ':x.t==='warn'?'! ':x.t==='ok'?'✓ ':'ⓘ ')+x.m+'</li>').join('');
+  window.__last={R,use,land,bld,vatSum,common};
+}
+
+/* ═══════ 입력 ═══════ */
+function loadTop(){TOP.forEach(k=>{const el=$(k);if(el.type==='checkbox')el.checked=!!S[k];else el.value=MONEY.indexOf(k)>=0&&S[k]?fmt(S[k]):(S[k]==null?'':S[k]);});}
+TOP.forEach(k=>{
+  const el=$(k);
+  el.addEventListener(el.tagName==='SELECT'||el.type==='checkbox'||el.type==='date'?'change':'input',()=>{
+    S[k]=el.type==='checkbox'?el.checked:(MONEY.indexOf(k)>=0?num(el.value):el.value);save();calc();
+  });
+  if(MONEY.indexOf(k)>=0)el.addEventListener('blur',()=>{if(S[k])el.value=fmt(S[k]);});
+});
+function fillSample(){
+  S=Object.assign(JSON.parse(JSON.stringify(DEF)),{kind:'sell',cDate:new Date().toISOString().slice(0,10),total:1100000000,vat:'incl',common:9900000,
+    assets:[{name:'토지(○○동 123)',type:'land',taxable:false,std:600000000,appr:'',book:'',split:'',area:'500',price:'1200000'},
+            {name:'근린생활시설 건물',type:'bldg',taxable:true,std:400000000,appr:'',book:'',split:'',area:'',price:''}]});
+  save();loadTop();renderAssets();calc();
+}
+function resetAll(){if(!confirm('입력을 모두 지웁니다.'))return;S=JSON.parse(JSON.stringify(DEF));save();loadTop();renderAssets();calc();}
+loadTop();renderAssets();
+if(!num(S.total)&&!S.assets.some(a=>+a.std>0))fillSample();else calc();
+</script>
+</body>
+</html>
