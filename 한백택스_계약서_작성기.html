@@ -11,6 +11,12 @@
   - 근로계약서(기간의 정함 없음·기간제·단시간) : 근로기준법 제17조·시행령 제8조, 기간제법 제17조의 서면 명시 사항을 모두 담는다.
     최저임금(2026년 시간급 10,320원, 고용노동부 고시 2025-08-05)·수습 감액(최저임금법 제5조 ②, 령 제3조)·휴게(근기법 제54조)·
     주 52시간·통상시급 자동 계산과 점검.
+  - 근로계약서 유형 추가(2026-09-19): 연소근로자(18세 미만, 친권자 동의서 별지) · 일용근로(건설 퇴직공제·일용근로소득 원천징수) ·
+    연봉제(고정 연장근로수당 포함) · 감시·단속적 근로자. 근거(K-Law MCP 원문 확인 2026-09-19):
+    근로기준법 제63조 3호(감시·단속적 — 고용노동부장관 승인 시 근로시간·휴게·휴일 적용 제외)·제66조(연소자 증명서·동의서 비치)·
+    제67조 ③(18세 미만 근로조건 서면 교부)·제69조(1일 7시간·1주 35시간, 합의 시 1일 1시간·1주 5시간 연장)·제70조 ②(18세 미만 야간·휴일근로 금지, 동의+인가 시 예외),
+    소득세법 제47조 ②(일용근로자 근로소득공제 1일 15만원)·제129조 ① 4호(원천징수세율 6%)·제59조 ③(산출세액의 55% 세액공제)·제134조 ③·제86조 1호(1천원 미만 부징수),
+    건설근로자법 제10조(건설공사 사업주 퇴직공제 당연 가입).
   - 금전소비대차계약서 : 민법 제598조. 이자제한법 제2조(최고이자율 연 20%, 대통령령 제31593호) 점검,
     인지세(인지세법 제3조 ①·제6조 8호: 5천만원 이하 비과세) 안내, 비영업대금 이익 원천징수(소득세법 제127조·제129조 ① 1호 나목 25%)
     안내, 특수관계인 무상·저리 대출 증여(상증령 제31조의4, 적정이자율 = 법인세 시행규칙 제43조 ② 연 4.6%, 기준 1천만원) 안내,
@@ -216,7 +222,7 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
   <div id="form-labor">
     <h2>① 계약 형태</h2>
     <div class="row c3">
-      <label class="fld">계약 형태<select data-k="kind"><option value="perm">기간의 정함이 없는 근로계약</option><option value="fixed">기간제 근로계약</option><option value="part">단시간(파트타임) 근로계약</option></select></label>
+      <label class="fld">계약 형태<select data-k="kind"><option value="perm">기간의 정함이 없는 근로계약</option><option value="fixed">기간제 근로계약</option><option value="minor">연소근로자 (18세 미만)</option><option value="daily">일용근로 (건설일용 포함)</option><option value="annual">연봉제 (고정 연장근로수당 포함)</option><option value="guard">감시·단속적 근로 (경비·시설관리 등)</option><option value="part">단시간(파트타임) 근로계약</option></select></label>
       <label class="fld">계약 시작일<input type="date" data-k="start"></label>
       <label class="fld">계약 종료일 <span class="hint">(기간제·단시간)</span><input type="date" data-k="end"></label>
     </div>
@@ -235,6 +241,41 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
       <label class="fld">연락처<input data-k="wTel"></label>
       <label class="fld">주민등록번호 <span class="hint">(선택·계약서에 뒷자리 표시 안 함)</span><input data-k="wRrn" placeholder="000000-0000000" inputmode="numeric"></label>
       <label class="fld" style="grid-column:1/-1">주소<input data-k="wAddr"></label>
+    </div>
+    <div id="laborKindBox" class="staffbox" style="display:none;margin-top:8px">
+      <div class="kx" data-kinds="minor">
+        <div class="fld" style="margin-bottom:4px"><b>연소근로자 — 친권자(후견인) 동의</b> <span class="hint">근로기준법 제66조: 가족관계증명서와 동의서를 사업장에 갖춰 둡니다</span></div>
+        <div class="row">
+          <label class="fld">친권자(후견인) 성명<input data-k="gdName"></label>
+          <label class="fld">근로자와의 관계<select data-k="gdRel"><option>부</option><option>모</option><option>후견인</option></select></label>
+          <label class="fld">연락처<input data-k="gdTel"></label>
+          <label class="fld">주소<input data-k="gdAddr"></label>
+          <label class="chk" style="grid-column:1/-1"><input type="checkbox" data-k="gdForm">친권자(후견인) 동의서를 별지로 붙이기</label>
+        </div>
+      </div>
+      <div class="kx" data-kinds="daily">
+        <div class="fld" style="margin-bottom:4px"><b>일용근로</b> <span class="hint">임금 형태는 「일급」, 기본급 칸에 일당을 넣습니다</span></div>
+        <div class="row">
+          <label class="fld">일당 지급 시기<select data-k="dPayWhen"><option value="day">근로일 당일</option><option value="week">1주 단위(다음 주 첫 근로일)</option><option value="month">매월 지급일(월 단위 정산)</option></select></label>
+          <label class="fld">현장·공사명 <span class="hint">(건설일용)</span><input data-k="dSite" placeholder="예: ○○동 근린생활시설 신축공사"></label>
+          <label class="chk" style="grid-column:1/-1"><input type="checkbox" data-k="dConst">건설일용근로자 — 건설근로자 퇴직공제 조항 넣기</label>
+        </div>
+      </div>
+      <div class="kx" data-kinds="annual">
+        <div class="fld" style="margin-bottom:4px"><b>연봉제 · 고정 연장근로수당</b> <span class="hint">연봉을 월 기본급과 월 고정 연장근로수당으로 나눕니다. 제수당은 따로 더합니다</span></div>
+        <div class="row">
+          <label class="fld num">연봉 총액 (원, 제수당 제외)<input type="text" data-k="annualPay" inputmode="numeric" placeholder="36,000,000"></label>
+          <label class="fld num">월 고정 연장근로 (시간)<input type="number" data-k="fixedOT" min="0" max="52" step="1" placeholder="10"></label>
+        </div>
+      </div>
+      <div class="kx" data-kinds="guard">
+        <div class="fld" style="margin-bottom:4px"><b>감시·단속적 근로</b> <span class="hint">고용노동부장관 승인을 받아야 근로시간·휴게·휴일 규정이 적용되지 않습니다(근로기준법 제63조 3호)</span></div>
+        <div class="row">
+          <label class="fld">승인 여부<select data-k="gApproved"><option value="n">아직 승인받지 않음</option><option value="y">승인받음</option></select></label>
+          <label class="fld">승인일 · 문서번호<input data-k="gApproval" placeholder="예: 2026.9.1. ○○지청-1234"></label>
+          <label class="fld" style="grid-column:1/-1">근무 형태<input data-k="gShift" placeholder="예: 24시간 격일 교대(휴게·수면 8시간 포함)"></label>
+        </div>
+      </div>
     </div>
     <h2>④ 근무 장소 · 업무</h2>
     <div class="row">
@@ -618,7 +659,7 @@ const daysBetween=(a,b)=>Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:
 /* ═══════ 상태 ═══════ */
 let doc='tax';
 const DEF={
-  labor:{kind:'perm',start:'',end:'',coName:'',coRep:'',coBiz:'',coTel:'',coAddr:'',wName:'',wBirth:'',wTel:'',wRrn:'',wAddr:'',place:'',job:'',tIn:'09:00',tOut:'18:00',rest:60,restTime:'12:00~13:00',offDay:'일요일',daysPerWeek:5,dayHours:{월:8,화:8,수:8,목:8,금:8,토:'',일:''},payType:'month',base:'',bonus:'none',bonusDesc:'',allow:[],payDay:'10',payPeriod:'prev',payHow:'bank',probation:'0',probPay:'100',simple:'n',insNP:true,insHI:true,insEI:true,insWC:true,extra:'',signDate:'',showTool:false},
+  labor:{gdName:'',gdRel:'부',gdTel:'',gdAddr:'',gdForm:true,dPayWhen:'day',dSite:'',dConst:false,annualPay:'',fixedOT:'',gApproved:'n',gApproval:'',gShift:'',kind:'perm',start:'',end:'',coName:'',coRep:'',coBiz:'',coTel:'',coAddr:'',wName:'',wBirth:'',wTel:'',wRrn:'',wAddr:'',place:'',job:'',tIn:'09:00',tOut:'18:00',rest:60,restTime:'12:00~13:00',offDay:'일요일',daysPerWeek:5,dayHours:{월:8,화:8,수:8,목:8,금:8,토:'',일:''},payType:'month',base:'',bonus:'none',bonusDesc:'',allow:[],payDay:'10',payPeriod:'prev',payHow:'bank',probation:'0',probPay:'100',simple:'n',insNP:true,insHI:true,insEI:true,insWC:true,extra:'',signDate:'',showTool:false},
   loan:{lName:'',lType:'ind',lId:'',lTel:'',lAddr:'',bName:'',bType:'ind',bId:'',bTel:'',bAddr:'',rel:'none',amt:'',loanDate:'',dueDate:'',give:'bank',acct:'',rate:'',intHow:'monthly',intDay:'last',repay:'bullet',lateRate:'',prepay:'ok',gName:'',gId:'',gAddr:'',collateral:'',court:'',signDate:'',extra:'',lossClause:true,showSched:true,notary:false,showTool:false},
   free:{coName:'',coRep:'',coBiz:'',coTel:'',coAddr:'',fName:'',fRrn:'',fTel:'',fBiz:'n',fAddr:'',fAcct:'',job:'',deliver:'',start:'',end:'',where:'free',termDays:'30',feeType:'month',fee:'',taxMode:'wht',payDay:'10',expense:'self',ip:'client',confid:true,noSub:true,notWorker:true,showTool:false,rFixed:false,rOrder:false,rExcl:false,rTool:false,court:'',signDate:'',extra:''},
   exec:{coName:'',coRep:'',coBiz:'',coAddr:'',artNo:'',mode:'delegate',baseType:'avg3m',yrsMode:'month',inclBonus:true,countStaff:true,
@@ -634,7 +675,7 @@ function persist(){try{localStorage.setItem(LSKEY,JSON.stringify({doc,labor:S.la
 const formOf=el=>el.closest('#form-labor')?'labor':el.closest('#form-loan')?'loan':el.closest('#form-tax')?'tax':el.closest('#form-exec')?'exec':'free';
 
 /* ═══════ 입력 바인딩 ═══════ */
-const MONEY_K=/^(base|amt|fee|exSal|exAnnual|shTotal|shAttend|shYes)$/;   /* 천 단위 쉼표로 보이는 칸 */
+const MONEY_K=/^(base|amt|fee|exSal|exAnnual|shTotal|shAttend|shYes|annualPay)$/;   /* 천 단위 쉼표로 보이는 칸 */
 function bind(){
   document.querySelectorAll('[data-k]').forEach(el=>{
     const form=formOf(el);
@@ -677,8 +718,17 @@ function copyText(){const t=$('sheet').innerText;(navigator.clipboard?navigator.
 function saveJson(){const name=(doc==='labor'?'근로계약서_'+(S.labor.wName||'미정'):doc==='loan'?'금전소비대차계약서_'+(S.loan.bName||'미정'):doc==='tax'?'세무대리약정서_'+(S.tax.cName||'미정'):doc==='exec'?'임원퇴직금지급규정_'+(S.exec.coName||'미정'):'프리랜서계약서_'+(S.free.fName||'미정'))+'_'+today()+'.json';const blob=new Blob([JSON.stringify({doc,data:S[doc]},null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
 function loadJson(inp){const f=inp.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const o=JSON.parse(rd.result);const d=DEF[o.doc]?o.doc:'labor';S[d]=Object.assign({},DEF[d],o.data||{});if(d==='labor'){S[d].dayHours=Object.assign({},DEF.labor.dayHours,S[d].dayHours||{});S[d].allow=S[d].allow||[];}if(d==='exec'&&!Array.isArray(S[d].rows))S[d].rows=JSON.parse(JSON.stringify(DEF.exec.rows));showDoc(d);refill();render();}catch(e){alert('읽을 수 없는 파일입니다.');}inp.value='';};rd.readAsText(f);}
 function resetDoc(){if(!confirm('현재 문서의 입력을 모두 지웁니다.'))return;S[doc]=JSON.parse(JSON.stringify(DEF[doc]));persist();refill();render();}
+/* 근로계약 유형별 예시 — 「예시 채우기」가 지금 고른 유형에 맞춰 채운다 */
+const LABOR_SAMPLE={
+  fixed:{end:addMonths(today(),12)},
+  part:{end:addMonths(today(),6),payType:'hour',base:10320,allow:[],tIn:'10:00',tOut:'14:30',rest:30,restTime:'12:00~12:30',dayHours:{월:4,화:4,수:4,목:4,금:4,토:'',일:''},probation:'0'},
+  minor:{wName:'박연소',wBirth:'2009-05-10',job:'카페 음료 제조 보조',place:'매장(서울 중구 ○○로)',tIn:'13:00',tOut:'18:00',rest:30,restTime:'15:00~15:30',dayHours:{월:'',화:'',수:'',목:'',금:'',토:4.5,일:4.5},payType:'hour',base:10320,allow:[],probation:'0',gdName:'박부모',gdRel:'부',gdTel:'010-0000-0000',gdAddr:'서울특별시 중구 ○○로 00',gdForm:true},
+  daily:{kind:'daily',start:today(),end:addMonths(today(),1),wName:'최일용',job:'건축 현장 형틀 목공 보조',place:'○○동 근린생활시설 신축현장',dSite:'○○동 근린생활시설 신축공사',dConst:true,dPayWhen:'week',payType:'day',base:200000,allow:[],probation:'0',tIn:'07:00',tOut:'16:00',rest:60,restTime:'12:00~13:00',dayHours:{월:8,화:8,수:8,목:8,금:8,토:'',일:''}},
+  annual:{payType:'month',annualPay:42000000,fixedOT:10,allow:[{name:'식대',amt:200000,ordinary:true}],probation:'3',probPay:'100'},
+  guard:{wName:'정경비',job:'아파트 경비(순찰·출입 관리)',place:'○○아파트 관리사무소',gApproved:'y',gApproval:'2026.9.1. 서울중부지청 승인',gShift:'주간 순찰·출입 관리(야간은 교대 근무표에 따름)',tIn:'07:00',tOut:'16:00',rest:60,restTime:'12:00~13:00',probation:'0',dayHours:{월:8,화:8,수:8,목:8,금:8,토:'',일:''},payType:'month',base:2500000,allow:[]}
+};
 function fillSample(){
-  if(doc==='labor'){S.labor=Object.assign({},DEF.labor,{kind:'perm',start:today(),coName:'주식회사 예시상사',coRep:'홍길동',coBiz:'123-45-67891',coTel:'02-000-0000',coAddr:'서울특별시 중구 ○○로 00, 0층',wName:'김예시',wBirth:'1995-03-15',wTel:'010-0000-0000',wAddr:'서울특별시 성동구 ○○로 00',place:'본사 사무실(서울 중구)',job:'경리·회계 사무 및 부수 업무',base:2400000,allow:[{name:'식대',amt:200000,ordinary:true},{name:'자가운전보조금',amt:200000,ordinary:false}],probation:'3',probPay:'100',signDate:today(),dayHours:{월:8,화:8,수:8,목:8,금:8,토:'',일:''}});}
+  if(doc==='labor'){const k0=S.labor.kind;S.labor=Object.assign({},DEF.labor,{kind:'perm',start:today(),coName:'주식회사 예시상사',coRep:'홍길동',coBiz:'123-45-67891',coTel:'02-000-0000',coAddr:'서울특별시 중구 ○○로 00, 0층',wName:'김예시',wBirth:'1995-03-15',wTel:'010-0000-0000',wAddr:'서울특별시 성동구 ○○로 00',place:'본사 사무실(서울 중구)',job:'경리·회계 사무 및 부수 업무',base:2400000,allow:[{name:'식대',amt:200000,ordinary:true},{name:'자가운전보조금',amt:200000,ordinary:false}],probation:'3',probPay:'100',signDate:today(),dayHours:{월:8,화:8,수:8,목:8,금:8,토:'',일:''}});LABOR_SAMPLE[k0]&&Object.assign(S.labor,{kind:k0},LABOR_SAMPLE[k0]);}
   else if(doc==='free'){S.free=Object.assign({},DEF.free,{coName:'주식회사 예시상사',coRep:'홍길동',coBiz:'123-45-67891',coTel:'02-000-0000',coAddr:'서울특별시 중구 ○○로 00, 0층',fName:'이예시',fTel:'010-0000-0000',fAddr:'경기도 성남시 분당구 ○○로 00',fAcct:'○○은행 000-000-000000 이예시',job:'온라인 마케팅 콘텐츠(카드뉴스·블로그) 기획 및 제작',deliver:'매월 카드뉴스 8건·블로그 4건 납품(시안 수정 2회 포함), 매월 말일 검수',start:today(),end:addMonths(today(),12),fee:3000000,court:'서울중앙지방법원',signDate:today()});}
   else if(doc==='exec'){S.exec=Object.assign(JSON.parse(JSON.stringify(DEF.exec)),{coName:'주식회사 예시상사',coRep:'홍길동',coBiz:'123-45-67891',coAddr:'서울특별시 중구 ○○로 00, 0층',artNo:'37',effDate:today(),meetDate:today(),meetPlace:'본점 회의실',chair:'대표이사 홍길동',shTotal:20000,shAttend:18000,shYes:18000,exPos:'0',exSal:12000000,exYears:15,exAnnual:150000000});}
   else if(doc==='tax'){S.tax=Object.assign({},DEF.tax,{cName:'주식회사 예시상사',cRep:'홍길동',cType:'corp',cBiz:'123-45-67891',cTel:'02-000-0000',cEmail:'admin@example.com',cAddr:'서울특별시 중구 ○○로 00, 0층',start:today(),fee:330000,feeVat:'in',court:'서울중앙지방법원',signDate:today()});}
@@ -697,6 +747,7 @@ function fromBoard(){
 }
 
 /* ═══════ 근로계약서 계산 · 점검 ═══════ */
+const toMin=t=>{if(!t)return null;const [h,m]=String(t).split(':').map(Number);return h*60+(m||0);};
 function laborCalc(d){
   const hrs=DAYS.map(k=>+d.dayHours[k]||0);
   const weekly=hrs.reduce((a,b)=>a+b,0);
@@ -710,21 +761,59 @@ function laborCalc(d){
   if(d.payType==='hour'){hourly=base;monthPay=Math.round(base*(weekly+weeklyHol)*365/7/12)+allAllow;}
   else if(d.payType==='day'){const perDay=weekly>0&&workDays>0?weekly/workDays:8;hourly=perDay?base/perDay:0;monthPay=Math.round(base*workDays*365/7/12)+allAllow;}
   else{hourly=monthly?(base+ordAllow)/monthly:0;monthPay=base+allAllow;}
+  /* 연봉제: 월 연봉액 = 기본급 B + 고정 연장수당(시간 h × 통상시급 × 1.5), 통상시급 = (B + 통상수당) ÷ 월 소정근로시간 */
+  let annualM=0,fixedOTPay=0;
+  if(d.kind==='annual'&&(+d.annualPay||0)>0&&monthly){
+    annualM=(+d.annualPay)/12;const h=+d.fixedOT||0;
+    const B=(annualM-h*1.5*ordAllow/monthly)/(1+h*1.5/monthly);
+    hourly=(B+ordAllow)/monthly;fixedOTPay=annualM-B;monthPay=annualM+allAllow;
+  }
+  /* 일용근로소득 원천징수(1일분): (일당 − 15만원) × 6% × (1 − 55%), 1천원 미만 부징수 */
+  let dailyTax=0,dailyLocal=0;
+  if(d.kind==='daily'&&d.payType==='day'&&base>150000){const t=Math.floor((base-150000)*0.06*0.45);dailyTax=t<1000?0:t;dailyLocal=dailyTax?Math.floor(dailyTax*0.1):0;}
   const prob=+d.probation>0&&d.probPay==='90';
   const contractDays=d.start&&d.end?daysBetween(d.start,d.end)+1:null;
-  const probAllowed=prob&&(d.kind==='perm'||(contractDays!=null&&contractDays>=365))&&d.simple!=='y';
+  const probAllowed=prob&&(d.kind==='perm'||(['minor','annual','guard'].indexOf(d.kind)>=0&&!d.end)||(contractDays!=null&&contractDays>=365))&&d.simple!=='y';
   const minApplied=prob&&probAllowed?MIN_WAGE*0.9:MIN_WAGE;
   const tIn=d.tIn||'',tOut=d.tOut||'';
   let span=0;if(tIn&&tOut){const [a,b]=[tIn,tOut].map(t=>{const [h,m]=t.split(':').map(Number);return h*60+m;});span=b>a?b-a:b+1440-a;}
   const dayWork=span?(span-(+d.rest||0))/60:0;
-  return {hrs,weekly,workDays,weeklyHol,monthly,ordAllow,allAllow,base,hourly,monthPay,prob,probAllowed,minApplied,contractDays,span,dayWork};
+  return {hrs,weekly,workDays,weeklyHol,monthly,ordAllow,allAllow,base:d.kind==='annual'&&annualM?Math.floor(annualM-fixedOTPay):base,hourly,monthPay,prob,probAllowed,minApplied,contractDays,span,dayWork,annualM,fixedOTPay,dailyTax,dailyLocal,tInM:toMin(tIn),tOutM:toMin(tOut)};
+}
+function laborKindChecks(d,c,add){
+  if(d.kind==='minor'){
+    if(c.weekly>40)add('err','연소근로자의 1주 근로시간은 35시간(합의 시 40시간)을 넘을 수 없습니다(근로기준법 제69조).');
+    else if(c.weekly>35)add('warn','연소근로자 1주 35시간 초과분은 당사자 합의로 1주 5시간까지만 연장할 수 있습니다(근로기준법 제69조 단서). 합의 내용을 특약에 적으십시오.');
+    if(c.hrs.some(h=>h>8))add('err','연소근로자의 1일 근로시간은 7시간(합의 시 8시간)을 넘을 수 없습니다(근로기준법 제69조).');
+    else if(c.hrs.some(h=>h>7))add('warn','1일 7시간을 넘는 날이 있습니다. 합의로 1일 1시간까지만 연장할 수 있습니다(근로기준법 제69조 단서).');
+    if(c.tInM!=null&&c.tOutM!=null&&(c.tInM<360||c.tOutM>1320||c.tOutM<c.tInM))add('err','<b>야간근로</b>: 18세 미만자는 오후 10시~오전 6시에 근로시킬 수 없습니다. 본인 동의와 고용노동부장관 인가가 있어야 예외입니다(근로기준법 제70조 ②).');
+    add('info','18세 미만자는 휴일에도 근로시킬 수 없습니다(본인 동의 + 고용노동부장관 인가 시 예외, 근로기준법 제70조 ②). 근로조건은 서면으로 명시해 교부해야 하며(제67조 ③), 가족관계증명서와 친권자(후견인) 동의서를 사업장에 갖춰 둡니다(제66조). 친권자는 근로계약을 대리할 수 없으므로 계약은 본인이 체결합니다(제67조 ①).');
+    if(!d.gdName)add('warn','친권자(후견인) 성명을 넣으면 동의서 별지가 채워집니다.');
+    if(!d.wBirth)add('warn','연소근로자는 <b>생년월일</b>을 넣어 18세 미만 여부를 확인하십시오.');
+  }
+  if(d.kind==='daily'){
+    if(d.payType!=='day')add('warn','일용근로는 임금 형태를 <b>일급</b>으로 두고 기본급 칸에 일당을 넣으십시오.');
+    else if(c.base>0)add('info','<b>일용근로소득 원천징수</b>(1일분): (일당 '+fmt(c.base)+' − 15만원) × 6% × 45% = 소득세 '+fmt(c.dailyTax)+'원 + 지방소득세 '+fmt(c.dailyLocal)+'원'+(c.base>150000&&!c.dailyTax?' — 1천원 미만이라 징수하지 않음':'')+(c.base<=150000?' — 일당 15만원 이하라 세액 없음':'')+'. 근거: 소득세법 제47조 ②·제129조 ① 4호·제59조 ③·제86조 1호. 일용근로소득 지급명세서는 매월 제출합니다.');
+    if(d.dConst)add('info','건설공사 사업주는 사업시작일부터 퇴직공제에 당연 가입합니다(건설근로자법 제10조 ①). 근로일수 신고와 공제부금 납부를 챙기십시오.');
+  }
+  if(d.kind==='annual'){
+    if(!(+d.annualPay>0))add('err','<b>연봉 총액</b>을 넣으십시오.');
+    else add('info','연봉 '+fmt(d.annualPay)+'원 → 월 '+fmt(c.annualM)+'원 = 기본급 '+fmt(c.base)+'원 + 고정 연장근로수당 '+fmt(c.fixedOTPay)+'원(월 '+(+d.fixedOT||0)+'시간 × 통상시급 '+fmt(c.hourly)+'원 × 1.5).');
+    if(+d.fixedOT>52)add('err','월 고정 연장근로가 너무 큽니다. 연장근로는 1주 12시간이 한도입니다(근로기준법 제53조 ①).');
+    add('warn','실제 연장·야간·휴일근로가 고정 시간을 넘으면 넘은 만큼 가산임금을 추가로 지급해야 합니다(근로기준법 제56조). 계약서에 이 문구가 들어갑니다.');
+  }
+  if(d.kind==='guard'){
+    if(d.gApproved!=='y')add('warn','<b>고용노동부장관 승인 전</b>에는 근로시간·휴게·휴일 규정이 그대로 적용됩니다(근로기준법 제63조 3호). 승인받기 전 근무분은 연장·휴일 가산을 계산하십시오.');
+    else add('ok','감시·단속적 근로 승인'+(d.gApproval?'('+esc(d.gApproval)+')':'')+': 근로시간·휴게·휴일 규정이 적용되지 않습니다(근로기준법 제63조 3호). 야간근로 가산임금과 연차유급휴가는 적용되는 것으로 봅니다.');
+  }
 }
 function laborChecks(d,c){
   const L=[];const add=(lv,t)=>L.push({lv,t});
   const need=[['coName','사업체명'],['coRep','대표자'],['wName','근로자 성명'],['start','계약 시작일'],['place','근무 장소'],['job','업무 내용']];
   const miss=need.filter(([k])=>!d[k]).map(([,n])=>n);
   if(miss.length)add('err','<b>필수 기재 누락</b>: '+miss.join(', ')+' — 근기법 §17 ①·근기령 §8');
-  if(d.kind!=='perm'&&!d.end)add('err','<b>계약 종료일</b>이 없습니다. 기간제·단시간은 근로계약기간을 서면 명시해야 합니다(기간제법 §17 1호).');
+  laborKindChecks(d,c,add);
+  if((d.kind==='fixed'||d.kind==='part'||d.kind==='daily')&&!d.end)add('err','<b>계약 종료일</b>이 없습니다. 기간제·단시간은 근로계약기간을 서면 명시해야 합니다(기간제법 §17 1호).');
   if(d.kind!=='perm'&&d.start&&d.end&&d.end<d.start)add('err','계약 종료일이 시작일보다 앞섭니다.');
   if(d.kind==='fixed'&&c.contractDays!=null&&c.contractDays>730)add('warn','기간제 계약 기간이 2년을 넘습니다. 2년 초과 사용 시 기간의 정함이 없는 근로계약으로 봅니다(기간제법 §4 ②, 예외 사유 확인).');
   if(d.coBiz&&!bizOk(d.coBiz))add('warn','사업자등록번호 형식(10자리 검증)이 맞지 않습니다: '+esc(d.coBiz));
@@ -754,16 +843,36 @@ function laborChecks(d,c){
   return L;
 }
 function renderLabor(){
-  const d=S.labor,c=laborCalc(d);
+  const d=S.labor;
+  const kb=$('laborKindBox');if(kb){let any=false;kb.querySelectorAll('.kx').forEach(x=>{const on=x.dataset.kinds.split(' ').indexOf(d.kind)>=0;x.style.display=on?'':'none';if(on)any=true;});kb.style.display=any?'':'none';}
+  const c=laborCalc(d);
   $('laborCalc').innerHTML='1주 소정근로 <b>'+c.weekly+'시간</b> · 근로일 <b>'+c.workDays+'일</b> · 주휴 <b>'+c.weeklyHol+'시간</b> · 월 소정근로시간(주휴 포함) <b>'+c.monthly+'시간</b><br>'+
     (c.base?('통상시급 <b>'+fmt(c.hourly)+'원</b>'+(d.payType==='month'?' = (기본급 '+fmt(c.base)+(c.ordAllow?' + 통상수당 '+fmt(c.ordAllow):'')+') ÷ '+c.monthly:'')+' · 월 임금 총액(예상) <b>'+fmt(c.monthPay)+'원</b>'+(c.prob?' · 수습 중 '+d.probPay+'%':'')+'<br>연장 1시간당 '+fmt(c.hourly*1.5)+'원 · 야간 가산 '+fmt(c.hourly*0.5)+'원 · 휴일(8h 이내) '+fmt(c.hourly*1.5)+'원'):'기본급을 넣으면 통상시급·최저임금 점검이 나옵니다.');
   const L=laborChecks(d,c);
   $('laborChecks').innerHTML=L.map(x=>'<li class="'+x.lv+'">'+x.t+'</li>').join('');
   $('sheet').innerHTML=laborHtml(d,c);
 }
+/* 유형별 조항 · 별지 */
+function kindArticles(d,c,art){
+  if(d.kind==='minor')return art('연소근로자의 보호')+'<p>① 을의 근로시간은 1일 7시간, 1주 35시간을 넘지 아니한다. 다만, 갑과 을이 합의한 경우 1일 1시간, 1주 5시간을 한도로 연장할 수 있다(근로기준법 제69조).</p><p>② 갑은 오후 10시부터 오전 6시까지의 시간 및 휴일에 을을 근로시키지 아니한다. 다만, 을의 동의가 있고 고용노동부장관의 인가를 받은 경우에는 그러하지 아니하다(근로기준법 제70조 제2항).</p><p>③ 을은 연령을 증명하는 가족관계기록사항에 관한 증명서와 친권자(후견인)의 동의서를 갑에게 제출하며, 갑은 이를 사업장에 갖추어 둔다(근로기준법 제66조).</p><p>④ 갑은 이 계약서의 근로조건을 서면으로 명시하여 을에게 교부한다(근로기준법 제67조 제3항).</p>';
+  if(d.kind==='daily')return art('임금의 지급(일용)')+'<p>① 임금은 1일 '+fmt(c.base)+'원(일당)으로 하고, '+({day:'근로일 당일',week:'1주 단위로 다음 주 첫 근로일',month:'매월 정한 지급일에 전월분을 정산하여'}[d.dPayWhen]||'근로일 당일')+' 지급한다.</p><p>② 갑은 「소득세법」에 따라 일용근로소득에 대한 소득세와 지방소득세를 원천징수하고 지급한다.</p>'+(d.dConst?art('퇴직공제')+'<p>갑은 「건설근로자의 고용개선 등에 관한 법률」에 따른 퇴직공제에 가입하고, 을의 근로일수를 신고하며 공제부금을 납부한다.</p>':'');
+  if(d.kind==='annual')return art('연봉의 구성')+'<p>① 을의 연봉은 금 '+fmt(d.annualPay)+'원(제수당 제외)으로 하고, 12로 나누어 매월 지급한다.</p><table><tr><th>구성항목</th><th>월 금액</th><th>비고</th></tr><tr><td>기본급</td><td class="r">'+fmt(c.base)+'원</td><td class="c">월 소정근로시간 '+c.monthly+'시간</td></tr><tr><td>고정 연장근로수당</td><td class="r">'+fmt(c.fixedOTPay)+'원</td><td class="c">월 '+(+d.fixedOT||0)+'시간분(통상시급 × 1.5)</td></tr><tr><th>월 합계</th><td class="r">'+fmt(c.annualM)+'원</td><td class="c">통상시급 '+fmt(c.hourly)+'원</td></tr></table><p>② 을의 실제 연장·야간·휴일근로가 제1항의 고정 연장근로시간을 넘는 경우 갑은 넘은 시간에 대하여 근로기준법 제56조에 따른 가산임금을 추가로 지급한다.</p>';
+  if(d.kind==='guard')return art('근로시간 등의 적용 제외')+'<p>① 을은 '+esc(d.job||'감시 또는 단속적 업무')+'에 종사하며, 근무 형태는 '+esc(d.gShift||'갑이 정하는 근무표')+'에 따른다.</p><p>② 갑이 을의 업무에 관하여 고용노동부장관의 승인'+(d.gApproved==='y'&&d.gApproval?'('+esc(d.gApproval)+')':'')+'을 받은 경우 근로기준법 제63조 제3호에 따라 근로시간, 휴게와 휴일에 관한 규정은 적용하지 아니한다. 승인을 받기 전에는 그러하지 아니하다.</p><p>③ 제2항에도 불구하고 야간근로에 대한 가산임금과 연차유급휴가는 관계 법령에 따른다.</p>';
+  return '';
+}
+function consentHtml(d){
+  if(d.kind!=='minor'||!d.gdForm)return '';
+  return '<div class="pb"></div><h1 style="letter-spacing:6pt">친권자(후견인) 동의서</h1>'+
+  '<table class="party"><tr><td>친권자(후견인) 성명</td><td>'+esc(d.gdName)+'</td></tr><tr><td>연소근로자와의 관계</td><td>'+esc(d.gdRel)+'</td></tr><tr><td>주소</td><td>'+esc(d.gdAddr)+'</td></tr><tr><td>연락처</td><td>'+esc(d.gdTel)+'</td></tr></table>'+
+  '<table class="party" style="margin-top:8pt"><tr><td>연소근로자 성명</td><td>'+esc(d.wName)+'</td></tr><tr><td>생년월일</td><td>'+(d.wBirth?kd(d.wBirth):'')+'</td></tr><tr><td>주소</td><td>'+esc(d.wAddr)+'</td></tr></table>'+
+  '<table class="party" style="margin-top:8pt"><tr><td>사업장 명칭</td><td>'+esc(d.coName)+'</td></tr><tr><td>사업장 주소</td><td>'+esc(d.coAddr)+'</td></tr><tr><td>대표자</td><td>'+esc(d.coRep)+'</td></tr><tr><td>담당 업무</td><td>'+esc(d.job)+'</td></tr></table>'+
+  '<p style="margin-top:10pt">본인은 위 연소근로자 '+esc(d.wName||'________')+'이(가) 위 사업장에서 근로를 하는 것에 대하여 동의합니다.</p>'+
+  '<p style="text-align:center;margin:14pt 0">'+kd(d.signDate)+'</p><p style="text-align:right">친권자(후견인) '+esc(d.gdName||'________')+' <span class="stamp">(서명 또는 인)</span></p>'+
+  '<p style="font-size:9.5pt;margin-top:10pt">첨부: 가족관계증명서 1부</p>';
+}
 function laborHtml(d,c){
-  const kindT={perm:'기간의 정함이 없는 근로계약',fixed:'기간제 근로계약',part:'단시간 근로계약'}[d.kind];
-  const term=d.kind==='perm'?'을의 근로개시일은 '+kd(d.start)+'로 하며, 근로계약기간은 정함이 없다.':'근로계약기간은 '+kd(d.start)+'부터 '+kd(d.end)+'까지로 한다.'+(d.start&&d.end&&c.contractDays?' (총 '+c.contractDays+'일)':'')+' 계약기간 만료로 근로관계는 종료되며, 갱신은 별도 합의에 따른다.';
+  const kindT={perm:'기간의 정함이 없는 근로계약',fixed:'기간제 근로계약',part:'단시간 근로계약',minor:'연소근로자 근로계약',daily:'일용 근로계약',annual:'연봉제 근로계약',guard:'감시·단속적 근로계약'}[d.kind];
+  const term=d.kind==='daily'?'근로계약기간은 '+kd(d.start)+'부터 '+kd(d.end)+'까지로 하며, 이 기간 중 갑이 정한 근로일에 1일 단위로 근로한다. 근로하지 아니한 날에는 임금을 지급하지 아니한다.'+(d.dSite?' 근로 현장은 '+esc(d.dSite)+'으로 한다.':''):(d.kind==='perm'||((d.kind==='minor'||d.kind==='annual'||d.kind==='guard')&&!d.end))?'을의 근로개시일은 '+kd(d.start)+'로 하며, 근로계약기간은 정함이 없다.':'근로계약기간은 '+kd(d.start)+'부터 '+kd(d.end)+'까지로 한다.'+(d.start&&d.end&&c.contractDays?' (총 '+c.contractDays+'일)':'')+' 계약기간 만료로 근로관계는 종료되며, 갱신은 별도 합의에 따른다.';
   const dayTable='<table><tr><th>구분</th>'+DAYS.map(x=>'<th>'+x+'</th>').join('')+'<th>합계</th></tr><tr><td class="c">근로시간</td>'+DAYS.map(x=>'<td class="c">'+(+d.dayHours[x]>0?d.dayHours[x]+'h':'－')+'</td>').join('')+'<td class="c">'+c.weekly+'h</td></tr></table>';
   const payT={month:'월급',hour:'시급',day:'일급'}[d.payType];
   const payDayT=d.payDay==='last'?'매월 말일':'매월 '+d.payDay+'일';
@@ -783,11 +892,12 @@ function laborHtml(d,c){
   art('근무 장소')+'<p>'+esc(d.place||'________')+'. 다만, 업무상 필요에 따라 갑은 을과 협의하여 근무 장소를 변경할 수 있다.</p>'+
   art('업무의 내용')+'<p>'+esc(d.job||'________')+'. 업무상 필요에 따라 갑은 을과 협의하여 업무 내용을 변경할 수 있다.</p>'+
   art('소정근로시간 및 휴게')+'<p>① 소정근로시간은 1일 '+(Math.max(...c.hrs)||0)+'시간, 1주 '+c.weekly+'시간으로 하며, 시업 '+esc(d.tIn)+' 종업 '+esc(d.tOut)+', 휴게시간은 '+(+d.rest||0)+'분('+esc(d.restTime||'근로시간 도중')+')으로 한다.</p><p>② 근로일 및 근로일별 근로시간은 다음과 같다.</p>'+dayTable+
-  '<p>③ 갑은 을과 합의하여 1주 12시간을 한도로 연장근로를 시킬 수 있으며, 연장·야간(22시~06시)·휴일근로에 대하여는 근로기준법 제56조에 따라 통상임금의 50%(8시간 초과 휴일근로는 100%) 이상을 가산하여 지급한다.'+(d.kind==='part'?' 단시간 근로자의 소정근로시간을 초과하는 근로는 1주 12시간을 한도로 하며 초과분에 대하여 통상임금의 50% 이상을 가산한다(기간제법 제6조).':'')+'</p>'+
+  (d.kind==='minor'?'<p>③ 갑은 을과 합의한 경우에만 1일 1시간, 1주 5시간을 한도로 연장근로를 시킬 수 있으며(근로기준법 제69조 단서), 연장근로에 대하여는 통상임금의 50% 이상을 가산하여 지급한다. 야간근로와 휴일근로는 연소근로자 보호 조항에 따른다.</p>':(d.kind==='guard'&&d.gApproved==='y')?'<p>③ 연장·휴일근로에 관하여는 「근로시간 등의 적용 제외」 조항에 따르고, 오후 10시부터 오전 6시까지의 근로에 대하여는 통상임금의 50% 이상을 가산하여 지급한다.</p>':'<p>③ 갑은 을과 합의하여 1주 12시간을 한도로 연장근로를 시킬 수 있으며, 연장·야간(22시~06시)·휴일근로에 대하여는 근로기준법 제56조에 따라 통상임금의 50%(8시간 초과 휴일근로는 100%) 이상을 가산하여 지급한다.'+(d.kind==='part'?' 단시간 근로자의 소정근로시간을 초과하는 근로는 1주 12시간을 한도로 하며 초과분에 대하여 통상임금의 50% 이상을 가산한다(기간제법 제6조).':'')+'</p>')+
   art('휴일')+'<p>'+holiday+'</p>'+
-  art('임금')+'<p>① 임금은 다음의 구성항목과 금액으로 하며, 계산 방법은 비고와 같다.</p>'+wageTable+
+  art('임금')+(d.kind==='annual'?'<p>① 임금은 「연봉의 구성」 조항에 따른 연봉과 다음의 제수당으로 한다.</p>'+((d.allow||[]).some(a=>a.name||a.amt)?'<table><tr><th>구성항목</th><th>금액</th><th>비고</th></tr>'+(d.allow||[]).filter(a=>a.name||a.amt).map(a=>'<tr><td>'+esc(a.name)+'</td><td class="r">'+fmt(a.amt)+'원</td><td class="c">'+(a.ordinary?'통상임금':'통상임금 제외')+'</td></tr>').join('')+'</table>':'<p>(제수당 없음)</p>'):'<p>① 임금은 다음의 구성항목과 금액으로 하며, 계산 방법은 비고와 같다.</p>'+wageTable)+
   '<p>② 임금은 '+payDayT+'('+periodT+')에 '+(d.payHow==='bank'?'을이 지정한 을 명의의 예금계좌에 입금하여':'을에게 직접')+' 지급한다. 지급일이 휴일인 경우 그 전일에 지급한다.</p><p>③ 임금에서 법령에 따른 세금과 사회보험료 등을 공제한 후 지급한다.'+(d.payType==='hour'&&c.weekly>=15?' 1주 소정근로일을 개근한 경우 주휴수당(1주 '+c.weeklyHol+'시간분)을 지급한다.':'')+'</p>'+
   (annual?art('연차유급휴가')+'<p>'+annual+'</p>':'')+
+  kindArticles(d,c,art)+
   art('사회보험')+'<p>갑과 을은 '+(ins||'관계 법령이 정하는 사회보험')+'에 가입하고 보험료는 관계 법령에 따라 각자 부담한다.</p>'+
   (prob?prob.replace('제9조','제'+(++n)+'조'):'')+
   art('근로계약서 교부')+'<p>갑은 이 계약을 체결함과 동시에 본 계약서를 2부 작성하여 갑과 을이 각 1부씩 보관하며, 을의 요구와 관계없이 을에게 1부를 교부한다(근로기준법 제17조).</p>'+
@@ -796,6 +906,7 @@ function laborHtml(d,c){
   '<div class="sign"><p style="text-align:center;margin:10pt 0">'+kd(d.signDate)+'</p>'+
   '<table class="party"><tr><td>(갑) 사업체명</td><td>'+esc(d.coName)+'</td></tr><tr><td>사업자등록번호</td><td>'+esc(d.coBiz)+'</td></tr><tr><td>주소</td><td>'+esc(d.coAddr)+'</td></tr><tr><td>전화</td><td>'+esc(d.coTel)+'</td></tr><tr><td>대표자</td><td>'+esc(d.coRep)+' <span class="stamp">(서명 또는 인)</span></td></tr></table>'+
   '<table class="party" style="margin-top:8pt"><tr><td>(을) 성명</td><td>'+esc(d.wName)+' <span class="stamp">(서명 또는 인)</span></td></tr><tr><td>생년월일</td><td>'+(d.wBirth?kd(d.wBirth):'')+(rrn?' ('+rrn+')':'')+'</td></tr><tr><td>주소</td><td>'+esc(d.wAddr)+'</td></tr><tr><td>연락처</td><td>'+esc(d.wTel)+'</td></tr></table></div>'+
+  consentHtml(d)+
   (d.showTool?'<div class="foot">세무법인 한백택스 계약서 작성기 · 02-2277-3101 · hb090@hanbaektax.kr</div>':'');
 }
 
