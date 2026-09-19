@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>한백택스 세무회계 계산기 모음 — 법인 결산·금융소득·부가세·노무·장려금</title>
+<meta name="description" content="세무회계 계산기 모음 — 가지급금 인정이자, 업무추진비·기부금 한도, 금융소득 종합과세, 주식 양도세·증권거래세, 원천징수, 간이 vs 일반과세, 성실신고 판정, 퇴직금·주휴수당·임금명세서, 근로·자녀장려금">
+<!--
+  세무법인 한백택스 세무회계 계산기 모음 v1 (2026-09-19)
+  근거(K-Law MCP 원문 확인 2026-09-19, 각 법령 현행 시행일 버전)
+    법인세법 제13조 ①(이월결손금 80%·중소기업 100%) 제24조 ②③⑤⑥(특례 50%·일반 10%·사회적기업 30%·10년 이월) 제25조 ②④⑤(건당 3만원·기본한도·수입금액별 한도·부동산임대 50%)
+            제55조 ①(10%·20%·22%·25%)
+    법인세법 시행령 제41조 ①(경조금 20만원·그 밖 3만원) 제53조 ②③(지급이자 × 가지급금 적수 ÷ 차입금 적수, 가수금 상계)
+                  제88조 ①6호 ③(시가와 차액 3억원 이상 또는 시가의 5% 이상) 제89조 ③(가중평균차입이자율 원칙, 당좌대출이자율 예외·선택 시 3개 사업연도)
+                  제106조 ①(귀속자별 소득처분)
+    법인세법 시행규칙 제43조 ②(당좌대출이자율 연 4.6%) ④(대여기간 5년 초과 → 당좌대출이자율) 제44조(인정이자 계산 제외 대여금)
+    소득세법 제14조 ③6호·8호 ④ 제17조 ③(가산율 10%) 제35조 ③(개인 업무추진비 한도) 제47조 ①② 제55조 ① 제56조 ①④ 제59조 ①②③ 제62조 제70조의2 제84조 3호
+            제103조 ① 제104조 ①11호 제129조 ①
+    소득세법 시행령 제87조 1호·1의2호 제116조의2(합산 순서) 제133조 ①②(성실신고 15억·7.5억·5억) 제157조(상장 대주주 1%·2%·4%·50억원) 제208조 ⑤⑦(복식부기 3억·1.5억·7,500만원, 겸영 환산)
+    부가가치세법 제36조 ①2호 제46조 ①(1.3%·연 1천만원, 2026.12.31.까지) 제61조 ① 제63조 ②③ 제69조 ①
+    부가가치세법 시행령 제88조 ③(10억원) 제109조 ①②(1억4백만원·간이 배제 업종) 제111조 ②(업종별 부가가치율)
+    조세특례제한법 제100조의3·제100조의5(근로장려금) 제100조의28·제100조의29·제100조의30 ②·제100조의31(자녀장려금) 제126조의6(성실신고 확인비용 60%·120만원) 제136조 ③⑥(문화·전통시장 각 20%)
+    조세특례제한법 시행령 제100조의3 ①4호(업종별 조정률)
+    증권거래세법 제8조 · 같은 법 시행령 제5조(코스피 0.05%·코넥스 0.1%·코스닥 등 0.2%, 그 밖 0.35%) · 농어촌특별세법 제5조 ①5호(0.15%)
+    근로기준법 제2조 ①6호 ②(평균임금) 제18조 ③(주 15시간 미만) 제48조 ②(임금명세서) 제55조 제56조(가산 50%·휴일 8시간 초과 100%)
+    근로기준법 시행령 제27조의2(임금명세서 기재사항) 제30조 ①(유급휴일은 개근자)
+    근로자퇴직급여 보장법 제4조 ①(1년 미만·주 15시간 미만 제외) 제8조 ①(30일분 평균임금)
+  원 미만은 최종 산출 단계에서 절사한다(인정이자·세액·퇴직금). 중간 단계에서는 자르지 않는다.
+  원문으로 확인하지 못한 것은 화면에 「확인 필요」로 표시한다.
+-->
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1B3A5C;--gold:#C8963E;--bg:#F4F6F9;--line:#DCE3EC;--gray:#5F6E80;--red:#B91C1C;--amber:#92400E;--green:#166534;--soft:#F3F7FC}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:14px}
+.top{background:#fff;border-bottom:2px solid var(--gold);padding:12px 20px}
+.top h1{margin:0;font-size:20px;color:var(--navy)}
+.top .sub{color:var(--gray);font-size:12.5px;line-height:1.6;margin-top:3px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:10px 20px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;-webkit-overflow-scrolling:touch}
+.tabs button{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:18px;padding:7px 13px;font:inherit;font-size:13px;font-weight:700;color:var(--navy);cursor:pointer;white-space:nowrap}
+.tabs button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.tabs .grp{flex:0 0 auto;align-self:center;font-size:11px;color:var(--gray);font-weight:800;padding:0 2px 0 8px}
+section.calc{display:none}
+section.calc.on{display:block}
+.wrap{display:grid;grid-template-columns:minmax(360px,520px) 1fr;gap:18px;padding:16px 20px 40px;max-width:1500px;margin:0 auto}
+.wrap>*{min-width:0}
+.panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.panel h2{font-size:15px;color:var(--navy);margin:16px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--line)}
+.panel h2:first-child{margin-top:0}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}
+.fld{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--gray);font-weight:700}
+.fld.full{grid-column:1/-1}
+.fld input,.fld select,.fld textarea{font:inherit;font-size:14px;color:#111;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;width:100%}
+.fld input.m,.fld input.n{text-align:right}
+.fld input:focus,.fld select:focus{outline:2px solid #C8963E55;border-color:var(--gold)}
+.hint{font-size:11.5px;color:var(--gray);font-weight:400;line-height:1.55}
+.chk{display:flex;align-items:flex-start;gap:6px;font-size:13px;color:#111;font-weight:400;padding:3px 0;line-height:1.5;grid-column:1/-1}
+.chk input{margin-top:3px;width:auto}
+.toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;font-weight:700;cursor:pointer;color:var(--navy);font-family:inherit;font-size:12.5px}
+.btn.p{background:var(--gold);color:#fff;border-color:var(--gold)}
+.btn.n{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn.sm{padding:4px 9px;font-size:11.5px}
+.big{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.big div{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.big div b{display:block;font-size:12px;color:var(--gray);margin-bottom:4px}
+.big div span{font-size:19px;font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums}
+.big div.hl{background:#FBF3E4;border-color:#E8CFA3}
+.big div.hl span{color:#8A5A12}
+table.t{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0 12px}
+table.t th,table.t td{border:1px solid var(--line);padding:6px 8px;vertical-align:top}
+table.t th{background:#EEF3F9;color:var(--navy);text-align:center;font-weight:800}
+table.t td.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+table.t tr.sum td{background:#FBF3E4;font-weight:800}
+table.t td.l{color:#334155}
+.msg{border-radius:8px;padding:8px 11px;margin:6px 0;font-size:12.5px;line-height:1.6}
+.msg.err{background:#FEF2F2;color:var(--red);border:1px solid #FECACA}
+.msg.warn{background:#FFFBEB;color:var(--amber);border:1px solid #FDE68A}
+.msg.ok{background:#F0FDF4;color:var(--green);border:1px solid #BBF7D0}
+.msg.info{background:var(--soft);color:#334155;border:1px solid var(--line)}
+.law{font-size:12px;color:var(--gray);line-height:1.7;margin-top:10px;border-top:1px dashed var(--line);padding-top:8px}
+.law b{color:var(--navy)}
+.need{display:inline-block;background:#FEF3C7;color:#92400E;border-radius:6px;padding:0 6px;font-size:11px;font-weight:800;margin-left:3px}
+.rows .rw{display:grid;grid-template-columns:1.2fr 1fr 1fr auto;gap:6px;margin-bottom:6px;align-items:end}
+.rows.pay .rw{grid-template-columns:1.3fr 1fr 1.4fr auto}
+.rows .rw input,.rows .rw select{font:inherit;font-size:13.5px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;width:100%;min-width:0}
+.rows .rw input.m{text-align:right}
+.sub3{font-size:13.5px;color:var(--navy);font-weight:800;margin:14px 0 6px}
+.foot{max-width:1500px;margin:0 auto;padding:0 20px 90px;color:var(--gray);font-size:12px;line-height:1.7}
+.slip{border:2px solid var(--navy);border-radius:6px;padding:14px;background:#fff}
+.slip h3{text-align:center;margin:0 0 8px;color:var(--navy);font-size:18px;letter-spacing:4px}
+@media(max-width:980px){
+  .wrap{grid-template-columns:minmax(0,1fr);padding:10px 10px 30px}
+  .row{grid-template-columns:1fr}
+  table.t{display:block;max-width:100%;overflow-x:auto}
+  table.t td.l{min-width:8.5em}
+  .rows .rw,.rows.pay .rw{grid-template-columns:1fr 1fr}
+  .tabs{padding:8px 10px}
+}
+@media print{
+  .tabs,.toolbar,.inp,.foot,.top .sub{display:none!important}
+  .wrap{display:block;padding:0}
+  .panel{border:none;padding:0}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+<!-- HB-HOME v1 -->
+<script>
+/* 한백택스 홈 바 — 생성기: 02-도구 & 스크립트/Python 스크립트/홈바_주입.py
+   이 블록은 자동 생성이다. 직접 고치지 말고 생성기를 고쳐 다시 실행한다. */
+(function(){
+  if (window.self !== window.top) return;          /* 포털 iframe 안에서는 부모의 바를 쓴다 */
+  if (window.__hbHome) return;
+  window.__hbHome = 1;
+  var me = decodeURIComponent((location.pathname.split('/').pop() || '').toLowerCase());
+  var host = document.createElement('div');
+  host.id = 'hbHome';
+  host.setAttribute('data-nogate', '1');
+  host.style.cssText = 'display:block;position:sticky;top:0;z-index:2147483000;margin:0;padding:0;line-height:0';
+  var links = [
+    ['한백택스_세무계산_포털.html', '세무계산 포털'],
+    ['한백택스_모바일.html', '모바일 포털']
+  ].filter(function(l){ return l[0].toLowerCase() !== me; });
+  var sh = host.attachShadow({ mode: 'open' });
+  sh.innerHTML =
+    '<style>' +
+    ':host{all:initial;display:block}' +
+    '.bar{box-sizing:border-box;display:flex;align-items:center;gap:10px;height:42px;padding:0 16px;' +
+      'background:#fff;border-bottom:2px solid #C8963E;box-shadow:0 2px 8px rgba(15,36,64,.08);' +
+      'font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:13px;line-height:1;color:#1B3A5C}' +
+    '.home{display:inline-flex;align-items:center;gap:6px;background:#C8963E;color:#fff;font-weight:800;' +
+      'padding:7px 13px;border-radius:999px;text-decoration:none;white-space:nowrap;letter-spacing:-.2px}' +
+    '.home:hover{background:#b8862f}' +
+    '.ttl{font-weight:700;color:#1B3A5C;white-space:nowrap;opacity:.85}' +
+    '.sp{flex:1}' +
+    '.lnk{color:#35507A;font-weight:700;text-decoration:none;padding:6px 10px;border:1px solid #DCE5F0;border-radius:999px;white-space:nowrap;background:#F5F8FC}' +
+    '.lnk:hover{border-color:#C8963E;color:#1B3A5C}' +
+    '@media(max-width:640px){.bar{padding:0 10px;gap:6px;height:40px}.ttl{display:none}.lnk{padding:6px 8px;font-size:12px}}' +
+    '@media print{.bar{display:none}}' +
+    '</style>' +
+    '<div class="bar">' +
+      '<a class="home" href="index.html" title="한백택스 세무 도구 모음(메인 화면)으로">&#8592; 메인 화면</a>' +
+      '<span class="ttl">세무법인 한백택스 · 세무 도구</span>' +
+      '<span class="sp"></span>' +
+      links.map(function(l){ return '<a class="lnk" href="' + l[0] + '">' + l[1] + '</a>'; }).join('') +
+    '</div>';
+  var s = document.currentScript;
+  if (s && s.parentNode) s.parentNode.insertBefore(host, s);
+  else document.body.insertBefore(host, document.body.firstChild);
+})();
+</script>
+<!-- /HB-HOME -->
+
+<div class="top">
+  <h1>세무회계 계산기 모음</h1>
+  <div class="sub">법인 결산 조정, 개인 금융·양도·원천세, 부가가치세, 노무, 장려금까지 자주 쓰는 계산을 한곳에 모았습니다. 입력값은 이 브라우저에만 저장됩니다.
+    결과는 신고 전 검토용 추정치이며, 실제 신고는 세무사와 확인하십시오.</div>
+</div>
+<nav class="tabs" id="tabs"></nav>
+
+<!-- ═══════ 1. 가지급금 인정이자 ═══════ -->
+<section class="calc" id="c-gaji"><div class="wrap">
+<div class="panel inp">
+  <div class="toolbar"><button class="btn n" data-act="sample">예시 채우기</button><button class="btn p" data-act="print">인쇄 · PDF</button><button class="btn" data-act="reset">초기화</button></div>
+  <h2>사업연도와 가지급금</h2>
+  <div class="row">
+    <label class="fld">사업연도 개시일<input type="date" data-k="fyS"></label>
+    <label class="fld">사업연도 종료일<input type="date" data-k="fyE"></label>
+    <label class="fld full">기초 가지급금 잔액(원)<input class="m" data-k="open" inputmode="numeric"></label>
+  </div>
+  <div class="sub3">기중 지급·회수</div>
+  <div class="hint">지급한 날은 적수에 넣고 회수한 날은 뺍니다(초일 산입·말일 불산입).</div>
+  <div class="rows" data-rows="moves" data-cols="d:date:날짜|out:m:지급액|back:m:회수액"></div>
+  <button class="btn sm" data-add="moves">+ 줄 추가</button>
+  <div class="row" style="margin-top:10px">
+    <label class="fld full">같은 사람의 가수금 적수(원·일)<input class="m" data-k="gasuJ" inputmode="numeric"><span class="hint">동일인 가지급금과 가수금은 상계합니다(법인령 §53 ③). 없으면 비워 둡니다.</span></label>
+  </div>
+  <h2>이자율과 받은 이자</h2>
+  <div class="row">
+    <label class="fld">적용 이자율<select data-k="rateMode"><option value="cur">당좌대출이자율 연 4.6%</option><option value="wavg">가중평균차입이자율(직접 입력)</option></select></label>
+    <label class="fld">가중평균차입이자율(%)<input class="n" data-k="wavg" inputmode="decimal"></label>
+    <label class="fld full">실제로 받은 이자(원)<input class="m" data-k="recv" inputmode="numeric"></label>
+    <label class="fld full">돈을 빌려 간 사람<select data-k="who"><option value="rep">대표이사</option><option value="exec">그 밖의 임원·직원</option><option value="sh">임원 아닌 주주</option><option value="etc">그 밖의 특수관계인(개인)</option></select></label>
+  </div>
+  <h2>세 부담 추정(선택)</h2>
+  <div class="row">
+    <label class="fld">법인 과세표준(조정 전, 원)<input class="m" data-k="corpBase" inputmode="numeric"></label>
+    <label class="fld">귀속자 종합소득 과세표준(원)<input class="m" data-k="personBase" inputmode="numeric"></label>
+    <label class="fld">당기 지급이자(원)<input class="m" data-k="intPaid" inputmode="numeric"></label>
+    <label class="fld">평균 차입금 잔액(원)<input class="m" data-k="borrowAvg" inputmode="numeric"><span class="hint">지급이자 손금불산입 계산용. 특수관계인 차입금 제외 여부는 따로 확인하십시오.</span></label>
+  </div>
+</div>
+<div class="panel" id="r-gaji"></div>
+</div></section>
+
+<!-- ═══════ 2. 업무추진비 ═══════ -->
+<section class="calc" id="c-ent"><div class="wrap">
+<div class="panel inp">
+  <div class="toolbar"><button class="btn n" data-act="sample">예시 채우기</button><button class="btn p" data-act="print">인쇄 · PDF</button><button class="btn" data-act="reset">초기화</button></div>
+  <h2>사업자</h2>
+  <div class="row">
+    <label class="fld">구분<select data-k="kind"><option value="corp">법인</option><option value="ind">개인사업자</option></select></label>
+    <label class="fld">사업연도 개월 수<input class="n" data-k="months" inputmode="numeric"><span class="hint">1개월 미만은 1개월</span></label>
+    <label class="chk"><input type="checkbox" data-k="sme"> 중소기업(조특법 §6 ①) — 기본한도 3,600만원</label>
+    <label class="chk"><input type="checkbox" data-k="reRent"> 부동산임대업 주업 등 법인 — 한도 50%(법인세법 §25 ⑤)</label>
+  </div>
+  <h2>수입금액</h2>
+  <div class="row">
+    <label class="fld">일반 수입금액(원)<input class="m" data-k="revGen" inputmode="numeric"></label>
+    <label class="fld">특수관계인 거래 수입금액(원)<input class="m" data-k="revRel" inputmode="numeric"><span class="hint">한도의 10%만 인정</span></label>
+  </div>
+  <h2>지출액</h2>
+  <div class="row">
+    <label class="fld">업무추진비 총 지출액(원)<input class="m" data-k="spent" inputmode="numeric"></label>
+    <label class="fld">적격증빙 없는 건당 3만원 초과분(원)<input class="m" data-k="noProof" inputmode="numeric"><span class="hint">경조금은 20만원 초과분. 한도 계산 전에 전액 손금불산입</span></label>
+    <label class="fld">그중 문화비(원)<input class="m" data-k="culture" inputmode="numeric"></label>
+    <label class="fld">그중 전통시장·온누리·지역사랑상품권(원)<input class="m" data-k="market" inputmode="numeric"></label>
+  </div>
+</div>
+<div class="panel" id="r-ent"></div>
+</div></section>
+
+<!-- ═══════ 3. 기부금 ═══════ -->
+<section class="calc" id="c-don"><div class="wrap">
+<div class="panel inp">
+  <div class="toolbar"><button class="btn n" data-act="sample">예시 채우기</button><button class="btn p" data-act="print">인쇄 · PDF</button><button class="btn" data-act="reset">초기화</button></div>
+  <h2>법인 기부금 한도</h2>
+  <div class="row">
+    <label class="fld full">차가감소득금액(원)<input class="m" data-k="pre" inputmode="numeric"><span class="hint">기부금 한도 조정 전 소득금액. 비지정기부금 손금불산입은 이미 반영된 금액</span></label>
+    <label class="fld">당기 특례기부금(원)<input class="m" data-k="spT" inputmode="numeric"></label>
+    <label class="fld">당기 일반기부금(원)<input class="m" data-k="spG" inputmode="numeric"></label>
+    <label class="fld">이월된 특례기부금(원)<input class="m" data-k="cT" inputmode="numeric"></label>
+    <label class="fld">이월된 일반기부금(원)<input class="m" data-k="cG" inputmode="numeric"></label>
+    <label class="fld full">공제 대상 이월결손금(원)<input class="m" data-k="loss" inputmode="numeric"></label>
+    <label class="chk"><input type="checkbox" data-k="sme"> 중소기업 등 — 이월결손금 100% 공제(아니면 기준소득금액의 80% 한도)</label>
+    <label class="chk"><input type="checkbox" data-k="social"> 사회적기업 — 일반기부금 한도 30%</label>
+  </div>
+</div>
+<div class="panel" id="r-don"></div>
+</div></section>
+
+<!-- ═══════ 4. 금융소득 ═══════ -->
+<section class="calc" id="c-fin"><div class="wrap">
+<div class="panel inp">
+  <div class="toolbar"><button class="btn n" data-act="sample">예시 채우기</button><button class="btn p" data-act="print">인쇄 · PDF</button><button class="btn" data-act="reset">초기화</button></div>
+  <h2>금융소득(연간, 원천징수된 것)</h2>
+  <div class="row">
+    <label class="fld">이자소득(원천 14%)<input class="m" data-k="int" inputmode="numeric"></label>
+    <label class="fld">비영업대금 이익(원천 25%)<input class="m" data-k="intP" inputmode="numeric"></label>
+    <label class="fld">배당 — 가산 대상 아님(원)<input class="m" data-k="divN" inputmode="numeric"><span class="hint">외국법인 배당·집합투자기구 이익 등</span></label>
+    <label class="fld">배당 — 가산(Gross-up) 대상(원)<input class="m" data-k="divG" inputmode="numeric"><span class="hint">내국법인 이익배당 등</span></label>
+  </div>
+  <h2>다른 종합소득</h2>
+  <div class="row">
+    <label class="fld">금융소득 외 종합소득금액(원)<input class="m" data-k="other" inputmode="numeric"><span class="hint">사업·근로·연금·기타소득금액 합계</span></label>
+    <label class="fld">종합소득공제 합계(원)<input class="m" data-k="ded" inputmode="numeric"></label>
+  </div>
+</div>
+<div class="panel" id="r-fin"></div>
+</div></section>
+
+<!-- ═══════ 5. 주식 ═══════ -->
+<section class="calc" id="c-stock"><div class="wrap">
+<div class="panel inp">
+  <div class="toolbar"><button class="btn n" data-act="sample">예시 채우기</button><button class="btn p" data-act="print">인쇄 · PDF</button><button class="btn" data-act="reset">초기화</button></div>
+  <h2>주식</h2>
+  <div class="row">
+    <label class="fld">시장<select data-k="mkt"><option value="kospi">유가증권시장(코스피)</option><option value="kosdaq">코스닥</option><option value="konex">코넥스</option><option value="kotc">K-OTC(금융투자협회)</option><option value="unl">비상장(장외 직접 거래)</option></select></label>
+    <label class="fld">양도자<select data-k="major"><option value="0">소액주주</option><option value="1">대주주</option></select></label>
+    <label class="chk"><input type="checkbox" data-k="sme"> 중소기업 주식</label>
+    <label class="chk"><input type="checkbox" data-k="onMkt"> 증권시장에서 매매(장내)</label>
+    <label class="chk"><input type="checkbox" data-k="short"> 1년 미만 보유(대주주·중소기업 외 법인 주식이면 30%)</label>
+  </div>
+  <h2>금액</h2>
+  <div class="row">
+    <label class="fld">양도가액(원)<input class="m" data-k="price" inputmode="numeric"></label>
+    <label class="fld">취득가액(원)<input class="m" data-k="cost" inputmode="numeric"></label>
+    <label class="fld">수수료 등 필요경비(원)<input class="m" data-k="exp" inputmode="numeric"><span class="hint">증권거래세는 자동으로 더합니다</span></label>
+    <label class="chk"><input type="checkbox" data-k="bd"> 올해 주식 양도소득 기본공제 250만원 적용</label>
+  </div>
+  <div class="msg info">상장법인 대주주: 직전 사업연도 말 지분율 1%(코스닥 2%, 코넥스 4%) 이상이거나 종목 시가총액 50억원 이상(소득령 §157). 최대주주는 특수관계인 지분을 합산합니다.</div>
+</div>
+<div class="panel" id="r-stock"></div>
+</div></section>
+
+<!-- ═══════ 6. 원천징수 ═══════ -->
+<section class="calc" id="c-wh"><div class="wrap">
+<div class="panel inp">
+  <div class="toolbar"><button class="btn n" data-act="sample">예시 채우기</button><button class="btn p" data-act="print">인쇄 · PDF</button><button class="btn" data-act="reset">초기화</button></div>
+  <h2>지급 유형</h2>
+  <div class="row">
+    <label class="fld full">소득 구분<select data-k="type">
+      <option value="biz">사업소득(프리랜서 3%)</option>
+      <option value="o60">기타소득 — 필요경비 60%(강연료·원고료·일시적 인적용역 등)</option>
+      <option value="o80">기타소득 — 필요경비 80%(공익법인 상금·주택입주 지체상금 등)</option>
+      <option value="oReal">기타소득 — 실제 필요경비</option>
+      <option value="daily">일용근로소득</option>
+    </select></label>
+    <label class="fld">지급액(원) — 일용은 일당<input class="m" data-k="amt" inputmode="numeric"></label>
+    <label class="fld">일용 근로일수 / 실제 필요경비<input class="m" data-k="aux" inputmode="numeric"></label>
+  </div>
+  <h2>세후 금액에서 거꾸로</h2>
+  <div class="row">
+    <label class="fld full">받을 금액(세후, 원)<input class="m" data-k="net" inputmode="numeric"><span class="hint">입력하면 위 소득 구분 기준으로 세전 지급액을 찾습니다(일용은 1일 기준)</span></label>
+  </div>
+</div>
+<div class="panel" id="r-wh"></div>
+</div></section>
+
+<!-- ═══════ 7. 부가세 ═══════ -->
+<section class="calc" id="c-vat"><div class="wrap">
+<div class="panel inp">
+  <div class="toolbar"><button class="btn n" data-act="sample">예시 채우기</button><button class="btn p" data-act="print">인쇄 · PDF</button><button class="btn" data-act="reset">초기화</button></div>
+  <h2>간이과세자 vs 일반과세자 (연간)</h2>
+  <div class="row">
+    <label class="fld full">업종(간이 부가가치율)<select data-k="ind">
+      <option value="0.15">소매업·재생용 재료수집·음식점업 (15%)</option>
+      <option value="0.20">제조업·농임어업·소화물 전문 운송업 (20%)</option>
+      <option value="0.25">숙박업 (25%)</option>
+      <option value="0.30">건설업·운수창고업·정보통신업 (30%)</option>
+      <option value="0.40">금융보험 서비스·전문과학기술·사업시설관리·부동산 관련 서비스·부동산임대 (40%)</option>
+      <option value="0.301">그 밖의 서비스업 (30%)</option>
+    </select></label>
+    <label class="fld">연 매출 공급대가(부가세 포함, 원)<input class="m" data-k="sales" inputmode="numeric"></label>
+    <label class="fld">연 매입 공급대가(세금계산서·카드 수취, 부가세 포함)<input class="m" data-k="buy" inputmode="numeric"></label>
+    <label class="fld">매출 중 카드·현금영수증 비율(%)<input class="n" data-k="card" inputmode="decimal"></label>
+    <label class="chk"><input type="checkbox" data-k="cardOk"> 주로 소비자 대상 업종(소매·음식·숙박 등) — 신용카드 발행세액공제 대상</label>
+    <label class="chk"><input type="checkbox" data-k="excl"> 간이과세 배제 업종·지역(제조·도매·전문직·부동산매매 등, 부가령 §109 ②)</label>
+  </div>
+  <h2>공급가액 ↔ 부가세 나누기</h2>
+  <div class="row">
+    <label class="fld">금액(원)<input class="m" data-k="split" inputmode="numeric"></label>
+    <label class="fld">입력한 금액은<select data-k="splitMode"><option value="incl">부가세 포함 합계</option><option value="excl">공급가액(부가세 별도)</option></select></label>
+  </div>
+</div>
+<div class="panel" id="r-vat"></div>
+</div></section>
+
+<!-- ═══════ 8. 성실신고 ═══════ -->
+<section class="calc" id="c-sung"><div class="wrap">
+<div class="panel inp">
+  <div class="toolbar"><button class="btn n" data-act="sample">예시 채우기</button><button class="btn p" data-act="print">인쇄 · PDF</button><button class="btn" data-act="reset">초기화</button></div>
+  <h2>업종별 수입금액</h2>
+  <div class="hint">성실신고는 해당 과세기간 수입금액, 복식부기 의무는 직전 과세기간 수입금액으로 판정합니다. 사업용 유형자산 양도 수입은 뺍니다.</div>
+  <div class="rows" data-rows="biz" data-cols="g:grp:업종 구분|rev:m:수입금액"></div>
+  <button class="btn sm" data-add="biz">+ 업종 추가</button>
+  <div class="row" style="margin-top:10px">
+    <label class="chk"><input type="checkbox" data-k="pro"> 변호사·세무사·의사 등 전문직 사업서비스업(부가령 §109 ② 7호) — 복식부기 의무</label>
+    <label class="fld full">성실신고 확인 비용(원)<input class="m" data-k="fee" inputmode="numeric"><span class="hint">세액공제 60%, 한도 120만원(조특법 §126의6)</span></label>
+  </div>
+</div>
+<div class="panel" id="r-sung"></div>
+</div></section>
+
+<!-- ═══════ 9. 퇴직금 ═══════ -->
+<section class="calc" id="c-sev"><div class="wrap">
+<div class="panel inp">
+  <div class="toolbar"><button class="btn n" data-act="sample">예시 채우기</button><button class="btn p" data-act="print">인쇄 · PDF</button><button class="btn" data-act="reset">초기화</button></div>
+  <h2>근무 기간</h2>
+  <div class="row">
+    <label class="fld">입사일<input type="date" data-k="in"></label>
+    <label class="fld">퇴직일(마지막 근무일의 다음 날)<input type="date" data-k="out"></label>
+    <label class="fld full">1주 소정근로시간(4주 평균)<input class="n" data-k="wh" inputmode="decimal"></label>
+  </div>
+  <h2>임금</h2>
+  <div class="row">
+    <label class="fld full">퇴직 전 3개월 임금 총액(원)<input class="m" data-k="w3" inputmode="numeric"><span class="hint">기본급·수당 등 3개월간 지급된 임금(상여·연차수당 제외)</span></label>
+    <label class="fld">퇴직 전 1년 상여금 총액(원)<input class="m" data-k="bonus" inputmode="numeric"></label>
+    <label class="fld">퇴직 전 1년 연차수당(원)<input class="m" data-k="leave" inputmode="numeric"></label>
+    <label class="fld full">1일 통상임금(원, 선택)<input class="m" data-k="ordDay" inputmode="numeric"><span class="hint">평균임금이 통상임금보다 적으면 통상임금을 평균임금으로 봅니다(근기법 §2 ②)</span></label>
+  </div>
+</div>
+<div class="panel" id="r-sev"></div>
+</div></section>
+
+<!-- ═══════ 10. 주휴·최저임금·가산수당 ═══════ -->
+<section class="calc" id="c-hour"><div class="wrap">
+<div class="panel inp">
+  <div class="toolbar"><button class="btn n" data-act="sample">예시 채우기</button><button class="btn p" data-act="print">인쇄 · PDF</button><button class="btn" data-act="reset">초기화</button></div>
+  <h2>시급과 근로시간</h2>
+  <div class="row">
+    <label class="fld">시급(원)<input class="m" data-k="wage" inputmode="numeric"></label>
+    <label class="fld">1주 소정근로시간<input class="n" data-k="wk" inputmode="decimal"></label>
+    <label class="chk"><input type="checkbox" data-k="full"> 1주 소정근로일을 개근(주휴 요건 — 근기령 §30 ①)</label>
+  </div>
+  <h2>가산수당(월간 시간)</h2>
+  <div class="row">
+    <label class="fld">연장근로 시간<input class="n" data-k="ot" inputmode="decimal"></label>
+    <label class="fld">야간근로 시간(22시~06시)<input class="n" data-k="night" inputmode="decimal"></label>
+    <label class="fld">휴일근로 8시간 이내<input class="n" data-k="hol" inputmode="decimal"></label>
+    <label class="fld">휴일근로 8시간 초과분<input class="n" data-k="hol8" inputmode="decimal"></label>
+    <label class="chk"><input type="checkbox" data-k="small"> 상시 4명 이하 사업장</label>
+  </div>
+</div>
+<div class="panel" id="r-hour"></div>
+</div></section>
+
+<!-- ═══════ 11. 임금명세서 ═══════ -->
+<section class="calc" id="c-pay"><div class="wrap">
+<div class="panel inp">
+  <div class="toolbar"><button class="btn n" data-act="sample">예시 채우기</button><button class="btn p" data-act="print">인쇄 · PDF</button><button class="btn" data-act="reset">초기화</button></div>
+  <h2>기본 정보</h2>
+  <div class="row">
+    <label class="fld">사업장명<input data-k="co"></label>
+    <label class="fld">근로자 성명<input data-k="name"></label>
+    <label class="fld">생년월일 또는 사원번호<input data-k="idn"></label>
+    <label class="fld">임금 귀속월<input type="month" data-k="ym"></label>
+    <label class="fld">임금 지급일<input type="date" data-k="payDay"></label>
+  </div>
+  <div class="sub3">지급 항목</div>
+  <div class="hint">연장·야간·휴일근로는 계산방법에 시간 수를 적습니다(근기령 §27의2 5호). 비과세 식대 등은 이름에 「비과세」를 넣으면 보험료 기준에서 뺍니다.</div>
+  <div class="rows pay" data-rows="items" data-cols="nm:text:항목|amt:m:금액|how:text:계산방법"></div>
+  <button class="btn sm" data-add="items">+ 지급 항목</button>
+  <div class="sub3">공제 항목</div>
+  <div class="row">
+    <label class="fld">국민연금<input class="m" data-k="np" inputmode="numeric"></label>
+    <label class="fld">건강보험<input class="m" data-k="hi" inputmode="numeric"></label>
+    <label class="fld">장기요양보험<input class="m" data-k="ltc" inputmode="numeric"></label>
+    <label class="fld">고용보험<input class="m" data-k="ei" inputmode="numeric"></label>
+    <label class="fld">소득세<input class="m" data-k="it" inputmode="numeric"><span class="hint">간이세액표 금액 — 급여 실수령액 계산기에서 확인</span></label>
+    <label class="fld">지방소득세<input class="m" data-k="lt" inputmode="numeric"></label>
+    <label class="fld full">그 밖의 공제(명칭:금액, 쉼표로 구분)<input data-k="etc" placeholder="예: 가불금 상환:100000"></label>
+  </div>
+  <button class="btn sm n" data-act="autoIns">4대보험 근로자 부담 자동 계산(2026년 요율)</button>
+</div>
+<div class="panel" id="r-pay"></div>
+</div></section>
+
+<!-- ═══════ 12. 장려금 ═══════ -->
+<section class="calc" id="c-eitc"><div class="wrap">
+<div class="panel inp">
+  <div class="toolbar"><button class="btn n" data-act="sample">예시 채우기</button><button class="btn p" data-act="print">인쇄 · PDF</button><button class="btn" data-act="reset">초기화</button></div>
+  <h2>가구</h2>
+  <div class="row">
+    <label class="fld">배우자<select data-k="sp"><option value="0">없음</option><option value="1">있음</option></select></label>
+    <label class="fld">부양자녀 수(18세 미만 등)<input class="n" data-k="kids" inputmode="numeric"></label>
+    <label class="chk"><input type="checkbox" data-k="par"> 70세 이상 직계존속과 동거·생계를 같이 함(연 소득금액 100만원 이하)</label>
+    <label class="chk"><input type="checkbox" data-k="cc"> 자녀세액공제를 받음</label>
+  </div>
+  <h2>소득(작년 1년)</h2>
+  <div class="row">
+    <label class="fld">본인 근로소득 총급여(원)<input class="m" data-k="mW" inputmode="numeric"></label>
+    <label class="fld">본인 사업 수입금액(원)<input class="m" data-k="mB" inputmode="numeric"></label>
+    <label class="fld full">본인 사업 업종(조정률)<select data-k="mR"></select></label>
+    <label class="fld">배우자 근로소득 총급여(원)<input class="m" data-k="sW" inputmode="numeric"></label>
+    <label class="fld">배우자 사업 수입금액(원)<input class="m" data-k="sB" inputmode="numeric"></label>
+    <label class="fld full">배우자 사업 업종(조정률)<select data-k="sR"></select></label>
+    <label class="fld full">이자·배당·연금·기타소득 합계(부부, 원)<input class="m" data-k="oth" inputmode="numeric"></label>
+  </div>
+  <h2>재산(6월 1일 현재, 가구원 합계)</h2>
+  <div class="row">
+    <label class="fld full">토지·건물·자동차·예금 등 합계(원)<input class="m" data-k="asset" inputmode="numeric"><span class="hint">부채는 빼지 않습니다. 평가 방법은 조특령에 따름</span></label>
+  </div>
+</div>
+<div class="panel" id="r-eitc"></div>
+</div></section>
+
+<div class="foot">
+  세무법인 한백택스 · 서울특별시 중구 동호로 315, 신안빌딩 2층 · 전화 02-2277-3101 · 팩스 02-2277-3161 · hb090@hanbaektax.kr<br>
+  계산 기준: 2026년 9월 현재 법령(K-Law 원문 확인). 결과는 검토용 추정치이며 실제 신고·지급 전에 세무사와 확인하십시오.
+</div>
+
+<script>
+'use strict';
+/* ═══════ 공통 ═══════ */
+const TABS=[
+  {g:'법인 결산'},{id:'gaji',t:'가지급금 인정이자'},{id:'ent',t:'업무추진비 한도'},{id:'don',t:'기부금 한도'},
+  {g:'개인 소득'},{id:'fin',t:'금융소득 종합과세'},{id:'stock',t:'주식 양도·거래세'},{id:'wh',t:'원천징수 3.3%·기타·일용'},
+  {g:'부가·사업자'},{id:'vat',t:'간이 vs 일반'},{id:'sung',t:'성실신고·복식부기'},
+  {g:'노무'},{id:'sev',t:'퇴직금'},{id:'hour',t:'주휴·최저임금·가산수당'},{id:'pay',t:'임금명세서'},
+  {g:'장려금'},{id:'eitc',t:'근로·자녀장려금'}
+];
+const KEY='hbt_calcset_v1';
+const Y=new Date().getFullYear();
+const DEF={
+  gaji:{fyS:Y+'-01-01',fyE:Y+'-12-31',open:'',moves:[{d:'',out:'',back:''}],gasuJ:'',rateMode:'cur',wavg:'',recv:'',who:'rep',corpBase:'',personBase:'',intPaid:'',borrowAvg:''},
+  ent:{kind:'corp',months:12,sme:true,reRent:false,revGen:'',revRel:'',spent:'',noProof:'',culture:'',market:''},
+  don:{pre:'',spT:'',spG:'',cT:'',cG:'',loss:'',sme:true,social:false},
+  fin:{int:'',intP:'',divN:'',divG:'',other:'',ded:''},
+  stock:{mkt:'kospi',major:'0',sme:false,onMkt:true,short:false,price:'',cost:'',exp:'',bd:true},
+  wh:{type:'biz',amt:'',aux:'',net:''},
+  vat:{ind:'0.15',sales:'',buy:'',card:'',cardOk:true,excl:false,split:'',splitMode:'incl'},
+  sung:{biz:[{g:'A',rev:''}],pro:false,fee:''},
+  sev:{in:'',out:'',wh:40,w3:'',bonus:'',leave:'',ordDay:''},
+  hour:{wage:10320,wk:40,full:true,ot:'',night:'',hol:'',hol8:'',small:false},
+  pay:{co:'',name:'',idn:'',ym:'',payDay:'',items:[{nm:'기본급',amt:'',how:''}],np:'',hi:'',ltc:'',ei:'',it:'',lt:'',etc:''},
+  eitc:{sp:'0',kids:0,par:false,cc:false,mW:'',mB:'',mR:'0.30',sW:'',sB:'',sR:'0.30',oth:'',asset:''}
+};
+const SAMPLE={
+  gaji:{fyS:Y+'-01-01',fyE:Y+'-12-31',open:100000000,moves:[{d:Y+'-04-01',out:50000000,back:''},{d:Y+'-10-01',out:'',back:30000000}],gasuJ:'',rateMode:'cur',wavg:'',recv:0,who:'rep',corpBase:300000000,personBase:150000000,intPaid:20000000,borrowAvg:500000000},
+  ent:{kind:'corp',months:12,sme:true,reRent:false,revGen:5000000000,revRel:500000000,spent:60000000,noProof:1200000,culture:3000000,market:2000000},
+  don:{pre:200000000,spT:30000000,spG:40000000,cT:0,cG:5000000,loss:50000000,sme:true,social:false},
+  fin:{int:15000000,intP:0,divN:3000000,divG:22000000,other:60000000,ded:5000000},
+  stock:{mkt:'kosdaq',major:'1',sme:false,onMkt:true,short:false,price:800000000,cost:500000000,exp:1000000,bd:true},
+  wh:{type:'o60',amt:1000000,aux:'',net:''},
+  vat:{ind:'0.15',sales:100000000,buy:40000000,card:80,cardOk:true,excl:false,split:1100000,splitMode:'incl'},
+  sung:{biz:[{g:'A',rev:1000000000},{g:'B',rev:300000000}],pro:false,fee:1500000},
+  sev:{in:(Y-5)+'-03-02',out:Y+'-10-01',wh:40,w3:10500000,bonus:6000000,leave:1200000,ordDay:''},
+  hour:{wage:10320,wk:20,full:true,ot:10,night:4,hol:8,hol8:0,small:false},
+  pay:{co:'주식회사 한백상사',name:'홍길동',idn:'사원번호 1024',ym:Y+'-09',payDay:Y+'-10-10',items:[{nm:'기본급',amt:2800000,how:'월 209시간'},{nm:'연장근로수당',amt:231750,how:'10시간 × 15,450원(통상시급 10,300원 × 1.5)'},{nm:'식대(비과세)',amt:200000,how:'월 정액'}],np:'',hi:'',ltc:'',ei:'',it:45000,lt:4500,etc:''},
+  eitc:{sp:'1',kids:2,par:false,cc:false,mW:24000000,mB:0,mR:'0.30',sW:0,sB:0,sR:'0.30',oth:0,asset:150000000}
+};
+let S=load();
+function load(){try{const o=JSON.parse(localStorage.getItem(KEY)||'{}');const s={tab:o.tab||'gaji',d:{}};for(const k in DEF)s.d[k]=Object.assign(clone(DEF[k]),(o.d||{})[k]||{});return s;}catch(e){const s={tab:'gaji',d:{}};for(const k in DEF)s.d[k]=clone(DEF[k]);return s;}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+const $=id=>document.getElementById(id);
+const num=v=>{if(v===null||v===undefined)return 0;const n=parseFloat(String(v).replace(/[^0-9.\-]/g,''));return isFinite(n)?n:0;};
+const fl=x=>Math.floor(x+1e-9);
+const fmt=n=>(n<0?'-':'')+Math.abs(Math.round(n)).toLocaleString('ko-KR');
+const won=n=>fmt(n)+'원';
+const pct=r=>(r*100).toFixed(2).replace(/\.00$/,'')+'%';
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function prog(b){ /* 소득세법 §55 ① */
+  if(b<=0)return 0;const T=[[14e6,.06,0],[50e6,.15,84e4],[88e6,.24,624e4],[150e6,.35,1536e4],[300e6,.38,3706e4],[500e6,.40,9406e4],[1e9,.42,17406e4],[Infinity,.45,38406e4]];
+  let lo=0;for(const [hi,r,c] of T){if(b<=hi)return c+(b-lo)*r;lo=hi;}return 0;}
+function corpTax(b){ /* 법인세법 §55 ① 1호 */
+  if(b<=0)return 0;if(b<=2e8)return b*.10;if(b<=2e10)return 2e7+(b-2e8)*.20;if(b<=3e11)return 398e7+(b-2e10)*.22;return 6558e7+(b-3e11)*.25;}
+function big(items){return '<div class="big">'+items.map(i=>'<div'+(i.hl?' class="hl"':'')+'><b>'+esc(i.b)+'</b><span>'+i.v+'</span></div>').join('')+'</div>';}
+function tbl(rows,head){return '<table class="t">'+(head?'<tr>'+head.map(h=>'<th>'+h+'</th>').join('')+'</tr>':'')+rows.map(r=>'<tr'+(r.sum?' class="sum"':'')+'><td class="l">'+r[0]+'</td><td class="r">'+r[1]+'</td>'+(r.length>2?'<td class="l">'+(r[2]||'')+'</td>':'')+'</tr>').join('')+'</table>';}
+const msg=(t,c)=>'<div class="msg '+(c||'info')+'">'+t+'</div>';
+const law=t=>'<div class="law"><b>근거</b> '+t+'</div>';
+const NEED='<span class="need">확인 필요</span>';
+function days(a,b){return Math.round((Date.parse(b)-Date.parse(a))/864e5);}
+function addDay(s,n){const d=new Date(s+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);}
+function addMonth(s,n){const d=new Date(s+'T00:00:00Z');const day=d.getUTCDate();d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()+n);const last=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate();d.setUTCDate(Math.min(day,last));return d.toISOString().slice(0,10);}
+const isDate=s=>/^\d{4}-\d{2}-\d{2}$/.test(s||'')&&!isNaN(Date.parse(s));
+
+/* ═══════ 1. 가지급금 인정이자 ═══════ */
+function cGaji(d){
+  const out=[];
+  if(!isDate(d.fyS)||!isDate(d.fyE)||d.fyE<d.fyS)return msg('사업연도 개시일·종료일을 확인하십시오.','err');
+  const mv=(d.moves||[]).filter(m=>isDate(m.d)&&(num(m.out)||num(m.back)));
+  const bad=mv.filter(m=>m.d<d.fyS||m.d>d.fyE);
+  if(bad.length)out.push(msg('사업연도 밖 날짜 '+bad.length+'건은 계산에서 뺐습니다.','warn'));
+  const inside=mv.filter(m=>m.d>=d.fyS&&m.d<=d.fyE).sort((a,b)=>a.d<b.d?-1:1);
+  /* 잔액 구간별 적수 — 지급일 산입, 회수일 불산입 */
+  let bal=num(d.open),cur=d.fyS,J=0;const seg=[];const endX=addDay(d.fyE,1);
+  const pts=[...new Set(inside.map(m=>m.d))];
+  for(const p of pts.concat([endX])){
+    if(p>cur){const n=days(cur,p);const b=Math.max(0,bal);seg.push([cur,addDay(p,-1),n,b,b*n]);J+=b*n;cur=p;}
+    if(p!==endX)for(const m of inside.filter(x=>x.d===p))bal+=num(m.out)-num(m.back);
+  }
+  const fyDays=days(d.fyS,endX);
+  let leap=false;for(let y=+d.fyS.slice(0,4);y<=+d.fyE.slice(0,4);y++){const f=y+'-02-29';if(isDate(f)&&new Date(f+'T00:00:00Z').getUTCMonth()===1&&f>=d.fyS&&f<=d.fyE)leap=true;}
+  const dy=leap?366:365;
+  const netJ=Math.max(0,J-num(d.gasuJ));
+  let rate=.046,rateLbl='당좌대출이자율 연 4.6%(법인세법 시행규칙 §43 ②)';
+  if(d.rateMode==='wavg'){if(!num(d.wavg))return out.join('')+msg('가중평균차입이자율(%)을 입력하십시오.','err');rate=num(d.wavg)/100;rateLbl='가중평균차입이자율 연 '+num(d.wavg)+'%(법인령 §89 ③ 본문)';}
+  const intr=fl(netJ*rate/dy);
+  const recv=num(d.recv);const diff=Math.max(0,intr-recv);
+  const sig=diff>0&&(diff>=intr*.05||diff>=3e8);
+  const inc=sig?diff:0;
+  const dispMap={rep:'대표이사 상여(근로소득)',exec:'임원·직원 상여(근로소득)',sh:'주주 배당(배당소득)',etc:'기타소득'};
+  /* 지급이자 손금불산입 */
+  let intNo=0;const bJ=num(d.borrowAvg)*fyDays;
+  if(num(d.intPaid)>0&&bJ>0)intNo=fl(num(d.intPaid)*Math.min(netJ,bJ)/bJ);
+  let corpUp=null,perUp=null;
+  if(d.corpBase!==''&&d.corpBase!=null){const cb=num(d.corpBase);corpUp=fl((corpTax(cb+inc+intNo)-corpTax(cb))*1.1);}
+  if(inc>0&&d.personBase!==''&&d.personBase!=null){const pb=num(d.personBase);perUp=fl((prog(pb+inc)-prog(pb))*1.1);}
+  out.unshift(big([{b:'인정이자',v:won(intr)},{b:'익금산입(부당행위)',v:won(inc),hl:1},{b:'지급이자 손금불산입',v:won(intNo)},{b:'추가 세 부담(지방세 포함)',v:(corpUp==null&&perUp==null)?'—':won((corpUp||0)+(perUp||0))}]));
+  out.push('<div class="sub3">잔액 구간별 적수</div>'+'<table class="t"><tr><th>기간</th><th>일수</th><th>잔액</th><th>적수</th></tr>'+seg.map(s=>'<tr><td class="l">'+s[0]+' ~ '+s[1]+'</td><td class="r">'+s[2]+'</td><td class="r">'+fmt(s[3])+'</td><td class="r">'+fmt(s[4])+'</td></tr>').join('')+'<tr class="sum"><td class="l">합계('+fyDays+'일)</td><td class="r"></td><td class="r"></td><td class="r">'+fmt(J)+'</td></tr></table>');
+  out.push(tbl([
+    ['가지급금 적수',fmt(J)],['(-) 동일인 가수금 적수',fmt(num(d.gasuJ))],['상계 후 적수',fmt(netJ)],
+    ['적용 이자율',pct(rate),rateLbl],['연 일수',dy+'일',leap?'사업연도에 2월 29일 포함':''],
+    ['인정이자 = 적수 × 이율 ÷ '+dy,won(intr),'원 미만 절사',],['(-) 실제 받은 이자',won(recv)],
+    ['차액',won(diff),sig?'시가(인정이자)의 5% 이상 또는 3억원 이상 → 부당행위계산 적용':(diff>0?'5% 미만이고 3억원 미만 → 적용하지 않음(법인령 §88 ③)':'')],
+    {0:'익금산입',1:won(inc),2:inc?'소득처분: '+dispMap[d.who]:'',sum:1,length:3}
+  ]));
+  if(intNo)out.push(tbl([['당기 지급이자',won(num(d.intPaid))],['차입금 적수(평균잔액 × '+fyDays+'일)',fmt(bJ)],['가지급금 적수(차입금 적수 한도)',fmt(Math.min(netJ,bJ))],{0:'지급이자 손금불산입',1:won(intNo),2:'기타사외유출(법인령 §106 ① 3호 마목)',sum:1,length:3}]));
+  if(corpUp!=null)out.push(msg('법인세 증가(지방소득세 포함) '+won(corpUp)+' — 과세표준 '+won(num(d.corpBase))+'에 익금산입 '+won(inc)+'·지급이자 불산입 '+won(intNo)+'을 더해 법인세법 §55 세율로 다시 계산'));
+  if(perUp!=null)out.push(msg('귀속자 소득세 증가(지방소득세 포함) '+won(perUp)+' — 종합소득 과세표준에 익금산입액을 그대로 더한 한계세액입니다. 근로소득공제 변동·배당 가산(Gross-up)은 반영하지 않았습니다.'));
+  out.push(msg('대여일(갱신일)부터 사업연도 말까지 5년을 넘는 대여금은 가중평균차입이자율이 아니라 당좌대출이자율을 적용합니다(시행규칙 §43 ④). 당좌대출이자율을 선택하면 그 사업연도와 이후 2개 사업연도 계속 적용합니다(법인령 §89 ③ 2호).','warn'));
+  out.push(msg('직원 경조사비·학자금 대여, 월정급여 범위의 일시 가불금, 중소기업 직원(지배주주 제외) 주택자금 대여 등은 인정이자 계산 대상에서 뺍니다(시행규칙 §44).'));
+  out.push(msg('적수 × 이자율 ÷ 365(윤년 366) 산식은 국세청 법인세 집행기준에 따른 실무 계산입니다. 집행기준 원문은 이 화면에서 대조하지 못했습니다. '+NEED,'info'));
+  out.push(law('법인세법 §52 · 법인세법 시행령 §88 ① 6호·③, §89 ③⑤, §53 ②③, §106 ① · 법인세법 시행규칙 §43 ②④, §44'));
+  return out.join('');
+}
+
+/* ═══════ 2. 업무추진비 ═══════ */
+function revRate(r){if(r<=1e10)return r*.003;if(r<=5e10)return 3e7+(r-1e10)*.002;return 1.1e8+(r-5e10)*.0003;}
+function cEnt(d){
+  const out=[];const mo=Math.min(12,Math.max(1,Math.ceil(num(d.months)||12)));
+  const g=num(d.revGen),rl=num(d.revRel);
+  const base=(d.sme?36e6:12e6)*mo/12;
+  const rG=revRate(g),rAll=revRate(g+rl),revLim=rG+(rAll-rG)*.1;
+  let lim=base+revLim;const half=d.kind==='corp'&&d.reRent;if(half)lim*=.5;
+  const spent=num(d.spent),np=Math.min(num(d.noProof),spent);
+  if(num(d.culture)+num(d.market)>spent)out.push(msg('문화비·전통시장 지출 합계가 총 지출액보다 큽니다.','err'));
+  const cul=Math.min(num(d.culture),lim*.2),mkt=Math.min(num(d.market),lim*.2);
+  const target=spent-np;const allowed=lim+cul+mkt;const over=Math.max(0,target-allowed);
+  const no=fl(np+over);
+  out.push(big([{b:'한도액(추가 한도 포함)',v:won(fl(allowed))},{b:'손금(필요경비) 인정',v:won(fl(Math.min(target,allowed)))},{b:'손금불산입 합계',v:won(no),hl:1}]));
+  out.push(tbl([
+    ['기본한도 '+(d.sme?'3,600만원':'1,200만원')+' × '+mo+'/12',won(fl(base))],
+    ['수입금액 한도(일반)',won(fl(rG)),'100억 이하 0.3% · 100억~500억 0.2% · 500억 초과 0.03%'],
+    ['수입금액 한도(특수관계인분 × 10%)',won(fl((rAll-rG)*.1)),'일반 수입금액에 이어 누진 구간 적용'],
+    [half?'소계 × 50%(부동산임대 주업 등)':'소계',won(fl(lim))],
+    ['문화비 추가 한도(한도의 20% 범위)',won(fl(cul)),'조특법 §136 ③, 2028.12.31.까지'],
+    ['전통시장 등 추가 한도(한도의 20% 범위)',won(fl(mkt)),'조특법 §136 ⑥, 2028.12.31.까지'],
+    {0:'한도액 합계',1:won(fl(allowed)),sum:1,length:2}
+  ]));
+  out.push(tbl([['총 지출액',won(spent)],['① 적격증빙 없는 건당 3만원(경조금 20만원) 초과분',won(np),'한도 계산 전 전액 손금불산입'],['한도 계산 대상',won(target)],['② 한도 초과액',won(fl(over))],{0:'손금불산입(①+②)',1:won(no),2:d.kind==='corp'?'기타사외유출(법인령 §106 ① 3호 나목)':'필요경비 불산입',sum:1,length:3}]));
+  if(d.kind==='ind'&&d.reRent)out.push(msg('부동산임대 주업 50% 축소는 법인에만 적용하는 조항으로 계산에서 뺐습니다.','warn'));
+  out.push(msg('한도 계산의 「수입금액」 범위와 특수관계인 거래 판정은 시행령 규정을 따릅니다. 시행령 §42 원문은 이 화면에서 대조하지 못했습니다. '+NEED));
+  out.push(law(d.kind==='corp'?'법인세법 §25 ②④⑤ · 법인령 §41 ① · 조특법 §136 ③⑥':'소득세법 §35 ②③ · 조특법 §136 ③⑥'));
+  return out.join('');
+}
+
+/* ═══════ 3. 기부금 ═══════ */
+function cDon(d){
+  const out=[];const pre=num(d.pre),spT=num(d.spT),spG=num(d.spG),cT=num(d.cT),cG=num(d.cG);
+  const baseI=pre+spT+spG;
+  const lossCap=d.sme?num(d.loss):Math.min(num(d.loss),baseI*.8);
+  const limT=Math.max(0,baseI-lossCap)*.5;
+  const inCT=Math.min(cT,limT),inT=Math.min(spT,limT-inCT);
+  const limG=Math.max(0,baseI-lossCap-inCT-inT)*(d.social?.3:.1);
+  const inCG=Math.min(cG,limG),inG=Math.min(spG,limG-inCG);
+  const overT=spT-inT,overG=spG-inG;
+  const income=baseI-inCT-inT-inCG-inG;
+  out.push(big([{b:'특례기부금 한도',v:won(fl(limT))},{b:'일반기부금 한도',v:won(fl(limG))},{b:'한도 초과(손금불산입)',v:won(fl(overT+overG)),hl:1},{b:'기부금 조정 후 소득금액',v:won(fl(income))}]));
+  out.push(tbl([
+    ['차가감소득금액',won(pre)],['(+) 당기 특례·일반기부금',won(spT+spG)],{0:'기준소득금액',1:won(baseI),sum:1,length:2},
+    ['(-) 이월결손금',won(fl(lossCap)),d.sme?'중소기업 등 100%':'기준소득금액의 80% 한도'],
+    ['특례기부금 한도 × 50%',won(fl(limT))],['· 이월분 먼저 손금산입',won(fl(inCT))],['· 당기분 손금산입',won(fl(inT))],['· 당기분 한도 초과',won(fl(overT)),'10년간 이월'],
+    ['일반기부금 한도 × '+(d.social?'30%':'10%'),won(fl(limG)),'(기준소득 − 이월결손금 − 특례 손금산입액) 기준'],['· 이월분 먼저 손금산입',won(fl(inCG))],['· 당기분 손금산입',won(fl(inG))],['· 당기분 한도 초과',won(fl(overG)),'10년간 이월'],
+    {0:'각 사업연도 소득금액',1:won(fl(income)),sum:1,length:2}
+  ]));
+  if(cT>inCT||cG>inCG)out.push(msg('이월분 중 이번에 손금산입하지 못한 금액(특례 '+won(fl(cT-inCT))+', 일반 '+won(fl(cG-inCG))+')은 발생 연도부터 10년 안에서 계속 이월됩니다.','warn'));
+  out.push(msg('한도 초과액은 기타사외유출로 처분합니다(법인령 §106 ① 3호 가목). 비지정기부금은 전액 손금불산입이며 이 화면의 입력값에는 이미 반영된 것으로 봅니다.'));
+  out.push(law('법인세법 §24 ②③④⑤⑥ · §13 ① 단서'));
+  return out.join('');
+}
+
+/* ═══════ 4. 금융소득 ═══════ */
+function cFin(d){
+  const out=[];const I=num(d.int),IP=num(d.intP),DN=num(d.divN),DG=num(d.divG),O=num(d.other),DED=num(d.ded);
+  const F=I+IP+DN+DG,TH=2e7;
+  const wh=I*.14+IP*.25+(DN+DG)*.14;
+  if(!F)return msg('금융소득을 입력하십시오.','info');
+  if(F<=TH){
+    out.push(big([{b:'금융소득 합계',v:won(F)},{b:'판정',v:'분리과세',hl:1},{b:'원천징수로 종결(소득세)',v:won(fl(wh))}]));
+    out.push(msg('이자·배당소득 합계가 2천만원 이하이므로 원천징수로 과세가 끝납니다(소득세법 §14 ③ 6호). 종합소득 신고에 합산하지 않습니다.','ok'));
+    out.push(law('소득세법 §14 ③6호, §129 ①'));return out.join('');
+  }
+  /* 합산 순서: 이자 → 가산 대상 아닌 배당 → 가산 대상 배당(소득령 §116의2) */
+  const beforeG=I+IP+DN;
+  const gBaseReal=Math.max(0,Math.min(DG,F-Math.max(TH,beforeG)));
+  const G=gBaseReal*.10;
+  const total=O+F+G;const taxBase=Math.max(0,total-DED);
+  const genTax=prog(Math.max(0,taxBase-TH))+TH*.14;
+  const otherBase=Math.max(0,O-DED);
+  const cmpTax=I*.14+IP*.25+(DN+DG)*.14+prog(otherBase);
+  const calc=Math.max(genTax,cmpTax);
+  const credit=Math.max(0,Math.min(G,genTax-cmpTax));
+  const fin=fl(calc-credit);const prepaid=fl(wh);
+  out.push(big([{b:'금융소득 합계',v:won(F)},{b:'판정',v:'종합과세',hl:1},{b:'산출세액',v:won(fl(calc))},{b:'배당세액공제',v:won(fl(credit))},{b:'결정세액(다른 공제 전)',v:won(fin)}]));
+  out.push(tbl([
+    ['이자소득 + 비영업대금',won(I+IP)],['배당(가산 대상 아님)',won(DN)],['배당(가산 대상)',won(DG)],
+    ['가산 대상 중 2천만원 초과분',won(gBaseReal),'이자 → 가산 제외 배당 → 가산 대상 배당 순으로 2천만원을 채움'],['배당가산액 10%',won(fl(G)),'소득세법 §17 ③'],
+    ['종합소득금액',won(fl(total))],['(-) 종합소득공제',won(DED)],{0:'과세표준',1:won(fl(taxBase)),sum:1,length:2}
+  ]));
+  out.push(tbl([
+    ['① 종합과세: (과세표준 − 2천만원) × 기본세율 + 2천만원 × 14%',won(fl(genTax))],
+    ['② 비교과세: 금융소득 × 원천세율 + (다른 소득 과세표준) × 기본세율',won(fl(cmpTax))],
+    {0:'산출세액 = 큰 금액',1:won(fl(calc)),2:genTax>=cmpTax?'① 적용':'② 적용',sum:1,length:3},
+    ['배당세액공제 = min(가산액, ① − ②)',won(fl(credit)),'소득세법 §56, §62'],
+    ['(-) 금융소득 원천징수세액',won(prepaid)],
+    {0:'금융소득 관련 추가 납부(지방소득세 별도)',1:won(Math.max(0,fin-prepaid)),2:'근로·사업소득 기납부세액과 다른 세액공제는 반영하지 않음',sum:1,length:3}
+  ]));
+  out.push(msg('지방소득세는 소득세의 10%를 별도로 냅니다. 건강보험 소득월액보험료·피부양자 자격 영향은 이 화면에서 계산하지 않습니다.'));
+  out.push(law('소득세법 §14 ③6호·④, §17 ③, §55 ①, §56 ①④, §62, §129 ① · 소득세법 시행령 §116의2'));
+  return out.join('');
+}
+
+/* ═══════ 5. 주식 ═══════ */
+const STT={kospi:[.0005,.0015,'유가증권시장 0.05% + 농어촌특별세 0.15%'],kosdaq:[.002,0,'코스닥 0.2%'],konex:[.001,0,'코넥스 0.1%'],kotc:[.002,0,'금융투자협회 장외(K-OTC) 0.2%'],unl:[.0035,0,'그 밖의 주권 0.35%']};
+function cStock(d){
+  const out=[];const P=num(d.price),C=num(d.cost),E=num(d.exp);
+  const r=STT[d.mkt];const stt=fl(P*r[0]),agri=fl(P*r[1]);
+  const listed=d.mkt==='kospi'||d.mkt==='kosdaq'||d.mkt==='konex';
+  const major=d.major==='1';
+  let taxable=true,why='';
+  if(listed&&!major&&d.onMkt){taxable=false;why='상장주식을 소액주주가 증권시장에서 양도 — 양도소득세 과세 대상이 아닙니다(소득세법 §94 ① 3호 가목).';}
+  const gain=P-C-E-stt-agri;
+  let rate=0,rateLbl='',tax=0;const base=Math.max(0,gain-(d.bd?25e5:0));
+  if(taxable){
+    if(major){if(d.short&&!d.sme){rate=.3;rateLbl='대주주 1년 미만(중소기업 외) 30%';tax=base*.3;}else{rateLbl='대주주 3억원 이하 20%, 초과 25%';tax=base<=3e8?base*.2:6e7+(base-3e8)*.25;rate=tax/(base||1);}}
+    else{rate=d.sme?.1:.2;rateLbl=d.sme?'중소기업 주식 소액주주 10%':'소액주주(중소기업 외) 20%';tax=base*rate;}
+  }
+  tax=fl(tax);const local=fl(tax*.1);
+  out.push(big([{b:'증권거래세(농특세 포함)',v:won(stt+agri)},{b:'양도소득세',v:taxable?won(tax):'과세 대상 아님',hl:1},{b:'지방소득세',v:won(local)},{b:'세금 합계',v:won(stt+agri+tax+local)}]));
+  out.push(tbl([['양도가액',won(P)],['증권거래세 '+r[2],won(stt+agri),'농특세는 농어촌특별세법 §5 ① 5호'],['(-) 취득가액',won(C)],['(-) 필요경비(수수료 + 증권거래세)',won(E+stt+agri)],{0:'양도차익',1:won(gain),sum:1,length:2},['(-) 기본공제',won(d.bd&&taxable?Math.min(25e5,Math.max(0,gain)):0),'연 250만원(소득세법 §103)'],['과세표준',won(taxable?base:0)],['세율',taxable?rateLbl:'—'],{0:'양도소득세',1:won(tax),sum:1,length:2}]));
+  if(!taxable)out.push(msg(why,'ok'));
+  if(listed&&!major&&!d.onMkt)out.push(msg('소액주주라도 상장주식을 증권시장 밖에서 양도하면 과세됩니다.','warn'));
+  if(gain<0)out.push(msg('양도차손은 같은 해 다른 주식 양도차익과 통산할 수 있습니다. 이월공제는 되지 않습니다. 통산 범위는 소득세법 §102 ②을 확인하십시오. '+NEED,'warn'));
+  out.push(msg('양도소득세는 반기 말일부터 2개월 안에 예정신고하고, 다음 해 5월에 확정신고합니다. 신고 기한은 이 화면에서 조문을 대조하지 않았습니다. '+NEED));
+  out.push(msg('증권거래세를 양도비용(필요경비)에 넣는 것은 실무 처리입니다. 해당 시행령 조문은 이 화면에서 대조하지 못했습니다. '+NEED));
+  out.push(law('소득세법 §103 ①, §104 ①11호 · 소득세법 시행령 §157 · 증권거래세법 §8 · 증권거래세법 시행령 §5 · 농어촌특별세법 §5 ①5호'));
+  return out.join('');
+}
+
+/* ═══════ 6. 원천징수 ═══════ */
+function whCalc(type,amt,aux){
+  if(type==='daily'){const per=Math.max(0,amt-15e4)*.06*(1-.55);let t=fl(per);if(t<1000)t=0;const n=Math.max(1,Math.floor(aux)||1);return {tax:t*n,local:fl(t*.1)*n,net:(amt-t-fl(t*.1))*n,gross:amt*n,note:'1일 (일당 − 15만원) × 6% × (1 − 55%), 1천원 미만 소액부징수 · '+n+'일'};}
+  if(type==='biz'){let t=fl(amt*.03);let l=fl(t*.1);if(t<1000){t=0;l=0;}return {tax:t,local:l,net:amt-t-l,gross:amt,note:'지급액 × 3%, 지방소득세 10%'};}
+  let exp=type==='o60'?amt*.6:type==='o80'?amt*.8:Math.min(aux,amt);
+  if(type!=='oReal'&&aux>exp)exp=Math.min(aux,amt);
+  const inc=amt-exp;if(inc<=5e4)return {tax:0,local:0,net:amt,gross:amt,inc,exp,note:'기타소득금액 건별 5만원 이하 — 과세최저한(소득세법 §84 3호)'};
+  let t=fl(inc*.2);let l=fl(t*.1);if(t<1000){t=0;l=0;}
+  return {tax:t,local:l,net:amt-t-l,gross:amt,inc,exp,note:'(지급액 − 필요경비) × 20%, 지방소득세 10%'};
+}
+function cWh(d){
+  const out=[];const amt=num(d.amt),aux=num(d.aux);
+  if(amt){const r=whCalc(d.type,amt,aux);
+    out.push(big([{b:'지급 총액',v:won(r.gross)},{b:'소득세',v:won(r.tax)},{b:'지방소득세',v:won(r.local)},{b:'실제 지급액',v:won(r.net),hl:1}]));
+    const rows=[];if(r.exp!=null){rows.push(['필요경비',won(fl(r.exp))]);rows.push(['기타소득금액',won(fl(r.inc))]);}
+    rows.push(['계산',r.note]);out.push(tbl(rows));
+    if(d.type!=='biz'&&d.type!=='daily')out.push(msg('기타소득금액이 연 300만원 이하이면 원천징수로 끝내는 분리과세와 종합과세 중 고를 수 있습니다(소득세법 §14 ③ 8호 가목).'));
+    if(d.type==='daily')out.push(msg('일용근로자는 같은 고용주에게 3개월 이상 계속 고용되지 않은 사람입니다(건설공사는 1년). 일용 판정 기준은 소득세법 시행령 §20을 확인하십시오. '+NEED));
+  }
+  const net=num(d.net);
+  if(net){let lo=net,hi=net*2+1e6;for(let i=0;i<80;i++){const m=(lo+hi)/2;const r=whCalc(d.type,m,d.type==='daily'?1:aux);if(r.net>=net)hi=m;else lo=m;}
+    const g=Math.ceil(hi);const r=whCalc(d.type,g,d.type==='daily'?1:aux);
+    out.push('<div class="sub3">세후 '+won(net)+'을 주려면</div>'+tbl([['세전 지급액',won(g)],['소득세 + 지방소득세',won(r.tax+r.local)],['세후 실수령',won(r.net)]]));}
+  if(!amt&&!net)out.push(msg('지급액 또는 받을 금액을 입력하십시오.'));
+  out.push(law('소득세법 §47 ②, §59 ③, §84, §86, §129 ① 3호·4호·6호 · 소득세법 시행령 §87 1호·1의2호'));
+  return out.join('');
+}
+
+/* ═══════ 7. 부가세 ═══════ */
+function cVat(d){
+  const out=[];const rate=d.ind==='0.301'?0.30:num(d.ind);const sales=num(d.sales),buy=num(d.buy),cardP=Math.min(100,num(d.card))/100;
+  if(sales){
+    const outV=sales/11,inV=buy/11;const cardAmt=sales*cardP;
+    const cardCr=d.cardOk?Math.min(cardAmt*.013,1e7):0;
+    const gen0=outV-inV;const genCr=Math.min(cardCr,Math.max(0,gen0));const gen=gen0<0?gen0:gen0-genCr;
+    const smp0=sales*rate*.10;const smpBuy=buy*.005;const smpCr=Math.min(smp0,smpBuy+cardCr);const smp=Math.max(0,smp0-smpCr);
+    const exempt=sales<48e6;const canS=sales<104e6&&!d.excl;
+    out.push(big([{b:'일반과세 납부세액',v:gen<0?'환급 '+won(fl(-gen)):won(fl(gen))},{b:'간이과세 납부세액',v:exempt?'납부의무 면제':won(fl(smp)),hl:1},{b:'차이(일반 − 간이)',v:won(fl((gen<0?gen:gen)-(exempt?0:smp)))}]));
+    out.push('<table class="t"><tr><th>구분</th><th>일반과세자</th><th>간이과세자</th></tr>'+
+      '<tr><td class="l">매출</td><td class="r">매출세액 '+won(fl(outV))+'</td><td class="r">'+won(sales)+' × '+pct(rate)+' × 10% = '+won(fl(smp0))+'</td></tr>'+
+      '<tr><td class="l">매입</td><td class="r">(-) 매입세액 '+won(fl(inV))+'</td><td class="r">(-) 매입 공급대가 × 0.5% = '+won(fl(smpBuy))+'</td></tr>'+
+      '<tr><td class="l">신용카드 발행세액공제</td><td class="r">(-) '+won(fl(genCr))+'</td><td class="r">(-) '+won(fl(Math.max(0,smpCr-smpBuy)))+'</td></tr>'+
+      '<tr class="sum"><td class="l">납부(환급)세액</td><td class="r">'+(gen<0?'환급 ':'')+won(fl(Math.abs(gen)))+'</td><td class="r">'+(exempt?'면제(공급대가 4,800만원 미만)':won(fl(smp)))+'</td></tr></table>');
+    if(!canS)out.push(msg(d.excl?'간이과세 배제 업종·지역에 해당해 간이과세자가 될 수 없습니다(부가령 §109 ②).':'직전 연도 공급대가가 1억 400만원 이상이면 간이과세자가 될 수 없습니다(부가령 §109 ①).','err'));
+    else out.push(msg('간이과세 적용 가능 범위입니다(직전 연도 공급대가 1억 400만원 미만).','ok'));
+    if(canS&&sales>=48e6)out.push(msg('공급대가 4,800만원 이상 간이과세자는 세금계산서를 발급해야 합니다(부가법 §36 ① 2호 반대해석).','warn'));
+    if(gen<0)out.push(msg('일반과세자는 매입세액이 더 많으면 환급받지만, 간이과세자는 공제액이 납부세액을 넘어도 환급되지 않습니다(부가법 §63 ⑥). 시설 투자가 큰 첫해에는 일반과세가 유리할 수 있습니다.','warn'));
+    out.push(msg('신용카드 발행세액공제는 결제금액의 1.3%, 연 1천만원 한도이며 2026년 12월 31일까지 적용됩니다(이후 1%, 500만원). 직전 연도 공급가액이 사업장 기준 10억원을 넘는 개인사업자와 법인은 제외됩니다.'));
+  }else out.push(msg('연 매출 공급대가를 입력하면 일반·간이 납부세액을 비교합니다.'));
+  const sp=num(d.split);
+  if(sp){let supply,vat;if(d.splitMode==='incl'){supply=Math.round(sp*100/110);vat=sp-supply;}else{supply=sp;vat=fl(sp*.1);}
+    out.push('<div class="sub3">공급가액과 부가세</div>'+tbl([['공급가액',won(supply)],['부가가치세',won(vat)],{0:'합계',1:won(supply+vat),sum:1,length:2}]));
+    if(d.splitMode==='incl')out.push(msg('부가세 포함 금액은 110분의 100을 곱해 공급가액을 구합니다(부가법 §29 ⑦). 원 단위 끝수는 공급가액을 반올림하고 나머지를 세액으로 두었습니다. 세금계산서 단수 처리는 발행 프로그램 기준을 따르십시오.'));}
+  out.push(law('부가가치세법 §29 ⑦, §36 ①, §46 ①, §61 ①, §63 ②③⑥, §69 ① · 부가가치세법 시행령 §88 ③, §109 ①②, §111 ②'));
+  return out.join('');
+}
+
+/* ═══════ 8. 성실신고·복식부기 ═══════ */
+const GRP={A:{t:'가. 농업·임업·어업, 광업, 도소매(상품중개 제외), 부동산매매, 그 밖의 업종',s:15e8,b:3e8},B:{t:'나. 제조, 숙박·음식, 전기·가스, 수도·폐기물, 건설, 운수·창고, 정보통신, 금융·보험, 상품중개',s:75e7,b:15e7},C:{t:'다. 부동산임대·부동산업, 전문·과학·기술, 사업시설관리·지원, 교육, 보건·복지, 예술·스포츠, 협회, 수리·개인서비스',s:5e8,b:75e6}};
+function cSung(d){
+  const out=[];const rows=(d.biz||[]).filter(r=>num(r.rev)>0&&GRP[r.g]);
+  if(!rows.length)return msg('업종 구분과 수입금액을 입력하십시오.');
+  const main=rows.reduce((a,b)=>num(b.rev)>num(a.rev)?b:a);
+  let conv=0;const trs=[];
+  for(const r of rows){const v=r===main?num(r.rev):num(r.rev)*GRP[main.g].s/GRP[r.g].s;conv+=v;trs.push([GRP[r.g].t.slice(0,2)+' '+(r===main?'(주업종)':''),won(num(r.rev)),won(fl(v))]);}
+  let convB=0;for(const r of rows)convB+=r===main?num(r.rev):num(r.rev)*GRP[main.g].b/GRP[r.g].b;
+  const sTh=GRP[main.g].s,bTh=GRP[main.g].b;const isS=conv>=sTh,isB=convB>=bTh||d.pro;
+  const cr=isS?Math.min(fl(num(d.fee)*.6),12e5):0;
+  out.push(big([{b:'성실신고 환산 수입금액',v:won(fl(conv))},{b:'성실신고 확인 대상',v:isS?'대상':'대상 아님',hl:1},{b:'복식부기 의무',v:isB?'복식부기의무자':'간편장부대상자'},{b:'확인비용 세액공제',v:won(cr)}]));
+  out.push('<table class="t"><tr><th>업종</th><th>수입금액</th><th>주업종 기준 환산</th></tr>'+trs.map(t=>'<tr><td class="l">'+t[0]+'</td><td class="r">'+t[1]+'</td><td class="r">'+t[2]+'</td></tr>').join('')+'<tr class="sum"><td class="l">합계</td><td class="r"></td><td class="r">'+won(fl(conv))+'</td></tr></table>');
+  out.push(tbl([['주업종 구분',GRP[main.g].t],['성실신고 기준금액',won(sTh),'소득령 §133 ①'],['복식부기 기준금액',won(bTh),'소득령 §208 ⑤ 2호'],['복식부기 환산 수입금액',won(fl(convB))]]));
+  out.push(msg('겸영하면 「주업종 수입금액 + 다른 업종 수입금액 × (주업종 기준금액 ÷ 그 업종 기준금액)」으로 환산합니다(소득령 §133 ②, §208 ⑦).'));
+  if(isS)out.push(msg('성실신고확인대상사업자는 종합소득세를 다음 해 5월 1일부터 6월 30일까지 신고합니다(소득세법 §70의2 ②). 확인 비용의 60%(한도 120만원)를 세액공제하되, 사업소득금액을 10% 이상 과소신고해 경정되면 추징하고 3년간 공제하지 않습니다(조특법 §126의6).','warn'));
+  if(d.pro)out.push(msg('전문직 사업서비스업은 수입금액과 관계없이 복식부기의무자이며, 성실신고 판정은 다. 업종 기준(5억원)을 따릅니다(소득령 §133 ① 단서, 별표 3의3).','warn'));
+  out.push(msg('복식부기 의무는 직전 과세기간 수입금액으로, 성실신고는 해당 과세기간 수입금액으로 판정합니다. 신규 사업자는 첫해 간편장부대상자입니다(소득령 §208 ⑤ 1호).'));
+  out.push(law('소득세법 §70의2 · 소득세법 시행령 §133 ①②, §208 ⑤⑦ · 조특법 §126의6'));
+  return out.join('');
+}
+
+/* ═══════ 9. 퇴직금 ═══════ */
+function cSev(d){
+  const out=[];if(!isDate(d.in)||!isDate(d.out)||d.out<=d.in)return msg('입사일과 퇴직일(마지막 근무일의 다음 날)을 입력하십시오.','err');
+  const tot=days(d.in,d.out);const from3=addMonth(d.out,-3);const n3=days(from3,d.out);
+  const w3=num(d.w3),bn=num(d.bonus)*3/12,lv=num(d.leave)*3/12;
+  const avg=(w3+bn+lv)/n3;const ord=num(d.ordDay);const useOrd=ord>avg;const day=useOrd?ord:avg;
+  const pay=fl(day*30*tot/365);
+  const ok=tot>=365&&num(d.wh)>=15;
+  out.push(big([{b:'재직일수',v:fmt(tot)+'일'},{b:'1일 평균임금',v:won(fl(day))},{b:'퇴직금',v:ok?won(pay):'지급 의무 없음',hl:1}]));
+  out.push(tbl([['평균임금 산정기간',from3+' ~ '+addDay(d.out,-1)+' ('+n3+'일)'],['3개월 임금 총액',won(w3)],['상여금 × 3/12',won(fl(bn))],['연차수당 × 3/12',won(fl(lv))],['1일 평균임금',won(fl(avg)),'(임금 총액) ÷ '+n3+'일'],useOrd?['1일 통상임금(평균임금보다 큼)',won(ord),'근기법 §2 ② — 통상임금 적용']:['1일 통상임금',ord?won(ord):'—'],{0:'퇴직금 = 1일 평균임금 × 30 × 재직일수 ÷ 365',1:won(pay),2:'원 미만 절사',sum:1,length:3}]));
+  if(!ok)out.push(msg('계속근로기간 1년 미만이거나 4주 평균 1주 소정근로시간이 15시간 미만이면 퇴직급여제도를 적용하지 않습니다(근퇴법 §4 ①).','err'));
+  out.push(msg('상여금·연차수당을 3개월분(3/12)만 넣는 방식은 고용노동부 실무 산정 방식입니다. 조문에 직접 규정되어 있지 않아 행정해석을 확인하십시오. '+NEED,'warn'));
+  out.push(msg('퇴직소득세는 「퇴직소득세 계산기」에서 이어서 계산하십시오. 퇴직금은 퇴직일부터 14일 안에 지급해야 합니다(근퇴법 §9 — 이 화면에서는 조문 원문을 대조하지 않음). '+NEED));
+  out.push(law('근로기준법 §2 ①6호·② · 근로자퇴직급여 보장법 §4 ①, §8 ①'));
+  return out.join('');
+}
+
+/* ═══════ 10. 주휴·최저임금·가산수당 ═══════ */
+const MIN_WAGE=10320,MIN_WAGE_YEAR=2026;
+function cHour(d){
+  const out=[];const w=num(d.wage),h=Math.min(40,num(d.wk));
+  const juhuH=num(d.wk)>=15&&d.full?Math.min(8,h/40*8):0;
+  const weekPay=w*(h+juhuH);const monH=(h+juhuH)*365/7/12;const mon=fl(w*monH);
+  out.push(big([{b:'주휴시간(1주)',v:(Math.round(juhuH*100)/100)+'시간'},{b:'주휴수당(1주)',v:won(fl(w*juhuH))},{b:'월 환산 시간',v:(Math.round(monH*10)/10)+'시간'},{b:'월 환산 급여',v:won(mon),hl:1}]));
+  out.push(tbl([['1주 소정근로시간',num(d.wk)+'시간'+(num(d.wk)>40?' (법정 40시간 초과분은 연장근로)':'')],['주휴시간 = 소정근로시간 ÷ 40 × 8 (최대 8)',(Math.round(juhuH*100)/100)+'시간'],['1주 급여 = 시급 × (소정 + 주휴)',won(fl(weekPay))],['월 환산 = 1주 시간 × 365 ÷ 7 ÷ 12',(Math.round(monH*100)/100)+'시간'],{0:'월 환산 급여',1:won(mon),sum:1,length:2}]));
+  if(num(d.wk)<15)out.push(msg('4주 평균 1주 소정근로시간이 15시간 미만이면 주휴일·연차를 적용하지 않습니다(근기법 §18 ③).','warn'));
+  if(num(d.wk)>=15&&!d.full)out.push(msg('유급주휴일은 1주 소정근로일을 개근한 사람에게 줍니다(근기령 §30 ①). 결근 주에는 주휴수당이 없습니다.','warn'));
+  out.push(w<MIN_WAGE?msg(MIN_WAGE_YEAR+'년 최저임금 시간급 '+won(MIN_WAGE)+'보다 낮습니다.','err'):msg(MIN_WAGE_YEAR+'년 최저임금 시간급 '+won(MIN_WAGE)+' 이상입니다. 주 40시간 기준 월 환산액은 '+won(MIN_WAGE*209)+'(209시간)입니다.','ok'));
+  const ot=num(d.ot),ni=num(d.night),ho=num(d.hol),h8=num(d.hol8);
+  if(ot||ni||ho||h8){
+    const f=d.small?0:1;const rows=[
+      ['연장 '+ot+'시간',won(fl(w*ot*(1+.5*f))),d.small?'가산 없음':'통상임금 × 150%'],
+      ['야간 '+ni+'시간(가산분)',won(fl(w*ni*.5*f)),d.small?'가산 없음':'통상임금 × 50% 가산(근로 대가는 별도)'],
+      ['휴일 8시간 이내 '+ho+'시간',won(fl(w*ho*(1+.5*f))),d.small?'가산 없음':'통상임금 × 150%'],
+      ['휴일 8시간 초과 '+h8+'시간',won(fl(w*h8*(1+1*f))),d.small?'가산 없음':'통상임금 × 200%']];
+    const sum=fl(w*ot*(1+.5*f))+fl(w*ni*.5*f)+fl(w*ho*(1+.5*f))+fl(w*h8*(1+f));
+    rows.push({0:'가산수당 포함 합계',1:won(sum),sum:1,length:2});
+    out.push('<div class="sub3">연장·야간·휴일근로 수당</div>'+tbl(rows));
+    out.push(msg('여기서는 입력한 시급을 통상시급으로 보았습니다. 고정 수당이 있으면 통상임금을 다시 계산하십시오.'));
+    if(d.small)out.push(msg('상시 4명 이하 사업장에는 근로기준법 시행령 별표 1에 따라 가산수당 규정(§56)이 적용되지 않는 것으로 계산했습니다. 별표 원문은 이 화면에서 대조하지 못했습니다. '+NEED,'warn'));
+  }
+  out.push(law('근로기준법 §18 ③, §55, §56 · 근로기준법 시행령 §30 ① · '+MIN_WAGE_YEAR+'년 최저임금 고시(고용노동부)'));
+  return out.join('');
+}
+
+/* ═══════ 11. 임금명세서 ═══════ */
+const INS={np:.0475,hi:.03595,ltc:.1314,ei:.009,npMax:6590000,npMin:410000};
+function payTotals(d){const items=(d.items||[]).filter(i=>i.nm||num(i.amt));const gross=items.reduce((s,i)=>s+num(i.amt),0);const taxFree=items.filter(i=>/비과세/.test(i.nm||'')).reduce((s,i)=>s+num(i.amt),0);return {items,gross,taxFree};}
+function autoIns(){const d=S.d.pay;const {gross,taxFree}=payTotals(d);const base=gross-taxFree;
+  const npBase=Math.min(INS.npMax,Math.max(INS.npMin,Math.floor(base/1000)*1000));
+  const hi=Math.floor(base*INS.hi/10)*10;
+  Object.assign(d,{np:Math.floor(npBase*INS.np/10)*10,hi,ltc:Math.floor(hi*INS.ltc/10)*10,ei:Math.floor(base*INS.ei/10)*10});save();bindAll();render();}
+function cPay(d){
+  const {items,gross}=payTotals(d);
+  const ded=[['국민연금',num(d.np)],['건강보험',num(d.hi)],['장기요양보험',num(d.ltc)],['고용보험',num(d.ei)],['소득세',num(d.it)],['지방소득세',num(d.lt)]];
+  for(const p of String(d.etc||'').split(',')){const m=p.split(':');if(m.length===2&&num(m[1]))ded.push([m[0].trim(),num(m[1])]);}
+  const dsum=ded.reduce((s,x)=>s+x[1],0);
+  const miss=[];if(!d.name)miss.push('근로자 성명');if(!d.idn)miss.push('생년월일·사원번호');if(!d.payDay)miss.push('임금지급일');if(!items.length)miss.push('구성항목별 금액');
+  if(items.some(i=>/연장|야간|휴일/.test(i.nm||'')&&!/시간/.test(i.how||'')))miss.push('연장·야간·휴일근로 시간 수');
+  const out=[];
+  out.push(big([{b:'지급 총액',v:won(gross)},{b:'공제 총액',v:won(dsum)},{b:'실지급액',v:won(gross-dsum),hl:1}]));
+  out.push(miss.length?msg('임금명세서 필수 기재사항이 빠졌습니다: '+miss.join(', ')+' (근기령 §27의2)','err'):msg('근로기준법 시행령 §27의2의 기재사항(근로자 특정 정보, 지급일, 임금 총액, 구성항목별 금액, 계산방법, 공제내역)을 모두 갖췄습니다.','ok'));
+  out.push('<div class="slip"><h3>임 금 명 세 서</h3>'+
+    tbl([['사업장',esc(d.co)],['성명',esc(d.name)],['생년월일·사원번호',esc(d.idn)],['귀속월',esc(d.ym)],['지급일',esc(d.payDay)]])+
+    '<table class="t"><tr><th>지급 항목</th><th>금액</th><th>계산방법</th></tr>'+items.map(i=>'<tr><td class="l">'+esc(i.nm)+'</td><td class="r">'+won(num(i.amt))+'</td><td class="l">'+esc(i.how)+'</td></tr>').join('')+'<tr class="sum"><td class="l">지급 총액</td><td class="r">'+won(gross)+'</td><td></td></tr></table>'+
+    '<table class="t"><tr><th>공제 항목</th><th>금액</th></tr>'+ded.map(x=>'<tr><td class="l">'+esc(x[0])+'</td><td class="r">'+won(x[1])+'</td></tr>').join('')+'<tr class="sum"><td class="l">공제 총액</td><td class="r">'+won(dsum)+'</td></tr><tr class="sum"><td class="l">실지급액</td><td class="r">'+won(gross-dsum)+'</td></tr></table></div>');
+  out.push(msg('4대보험 자동 계산은 2026년 근로자 부담 요율입니다(국민연금 4.75%, 건강보험 3.595%, 장기요양 건강보험료의 13.14%, 고용보험 0.9%). 국민연금 기준소득월액 상·하한은 2026.7.~2027.6. 적용분입니다(상한 659만원, 하한 41만원). 실제 고지액과 다를 수 있습니다.'));
+  out.push(msg('임금명세서는 임금을 줄 때 서면(전자문서 포함)으로 교부해야 합니다(근기법 §48 ②).'));
+  out.push(law('근로기준법 §48 ② · 근로기준법 시행령 §27의2'));
+  return out.join('');
+}
+
+/* ═══════ 12. 근로·자녀장려금 ═══════ */
+const ADJ=[['0.20','도매업 20%'],['0.25','농업·임업·어업, 소매업 25%'],['0.30','광업, 자동차 판매, 그 밖의 업종 30%'],['0.40','제조업, 음식점업(주점 제외), 부동산매매업 40%'],['0.45','전기·가스·수도, 건설업 45%'],['0.55','주점업, 숙박업, 하수·폐기물, 운수업, 출판·영상·방송통신 55%'],['0.60','상품중개, 컴퓨터·정보서비스, 보험·연금, 금융보험 관련 서비스 60%'],['0.70','금융업, 예술·스포츠·여가, 수리·개인서비스 70%'],['0.75','부동산 관련 서비스, 전문·과학·기술, 사업시설관리·지원, 교육, 보건·복지 75%'],['0.90','부동산임대업, 임대업, 인적용역, 가구 내 고용활동 90%']];
+function eitcAmt(type,x){
+  if(type==='single'){if(x<4e6)return x*165/400;if(x<9e6)return 165e4;if(x<22e6)return 165e4-(x-9e6)*165/1300;return 0;}
+  if(type==='one'){if(x<7e6)return x*285/700;if(x<14e6)return 285e4;if(x<32e6)return 285e4-(x-14e6)*285/1800;return 0;}
+  if(x<8e6)return x*330/800;if(x<17e6)return 330e4;if(x<44e6)return 330e4-(x-17e6)*330/2700;return 0;
+}
+function ctcAmt(type,x,k){if(!k)return 0;if(type==='one'){if(x<21e6)return k*1e6;if(x<7e7)return k*(1e6-(x-21e6)*50/4900);return 0;}if(x<25e6)return k*1e6;if(x<7e7)return k*(1e6-(x-25e6)*50/4500);return 0;}
+function cEitc(d){
+  const out=[];const mE=num(d.mW)+num(d.mB)*num(d.mR),sE=num(d.sp)==1?num(d.sW)+num(d.sB)*num(d.sR):0;
+  const earn=mE+sE;const totalInc=earn+num(d.oth);const kids=Math.max(0,Math.floor(num(d.kids)));const asset=num(d.asset);
+  let type;if(num(d.sp)==1)type=sE>=3e6?'two':'one';else type=(kids>0||d.par)?'one':'single';
+  const typeLbl={single:'단독가구',one:'홑벌이 가구',two:'맞벌이 가구'}[type];
+  const thr={single:22e6,one:32e6,two:44e6}[type];
+  const half=asset>=17e7;
+  let eOk=totalInc<thr&&asset<24e7&&earn>0;let e=eOk?eitcAmt(type,earn):0;if(half)e*=.5;e=fl(e);
+  const cType=type==='two'?'two':'one';let cOk=kids>0&&totalInc<7e7&&asset<24e7&&earn>0;let c=cOk?ctcAmt(cType,earn,kids):0;if(half)c*=.5;
+  if(cOk&&c>0&&c<3e4)c=3e4;c=fl(c);
+  out.push(big([{b:'가구 유형',v:typeLbl},{b:'근로장려금',v:won(e),hl:1},{b:'자녀장려금',v:d.cc&&c?won(c)+' (자녀세액공제와 택1)':won(c),hl:1},{b:'합계',v:won(e+c)}]));
+  out.push(tbl([['본인 총급여액 등',won(fl(mE)),'근로소득 + 사업 수입금액 × 조정률'],['배우자 총급여액 등',won(fl(sE)),num(d.sp)==1?(sE>=3e6?'300만원 이상 → 맞벌이':'300만원 미만 → 홑벌이'):'—'],{0:'가구 총급여액 등',1:won(fl(earn)),sum:1,length:2},['연간 총소득(요건 판정)',won(fl(totalInc)),'이자·배당·연금·기타소득 포함'],['근로장려금 총소득 기준',won(thr)+' 미만',totalInc<thr?'충족':'초과'],['자녀장려금 총소득 기준','7,000만원 미만',kids?(totalInc<7e7?'충족':'초과'):'부양자녀 없음'],['재산 합계',won(asset),asset>=24e7?'2억4천만원 이상 — 신청 불가':(half?'1억7천만원 이상 — 50% 감액':'감액 없음')]]));
+  if(!earn)out.push(msg('근로·사업·종교인소득이 있어야 신청할 수 있습니다.','err'));
+  if(d.cc&&c)out.push(msg('자녀장려금은 자녀세액공제와 중복 적용할 수 없습니다(조특법 §100의30 ②). 자녀장려금을 받으면 자녀세액공제분을 추징당할 수 있으니 유리한 쪽을 고르십시오.','warn'));
+  out.push(msg('실제 지급액은 시행령의 산정표(구간 금액)로 정해져 이 화면의 산식 결과와 몇천 원 차이가 날 수 있습니다. 체납액이 있으면 충당됩니다. 신청은 5월 정기(또는 반기) 신청입니다.'));
+  out.push(msg('사업소득은 수입금액에 업종별 조정률을 곱해 반영했습니다(조특령 §100의3 ① 4호). 총급여액 등을 계산할 때 같은 조정률을 쓰는 근거 조문(조특령 §100의6 등)은 이 화면에서 대조하지 못했습니다. '+NEED));
+  out.push(law('조특법 §100의3 ①②⑤, §100의5 ①③④, §100의28 ①, §100의29 ①, §100의30 ②, §100의31 · 조특령 §100의3 ①'));
+  return out.join('');
+}
+
+/* ═══════ 화면 ═══════ */
+const CALC={gaji:cGaji,ent:cEnt,don:cDon,fin:cFin,stock:cStock,wh:cWh,vat:cVat,sung:cSung,sev:cSev,hour:cHour,pay:cPay,eitc:cEitc};
+function renderTabs(){$('tabs').innerHTML=TABS.map(t=>t.g?'<span class="grp">'+t.g+'</span>':'<button data-tab="'+t.id+'" class="'+(S.tab===t.id?'on':'')+'">'+t.t+'</button>').join('');
+  document.querySelectorAll('section.calc').forEach(s=>s.classList.toggle('on',s.id==='c-'+S.tab));
+  const on=$('tabs').querySelector('.on');if(on){const t=$('tabs');t.scrollLeft=on.offsetLeft-t.clientWidth/2+on.clientWidth/2;}}
+function rowsHtml(box){const key=box.dataset.rows;const cols=box.dataset.cols.split('|').map(c=>c.split(':'));const arr=S.d[S.tab][key]||[];
+  box.innerHTML=arr.map((r,i)=>'<div class="rw">'+cols.map(([k,ty,lb])=>{
+    if(ty==='grp')return '<select data-r="'+key+'" data-i="'+i+'" data-c="'+k+'" aria-label="'+lb+'">'+Object.keys(GRP).map(g=>'<option value="'+g+'"'+(r[k]===g?' selected':'')+'>'+GRP[g].t.slice(0,40)+'</option>').join('')+'</select>';
+    const v=ty==='m'&&r[k]!==''&&r[k]!=null?fmt(num(r[k])):(r[k]||'');
+    return '<input '+(ty==='date'?'type="date"':'')+' class="'+(ty==='m'?'m':'')+'" data-r="'+key+'" data-i="'+i+'" data-c="'+k+'" placeholder="'+lb+'" aria-label="'+lb+'" value="'+esc(v)+'"'+(ty==='m'?' inputmode="numeric"':'')+'>';}).join('')+
+    '<button class="btn sm" data-del="'+key+'" data-i="'+i+'" aria-label="줄 삭제">삭제</button></div>').join('');}
+function bindAll(){
+  const sec=$('c-'+S.tab);const d=S.d[S.tab];
+  sec.querySelectorAll('[data-k]').forEach(el=>{const k=el.dataset.k;const v=d[k];
+    if(el.type==='checkbox')el.checked=!!v;else if(el.classList.contains('m'))el.value=v===''||v==null?'':fmt(num(v));else el.value=v==null?'':v;});
+  sec.querySelectorAll('[data-rows]').forEach(rowsHtml);
+}
+function render(){const d=S.d[S.tab];$('r-'+S.tab).innerHTML=CALC[S.tab](d);}
+function setTab(t){if(!CALC[t])return;S.tab=t;save();renderTabs();bindAll();render();try{history.replaceState(null,'','#'+t);}catch(e){}}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.tab){setTab(b.dataset.tab);return;}
+  const d=S.d[S.tab];
+  if(b.dataset.add){const key=b.dataset.add;const cols=document.querySelector('#c-'+S.tab+' [data-rows="'+key+'"]').dataset.cols.split('|').map(c=>c.split(':')[0]);const o={};cols.forEach(c=>o[c]=c==='g'?'A':'');(d[key]=d[key]||[]).push(o);save();bindAll();render();return;}
+  if(b.dataset.del){d[b.dataset.del].splice(+b.dataset.i,1);save();bindAll();render();return;}
+  const a=b.dataset.act;
+  if(a==='sample'){S.d[S.tab]=Object.assign(clone(DEF[S.tab]),clone(SAMPLE[S.tab]));save();bindAll();render();}
+  else if(a==='reset'){if(!confirm('이 탭의 입력을 모두 지웁니다.'))return;S.d[S.tab]=clone(DEF[S.tab]);save();bindAll();render();}
+  else if(a==='print')window.print();
+  else if(a==='autoIns')autoIns();
+});
+document.addEventListener('input',e=>{const el=e.target;const d=S.d[S.tab];
+  if(el.dataset.k){d[el.dataset.k]=el.type==='checkbox'?el.checked:(el.classList.contains('m')?num(el.value)||'':el.value);if(el.classList.contains('m')&&el.value==='')d[el.dataset.k]='';}
+  else if(el.dataset.r){const row=d[el.dataset.r][+el.dataset.i];row[el.dataset.c]=el.classList.contains('m')?(el.value===''?'':num(el.value)):el.value;}
+  else return;save();render();});
+document.addEventListener('change',e=>{if(e.target.matches('select,input[type=checkbox],input[type=date],input[type=month]'))e.target.dispatchEvent(new Event('input',{bubbles:true}));});
+document.addEventListener('focusout',e=>{const el=e.target;if(el.classList&&el.classList.contains('m')&&el.value!=='')el.value=fmt(num(el.value));});
+/* 조정률 선택 목록 */
+document.querySelectorAll('[data-k="mR"],[data-k="sR"]').forEach(s=>s.innerHTML=ADJ.map(a=>'<option value="'+a[0]+'">'+a[1]+'</option>').join(''));
+const h=(location.hash||'').slice(1);if(CALC[h])S.tab=h;
+renderTabs();bindAll();render();
+/* 홈 바(#hbHome, sticky)가 있으면 탭 줄을 그 아래에 붙인다. 포털 iframe 안에서는 홈 바가 없다 */
+function tabsTop(){const hb=document.getElementById('hbHome');$('tabs').style.top=(hb?hb.getBoundingClientRect().height:0)+'px';}
+window.addEventListener('load',tabsTop);window.addEventListener('resize',tabsTop);setTimeout(tabsTop,0);
+window.addEventListener('hashchange',()=>{const t=(location.hash||'').slice(1);if(CALC[t]&&t!==S.tab)setTab(t);});
+</script>
+<!-- HB-CONSULT v1 -->
+<script>
+/* 한백택스 상담·자료전송 위젯 — 생성기: 02-도구 & 스크립트/Python 스크립트/상담위젯_주입.py
+   이 블록은 자동 생성이다. 직접 고치지 말고 생성기를 고쳐 다시 실행한다. */
+(function(){
+  if (window.self !== window.top) return;          /* 포털에 iframe 으로 담긴 경우는 부모 버튼을 쓴다 */
+  if (window.__hbConsult) return;
+  window.__hbConsult = 1;
+
+  var HB = { name:'세무법인 한백택스', tel:'02-2277-3101', telHref:'+82222773101',
+             fax:'02-2277-3161', email:'hb090@hanbaektax.kr',
+             addr:'서울특별시 중구 동호로 315, 신안빌딩 2층' };
+
+  /* 자료 접수 메일중계 (Google Apps Script 웹 앱)
+     url 이 비어 있으면 휴대폰 공유창 → 메일 앱 순서로 내려간다.
+     설정 절차: 04-문서 & 가이드/앱 사용 가이드 - 자료전송 메일중계 설정 */
+  var RELAY = { url:'', token:'hbtax-relay', maxTotal:20*1024*1024 };
+  function relayReady(){ return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(RELAY.url||''); }
+
+  function ls(k, v){
+    try { if (v === undefined) return localStorage.getItem(k) || ''; localStorage.setItem(k, v); }
+    catch(e) { return ''; }
+    return '';
+  }
+  function fmtSize(n){
+    return n < 1024 ? n+'B' : n < 1048576 ? (n/1024).toFixed(0)+'KB' : (n/1048576).toFixed(1)+'MB';
+  }
+  function toB64(f){
+    return new Promise(function(res, rej){
+      var r = new FileReader();
+      r.onload = function(){ res(String(r.result).split(',')[1] || ''); };
+      r.onerror = function(){ rej(r.error || new Error('read')); };
+      r.readAsDataURL(f);
+    });
+  }
+  function relaySend(payload){
+    var body = JSON.stringify(Object.assign({ token:RELAY.token, page:location.href.split('?')[0], ua:navigator.userAgent }, payload));
+    return fetch(RELAY.url, { method:'POST', body })          /* Content-Type 지정 안 함 → preflight 없이 전송 */
+      .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){
+        if (!r.ok || !j.ok) throw new Error(j.error || ('HTTP ' + r.status));
+        return j;
+      }); });
+  }
+
+  var files = [];
+  var host = document.createElement('div');
+  host.className = 'hb-consult-host';
+  var st = document.createElement('style');
+  st.textContent = '.hb-consult-host{position:fixed;inset:auto 0 0 auto;z-index:2147483000}@media print{.hb-consult-host{display:none!important}}';
+  document.head.appendChild(st);
+  document.body.appendChild(host);
+  var sr = host.attachShadow({ mode:'open' });
+
+  var ICON = {
+    head:'<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2a8 8 0 0 0-8 8v4a3 3 0 0 0 3 3h1v-8H6v-1a6 6 0 1 1 12 0v1h-2v8h1a3 3 0 0 0 3-3v-4a8 8 0 0 0-8-8z"/></svg>',
+    tel:'<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11 11 0 0 0 3.5.56 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11 11 0 0 0 .56 3.5 1 1 0 0 1-.25 1z"/></svg>',
+    mail:'<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5z"/></svg>',
+    up:'<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M19.35 10.04A7.49 7.49 0 0 0 12 4a7.48 7.48 0 0 0-6.63 4.04A6 6 0 0 0 6 20h13a5 5 0 0 0 .35-9.96zM14 13v4h-4v-4H7l5-5 5 5z"/></svg>',
+    send:'<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>',
+    x:'<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg>'
+  };
+
+  sr.innerHTML = [
+'<style>',
+'  :host,*{box-sizing:border-box}',
+'  *{margin:0;padding:0;font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif}',
+'  .fab{position:fixed;right:20px;bottom:20px;display:flex;align-items:center;gap:8px;padding:14px 20px;border:none;border-radius:99px;background:#0267FF;color:#fff;font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 8px 28px rgba(2,103,255,.4)}',
+'  .fab:hover{background:#0257db}',
+'  .ov{position:fixed;inset:0;background:rgba(10,22,40,.55);display:none;align-items:flex-end;justify-content:center}',
+'  .ov.on{display:flex}',
+'  .sheet{background:#fff;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;border-radius:28px 28px 0 0;padding:24px 24px 32px;animation:up .3s cubic-bezier(.16,1,.3,1)}',
+'  @keyframes up{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}',
+'  .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}',
+'  .hd h3{font-size:18px;font-weight:800;color:#181D27;display:flex;align-items:center;gap:8px}',
+'  .hd h3 svg{color:#0267FF}',
+'  .cls{background:none;border:none;cursor:pointer;color:#8D99AB;padding:4px;display:flex}',
+'  .sub{font-size:12px;color:#8D99AB;margin-bottom:20px}',
+'  .row{display:flex;gap:10px}',
+'  .lnk{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 8px;border-radius:16px;text-decoration:none;text-align:center}',
+'  .lnk.t{background:#E6F0FF;border:1px solid rgba(2,103,255,.15)}',
+'  .lnk.t svg{color:#0267FF}.lnk.t b{font-size:13px;color:#053E8B}',
+'  .lnk.m{background:#E8FAF4;border:1px solid rgba(0,196,140,.2)}',
+'  .lnk.m svg{color:#00C48C}.lnk.m b{font-size:12px;color:#181D27;word-break:break-all}',
+'  .lnk s{font-size:11px;color:#8D99AB;text-decoration:none}',
+'  label{display:block;font-size:12px;font-weight:700;color:#5A6577;margin:16px 0 6px}',
+'  label span{font-weight:600;color:#8D99AB}',
+'  input,textarea{width:100%;padding:12px 14px;border:2px solid #E5EAF0;border-radius:12px;font-size:14px;font-weight:600;color:#181D27;background:#fff}',
+'  input:focus,textarea:focus{outline:none;border-color:#0267FF;box-shadow:0 0 0 3px rgba(2,103,255,.1)}',
+'  textarea{resize:vertical;line-height:1.7}',
+'  .drop{border:2px dashed #C8D1DE;background:#F7F8FA;border-radius:16px;padding:24px 16px;text-align:center;cursor:pointer}',
+'  .drop.on{border-color:#0267FF;background:#E6F0FF}',
+'  .drop svg{color:#C8D1DE;display:block;margin:0 auto 8px}',
+'  .drop.on svg{color:#0267FF}',
+'  .drop p{font-size:13px;font-weight:700;color:#5A6577}',
+'  .drop small{font-size:11px;color:#8D99AB;display:block;margin-top:4px}',
+'  .fl{display:flex;flex-direction:column;gap:6px;margin-top:12px}',
+'  .fi{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#F7F8FA;border:1px solid #E5EAF0;border-radius:12px}',
+'  .fi span{flex:1;font-size:12px;font-weight:600;color:#181D27;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+'  .fi em{font-size:11px;color:#8D99AB;font-style:normal;flex-shrink:0}',
+'  .fi button{background:none;border:none;cursor:pointer;color:#8D99AB;display:flex;padding:2px}',
+'  .tot{font-size:11px;color:#8D99AB;text-align:right;font-weight:700;margin-top:6px}',
+'  .tot.over{color:#FF4757}',
+'  .msg{font-size:12px;font-weight:700;color:#053E8B;background:#E6F0FF;padding:10px 14px;border-radius:12px;margin-top:14px;line-height:1.6}',
+'  .go{width:100%;margin-top:16px;padding:16px 0;border:none;border-radius:16px;background:#0267FF;color:#fff;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 24px rgba(2,103,255,.3)}',
+'  .go:disabled{background:#E5EAF0;color:#8D99AB;cursor:not-allowed;box-shadow:none}',
+'  .note{font-size:11px;color:#8D99AB;text-align:center;margin-top:10px;line-height:1.7}',
+'  .foot{font-size:11px;color:#8D99AB;text-align:center;margin-top:12px;padding-top:12px;border-top:1px solid #E5EAF0;line-height:1.8}',
+'  @media(max-width:400px){.fab{padding:12px 16px;font-size:13px}}',
+'</style>',
+'<button class="fab" id="fab" title="한백택스 상담 · 자료 보내기">' + ICON.head + '상담·자료전송</button>',
+'<div class="ov" id="ov">',
+'  <div class="sheet" id="sheet">',
+'    <div class="hd"><h3>' + ICON.head + '전문가 상담 · 자료 접수</h3>',
+'      <button class="cls" id="cls" aria-label="닫기">' + ICON.x + '</button></div>',
+'    <p class="sub">' + HB.name + ' · 대표세무사 차재영</p>',
+'    <div class="row">',
+'      <a class="lnk t" id="atel" href="tel:' + HB.telHref + '">' + ICON.tel + '<b>' + HB.tel + '</b><s>전화 걸기</s></a>',
+'      <a class="lnk m" id="amail" href="#">' + ICON.mail + '<b>' + HB.email + '</b><s>메일 보내기</s></a>',
+'    </div>',
+'    <div class="row">',
+'      <div style="flex:1"><label>성함</label><input id="nm" placeholder="홍길동"></div>',
+'      <div style="flex:1"><label>연락처</label><input id="ph" inputmode="tel" placeholder="010-0000-0000"></div>',
+'    </div>',
+'    <label>자료 첨부 <span>(사진·PDF·엑셀 등, 합계 20MB 이내)</span></label>',
+'    <div class="drop" id="drop">' + ICON.up + '<p>여기를 눌러 파일 선택 · 끌어다 놓기</p>',
+'      <small>계산 결과 화면을 찍은 사진도 그대로 보내실 수 있습니다</small></div>',
+'    <input id="fin" type="file" multiple accept="image/*,application/pdf,.xls,.xlsx,.hwp,.hwpx,.doc,.docx,.zip,.csv,.txt" style="display:none">',
+'    <div class="fl" id="fl"></div>',
+'    <label>문의내용</label>',
+'    <textarea id="mm" rows="3" placeholder="예) 계산 결과 확인 부탁드립니다. 상담 가능한 시간 알려주세요."></textarea>',
+'    <div id="msgbox"></div>',
+'    <button class="go" id="go">' + ICON.send + '한백택스로 보내기</button>',
+'    <p class="note" id="note"></p>',
+'    <p class="foot">' + HB.name + ' · ' + HB.addr + '<br>전화 ' + HB.tel + ' · 팩스 ' + HB.fax + ' · ' + HB.email + '</p>',
+'  </div>',
+'</div>'
+  ].join('\n');
+
+  var $ = function(id){ return sr.getElementById(id); };
+  var ov = $('ov'), fin = $('fin'), drop = $('drop'), flBox = $('fl'), msgBox = $('msgbox');
+
+  $('note').textContent = relayReady()
+    ? '버튼을 누르면 자료와 문의내용이 ' + HB.email + ' 로 바로 접수됩니다.'
+    : '휴대폰에서는 공유창으로, PC에서는 메일 앱으로 연결됩니다. (파일은 메일에 직접 첨부)';
+
+  function pageName(){
+    return (document.title || '').replace(/\s*[·|-]\s*한백택스.*$/, '').trim() || document.title || '한백택스 계산기';
+  }
+  function bodyText(){
+    var n = $('nm').value.trim(), p = $('ph').value.trim(), m = $('mm').value.trim();
+    var L = ['세무법인 한백택스 상담 신청', '',
+             '· 문의 화면: ' + pageName(),
+             '· 성함: ' + (n || '(미기재)'),
+             '· 연락처: ' + (p || '(미기재)')];
+    if (m) L.push('· 문의내용: ' + m);
+    if (files.length) L.push('', '· 첨부 자료(' + files.length + '건): ' + files.map(function(f){ return f.name; }).join(', '));
+    L.push('', '(' + location.href.split('?')[0] + ' 에서 보냄)');
+    return L.join('\n');
+  }
+  function mailHref(){
+    return 'mailto:' + HB.email
+      + '?subject=' + encodeURIComponent('[' + pageName() + '] 상담 문의' + ($('nm').value.trim() ? ' - ' + $('nm').value.trim() : ''))
+      + '&body=' + encodeURIComponent(bodyText());
+  }
+  function say(t){ msgBox.innerHTML = t ? '<p class="msg"></p>' : ''; if (t) msgBox.firstChild.textContent = t; }
+
+  function renderFiles(){
+    flBox.innerHTML = '';
+    if (!files.length) return;
+    var tot = 0;
+    files.forEach(function(f, i){
+      tot += f.size;
+      var d = document.createElement('div');
+      d.className = 'fi';
+      d.innerHTML = '<span></span><em>' + fmtSize(f.size) + '</em><button aria-label="삭제">' + ICON.x + '</button>';
+      d.firstChild.textContent = f.name;
+      d.lastChild.onclick = function(){ files.splice(i, 1); renderFiles(); };
+      flBox.appendChild(d);
+    });
+    var t = document.createElement('p');
+    t.className = 'tot' + (tot > RELAY.maxTotal ? ' over' : '');
+    t.textContent = '합계 ' + fmtSize(tot) + ' / 20MB';
+    flBox.appendChild(t);
+  }
+  function addFiles(list){
+    var add = Array.prototype.slice.call(list || []);
+    add.forEach(function(f){
+      if (!files.some(function(q){ return q.name === f.name && q.size === f.size; })) files.push(f);
+    });
+    renderFiles();
+    say('');
+  }
+
+  function open(){
+    $('nm').value = ls('hbSenderName');
+    $('ph').value = ls('hbSenderPhone');
+    $('amail').href = mailHref();
+    ov.classList.add('on');
+    $('fab').style.display = 'none';
+    document.body.style.overflow = 'hidden';
+  }
+  function close(){
+    ov.classList.remove('on');
+    $('fab').style.display = '';
+    document.body.style.overflow = '';
+  }
+
+  $('fab').onclick = open;
+  $('cls').onclick = close;
+  ov.onclick = function(e){ if (e.target === ov) close(); };
+  $('sheet').onclick = function(e){ e.stopPropagation(); };
+  ['nm','ph','mm'].forEach(function(id){ $(id).oninput = function(){ $('amail').href = mailHref(); }; });
+
+  drop.onclick = function(){ fin.click(); };
+  fin.onchange = function(){ addFiles(fin.files); fin.value = ''; };
+  ['dragenter','dragover'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add('on'); }); });
+  ['dragleave','drop'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove('on'); }); });
+  drop.addEventListener('drop', function(e){ addFiles(e.dataTransfer && e.dataTransfer.files); });
+
+  $('go').onclick = function(){
+    var n = $('nm').value.trim(), p = $('ph').value.trim(), m = $('mm').value.trim();
+    if (!files.length && !m) { say('보내실 자료를 올리거나 문의내용을 적어주세요'); return; }
+    ls('hbSenderName', n); ls('hbSenderPhone', p);
+    var tot = files.reduce(function(a, f){ return a + f.size; }, 0);
+
+    /* 0순위: 메일중계가 설정되어 있으면 파일째로 사무실 메일(hb090)로 접수 */
+    if (relayReady() && files.length) {
+      if (tot > RELAY.maxTotal) { say('파일 합계가 20MB를 넘습니다. 나눠서 보내주세요'); return; }
+      $('go').disabled = true;
+      say('한백택스로 전송 중… (' + fmtSize(tot) + ')');
+      Promise.all(files.map(function(f){
+        return toB64(f).then(function(d){ return { name:f.name, type:f.type || 'application/octet-stream', size:f.size, data:d }; });
+      })).then(function(enc){
+        return relaySend({ type:pageName() + ' 상담', name:n, phone:p, memo:m, text:bodyText(), files:enc });
+      }).then(function(r){
+        files = []; renderFiles(); $('mm').value = '';
+        $('go').disabled = false;
+        say('한백택스(' + HB.email + ')로 접수했습니다' + (r.id ? ' · 접수번호 ' + r.id : ''));
+      }).catch(function(err){
+        $('go').disabled = false;
+        if (confirm('자동 접수에 실패했습니다 (' + err.message + ').\n휴대폰 공유창이나 메일 앱으로 대신 보낼까요?')) fallback();
+      });
+      return;
+    }
+    fallback();
+  };
+
+  function fallback(){
+    /* 1순위: Web Share API 로 실제 파일 전송 (카톡·메일·드라이브 등) */
+    if (navigator.canShare && files.length && navigator.canShare({ files:files })) {
+      navigator.share({ files:files, title:'한백택스 자료 전송', text:bodyText() }).then(function(){
+        files = []; renderFiles();
+        say('공유앱으로 전송했습니다');
+      }).catch(function(err){
+        if (err && err.name === 'AbortError') return;
+        mailFallback();
+      });
+      return;
+    }
+    mailFallback();
+  }
+  /* 2순위(폴백): 메일 앱 본문 자동작성 — 파일은 수동 첨부 */
+  function mailFallback(){
+    window.location.href = mailHref();
+    say(files.length ? '메일 앱을 열었습니다 — 위 파일을 메일에 직접 첨부해 주세요' : '메일 앱을 열었습니다');
+  }
+})();
+</script>
+<!-- /HB-CONSULT -->
+</body>
+</html>

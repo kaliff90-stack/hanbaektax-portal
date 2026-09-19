@@ -384,6 +384,8 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
   <div class="nav-item" data-page="fx">환차손익</div>
   <div class="nav-item" data-page="building">건물기준시가</div>
   <div class="nav-item" data-page="apportion">토지·건물 안분</div>
+  <div class="nav-item" data-page="calcset">세무회계 계산기</div>
+  <div class="nav-item" data-page="corpconv">법인전환</div>
   <div class="nav-item" data-page="stock">비상장주식</div>
   <div class="nav-item" data-page="corp">법인세</div>
   <div class="nav-item" data-page="ins">4대보험</div>
@@ -452,6 +454,18 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
       <div class="badge">2026·신규</div>
       <h3>토지·건물 가액 안분</h3>
       <p>양도·취득가액 기준시가(감정가) 비례 안분<br>30% 차이 판정·건물분 부가세·공통비용</p>
+    </a>
+    <a class="dash-card" data-go="calcset" href="javascript:void(0)" onclick="goPage('calcset')">
+      <div class="icon" style="background:#FEF3C7;color:#92400E">🧰</div>
+      <div class="badge">2026·신규</div>
+      <h3>세무회계 계산기 모음</h3>
+      <p>가지급금 인정이자·업무추진비·기부금<br>금융소득·원천징수·간이과세·장려금</p>
+    </a>
+    <a class="dash-card" data-go="corpconv" href="javascript:void(0)" onclick="goPage('corpconv')">
+      <div class="icon" style="background:#E0F2FE;color:#075985">🔀</div>
+      <div class="badge">2026·신규</div>
+      <h3>법인전환 시뮬레이터</h3>
+      <p>개인사업자 vs 법인 세금·4대보험<br>대표 급여·배당 최적 조합</p>
     </a>
     <a class="dash-card" data-go="stock" href="javascript:void(0)" onclick="goPage('stock')">
       <div class="icon" style="background:#FEF3C7;color:#92400E">📈</div>
@@ -580,6 +594,22 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
   </div>
   <iframe id="apportionFrame" title="토지·건물 가액 안분 계산기" style="width:100%;height:82vh;min-height:560px;border:1px solid var(--border);border-radius:12px;background:#fff;display:block"></iframe>
   <script>(function(){function fill(){var f=document.getElementById('apportionFrame');if(f&&!f.getAttribute('src'))f.setAttribute('src','한백택스_토지건물_안분계산기.html?v='+Date.now());}function on(e){var t=e.target,el=t&&t.closest?t.closest('[data-page="apportion"],[data-go="apportion"]'):null;if(el)setTimeout(fill,0);}document.addEventListener('click',on,true);document.addEventListener('touchend',on,true);window.addEventListener('load',function(){try{if(new URLSearchParams(location.search).get('page')==='apportion')fill();}catch(e){}});})();</script>
+</div>
+<div class="page" id="page-calcset">
+  <div class="calc-title"><h2>세무회계 계산기 모음</h2><div class="sub">가지급금 인정이자, 업무추진비·기부금 한도, 금융소득 종합과세, 주식 양도세·증권거래세, 원천징수(3.3%·기타·일용), 간이 vs 일반과세, 성실신고·복식부기 판정, 퇴직금, 주휴수당·가산수당, 임금명세서, 근로·자녀장려금을 한곳에서 계산합니다.</div></div>
+  <div style="margin:0 0 10px;text-align:right">
+    <a href="한백택스_세무회계_계산기모음.html" target="_blank" rel="noopener" style="display:inline-block;font-size:13px;font-weight:700;color:var(--blue);border:1.5px solid var(--blue);border-radius:8px;padding:7px 14px;text-decoration:none;cursor:pointer">새 창으로 크게 보기 ↗</a>
+  </div>
+  <iframe id="calcsetFrame" title="세무회계 계산기 모음" style="width:100%;height:82vh;min-height:560px;border:1px solid var(--border);border-radius:12px;background:#fff;display:block"></iframe>
+  <script>(function(){function fill(){var f=document.getElementById('calcsetFrame');if(f&&!f.getAttribute('src'))f.setAttribute('src','한백택스_세무회계_계산기모음.html?v='+Date.now());}function on(e){var t=e.target,el=t&&t.closest?t.closest('[data-page="calcset"],[data-go="calcset"]'):null;if(el)setTimeout(fill,0);}document.addEventListener('click',on,true);document.addEventListener('touchend',on,true);window.addEventListener('load',function(){try{if(new URLSearchParams(location.search).get('page')==='calcset')fill();}catch(e){}});})();</script>
+</div>
+<div class="page" id="page-corpconv">
+  <div class="calc-title"><h2>법인전환 시뮬레이터</h2><div class="sub">같은 이익을 개인사업자와 법인으로 벌 때 세금·4대보험·대표 손에 남는 돈을 비교하고, 대표 급여와 배당의 최적 조합과 이익 규모별 차이를 보여 줍니다.</div></div>
+  <div style="margin:0 0 10px;text-align:right">
+    <a href="한백택스_법인전환_시뮬레이터.html" target="_blank" rel="noopener" style="display:inline-block;font-size:13px;font-weight:700;color:var(--blue);border:1.5px solid var(--blue);border-radius:8px;padding:7px 14px;text-decoration:none;cursor:pointer">새 창으로 크게 보기 ↗</a>
+  </div>
+  <iframe id="corpconvFrame" title="법인전환 시뮬레이터" style="width:100%;height:82vh;min-height:560px;border:1px solid var(--border);border-radius:12px;background:#fff;display:block"></iframe>
+  <script>(function(){function fill(){var f=document.getElementById('corpconvFrame');if(f&&!f.getAttribute('src'))f.setAttribute('src','한백택스_법인전환_시뮬레이터.html?v='+Date.now());}function on(e){var t=e.target,el=t&&t.closest?t.closest('[data-page="corpconv"],[data-go="corpconv"]'):null;if(el)setTimeout(fill,0);}document.addEventListener('click',on,true);document.addEventListener('touchend',on,true);window.addEventListener('load',function(){try{if(new URLSearchParams(location.search).get('page')==='corpconv')fill();}catch(e){}});})();</script>
 </div>
 <!-- ==================== 임원 퇴직소득 한도초과액 ==================== -->
 <div class="page" id="page-exretire">
