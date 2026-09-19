@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>전산매체·전자신고 대응 지도 v4 (2026년 귀속) - 세무법인 한백택스</title>
+<meta name="description" content="지급명세서 전산매체 대응지도 — 서식 항목과 레코드 위치 대조, 제출 파일 오류 검증">
 <style>
 :root{
   --navy:#1B3A5C; --navy2:#2C5680; --gold:#C8963E; --gold-l:#F3E6CE;
@@ -256,7 +257,7 @@ tr.exp>td{background:#F4F8FB}
 .zone{position:absolute;border:2px solid;border-radius:3px;cursor:pointer;
   transition:background .12s, box-shadow .12s}
 .zone:hover{box-shadow:0 0 0 2px rgba(255,255,255,.7) inset}
-.zone .zl{position:absolute;left:-1px;top:-1px;font-size:10.5px;font-weight:700;color:#fff;
+.zone .zl{position:absolute;left:-1px;top:-1px;font-size:11px;font-weight:700;color:#fff;
   padding:1px 6px;border-radius:3px 0 3px 0;white-space:nowrap;pointer-events:none}
 .zone.dim{opacity:.42}
 .paphd{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--tx2);margin-bottom:7px}
@@ -312,7 +313,7 @@ tr.exp>td{background:#F4F8FB}
 .fno{display:inline-flex;align-items:center;justify-content:center;min-width:21px;height:21px;
   padding:0 3px;border-radius:11px;border:1.4px solid var(--navy);color:var(--navy);
   font-size:11.5px;font-weight:700;flex:none;font-family:Consolas,"D2Coding",monospace}
-.fno.sm{min-width:18px;height:18px;font-size:10.5px}
+.fno.sm{min-width:18px;height:18px;font-size:11px}
 .fsuf{font-size:11px;color:var(--navy2);font-weight:700;margin-left:-3px}
 .fno.none{border-style:dashed;border-color:#C6CED6;color:var(--tx3)}
 
@@ -408,7 +409,7 @@ tr.exp>td{background:#F4F8FB}
   font-size:12.5px;line-height:1.65;color:var(--tx)}
 .rl li:last-child{margin-bottom:0}
 .rl li .rn{position:absolute;left:8px;top:6px;width:16px;height:16px;border-radius:50%;
-  background:var(--mid);color:#fff;font-size:10.5px;font-weight:700;
+  background:var(--mid);color:#fff;font-size:11px;font-weight:700;
   display:flex;align-items:center;justify-content:center}
 .rl li em{font-style:normal;color:var(--hi);font-weight:700}
 .rl.old li{border-left-color:var(--line);background:#FAFBFC;color:var(--tx3)}
@@ -1964,7 +1965,7 @@ function calcDraw(){
 
   document.getElementById('calcin').innerHTML = CALC.map(c=>
     `<div class="cf"><label><span class="rk" style="background:${RECCOLOR[c.r]};width:16px;height:16px;
-      font-size:10px;vertical-align:-2px;margin-right:4px">${c.r}</span>${esc(c.t)}
+      font-size:11px;vertical-align:-2px;margin-right:4px">${c.r}</span>${esc(c.t)}
       ${c.per?`<span style="color:var(--tx3)"> · ${c.per}건당 1줄</span>`:''}</label>
       <input type="number" min="0" max="9999" value="${c.v}" data-k="${c.k}"></div>`).join('');
   document.getElementById('calcin').oninput = e=>{

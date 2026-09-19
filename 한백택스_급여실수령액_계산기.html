@@ -98,9 +98,9 @@
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>💰 급여 실수령액 계산기 | 한백택스</title>
+<title>급여 실수령액 계산기 | 한백택스</title>
 <meta name="description" content="2026년 기준 · 4대보험·소득세 자동공제">
-<meta property="og:title" content="💰 급여 실수령액 계산기">
+<meta property="og:title" content="급여 실수령액 계산기">
 <meta property="og:description" content="2026년 기준 · 4대보험·소득세 자동공제 · 세무법인 한백택스">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#1B3A5C">
@@ -200,7 +200,7 @@ body{background:var(--bg);color:#2D3748;min-height:100vh;font-size:17px}
 .sub-row .lbl{padding-left:32px;font-weight:400;font-size:15px}
 /* 근로소득자 전용 항목 표시 (사업소득자 모드일 때 비활성화) */
 .inc-worker-only.disabled{opacity:0.45;pointer-events:none;background:#F1F5F9;position:relative}
-.inc-worker-only.disabled::after{content:"⛔ 근로소득자 전용";position:absolute;right:14px;top:50%;transform:translateY(-50%);background:#94A3B8;color:#fff;font-size:10px;padding:3px 8px;border-radius:4px;font-weight:700;z-index:2}
+.inc-worker-only.disabled::after{content:"⛔ 근로소득자 전용";position:absolute;right:14px;top:50%;transform:translateY(-50%);background:#94A3B8;color:#fff;font-size:11px;padding:3px 8px;border-radius:4px;font-weight:700;z-index:2}
 .inc-worker-only.disabled input{background:#E2E8F0!important;color:#94A3B8!important}
 /* 적용값 직접입력 행 강조 */
 .apply-row .lbl{background:#E8F4FD;color:var(--blue);font-weight:800;font-size:15px}
@@ -254,7 +254,7 @@ button:active{transform:scale(0.95);transition:transform 0.1s}
   .calc-title{padding:16px}
   .section-body{padding:10px 14px 14px}
   .result-box .value{font-size:26px}
-  .mobile-bottom-nav .nav-item{font-size:10px;padding:8px 4px}
+  .mobile-bottom-nav .nav-item{font-size:11px;padding:8px 4px}
 }
 /* Mobile form touch improvements */
 @media(max-width:700px){
@@ -354,7 +354,7 @@ button:active{transform:scale(0.95);transition:transform 0.1s}
       <div class="row"><div class="lbl">기본급</div><div class="input-cell"><input type="number" id="sal_base" value="3500000" oninput="calcSalary()"></div><div class="note">← 월 기본급 입력</div></div>
       <div class="row"><div class="lbl">상여금</div><div class="input-cell"><input type="number" id="sal_bonus" value="0" oninput="calcSalary()"></div><div class="note">← 상여금 입력 (지급월)</div></div>
       <div class="row"><div class="lbl">연장·야간·휴일수당</div><div class="input-cell"><input type="number" id="sal_overtime" value="300000" oninput="calcSalary()"></div><div class="note">← 해당 시 입력</div></div>
-      <div class="row" style="background:var(--light);padding:6px 0"><div class="lbl" style="background:var(--auto-bg);font-weight:800">【 비과세 수당 】</div><div class="val-cell" style="background:var(--auto-bg);font-size:10px;color:var(--gray)">해당 항목에 금액 입력</div></div>
+      <div class="row" style="background:var(--light);padding:6px 0"><div class="lbl" style="background:var(--auto-bg);font-weight:800">【 비과세 수당 】</div><div class="val-cell" style="background:var(--auto-bg);font-size:11px;color:var(--gray)">해당 항목에 금액 입력</div></div>
       <div class="row sub-row"><div class="lbl">① 식대</div><div class="input-cell"><input type="number" id="sal_meal" value="200000" oninput="calcSalary()"></div><div class="note">월 20만원 한도</div></div>
       <div class="row sub-row"><div class="lbl">② 자가운전보조금</div><div class="input-cell"><input type="number" id="sal_car" value="200000" oninput="calcSalary()"></div><div class="note">월 20만원 한도</div></div>
       <div class="row sub-row"><div class="lbl">③ 자녀보육수당</div><div class="input-cell"><input type="number" id="sal_child" value="0" oninput="calcSalary()"></div><div class="note">월 20만원 한도</div></div>
@@ -368,7 +368,7 @@ button:active{transform:scale(0.95);transition:transform 0.1s}
 
     <div class="section-hdr"><div class="num">2</div>4대보험료 (2026년 기준)</div>
     <div class="section-body">
-      <div class="row" style="font-size:10px;font-weight:700;color:var(--navy)">
+      <div class="row" style="font-size:11px;font-weight:700;color:var(--navy)">
         <div class="lbl">보험 항목</div>
         <div class="val-cell text-right" style="flex:0.6;background:var(--light)">요율</div>
         <div class="val-cell text-right" style="background:var(--light)">근로자</div>
@@ -376,12 +376,12 @@ button:active{transform:scale(0.95);transition:transform 0.1s}
         <div class="val-cell text-right" style="background:var(--light)">사업주</div>
         <div class="val-cell text-right" style="background:var(--light)">합계</div>
       </div>
-      <div class="row"><div class="lbl">국민연금</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">4.75%</div><div class="auto-cell text-right" id="sal_np_e">180,500</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">4.75%</div><div class="auto-cell text-right" id="sal_np_r">180,500</div><div class="auto-cell text-right" id="sal_np_t">361,000</div></div>
-      <div class="row"><div class="lbl">건강보험</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">3.595%</div><div class="auto-cell text-right" id="sal_hi_e">136,610</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">3.595%</div><div class="auto-cell text-right" id="sal_hi_r">136,610</div><div class="auto-cell text-right" id="sal_hi_t">273,220</div></div>
-      <div class="row"><div class="lbl">장기요양보험</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">13.14%</div><div class="auto-cell text-right" id="sal_ltc_e">17,950</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">13.14%</div><div class="auto-cell text-right" id="sal_ltc_r">17,950</div><div class="auto-cell text-right" id="sal_ltc_t">35,900</div></div>
-      <div class="row"><div class="lbl">고용보험</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">0.9%</div><div class="auto-cell text-right" id="sal_ei_e">34,200</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">0.9%</div><div class="auto-cell text-right" id="sal_ei_r">34,200</div><div class="auto-cell text-right" id="sal_ei_t">68,400</div></div>
-      <div class="row"><div class="lbl">고용안정·직능(사업주)</div><div class="val-cell" style="flex:0.6"></div><div class="val-cell"></div><div class="val-cell text-right" style="flex:0.6;font-size:10px">0.25%</div><div class="auto-cell text-right" id="sal_es_r">9,500</div><div class="auto-cell text-right" id="sal_es_t">9,500</div></div>
-      <div class="row"><div class="lbl">산재보험 (사업주)</div><div class="val-cell" style="flex:0.6"></div><div class="val-cell"></div><div class="val-cell text-right" style="flex:0.6"><input type="number" id="sal_wi_rate" value="1.2" step="0.1" style="width:60px;text-align:right;font-size:10px;padding:4px;background:var(--input-bg);border:1px solid var(--border)" oninput="calcSalary()">%</div><div class="auto-cell text-right" id="sal_wi_r">45,600</div><div class="auto-cell text-right" id="sal_wi_t">45,600</div></div>
+      <div class="row"><div class="lbl">국민연금</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">4.75%</div><div class="auto-cell text-right" id="sal_np_e">180,500</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">4.75%</div><div class="auto-cell text-right" id="sal_np_r">180,500</div><div class="auto-cell text-right" id="sal_np_t">361,000</div></div>
+      <div class="row"><div class="lbl">건강보험</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">3.595%</div><div class="auto-cell text-right" id="sal_hi_e">136,610</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">3.595%</div><div class="auto-cell text-right" id="sal_hi_r">136,610</div><div class="auto-cell text-right" id="sal_hi_t">273,220</div></div>
+      <div class="row"><div class="lbl">장기요양보험</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">13.14%</div><div class="auto-cell text-right" id="sal_ltc_e">17,950</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">13.14%</div><div class="auto-cell text-right" id="sal_ltc_r">17,950</div><div class="auto-cell text-right" id="sal_ltc_t">35,900</div></div>
+      <div class="row"><div class="lbl">고용보험</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">0.9%</div><div class="auto-cell text-right" id="sal_ei_e">34,200</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">0.9%</div><div class="auto-cell text-right" id="sal_ei_r">34,200</div><div class="auto-cell text-right" id="sal_ei_t">68,400</div></div>
+      <div class="row"><div class="lbl">고용안정·직능(사업주)</div><div class="val-cell" style="flex:0.6"></div><div class="val-cell"></div><div class="val-cell text-right" style="flex:0.6;font-size:11px">0.25%</div><div class="auto-cell text-right" id="sal_es_r">9,500</div><div class="auto-cell text-right" id="sal_es_t">9,500</div></div>
+      <div class="row"><div class="lbl">산재보험 (사업주)</div><div class="val-cell" style="flex:0.6"></div><div class="val-cell"></div><div class="val-cell text-right" style="flex:0.6"><input type="number" id="sal_wi_rate" value="1.2" step="0.1" style="width:60px;text-align:right;font-size:11px;padding:4px;background:var(--input-bg);border:1px solid var(--border)" oninput="calcSalary()">%</div><div class="auto-cell text-right" id="sal_wi_r">45,600</div><div class="auto-cell text-right" id="sal_wi_t">45,600</div></div>
       <div class="row total-row"><div class="lbl">4대보험 소계</div><div class="val-cell" style="flex:0.6"></div><div class="auto-cell text-right" id="sal_ins_e">369,260</div><div class="val-cell" style="flex:0.6"></div><div class="auto-cell text-right" id="sal_ins_r">424,360</div><div class="auto-cell text-right" id="sal_ins_t">793,620</div></div>
     </div>
 

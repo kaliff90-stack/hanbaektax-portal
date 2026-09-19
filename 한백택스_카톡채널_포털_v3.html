@@ -11,6 +11,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="한백택스">
 <title>세무법인 한백택스 - 세무서비스 간편 포털</title>
+<meta name="description" content="세무법인 한백택스 간편 세무 포털 — 상담 신청, 세금 계산기, 자료 전송, 경정청구">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="세무법인 한백택스">
 <meta property="og:title" content="세무법인 한백택스 | 간편 세무 포털">
@@ -70,7 +71,7 @@ input::placeholder,textarea::placeholder{color:var(--g4)}
 .btn-sm{padding:8px 14px;font-size:12px;border-radius:10px}
 .sec-title{font-size:17px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .sec-title i{color:var(--p);font-size:18px}
-.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
 .badge-ok{background:var(--ok1);color:var(--ok)}
 .badge-wn{background:var(--wn1);color:var(--wn)}
 .badge-ng{background:var(--ng1);color:var(--ng)}
@@ -84,7 +85,7 @@ input::placeholder,textarea::placeholder{color:var(--g4)}
 .page-header .back-btn:active{background:var(--g1)}
 /* Bottom Nav */
 .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:var(--nav-bg);border-top:1px solid var(--card-border);display:flex;z-index:999;padding:6px 0 env(safe-area-inset-bottom,8px);transition:background .3s}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;cursor:pointer;color:var(--g4);font-size:10px;font-weight:700;transition:color .2s}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;cursor:pointer;color:var(--g4);font-size:11px;font-weight:700;transition:color .2s}
 .nav-item.active{color:var(--p)}
 .nav-item i{font-size:20px;transition:transform .2s}
 .nav-item.active i{transform:scale(1.1)}
@@ -140,7 +141,7 @@ input::placeholder,textarea::placeholder{color:var(--g4)}
 .timeline{position:relative;padding-left:32px}
 .timeline::before{content:'';position:absolute;left:11px;top:6px;bottom:6px;width:2px;background:var(--g2)}
 .tl-item{position:relative;margin-bottom:20px}
-.tl-dot{position:absolute;left:-32px;top:2px;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;z-index:1}
+.tl-dot{position:absolute;left:-32px;top:2px;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;z-index:1}
 .tl-dot.done{background:var(--ok)}
 .tl-dot.current{background:var(--p);animation:pulse 1.5s infinite}
 .tl-dot.pending{background:var(--g3)}
@@ -156,7 +157,7 @@ input::placeholder,textarea::placeholder{color:var(--g4)}
 .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .w-full{width:100%}
 .text-p{color:var(--p)}.text-ok{color:var(--ok)}.text-ng{color:var(--ng)}.text-wn{color:var(--wn)}.text-ac{color:var(--ac)}
-.fs-10{font-size:10px}.fs-11{font-size:11px}.fs-12{font-size:12px}.fs-14{font-size:14px}.fs-17{font-size:17px}.fs-22{font-size:22px}
+.fs-10{font-size:11px}.fs-11{font-size:11px}.fs-12{font-size:12px}.fs-14{font-size:14px}.fs-17{font-size:17px}.fs-22{font-size:22px}
 .fw-700{font-weight:700}.fw-800{font-weight:800}
 .result-box{background:var(--p1);border:2px solid var(--p);border-radius:16px;padding:20px;text-align:center;margin:16px 0}
 .result-box .big-num{font-size:28px;font-weight:800;color:var(--p)}
@@ -219,9 +220,9 @@ input::placeholder,textarea::placeholder{color:var(--g4)}
 .yr-timeline{display:flex;justify-content:space-between;position:relative;padding:0 8px;margin:20px 0}
 .yr-timeline::before{content:'';position:absolute;top:15px;left:24px;right:24px;height:3px;background:var(--g2)}
 .yr-item{display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;z-index:1}
-.yr-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff}
+.yr-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff}
 .yr-label{font-size:11px;font-weight:700}
-.yr-sub{font-size:10px;color:var(--text3);text-align:center}
+.yr-sub{font-size:11px;color:var(--text3);text-align:center}
 /* Misc */
 .divider{height:8px;background:var(--g0);margin:0 -16px}
 .section{padding:20px 0}
@@ -647,7 +648,7 @@ Tel 02-2277-3101 / Fax 02-2277-3161
 <div class="sec-title"><i class="fa-solid fa-route"></i> 환급 진행 절차</div>
 <div class="card">
 <div class="timeline">
-<div class="tl-item"><div class="tl-dot current"><i class="fa-solid fa-check" style="font-size:10px"></i></div><div class="fw-700 fs-13">무료 진단 신청</div><div class="fs-11" style="color:var(--text2)">카카오톡으로 간편 접수 · 1~2일</div></div>
+<div class="tl-item"><div class="tl-dot current"><i class="fa-solid fa-check" style="font-size:11px"></i></div><div class="fw-700 fs-13">무료 진단 신청</div><div class="fs-11" style="color:var(--text2)">카카오톡으로 간편 접수 · 1~2일</div></div>
 <div class="tl-item"><div class="tl-dot pending"><span>2</span></div><div class="fw-700 fs-13">공제항목 분석</div><div class="fs-11" style="color:var(--text2)">전문 세무사 검토 · 3~5일</div></div>
 <div class="tl-item"><div class="tl-dot pending"><span>3</span></div><div class="fw-700 fs-13">경정청구서 작성</div><div class="fs-11" style="color:var(--text2)">신고서 수정 작성 · 5~7일</div></div>
 <div class="tl-item"><div class="tl-dot pending"><span>4</span></div><div class="fw-700 fs-13">관할세무서 제출</div><div class="fs-11" style="color:var(--text2)">전자 제출 · 1일</div></div>
@@ -1042,8 +1043,8 @@ Tel 02-2277-3101 / Fax 02-2277-3161
 <div class="title">My홈택스 → 세무대리/납세관리</div>
 <div class="desc">상단 메뉴에서 My홈택스 클릭 후<br>세무대리/납세관리 메뉴 선택</div>
 <div class="step-mockup">
-<div style="display:flex;gap:8px;margin-bottom:8px"><span style="padding:4px 8px;background:var(--g2);border-radius:4px;font-size:10px">My홈택스</span><span style="font-size:10px">></span><span class="highlight">세무대리/납세관리</span></div>
-<div style="font-size:10px">→ 수임동의 메뉴 선택</div>
+<div style="display:flex;gap:8px;margin-bottom:8px"><span style="padding:4px 8px;background:var(--g2);border-radius:4px;font-size:11px">My홈택스</span><span style="font-size:11px">></span><span class="highlight">세무대리/납세관리</span></div>
+<div style="font-size:11px">→ 수임동의 메뉴 선택</div>
 </div>
 </div>
 </div>
@@ -1053,7 +1054,7 @@ Tel 02-2277-3101 / Fax 02-2277-3161
 <div class="title">"한백택스 (차재영)" 수임동의</div>
 <div class="desc">수임동의 목록에서 세무법인 한백택스<br>(대표세무사 차재영) 찾기 → 수임동의 클릭</div>
 <div class="step-mockup">
-<div style="border:1px solid var(--g2);border-radius:6px;padding:8px;margin-bottom:6px;font-size:10px">
+<div style="border:1px solid var(--g2);border-radius:6px;padding:8px;margin-bottom:6px;font-size:11px">
 <div style="display:flex;justify-content:space-between;align-items:center">
 <span>세무법인 한백택스 (차재영)</span>
 <span class="highlight">수임동의</span>
@@ -2220,7 +2221,7 @@ function renderStatusCards(){
     const diff=Math.ceil((dl-now)/(1000*60*60*24));
     const pct=Math.floor((s.step/(s.steps.length-1))*100);
     const color=s.step>=3?'var(--ok)':diff<=7?'var(--ng)':diff<=30?'var(--wn)':'var(--p)';
-    return `<div class="card mb-12"><div class="flex justify-between items-center mb-8"><div class="fw-800 fs-14">${s.name}</div><div class="badge ${diff<=7?'badge-ng':diff<=30?'badge-wn':'badge-p'}">D-${Math.max(diff,0)}</div></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div><div class="flex justify-between mt-8">${s.steps.map((st,i)=>`<span class="fs-10 fw-700" style="color:${i<=s.step?color:'var(--g4)'}">${st}</span>`).join('')}</div><div class="flex justify-between mt-12"><span class="fs-11" style="color:var(--text3)">마감 ${s.deadline}</span><button class="btn btn-sm btn-o" onclick="advanceStatus(${si})">상태 변경 <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></button></div></div>`;
+    return `<div class="card mb-12"><div class="flex justify-between items-center mb-8"><div class="fw-800 fs-14">${s.name}</div><div class="badge ${diff<=7?'badge-ng':diff<=30?'badge-wn':'badge-p'}">D-${Math.max(diff,0)}</div></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div><div class="flex justify-between mt-8">${s.steps.map((st,i)=>`<span class="fs-10 fw-700" style="color:${i<=s.step?color:'var(--g4)'}">${st}</span>`).join('')}</div><div class="flex justify-between mt-12"><span class="fs-11" style="color:var(--text3)">마감 ${s.deadline}</span><button class="btn btn-sm btn-o" onclick="advanceStatus(${si})">상태 변경 <i class="fa-solid fa-arrow-right" style="font-size:11px"></i></button></div></div>`;
   }).join('');
   localStorage.setItem('taxStatus',JSON.stringify(statuses));
 }

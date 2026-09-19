@@ -11,6 +11,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="한백택스 경정청구">
 <title>한백택스 경정청구 · 세금 환급 시뮬레이터</title>
+<meta name="description" content="경정청구 세금 환급 시뮬레이터 — 놓친 공제·감면을 점검하고 예상 환급액과 환급가산금 계산">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
@@ -354,7 +355,7 @@ function StepIndicator({steps,current}){
             <div style={{width:36,height:36,borderRadius:'50%',background:i<=current?'var(--p)':'var(--g2)',color:i<=current?'#fff':'var(--g4)',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:800,fontSize:13,transition:'all .3s',boxShadow:i===current?'0 4px 12px rgba(2,103,255,.3)':'none'}}>
               {i<current?<i className="fas fa-check" style={{fontSize:12}}/>:i+1}
             </div>
-            <span style={{fontSize:10,fontWeight:700,color:i<=current?'var(--p2)':'var(--g4)',whiteSpace:'nowrap'}}>{s}</span>
+            <span style={{fontSize:11,fontWeight:700,color:i<=current?'var(--p2)':'var(--g4)',whiteSpace:'nowrap'}}>{s}</span>
           </div>
           {i<steps.length-1&&<div style={{flex:1,height:3,background:i<current?'var(--p)':'var(--g2)',borderRadius:99,margin:'0 -4px',marginBottom:20,transition:'background .3s',minWidth:30}}/>}
         </React.Fragment>
@@ -741,7 +742,7 @@ function Landing({onStart}){
             </div>
             <p style={{color:'var(--dk)',fontSize:22,fontWeight:800}}>{s.value}</p>
             <p style={{color:'var(--g5)',fontSize:11,fontWeight:700,marginTop:4}}>{s.label}</p>
-            <p style={{color:'var(--g5)',fontSize:10,marginTop:2}}>{s.sub}</p>
+            <p style={{color:'var(--g5)',fontSize:11,marginTop:2}}>{s.sub}</p>
           </div>
         ))}
       </div>
@@ -785,8 +786,8 @@ function Landing({onStart}){
             <div key={k} style={{background:'#fff',border:'1px solid var(--g2)',borderRadius:14,padding:'14px 10px',textAlign:'center'}}>
               <i className={`fas ${v.icon}`} style={{color:'var(--p)',fontSize:16,marginBottom:6,display:'block'}}/>
               <p style={{color:'var(--dk)',fontSize:20,fontWeight:800}}>{v.prob}%</p>
-              <p style={{color:'var(--g5)',fontSize:10,fontWeight:700,marginTop:2}}>{k}</p>
-              <p style={{color:'var(--g5)',fontSize:9,marginTop:2}}>평균 {fmtW(v.avgRefund)}원</p>
+              <p style={{color:'var(--g5)',fontSize:11,fontWeight:700,marginTop:2}}>{k}</p>
+              <p style={{color:'var(--g5)',fontSize:11,marginTop:2}}>평균 {fmtW(v.avgRefund)}원</p>
             </div>
           ))}
         </div>
@@ -897,7 +898,7 @@ function InputPage({taxType,setTaxType,formData,setFormData,onAnalyze,onBack}){
                     <span style={{position:'absolute',right:14,top:'50%',transform:'translateY(-50%)',color:'var(--g5)',fontSize:13,fontWeight:700}}>원</span>
                   </div>
                   <input type="range" min={20000000} max={200000000} step={1000000} value={formData.totalSalary} onChange={e=>set('totalSalary',parseInt(e.target.value))} style={{width:'100%',marginTop:8}}/>
-                  <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:'var(--g5)',marginTop:2}}><span>2천만원</span><span>2억원</span></div>
+                  <div style={{display:'flex',justifyContent:'space-between',fontSize:11,color:'var(--g5)',marginTop:2}}><span>2천만원</span><span>2억원</span></div>
                 </div>
                 <div style={{marginTop:20}}>
                   <label style={{fontSize:12,fontWeight:700,color:'var(--g5)',display:'block',marginBottom:8}}>연말정산 결정세액 (원천징수 총액)</label>
@@ -917,7 +918,7 @@ function InputPage({taxType,setTaxType,formData,setFormData,onAnalyze,onBack}){
                     <span style={{position:'absolute',right:14,top:'50%',transform:'translateY(-50%)',color:'var(--g5)',fontSize:13,fontWeight:700}}>원</span>
                   </div>
                   <input type="range" min={0} max={5000000000} step={10000000} value={formData.revenue} onChange={e=>set('revenue',parseInt(e.target.value))} style={{width:'100%',marginTop:8}}/>
-                  <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:'var(--g5)',marginTop:2}}><span>0원</span><span>50억원</span></div>
+                  <div style={{display:'flex',justifyContent:'space-between',fontSize:11,color:'var(--g5)',marginTop:2}}><span>0원</span><span>50억원</span></div>
                 </div>
                 <div style={{marginTop:20}}>
                   <label style={{fontSize:12,fontWeight:700,color:'var(--g5)',display:'block',marginBottom:8}}>연 납부 세금 (기신고 세액)</label>
@@ -956,7 +957,7 @@ function InputPage({taxType,setTaxType,formData,setFormData,onAnalyze,onBack}){
               return(
                 <button key={y} onClick={()=>!expired&&toggleYear(y)} disabled={expired} style={{flex:1,minWidth:80,padding:'14px 0',borderRadius:14,border:`2px solid ${expired?'var(--g2)':selected?'var(--p)':'var(--g2)'}`,background:expired?'var(--g1)':selected?'var(--p1)':'#fff',color:expired?'var(--g3)':selected?'var(--p)':'var(--g5)',fontWeight:800,fontSize:14,cursor:expired?'not-allowed':'pointer',transition:'all .15s',position:'relative',opacity:expired?.5:1}}>
                   {y}
-                  <div style={{fontSize:9,marginTop:4,fontWeight:600}}>
+                  <div style={{fontSize:11,marginTop:4,fontWeight:600}}>
                     {expired ? '기한만료' : urgent ? <span style={{color:'var(--ng)'}}>D-{daysLeft}</span> : <span style={{color:'var(--ok)'}}>D-{daysLeft}</span>}
                   </div>
                 </button>
@@ -1223,7 +1224,7 @@ function OverviewTab({result,taxInfo,formData,taxType}){
             {label:'업종 환급 비율',value:(INDUSTRY_RATES[formData.industry]||INDUSTRY_RATES['기타']).prob+'%',positive:(INDUSTRY_RATES[formData.industry]||INDUSTRY_RATES['기타']).prob>=40},
           ].map((f,i)=>(
             <div key={i} style={{background:'var(--g0)',borderRadius:12,padding:12,textAlign:'center'}}>
-              <p style={{fontSize:10,fontWeight:700,color:'var(--g4)',marginBottom:4}}>{f.label}</p>
+              <p style={{fontSize:11,fontWeight:700,color:'var(--g4)',marginBottom:4}}>{f.label}</p>
               <p style={{fontSize:16,fontWeight:800,color:f.positive?'var(--ok)':'var(--g5)'}}>{f.value}</p>
             </div>
           ))}
@@ -1304,11 +1305,11 @@ function DetailsTab({result,taxInfo}){
                     <Badge>{d.category}</Badge>
                   </div>
                   <p style={{fontSize:11,color:'var(--g4)',marginTop:4}}>{d.desc}</p>
-                  <p style={{fontSize:10,color:'var(--p)',marginTop:2}}>{d.법조문}</p>
+                  <p style={{fontSize:11,color:'var(--p)',marginTop:2}}>{d.법조문}</p>
                 </div>
                 <div style={{textAlign:'right',flexShrink:0}}>
                   <p style={{fontWeight:800,fontSize:18,color:'var(--ok)'}}>{fmtW(d.refund)}원</p>
-                  <p style={{fontSize:10,color:'var(--g4)'}}>({Math.round(d.refund/result.totalRefund*100)}%)</p>
+                  <p style={{fontSize:11,color:'var(--g4)'}}>({Math.round(d.refund/result.totalRefund*100)}%)</p>
                 </div>
               </div>
             </div>
@@ -1357,7 +1358,7 @@ function TimelineTab({result,taxInfo,taxType}){
                 <span style={{fontWeight:800,fontSize:18,color:taxInfo.color}}>{fmtW(y.amount)}원</span>
               </div>
               <ProgressBar pct={y.amount/maxAmount*100} color={taxInfo.color} height={6}/>
-              <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:'var(--g4)',marginTop:6}}>
+              <div style={{display:'flex',justifyContent:'space-between',fontSize:11,color:'var(--g4)',marginTop:6}}>
                 <span>신고기한: {y.year+1}년 {DEDUCTIONS[taxType].filingMonth}월</span>
                 <span>경정청구 기한: {y.year+6}년 {DEDUCTIONS[taxType].filingMonth}월</span>
               </div>
@@ -1395,13 +1396,13 @@ function MoneyTab({result,taxInfo,formData}){
             <p style={{fontSize:12,fontWeight:700,color:'var(--ng)',marginBottom:4}}>기존 (경정청구 전)</p>
             <p style={{fontSize:11,color:'var(--g4)',marginBottom:10}}>납부한 세금 그대로</p>
             <p style={{fontSize:28,fontWeight:800,color:'var(--ng)'}}>{fmtW(formData.taxPaid * formData.years.length)}원</p>
-            <p style={{fontSize:10,color:'var(--g4)',marginTop:4}}>총 {formData.years.length}년 납부 세액</p>
+            <p style={{fontSize:11,color:'var(--g4)',marginTop:4}}>총 {formData.years.length}년 납부 세액</p>
           </div>
           <div style={{background:'var(--ok1)',borderRadius:16,padding:20,textAlign:'center'}}>
             <p style={{fontSize:12,fontWeight:700,color:'var(--ok)',marginBottom:4}}>After (경정청구 후)</p>
             <p style={{fontSize:11,color:'var(--g4)',marginBottom:10}}>환급금 수령</p>
             <p style={{fontSize:28,fontWeight:800,color:'var(--ok)'}}>{fmtW(formData.taxPaid * formData.years.length - result.totalRefund)}원</p>
-            <p style={{fontSize:10,color:'var(--g4)',marginTop:4}}>실질 세부담</p>
+            <p style={{fontSize:11,color:'var(--g4)',marginTop:4}}>실질 세부담</p>
           </div>
         </div>
         <div style={{marginTop:12,background:'var(--ok1)',borderRadius:12,padding:'12px 16px',textAlign:'center'}}>
@@ -1472,7 +1473,7 @@ function DocsTab({docs,taxInfo,onConsult}){
           {docs.map((d,i)=>(
             <div key={i} onClick={()=>toggle(i)} style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',background:checked[i]?'var(--ok1)':'var(--g0)',borderRadius:12,cursor:'pointer',border:`1px solid ${checked[i]?'var(--ok)':'var(--g2)'}`,transition:'all .15s'}}>
               <div style={{width:24,height:24,borderRadius:8,border:`2px solid ${checked[i]?'var(--ok)':'var(--g3)'}`,background:checked[i]?'var(--ok)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,transition:'all .15s'}}>
-                {checked[i]&&<i className="fas fa-check" style={{color:'#fff',fontSize:10}}/>}
+                {checked[i]&&<i className="fas fa-check" style={{color:'#fff',fontSize:11}}/>}
               </div>
               <span style={{fontSize:13,fontWeight:600,color:checked[i]?'var(--ok)':'var(--dk)',textDecoration:checked[i]?'line-through':'none'}}>{d.name}</span>
               {d.required&&<Badge color="var(--ng)" bg="var(--ng1)">필수</Badge>}

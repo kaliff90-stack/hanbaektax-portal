@@ -194,7 +194,10 @@ button:active{transform:scale(0.95);transition:transform 0.1s}
   .calc-title{padding:16px}
   .section-body{padding:10px 14px 14px}
   .result-box .value{font-size:26px}
-  .mobile-bottom-nav .nav-item{font-size:10px;padding:8px 4px}
+  .mobile-bottom-nav .nav-item{font-size:11px;padding:8px 4px}
+/* 하단 메뉴 20개를 폭 390px 에 욱여넣어 글자가 겹치던 것 — 항목은 제 폭을 갖고 메뉴 줄을 옆으로 넘겨 본다 */
+.mobile-bottom-nav{justify-content:flex-start}
+.mobile-bottom-nav .nav-item{flex:0 0 auto;min-width:64px;padding:8px 8px}
 }
 /* Mobile form touch improvements */
 @media(max-width:700px){
@@ -361,7 +364,7 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
 
 <div class="top-bar">
   <div>
-    <h1><img src="logo-white.png" alt="세무법인 한백택스" style="height:34px;width:auto;display:block"></h1>
+    <h1><img src="logo.png" alt="세무법인 한백택스" style="height:34px;width:auto;display:block"></h1>
     <div class="sub">대표세무사 차재영 | 서울특별시 중구 동호로 315, 신안빌딩 2층</div>
   </div>
   <div style="color:var(--gold);font-weight:800;font-size:12px">세무 계산 포털</div>
@@ -632,7 +635,7 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
       <div class="row"><div class="lbl">기본급</div><div class="input-cell"><input type="number" id="sal_base" value="3500000" oninput="calcSalary()"></div><div class="note">← 월 기본급 입력</div></div>
       <div class="row"><div class="lbl">상여금</div><div class="input-cell"><input type="number" id="sal_bonus" value="0" oninput="calcSalary()"></div><div class="note">← 상여금 입력 (지급월)</div></div>
       <div class="row"><div class="lbl">연장·야간·휴일수당</div><div class="input-cell"><input type="number" id="sal_overtime" value="300000" oninput="calcSalary()"></div><div class="note">← 해당 시 입력</div></div>
-      <div class="row" style="background:var(--light);padding:6px 0"><div class="lbl" style="background:var(--auto-bg);font-weight:800">【 비과세 수당 】</div><div class="val-cell" style="background:var(--auto-bg);font-size:10px;color:var(--gray)">해당 항목에 금액 입력</div></div>
+      <div class="row" style="background:var(--light);padding:6px 0"><div class="lbl" style="background:var(--auto-bg);font-weight:800">【 비과세 수당 】</div><div class="val-cell" style="background:var(--auto-bg);font-size:11px;color:var(--gray)">해당 항목에 금액 입력</div></div>
       <div class="row sub-row"><div class="lbl">① 식대</div><div class="input-cell"><input type="number" id="sal_meal" value="200000" oninput="calcSalary()"></div><div class="note">월 20만원 한도</div></div>
       <div class="row sub-row"><div class="lbl">② 자가운전보조금</div><div class="input-cell"><input type="number" id="sal_car" value="200000" oninput="calcSalary()"></div><div class="note">월 20만원 한도</div></div>
       <div class="row sub-row"><div class="lbl">③ 자녀보육수당</div><div class="input-cell"><input type="number" id="sal_child" value="0" oninput="calcSalary()"></div><div class="note">월 20만원 한도</div></div>
@@ -646,7 +649,7 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
 
     <div class="section-hdr"><div class="num">2</div>4대보험료 (2026년 기준)</div>
     <div class="section-body">
-      <div class="row" style="font-size:10px;font-weight:700;color:var(--navy)">
+      <div class="row" style="font-size:11px;font-weight:700;color:var(--navy)">
         <div class="lbl">보험 항목</div>
         <div class="val-cell text-right" style="flex:0.6;background:var(--light)">요율</div>
         <div class="val-cell text-right" style="background:var(--light)">근로자</div>
@@ -654,12 +657,12 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
         <div class="val-cell text-right" style="background:var(--light)">사업주</div>
         <div class="val-cell text-right" style="background:var(--light)">합계</div>
       </div>
-      <div class="row"><div class="lbl">국민연금</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">4.75%</div><div class="auto-cell text-right" id="sal_np_e">180,500</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">4.75%</div><div class="auto-cell text-right" id="sal_np_r">180,500</div><div class="auto-cell text-right" id="sal_np_t">361,000</div></div>
-      <div class="row"><div class="lbl">건강보험</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">3.595%</div><div class="auto-cell text-right" id="sal_hi_e">136,610</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">3.595%</div><div class="auto-cell text-right" id="sal_hi_r">136,610</div><div class="auto-cell text-right" id="sal_hi_t">273,220</div></div>
-      <div class="row"><div class="lbl">장기요양보험</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">13.14%</div><div class="auto-cell text-right" id="sal_ltc_e">17,950</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">13.14%</div><div class="auto-cell text-right" id="sal_ltc_r">17,950</div><div class="auto-cell text-right" id="sal_ltc_t">35,900</div></div>
-      <div class="row"><div class="lbl">고용보험</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">0.9%</div><div class="auto-cell text-right" id="sal_ei_e">34,200</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">0.9%</div><div class="auto-cell text-right" id="sal_ei_r">34,200</div><div class="auto-cell text-right" id="sal_ei_t">68,400</div></div>
-      <div class="row"><div class="lbl">고용안정·직능(사업주)</div><div class="val-cell" style="flex:0.6"></div><div class="val-cell"></div><div class="val-cell text-right" style="flex:0.6;font-size:10px">0.25%</div><div class="auto-cell text-right" id="sal_es_r">9,500</div><div class="auto-cell text-right" id="sal_es_t">9,500</div></div>
-      <div class="row"><div class="lbl">산재보험 (사업주)</div><div class="val-cell" style="flex:0.6"></div><div class="val-cell"></div><div class="val-cell text-right" style="flex:0.6"><input type="number" id="sal_wi_rate" value="1.2" step="0.1" style="width:60px;text-align:right;font-size:10px;padding:4px;background:var(--input-bg);border:1px solid var(--border)" oninput="calcSalary()">%</div><div class="auto-cell text-right" id="sal_wi_r">45,600</div><div class="auto-cell text-right" id="sal_wi_t">45,600</div></div>
+      <div class="row"><div class="lbl">국민연금</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">4.75%</div><div class="auto-cell text-right" id="sal_np_e">180,500</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">4.75%</div><div class="auto-cell text-right" id="sal_np_r">180,500</div><div class="auto-cell text-right" id="sal_np_t">361,000</div></div>
+      <div class="row"><div class="lbl">건강보험</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">3.595%</div><div class="auto-cell text-right" id="sal_hi_e">136,610</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">3.595%</div><div class="auto-cell text-right" id="sal_hi_r">136,610</div><div class="auto-cell text-right" id="sal_hi_t">273,220</div></div>
+      <div class="row"><div class="lbl">장기요양보험</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">13.14%</div><div class="auto-cell text-right" id="sal_ltc_e">17,950</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">13.14%</div><div class="auto-cell text-right" id="sal_ltc_r">17,950</div><div class="auto-cell text-right" id="sal_ltc_t">35,900</div></div>
+      <div class="row"><div class="lbl">고용보험</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">0.9%</div><div class="auto-cell text-right" id="sal_ei_e">34,200</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">0.9%</div><div class="auto-cell text-right" id="sal_ei_r">34,200</div><div class="auto-cell text-right" id="sal_ei_t">68,400</div></div>
+      <div class="row"><div class="lbl">고용안정·직능(사업주)</div><div class="val-cell" style="flex:0.6"></div><div class="val-cell"></div><div class="val-cell text-right" style="flex:0.6;font-size:11px">0.25%</div><div class="auto-cell text-right" id="sal_es_r">9,500</div><div class="auto-cell text-right" id="sal_es_t">9,500</div></div>
+      <div class="row"><div class="lbl">산재보험 (사업주)</div><div class="val-cell" style="flex:0.6"></div><div class="val-cell"></div><div class="val-cell text-right" style="flex:0.6"><input type="number" id="sal_wi_rate" value="1.2" step="0.1" style="width:60px;text-align:right;font-size:11px;padding:4px;background:var(--input-bg);border:1px solid var(--border)" oninput="calcSalary()">%</div><div class="auto-cell text-right" id="sal_wi_r">45,600</div><div class="auto-cell text-right" id="sal_wi_t">45,600</div></div>
       <div class="row total-row"><div class="lbl">4대보험 소계</div><div class="val-cell" style="flex:0.6"></div><div class="auto-cell text-right" id="sal_ins_e">369,260</div><div class="val-cell" style="flex:0.6"></div><div class="auto-cell text-right" id="sal_ins_r">424,360</div><div class="auto-cell text-right" id="sal_ins_t">793,620</div></div>
     </div>
 
@@ -715,7 +718,7 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
     <div class="section-body">
       <div class="row"><div class="lbl" style="background:#E8F4FD;color:var(--blue);font-weight:800">희망 월 실수령액</div><div class="input-cell"><input type="number" id="rv_net" value="3500000" oninput="calcReverse()" style="background:#E8F4FD;border:2px solid var(--blue);font-size:14px"></div><div class="note">← 세후 금액 입력</div></div>
       <div class="row"><div class="lbl">부양가족수 (본인 포함)</div><div class="input-cell"><input type="number" id="rv_dependents" value="1" min="1" max="20" oninput="calcReverse()"></div><div class="note">간이세액표 기준</div></div>
-      <div class="row" style="background:var(--light);padding:6px 0"><div class="lbl" style="background:var(--auto-bg);font-weight:800">【 비과세 수당 】</div><div class="val-cell" style="background:var(--auto-bg);font-size:10px;color:var(--gray)">해당 항목에 금액 입력</div></div>
+      <div class="row" style="background:var(--light);padding:6px 0"><div class="lbl" style="background:var(--auto-bg);font-weight:800">【 비과세 수당 】</div><div class="val-cell" style="background:var(--auto-bg);font-size:11px;color:var(--gray)">해당 항목에 금액 입력</div></div>
       <div class="row sub-row"><div class="lbl">① 식대</div><div class="input-cell"><input type="number" id="rv_meal" value="200000" oninput="calcReverse()"></div><div class="note">월 20만원 한도</div></div>
       <div class="row sub-row"><div class="lbl">② 자가운전보조금</div><div class="input-cell"><input type="number" id="rv_car" value="0" oninput="calcReverse()"></div><div class="note">월 20만원 한도</div></div>
       <div class="row sub-row"><div class="lbl">③ 자녀보육수당</div><div class="input-cell"><input type="number" id="rv_child" value="0" oninput="calcReverse()"></div><div class="note">월 20만원 한도</div></div>
@@ -731,17 +734,17 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
 
     <div class="section-hdr"><div class="num">3</div>4대보험료 (역산 결과)</div>
     <div class="section-body">
-      <div class="row" style="font-size:10px;font-weight:700;color:var(--navy)">
+      <div class="row" style="font-size:11px;font-weight:700;color:var(--navy)">
         <div class="lbl">보험 항목</div>
         <div class="val-cell text-right" style="flex:0.6;background:var(--light)">요율</div>
         <div class="val-cell text-right" style="background:var(--light)">근로자</div>
         <div class="val-cell text-right" style="flex:0.6;background:var(--light)">요율</div>
         <div class="val-cell text-right" style="background:var(--light)">사업주</div>
       </div>
-      <div class="row"><div class="lbl">국민연금</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">4.75%</div><div class="auto-cell text-right" id="rv_np_e">0</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">4.75%</div><div class="auto-cell text-right" id="rv_np_r">0</div></div>
-      <div class="row"><div class="lbl">건강보험</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">3.595%</div><div class="auto-cell text-right" id="rv_hi_e">0</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">3.595%</div><div class="auto-cell text-right" id="rv_hi_r">0</div></div>
-      <div class="row"><div class="lbl">장기요양보험</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">13.14%</div><div class="auto-cell text-right" id="rv_ltc_e">0</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">13.14%</div><div class="auto-cell text-right" id="rv_ltc_r">0</div></div>
-      <div class="row"><div class="lbl">고용보험</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">0.9%</div><div class="auto-cell text-right" id="rv_ei_e">0</div><div class="val-cell text-right" style="flex:0.6;font-size:10px">0.9%</div><div class="auto-cell text-right" id="rv_ei_r">0</div></div>
+      <div class="row"><div class="lbl">국민연금</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">4.75%</div><div class="auto-cell text-right" id="rv_np_e">0</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">4.75%</div><div class="auto-cell text-right" id="rv_np_r">0</div></div>
+      <div class="row"><div class="lbl">건강보험</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">3.595%</div><div class="auto-cell text-right" id="rv_hi_e">0</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">3.595%</div><div class="auto-cell text-right" id="rv_hi_r">0</div></div>
+      <div class="row"><div class="lbl">장기요양보험</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">13.14%</div><div class="auto-cell text-right" id="rv_ltc_e">0</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">13.14%</div><div class="auto-cell text-right" id="rv_ltc_r">0</div></div>
+      <div class="row"><div class="lbl">고용보험</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">0.9%</div><div class="auto-cell text-right" id="rv_ei_e">0</div><div class="val-cell text-right" style="flex:0.6;font-size:11px">0.9%</div><div class="auto-cell text-right" id="rv_ei_r">0</div></div>
       <div class="row total-row"><div class="lbl">4대보험 소계 (근로자)</div><div class="val-cell" style="flex:0.6"></div><div class="auto-cell text-right" id="rv_ins_e">0</div><div class="val-cell" style="flex:0.6"></div><div class="auto-cell text-right" id="rv_ins_r">0</div></div>
     </div>
 
@@ -837,7 +840,7 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
 
     <div class="section-hdr"><div class="num">3</div>세액 계산</div>
     <div class="section-body">
-      <div class="row"><div class="lbl">적용세율</div><div class="auto-cell" id="tr_rate_desc" style="font-size:10px;color:var(--navy)">기본세율</div></div>
+      <div class="row"><div class="lbl">적용세율</div><div class="auto-cell" id="tr_rate_desc" style="font-size:11px;color:var(--navy)">기본세율</div></div>
       <div class="row"><div class="lbl">산출세액</div><div class="auto-cell" id="tr_calc_tax">0</div></div>
       <div class="row" id="tr_surcharge_row" style="display:none"><div class="lbl">중과 추가세액</div><div class="auto-cell" id="tr_surcharge" style="color:var(--red)">0</div><div class="note" id="tr_surcharge_note"></div></div>
       <div class="row"><div class="lbl">지방소득세 (10%)</div><div class="auto-cell" id="tr_local_tax">0</div></div>
@@ -923,8 +926,8 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
       <div class="row"><div class="lbl">산출세액</div><div class="auto-cell" id="inc_calc_tax">810,000</div></div>
 
       <div style="font-size:11px;font-weight:700;color:var(--blue);margin:12px 0 8px">▶ 세액공제 항목별 입력</div>
-      <div class="row sub-row"><div class="lbl">① 자녀세액공제</div><div class="input-cell" style="display:flex;align-items:center;gap:6px"><span style="font-size:10px;color:var(--gray);white-space:nowrap">자녀 수 (9~20세)</span><input type="number" id="inc_child_count" value="0" min="0" max="10" style="width:60px" oninput="calcIncome()"><span style="font-size:10px;color:var(--gray);white-space:nowrap">명 →</span><span class="auto-cell" id="inc_tc_child_auto" style="flex:1;margin:0;font-size:12px">0</span></div><div class="note">1인 25만, 2인 55만, 3인+ 55만+40만×(N-2) | 대상 연령: 9세 이상 20세 이하 (2026.4 개정)</div></div>
-      <div class="row sub-row"><div class="lbl">①-2 출산·입양</div><div class="input-cell" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap"><span style="font-size:10px;color:var(--gray)">첫째</span><input type="number" id="inc_birth_first" value="0" min="0" max="5" style="width:46px" oninput="calcIncome()"><span style="font-size:10px;color:var(--gray)">둘째</span><input type="number" id="inc_birth_second" value="0" min="0" max="5" style="width:46px" oninput="calcIncome()"><span style="font-size:10px;color:var(--gray)">셋째↑</span><input type="number" id="inc_birth_third" value="0" min="0" max="5" style="width:46px" oninput="calcIncome()"><span style="font-size:10px;color:var(--gray)">→</span><span class="auto-cell" id="inc_tc_birth_auto" style="flex:1;margin:0;font-size:12px">0</span></div><div class="note">첫째 30만 / 둘째 50만 / 셋째↑ 70만 (당해 출산·입양분)</div></div>
+      <div class="row sub-row"><div class="lbl">① 자녀세액공제</div><div class="input-cell" style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;color:var(--gray);white-space:nowrap">자녀 수 (9~20세)</span><input type="number" id="inc_child_count" value="0" min="0" max="10" style="width:60px" oninput="calcIncome()"><span style="font-size:11px;color:var(--gray);white-space:nowrap">명 →</span><span class="auto-cell" id="inc_tc_child_auto" style="flex:1;margin:0;font-size:12px">0</span></div><div class="note">1인 25만, 2인 55만, 3인+ 55만+40만×(N-2) | 대상 연령: 9세 이상 20세 이하 (2026.4 개정)</div></div>
+      <div class="row sub-row"><div class="lbl">①-2 출산·입양</div><div class="input-cell" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap"><span style="font-size:11px;color:var(--gray)">첫째</span><input type="number" id="inc_birth_first" value="0" min="0" max="5" style="width:46px" oninput="calcIncome()"><span style="font-size:11px;color:var(--gray)">둘째</span><input type="number" id="inc_birth_second" value="0" min="0" max="5" style="width:46px" oninput="calcIncome()"><span style="font-size:11px;color:var(--gray)">셋째↑</span><input type="number" id="inc_birth_third" value="0" min="0" max="5" style="width:46px" oninput="calcIncome()"><span style="font-size:11px;color:var(--gray)">→</span><span class="auto-cell" id="inc_tc_birth_auto" style="flex:1;margin:0;font-size:12px">0</span></div><div class="note">첫째 30만 / 둘째 50만 / 셋째↑ 70만 (당해 출산·입양분)</div></div>
       <div class="row sub-row"><div class="lbl">② 연금계좌세액공제</div><div class="input-cell"><input type="number" id="inc_tc_pension" value="0" oninput="calcIncome()"></div><div class="note">납입액×12~15%</div></div>
       <div class="row sub-row"><div class="lbl">③ 보험료세액공제</div><div class="input-cell"><input type="number" id="inc_tc_insurance" value="0" oninput="calcIncome()"></div><div class="note">보장성보험 12%, 장애인전용 15%</div></div>
       <div class="row sub-row"><div class="lbl">④ 의료비세액공제</div><div class="input-cell"><input type="number" id="inc_tc_medical" value="0" oninput="calcIncome()"></div><div class="note">총급여 3% 초과분×15%</div></div>
@@ -970,7 +973,7 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
 
     <div class="section-hdr" style="background:#BE185D"><div class="num">2</div>💒 혼인·출산 증여재산공제 (2024.1.1~ 시행)</div>
     <div class="section-body" style="background:#FDF2F8">
-      <div style="font-size:10px;color:#9D174D;margin-bottom:8px;line-height:1.6">
+      <div style="font-size:11px;color:#9D174D;margin-bottom:8px;line-height:1.6">
         직계존속으로부터 증여 시, 혼인신고일 전후 2년 또는 출산일로부터 2년 이내 <b>추가 1억원 공제</b><br>
         기존 5,000만원 + 혼인·출산 1억원 = <b>최대 1억 5,000만원 공제</b> (수증자 1인 기준, 10년 합산)
       </div>
@@ -980,7 +983,7 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
         <option value="childbirth">출산 공제 (출산일부터 2년)</option>
         <option value="both">혼인+출산 (한도 1억원)</option>
       </select></div></div>
-      <div class="row" id="gift_marriage_note_row" style="display:none"><div class="lbl" style="background:#FCE7F3;font-weight:400;font-size:10px">적용 조건</div><div class="auto-cell" style="background:#FDF2F8;color:#9D174D;font-size:10px" id="gift_marriage_note">-</div></div>
+      <div class="row" id="gift_marriage_note_row" style="display:none"><div class="lbl" style="background:#FCE7F3;font-weight:400;font-size:11px">적용 조건</div><div class="auto-cell" style="background:#FDF2F8;color:#9D174D;font-size:11px" id="gift_marriage_note">-</div></div>
     </div>
 
     <div class="section-hdr"><div class="num">3</div>10년 내 사전증여 합산</div>
@@ -1008,7 +1011,7 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
 
     <div class="section-hdr"><div class="num">6</div>세액 계산</div>
     <div class="section-body">
-      <div class="row"><div class="lbl">적용세율</div><div class="auto-cell" id="gift_rate_desc" style="font-size:10px;color:var(--navy)">20% (누진공제 1천만원)</div></div>
+      <div class="row"><div class="lbl">적용세율</div><div class="auto-cell" id="gift_rate_desc" style="font-size:11px;color:var(--navy)">20% (누진공제 1천만원)</div></div>
       <div class="row"><div class="lbl">산출세액</div><div class="auto-cell" id="gift_calc_tax">80,000,000</div></div>
       <div class="row" id="gift_gen_skip_row" style="display:none"><div class="lbl">(+) 세대생략 할증세액</div><div class="auto-cell" id="gift_gen_skip_tax" style="color:var(--red)">0</div></div>
       <div class="row" id="gift_prior_tax_row" style="display:none"><div class="lbl">(-) 기납부세액 공제</div><div class="auto-cell" id="gift_prior_tax_credit" style="color:var(--blue)">0</div></div>
@@ -1028,14 +1031,14 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
       <div class="section-body">
         <div style="display:flex;gap:12px;margin-bottom:8px">
           <div style="flex:1;background:#FEE2E2;border:2px solid #EF4444;border-radius:8px;padding:12px;text-align:center">
-            <div style="font-size:10px;color:#991B1B;margin-bottom:4px">혼인공제 미적용</div>
+            <div style="font-size:11px;color:#991B1B;margin-bottom:4px">혼인공제 미적용</div>
             <div style="font-size:16px;font-weight:800;color:#DC2626" id="gift_compare_without">0 원</div>
-            <div style="font-size:9px;color:#991B1B;margin-top:2px" id="gift_compare_without_ded">공제: 5천만원</div>
+            <div style="font-size:11px;color:#991B1B;margin-top:2px" id="gift_compare_without_ded">공제: 5천만원</div>
           </div>
           <div style="flex:1;background:#D1FAE5;border:2px solid #10B981;border-radius:8px;padding:12px;text-align:center">
-            <div style="font-size:10px;color:#065F46;margin-bottom:4px">혼인공제 적용 ✓</div>
+            <div style="font-size:11px;color:#065F46;margin-bottom:4px">혼인공제 적용 ✓</div>
             <div style="font-size:16px;font-weight:800;color:#059669" id="gift_compare_with">0 원</div>
-            <div style="font-size:9px;color:#065F46;margin-top:2px" id="gift_compare_with_ded">공제: 1.5억원</div>
+            <div style="font-size:11px;color:#065F46;margin-top:2px" id="gift_compare_with_ded">공제: 1.5억원</div>
           </div>
         </div>
         <div style="background:#FCE7F3;border-radius:8px;padding:10px;text-align:center">
@@ -1085,8 +1088,8 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
     <div class="section-body">
       <div class="row"><div class="lbl">산출세액</div><div class="auto-cell" id="ye_calc_tax">0</div></div>
       <div class="row"><div class="lbl">(-) 근로소득세액공제</div><div class="auto-cell" id="ye_earned_credit">0</div></div>
-      <div class="row"><div class="lbl">(-) 자녀세액공제</div><div class="input-cell" style="display:flex;align-items:center;gap:6px"><span style="font-size:10px;color:var(--gray);white-space:nowrap">자녀 수 (9~20세)</span><input type="number" id="ye_child_count" value="0" min="0" max="10" style="width:60px" oninput="calcYearend()"><span style="font-size:10px;color:var(--gray);white-space:nowrap">명 →</span><span class="auto-cell" id="ye_child_auto" style="flex:1;margin:0;font-size:12px">0</span></div><div class="note">1인 25만, 2인 55만, 3인+ 55만+40만×(N-2) | 대상 연령: 9세 이상 20세 이하 (2026.4 개정)</div></div>
-      <div class="row"><div class="lbl">(-) 출산·입양 공제</div><div class="input-cell" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap"><span style="font-size:10px;color:var(--gray)">첫째</span><input type="number" id="ye_birth_first" value="0" min="0" max="5" style="width:46px" oninput="calcYearend()"><span style="font-size:10px;color:var(--gray)">둘째</span><input type="number" id="ye_birth_second" value="0" min="0" max="5" style="width:46px" oninput="calcYearend()"><span style="font-size:10px;color:var(--gray)">셋째↑</span><input type="number" id="ye_birth_third" value="0" min="0" max="5" style="width:46px" oninput="calcYearend()"><span style="font-size:10px;color:var(--gray)">→</span><span class="auto-cell" id="ye_birth_auto" style="flex:1;margin:0;font-size:12px">0</span></div><div class="note">첫째 30만 / 둘째 50만 / 셋째↑ 70만 (당해 출산·입양)</div></div>
+      <div class="row"><div class="lbl">(-) 자녀세액공제</div><div class="input-cell" style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;color:var(--gray);white-space:nowrap">자녀 수 (9~20세)</span><input type="number" id="ye_child_count" value="0" min="0" max="10" style="width:60px" oninput="calcYearend()"><span style="font-size:11px;color:var(--gray);white-space:nowrap">명 →</span><span class="auto-cell" id="ye_child_auto" style="flex:1;margin:0;font-size:12px">0</span></div><div class="note">1인 25만, 2인 55만, 3인+ 55만+40만×(N-2) | 대상 연령: 9세 이상 20세 이하 (2026.4 개정)</div></div>
+      <div class="row"><div class="lbl">(-) 출산·입양 공제</div><div class="input-cell" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap"><span style="font-size:11px;color:var(--gray)">첫째</span><input type="number" id="ye_birth_first" value="0" min="0" max="5" style="width:46px" oninput="calcYearend()"><span style="font-size:11px;color:var(--gray)">둘째</span><input type="number" id="ye_birth_second" value="0" min="0" max="5" style="width:46px" oninput="calcYearend()"><span style="font-size:11px;color:var(--gray)">셋째↑</span><input type="number" id="ye_birth_third" value="0" min="0" max="5" style="width:46px" oninput="calcYearend()"><span style="font-size:11px;color:var(--gray)">→</span><span class="auto-cell" id="ye_birth_auto" style="flex:1;margin:0;font-size:12px">0</span></div><div class="note">첫째 30만 / 둘째 50만 / 셋째↑ 70만 (당해 출산·입양)</div></div>
       <div class="row"><div class="lbl">(-) 보험료세액공제</div><div class="input-cell"><input type="number" id="ye_ins_credit" value="0" oninput="calcYearend()"></div></div>
       <div class="row"><div class="lbl">(-) 의료비세액공제</div><div class="input-cell"><input type="number" id="ye_med_credit" value="0" oninput="calcYearend()"></div></div>
       <div class="row"><div class="lbl">(-) 교육비세액공제</div><div class="input-cell"><input type="number" id="ye_edu_credit" value="0" oninput="calcYearend()"></div></div>

@@ -98,9 +98,9 @@
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🏠 양도소득세 계산기 | 한백택스</title>
+<title>양도소득세 계산기 | 한백택스</title>
 <meta name="description" content="2026년 귀속 · 1주택 비과세·다주택 중과 반영">
-<meta property="og:title" content="🏠 양도소득세 계산기">
+<meta property="og:title" content="양도소득세 계산기">
 <meta property="og:description" content="2026년 귀속 · 1주택 비과세·다주택 중과 반영 · 세무법인 한백택스">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#1B3A5C">
@@ -200,7 +200,7 @@ body{background:var(--bg);color:#2D3748;min-height:100vh;font-size:17px}
 .sub-row .lbl{padding-left:32px;font-weight:400;font-size:15px}
 /* 근로소득자 전용 항목 표시 (사업소득자 모드일 때 비활성화) */
 .inc-worker-only.disabled{opacity:0.45;pointer-events:none;background:#F1F5F9;position:relative}
-.inc-worker-only.disabled::after{content:"⛔ 근로소득자 전용";position:absolute;right:14px;top:50%;transform:translateY(-50%);background:#94A3B8;color:#fff;font-size:10px;padding:3px 8px;border-radius:4px;font-weight:700;z-index:2}
+.inc-worker-only.disabled::after{content:"⛔ 근로소득자 전용";position:absolute;right:14px;top:50%;transform:translateY(-50%);background:#94A3B8;color:#fff;font-size:11px;padding:3px 8px;border-radius:4px;font-weight:700;z-index:2}
 .inc-worker-only.disabled input{background:#E2E8F0!important;color:#94A3B8!important}
 /* 적용값 직접입력 행 강조 */
 .apply-row .lbl{background:#E8F4FD;color:var(--blue);font-weight:800;font-size:15px}
@@ -254,7 +254,7 @@ button:active{transform:scale(0.95);transition:transform 0.1s}
   .calc-title{padding:16px}
   .section-body{padding:10px 14px 14px}
   .result-box .value{font-size:26px}
-  .mobile-bottom-nav .nav-item{font-size:10px;padding:8px 4px}
+  .mobile-bottom-nav .nav-item{font-size:11px;padding:8px 4px}
 }
 /* Mobile form touch improvements */
 @media(max-width:700px){
@@ -388,7 +388,7 @@ button:active{transform:scale(0.95);transition:transform 0.1s}
 
     <div class="section-hdr"><div class="num">3</div>세액 계산</div>
     <div class="section-body">
-      <div class="row"><div class="lbl">적용세율</div><div class="auto-cell" id="tr_rate_desc" style="font-size:10px;color:var(--navy)">기본세율</div></div>
+      <div class="row"><div class="lbl">적용세율</div><div class="auto-cell" id="tr_rate_desc" style="font-size:11px;color:var(--navy)">기본세율</div></div>
       <div class="row"><div class="lbl">산출세액</div><div class="auto-cell" id="tr_calc_tax">0</div></div>
       <div class="row" id="tr_surcharge_row" style="display:none"><div class="lbl">중과 추가세액</div><div class="auto-cell" id="tr_surcharge" style="color:var(--red)">0</div><div class="note" id="tr_surcharge_note"></div></div>
       <div class="row"><div class="lbl">지방소득세 (10%)</div><div class="auto-cell" id="tr_local_tax">0</div></div>

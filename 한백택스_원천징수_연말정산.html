@@ -111,6 +111,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="한백 원천·연말정산">
 <title>한백택스 원천징수·연말정산 시스템</title>
+<meta name="description" content="원천징수·연말정산 시스템 — 간이세액표 원천세, 연말정산, 지급명세서 전산매체 파일 작성">
 <style>
 :root{
   --bg:#f1f5f9; --card:#fff; --line:#e2e8f0; --t1:#0f172a; --t2:#64748b;
@@ -173,7 +174,7 @@ pre.out{background:#0f172a;color:#a7f3d0;font-family:Consolas,monospace;font-siz
 /* 비과세 명세 셀/모달 */
 .nt-cell{display:flex;flex-direction:column;gap:2px;align-items:flex-end}
 .nt-cell .nt-total{font-weight:800;color:var(--blue)}
-.nt-cell .nt-split{font-size:10px;color:var(--t2);font-weight:700}
+.nt-cell .nt-split{font-size:11px;color:var(--t2);font-weight:700}
 .nt-btn{border:1px dashed var(--gold);background:var(--goldbg);color:var(--gold);border-radius:6px;padding:3px 7px;font-size:11px;font-weight:700;cursor:pointer;margin-top:2px}
 .nt-btn:hover{background:#fde68a}
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100;align-items:flex-start;justify-content:center;overflow-y:auto;padding:30px 14px}
@@ -185,16 +186,16 @@ pre.out{background:#0f172a;color:#a7f3d0;font-family:Consolas,monospace;font-siz
 .modal-bd{padding:18px 20px;max-height:62vh;overflow-y:auto}
 .nt-sec-hd{display:flex;align-items:center;gap:8px;margin:14px 0 6px;font-size:13px;font-weight:800;color:var(--navy)}
 .nt-sec-hd:first-child{margin-top:0}
-.tag{display:inline-block;font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px}
+.tag{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:10px}
 .tag-rep{background:#dbeafe;color:#1d4ed8}      /* 지급명세서 기재(○) */
 .tag-non{background:#f1f5f9;color:#64748b}      /* 비기재(×) */
 .nt-item{display:grid;grid-template-columns:54px 1fr 132px 118px;gap:8px;align-items:center;padding:7px 8px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;background:#fcfcfd}
 .nt-item .code{font-family:Consolas,monospace;font-weight:800;font-size:12px;color:var(--blue);text-align:center;background:#eef2ff;border-radius:6px;padding:3px 0}
 .nt-item .nm{font-size:12px;font-weight:700;color:var(--t1);line-height:1.35}
-.nt-item .nm small{display:block;color:var(--t2);font-weight:600;font-size:10.5px}
+.nt-item .nm small{display:block;color:var(--t2);font-weight:600;font-size:11px}
 .nt-item input{width:100%;border:1px solid var(--line);border-radius:6px;padding:6px 8px;text-align:right;font-weight:700;color:var(--blue);background:var(--inbg);font-size:13px}
 .nt-item input:focus{background:var(--inact);border-color:var(--gold);outline:none}
-.nt-item .cap{font-size:10px;color:var(--t2);text-align:right;font-weight:600;white-space:nowrap}
+.nt-item .cap{font-size:11px;color:var(--t2);text-align:right;font-weight:600;white-space:nowrap}
 .nt-item .cap.over{color:var(--rose);font-weight:800}
 .nt-foot{position:sticky;bottom:0;background:#fff;border-top:2px solid var(--line);padding:14px 20px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
 .nt-foot .tots{display:flex;gap:18px;flex-wrap:wrap}
