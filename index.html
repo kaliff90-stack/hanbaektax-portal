@@ -192,6 +192,16 @@ html[data-theme="dark"] .eyebrow{color:#DCE7F3}
 /* ══ 대표 카드 ══ */
 .hcards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}
 /* 외부 바로가기(홈택스·4대사회보험 정보연계센터) — 새 창 */
+/* 무엇이 고민이신가요 — 상황 선택(의사결정 진단). 계산기 목록보다 먼저 보인다 */
+.sitwrap{margin:16px 0 18px}
+.sitwrap .st{font-size:15px;font-weight:800;color:var(--txt);margin:0 0 8px}
+.sitwrap .st small{font-weight:400;color:var(--gray);margin-left:6px;font-size:12.5px}
+.sitrow{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.sitrow a{display:block;padding:13px 15px;border-radius:12px;background:var(--card);border:1.5px solid var(--border);color:var(--txt);text-decoration:none;box-shadow:var(--sh1)}
+.sitrow a:hover{border-color:var(--gold)}
+.sitrow a b{display:block;font-size:15px;margin-bottom:3px}
+.sitrow a small{display:block;font-size:12.5px;color:var(--gray);line-height:1.5}
+.sitrow a .go{display:inline-block;margin-top:6px;font-size:12px;font-weight:800;color:var(--gold)}
 .extlinks{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
 .extlinks a{display:inline-flex;align-items:center;gap:10px;padding:10px 16px;border-radius:12px;background:var(--card);border:1.5px solid var(--border);color:var(--txt);text-decoration:none;box-shadow:var(--sh1);min-width:220px}
 .extlinks a:hover{border-color:var(--gold)}
@@ -432,8 +442,19 @@ body.is-offline .offbar{display:block}
 <section class="hero">
   <div class="hero-in">
     <span class="eyebrow">📍 대표세무사 차재영 · 서울 중구 동호로 315 신안빌딩 2층</span>
-    <h1>세금 계산, <em>바로</em> 확인하세요</h1>
-    <p>양도·증여·상속·종부세부터 연말정산·급여·비상장주식 평가까지. 최신 법령을 법제처 원문으로 확인해 반영한 세무 계산기 모음입니다.</p>
+    <h1>세금, 계산 전에 <em>판단</em>부터</h1>
+    <p>팔지, 증여할지, 그대로 둘지 — 세무사가 상담에서 먼저 묻는 순서대로 상황을 정리하고 선택지를 나란히 비교합니다. 양도·증여·상속·종부세·연말정산·급여·비상장주식 계산기는 아래에 그대로 있습니다. 모든 세율·공제는 법제처 원문으로 확인해 반영합니다.</p>
+    <div class="sitwrap" aria-label="무엇이 고민이신가요">
+      <div class="st">무엇이 고민이신가요 <small>상황을 고르면 질문 → 비교 → 실무 체크 → 상담으로 이어집니다</small></div>
+      <div class="sitrow">
+        <a href="한백택스_의사결정_진단.html?s=gift"><b>🎁 자녀·배우자에게 부동산을 증여하려 합니다</b><small>증여세·취득세, 받은 뒤 팔 때 세금(이월과세)까지</small><span class="go">진단 시작 →</span></a>
+        <a href="한백택스_의사결정_진단.html?s=sell"><b>🏠 부동산을 지금 팔지 고민입니다</b><small>양도세와, 팔지 않고 증여·상속할 때의 비교</small><span class="go">진단 시작 →</span></a>
+        <a href="한백택스_의사결정_진단.html?s=hold"><b>⏳ 상속 때까지 둘지, 미리 줄지</b><small>사전증여 10년 합산과 상속 공제, 무엇이 다른지</small><span class="go">진단 시작 →</span></a>
+        <a href="한백택스_의사결정_진단.html?s=debt"><b>🏦 대출·전세를 낀 채로 넘기려 합니다</b><small>부담부증여 — 양도세와 증여세가 함께 나옵니다</small><span class="go">진단 시작 →</span></a>
+        <a href="한백택스_세무회계_계산기모음.html"><b>🏢 법인 돈을 대표가 쓰거나 빌려야 합니다</b><small>가지급금 인정이자·급여·배당 — 계산기로 먼저 확인</small><span class="go">계산기로 →</span></a>
+        <a href="한백택스_가업상속_시뮬레이터.html"><b>📈 회사 주식을 자녀에게 넘기려 합니다</b><small>비상장주식 평가·가업상속공제 — 계산기로 먼저 확인</small><span class="go">계산기로 →</span></a>
+      </div>
+    </div>
     <div class="searchrow">
       <span class="mg" aria-hidden="true">🔍</span>
       <input type="search" class="search" id="q" placeholder="도구 검색 (예: 양도, 종부세, 실수령, ㅇㅁㅈㅅ)"
@@ -532,6 +553,7 @@ body.is-offline .offbar{display:block}
  */
 const APPS = [
   {cat:'대표 서비스', acc:'var(--a1)', items:[
+    {f:'한백택스_의사결정_진단.html', i:'🧭', t:'부동산 의사결정 진단', d:'팔까·증여할까·보유할까 — 질문 순서대로 선택지 비교', k:'진단 의사결정 증여 양도 매도 보유 상속 비교 이월과세 부담부증여 선택지 상담 판단 네비게이터', feat:true, nw:true},
     {f:'한백택스_카톡채널_포털_v3.html', i:'📱', t:'간편 세무 포털', d:'상담·계산기·자료전송·경정청구', k:'카톡 카카오 상담 채널', feat:true},
     {f:'한백택스_세무계산_포털.html', i:'🧮', t:'세무계산 포털', d:'전체 계산기 통합 메뉴', k:'통합 전체 메뉴 데스크톱', feat:true},
     {f:'한백택스_모바일.html', i:'📲', t:'모바일 포털', d:'모바일 최적화 메뉴', k:'휴대폰 폰 스마트폰', feat:true},
@@ -586,6 +608,7 @@ const APPS = [
   {cat:'사무실 내부', acc:'var(--gold)', items:[
     {f:'한백택스_업무판.html', i:'🗓️', t:'거래처 업무판 (직원용)', d:'거래처×신고 일정 자동 생성 · 담당·상태 · 자료요청·독촉 통지', k:'업무판 거래처 일정 담당자 칸반 자료요청 독촉 통지 내부 직원', nw:true},
     {f:'한백택스_데이터백업.html', i:'💾', t:'데이터 백업 · 복원 · 정리', d:'업무판·계약서·CMS 보관분 등 이 기기 저장값 백업 · 새 PC 복원 · 공용 PC 개인정보 정리', k:'백업 복원 데이터 이전 새PC 공용PC 초기화 개인정보 삭제 localStorage 저장', nw:true},
+    {f:'한백택스_상담사례_기록.html', i:'🧠', t:'상담 사례 기록 (직원용)', d:'질문 순서·쟁점·놓치기 쉬운 점을 익명화해 축적 · 판단 규칙 내보내기', k:'상담 사례 기록 판단 규칙 실무노트 경험 지식 익명화 내부 직원', nw:true},
     {f:'한백택스_세무계산_포털.html?page=board', i:'🧰', t:'내부 업무 탭 (세무계산 포털)', d:'업무판 + 급여·전산매체·자료 변환 도구 모음', k:'내부 업무 직원 도구 모음 탭 포털'},
   ]},
 ];

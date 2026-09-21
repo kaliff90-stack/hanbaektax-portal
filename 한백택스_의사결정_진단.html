@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>한백택스 의사결정 진단 — 부동산 증여 · 양도 · 보유 · 상속 비교</title>
+<meta name="description" content="계산 전에 판단부터. 부동산을 팔지, 증여할지, 계속 보유할지 세무사의 질문 순서대로 상황을 정리하고 선택지별 세금·필요 현금·위험을 나란히 비교합니다.">
+<!--
+  세무법인 한백택스 의사결정 진단 v1 (2026-09-21) — 첫 Navigator: 부동산 증여·양도
+  방향: 「한백택스 서비스 방향 검토안」(장철구, 2026-09-21) — 질문 → 상황 파악 → 계산 → 대안 비교 → 실무 체크 → 전문가 상담.
+  구조: 계산은 script#hbEngine 블록의 순수 함수(화면과 분리, 같은 입력 = 같은 결과). scripts/tests/test_navigator.js 가
+        이 블록만 꺼내 Golden Case(손계산 기대값)와 대조한다. 기대값이 하나라도 깨지면 배포하지 않는다.
+  근거(2026-09-21 K-Law MCP 확인): 상증법 §13·§19·§21·§26·§47·§53·§53의2·§57·§60·§69, 소득세법 §55·§95·§97의2·§101·§103·§104,
+        소득세법 시행령 §156·§160·§163의2, 지방세법 §10의2·§11·§13의2, 지방세법 시행령 §28의6.
+  한계: 추정치다. 다주택 판정·비과세 요건·시가 평가·감면은 사실관계에 따라 달라지므로 결과는 「무엇이 달라지는지」를 보여 주는 데 그친다.
+  입력은 이 브라우저(localStorage hbt_navi_v1)에만 저장되고, 「상담 요청」을 누를 때만 요약이 사무소로 전송된다.
+-->
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1B3A5C;--gold:#C8963E;--blue:#2F5D8A;--bg:#F4F6F9;--line:#DCE3EC;--gray:#6B7A8C;--red:#B91C1C;--amber:#92400E;--green:#166534}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:15px;line-height:1.6}
+.top{background:#fff;border-bottom:2px solid var(--gold);padding:14px 20px}
+.top .in{max-width:1080px;margin:0 auto}
+.top h1{margin:0;font-size:21px;color:var(--navy)}
+.top .motto{display:inline-block;background:var(--navy);color:#fff;font-weight:800;border-radius:999px;padding:3px 12px;font-size:12px;margin-bottom:6px;letter-spacing:.5px}
+.top .sub{color:var(--gray);font-size:13px;margin-top:4px}
+.wrap{max-width:1080px;margin:0 auto;padding:16px 20px 60px}
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+.steps button{flex:1;min-width:120px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 8px;font:inherit;font-size:13px;font-weight:800;color:var(--gray);cursor:pointer}
+.steps button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.steps button.done{color:var(--navy);border-color:var(--gold)}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:14px}
+.card h2{margin:0 0 4px;font-size:17px;color:var(--navy)}
+.card .lead{color:var(--gray);font-size:13px;margin:0 0 14px}
+.sit{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.sit button{text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:14px;font:inherit;cursor:pointer;color:#111}
+.sit button b{display:block;color:var(--navy);font-size:15px;margin-bottom:4px}
+.sit button span{font-size:12.5px;color:var(--gray)}
+.sit button.on{border-color:var(--gold);background:#fffdf7;box-shadow:0 0 0 2px #C8963E33}
+.q{padding:12px 0;border-top:1px dashed var(--line)}
+.q:first-of-type{border-top:none;padding-top:0}
+.q label.t{display:block;font-weight:800;color:#111;margin-bottom:3px}
+.q .why{font-size:12.5px;color:var(--blue);background:#F1F6FB;border-left:3px solid var(--blue);padding:5px 9px;border-radius:0 6px 6px 0;margin:4px 0 8px}
+.q .why b{color:var(--navy)}
+.q input[type=text],.q input[type=date],.q input[type=number],.q select{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:9px;width:100%;max-width:340px;background:#fff}
+.q input.money{text-align:right}
+.q .unit{font-size:12.5px;color:var(--gray);margin-left:8px}
+.opts{display:flex;gap:6px;flex-wrap:wrap}
+.opts label{border:1px solid var(--line);border-radius:999px;padding:7px 13px;cursor:pointer;font-size:13.5px;background:#fff}
+.opts input{display:none}
+.opts label.on{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:800}
+.navbtn{display:flex;gap:8px;justify-content:space-between;margin-top:14px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 18px;font:inherit;font-weight:800;cursor:pointer;color:var(--navy)}
+.btn.p{background:var(--gold);color:#fff;border-color:var(--gold)}
+.btn.n{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn.sm{padding:6px 11px;font-size:12.5px}
+.summary{font-size:15px;line-height:1.85;background:#fffdf7;border:1px solid #ecd9b0;border-radius:10px;padding:12px 14px}
+.cmp{width:100%;border-collapse:collapse;font-size:13.5px}
+.cmp th,.cmp td{border:1px solid var(--line);padding:9px 10px;vertical-align:top;text-align:left}
+.cmp thead th{background:var(--navy);color:#fff;text-align:center;font-size:14px}
+.cmp tbody th{background:#F1F4F8;color:var(--navy);white-space:nowrap;width:118px}
+.cmp td.num{text-align:right;font-weight:800;white-space:nowrap}
+.cmp td small{display:block;font-weight:400;color:var(--gray);white-space:normal;text-align:left;margin-top:3px}
+.cmp .big{font-size:16px;color:var(--navy)}
+.scroll{overflow-x:auto}
+.flag{display:flex;gap:9px;align-items:flex-start;border:1px solid #fca5a5;background:#fef2f2;color:#7f1d1d;border-radius:10px;padding:9px 12px;margin-bottom:7px;font-size:13.5px}
+.flag.warn{border-color:#fcd34d;background:#fffbeb;color:#78350f}
+.flag b{white-space:nowrap}
+.chk{border-left:4px solid var(--gold);background:#fff;border-radius:0 10px 10px 0;padding:9px 13px;margin-bottom:8px;border-top:1px solid var(--line);border-right:1px solid var(--line);border-bottom:1px solid var(--line);font-size:13.5px}
+.chk b{color:var(--navy)}
+.chk .law{display:block;color:var(--gray);font-size:12px;margin-top:2px}
+details.det{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:7px;background:#fafbfd}
+details.det summary{cursor:pointer;font-weight:800;color:var(--navy)}
+details.det table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+details.det td{border-bottom:1px solid var(--line);padding:5px 4px}
+details.det td:last-child{text-align:right;white-space:nowrap;font-weight:700}
+.basis{font-size:12.5px;color:var(--gray);line-height:1.8}
+.consult .row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.consult input,.consult textarea{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:9px;width:100%}
+.consult textarea{min-height:70px;margin-top:8px}
+.consult label.c{display:flex;gap:7px;align-items:flex-start;font-size:13px;margin:8px 0}
+.consult label.c input{width:auto;flex:0 0 auto;margin-top:4px}
+.links{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.links a{font-size:12.5px;font-weight:700;color:var(--blue);border:1px solid var(--line);border-radius:999px;padding:5px 11px;text-decoration:none;background:#fff}
+.hidden{display:none!important}
+@media(max-width:700px){
+  .wrap{padding:12px 12px 70px}.top{padding:12px}.top h1{font-size:18px}
+  .card{padding:14px}.consult .row{grid-template-columns:1fr}
+  .steps button{min-width:0;font-size:12px;padding:8px 4px}
+  .cmp{font-size:12.5px}.cmp tbody th{width:84px;white-space:normal}
+}
+@media print{
+  .top .sub,.steps,.navbtn,.consult,.nopr,#stepBox{display:none!important}
+  html,body{background:#fff}.card{border:none;padding:0 0 10px}
+  .wrap{padding:0;max-width:none}
+}
+</style>
+</head>
+<body>
+<!-- HB-HOME v1 -->
+<script>
+/* 한백택스 홈 바 — 생성기: 02-도구 & 스크립트/Python 스크립트/홈바_주입.py
+   이 블록은 자동 생성이다. 직접 고치지 말고 생성기를 고쳐 다시 실행한다. */
+(function(){
+  if (window.self !== window.top) return;          /* 포털 iframe 안에서는 부모의 바를 쓴다 */
+  if (window.__hbHome) return;
+  window.__hbHome = 1;
+  var me = decodeURIComponent((location.pathname.split('/').pop() || '').toLowerCase());
+  var host = document.createElement('div');
+  host.id = 'hbHome';
+  host.setAttribute('data-nogate', '1');
+  host.style.cssText = 'display:block;position:sticky;top:0;z-index:2147483000;margin:0;padding:0;line-height:0';
+  var links = [
+    ['한백택스_세무계산_포털.html', '세무계산 포털'],
+    ['한백택스_모바일.html', '모바일 포털']
+  ].filter(function(l){ return l[0].toLowerCase() !== me; });
+  var sh = host.attachShadow({ mode: 'open' });
+  sh.innerHTML =
+    '<style>' +
+    ':host{all:initial;display:block}' +
+    '.bar{box-sizing:border-box;display:flex;align-items:center;gap:10px;height:42px;padding:0 16px;' +
+      'background:#fff;border-bottom:2px solid #C8963E;box-shadow:0 2px 8px rgba(15,36,64,.08);' +
+      'font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:13px;line-height:1;color:#1B3A5C}' +
+    '.home{display:inline-flex;align-items:center;gap:6px;background:#C8963E;color:#fff;font-weight:800;' +
+      'padding:7px 13px;border-radius:999px;text-decoration:none;white-space:nowrap;letter-spacing:-.2px}' +
+    '.home:hover{background:#b8862f}' +
+    '.ttl{font-weight:700;color:#1B3A5C;white-space:nowrap;opacity:.85}' +
+    '.sp{flex:1}' +
+    '.lnk{color:#35507A;font-weight:700;text-decoration:none;padding:6px 10px;border:1px solid #DCE5F0;border-radius:999px;white-space:nowrap;background:#F5F8FC}' +
+    '.lnk:hover{border-color:#C8963E;color:#1B3A5C}' +
+    '@media(max-width:640px){.bar{padding:0 10px;gap:6px;height:40px}.ttl{display:none}.lnk{padding:6px 8px;font-size:12px}}' +
+    '@media print{.bar{display:none}}' +
+    '</style>' +
+    '<div class="bar">' +
+      '<a class="home" href="index.html" title="한백택스 세무 도구 모음(메인 화면)으로">&#8592; 메인 화면</a>' +
+      '<span class="ttl">세무법인 한백택스 · 세무 도구</span>' +
+      '<span class="sp"></span>' +
+      links.map(function(l){ return '<a class="lnk" href="' + l[0] + '">' + l[1] + '</a>'; }).join('') +
+    '</div>';
+  var s = document.currentScript;
+  if (s && s.parentNode) s.parentNode.insertBefore(host, s);
+  else document.body.insertBefore(host, document.body.firstChild);
+})();
+</script>
+<!-- /HB-HOME -->
+
+<div class="top"><div class="in">
+  <span class="motto">계산 전에 판단부터</span>
+  <h1>부동산 의사결정 진단 — 팔까, 증여할까, 계속 보유할까</h1>
+  <div class="sub">세무사가 상담에서 먼저 묻는 순서대로 상황을 정리하고, 선택지별 세금·필요 현금·위험을 나란히 보여 드립니다. 어느 쪽이 「정답」이라고 결론 내리지 않습니다. 무엇이 달라지고 무엇을 더 확인해야 하는지가 결과입니다.</div>
+</div></div>
+
+<div class="wrap">
+  <div class="steps" id="stepBox">
+    <button type="button" data-step="0">① 무엇이 고민이신가요</button>
+    <button type="button" data-step="1">② 부동산</button>
+    <button type="button" data-step="2">③ 지금 가진 분</button>
+    <button type="button" data-step="3">④ 받을 분 · 계획</button>
+    <button type="button" data-step="4">⑤ 진단 결과</button>
+  </div>
+
+  <!-- ① 상황 -->
+  <div class="card step" data-step="0">
+    <h2>무엇이 고민이신가요</h2>
+    <p class="lead">가장 가까운 것을 고르십시오. 질문은 같고, 결과에서 강조하는 부분이 달라집니다.</p>
+    <div class="sit" id="sitBox">
+      <button type="button" data-v="gift"><b>자녀·배우자에게 증여하려 합니다</b><span>증여세·취득세, 받은 뒤 팔 때의 세금까지</span></button>
+      <button type="button" data-v="sell"><b>지금 팔지 고민입니다</b><span>양도세, 팔지 않고 증여·상속하는 경우와 비교</span></button>
+      <button type="button" data-v="hold"><b>상속 때까지 그냥 둘지 고민입니다</b><span>사전증여와 상속, 어느 쪽이 무엇이 다른지</span></button>
+      <button type="button" data-v="debt"><b>대출·전세를 낀 채로 넘기려 합니다</b><span>부담부증여 — 양도세와 증여세가 함께 나옵니다</span></button>
+    </div>
+    <div class="navbtn"><span></span><button type="button" class="btn n" onclick="go(1)">다음 — 부동산 확인 ▶</button></div>
+  </div>
+
+  <!-- ② 부동산 -->
+  <div class="card step hidden" data-step="1">
+    <h2>어떤 부동산입니까</h2>
+    <p class="lead">세금은 「얼마짜리를, 얼마에 사서, 언제부터 갖고 있었나」에서 출발합니다.</p>
+    <div class="q"><label class="t">종류</label>
+      <div class="opts" data-k="kind"><label><input type="radio" value="house">주택(아파트 포함)</label><label><input type="radio" value="bldg">상가·건물</label><label><input type="radio" value="land">토지</label></div></div>
+    <div class="q"><label class="t">지금 시가</label>
+      <div class="why"><b>왜 먼저 묻나</b> 증여세·상속세는 「시가」로 매깁니다(상증법 §60). 아파트는 같은 단지 비슷한 집의 최근 거래가(매매사례가액)가 시가가 되는 일이 많아, 공시가격으로 신고했다가 추징되는 경우가 잦습니다.</div>
+      <input type="text" class="money" data-k="value" inputmode="numeric" placeholder="예: 1,200,000,000"><span class="unit" data-u="value"></span></div>
+    <div class="q"><label class="t">그 시가는 어떻게 아셨습니까</label>
+      <div class="opts" data-k="valueSrc"><label><input type="radio" value="trade">최근 실거래·매매사례</label><label><input type="radio" value="appraisal">감정평가</label><label><input type="radio" value="public">공시가격만 앎</label><label><input type="radio" value="unknown">잘 모름</label></div></div>
+    <div class="q"><label class="t">공시가격(시가표준액)</label>
+      <div class="why"><b>왜 묻나</b> 조정대상지역의 공시가격 3억원 이상 주택을 증여받으면 취득세가 3.5%가 아니라 12%입니다(지방세법 §13의2 ②, 령 §28의6). 상속 취득세도 공시가격이 기준입니다.</div>
+      <input type="text" class="money" data-k="std" inputmode="numeric" placeholder="예: 800,000,000"><span class="unit" data-u="std"></span></div>
+    <div class="q"><label class="t">조정대상지역에 있습니까</label>
+      <div class="opts" data-k="adj"><label><input type="radio" value="y">예</label><label><input type="radio" value="n">아니오</label><label><input type="radio" value="u">모름</label></div></div>
+    <div class="q"><label class="t">취득가액 <span class="unit">(살 때 값)</span></label>
+      <input type="text" class="money" data-k="acq" inputmode="numeric" placeholder="예: 400,000,000"><span class="unit" data-u="acq"></span></div>
+    <div class="q"><label class="t">취득일</label>
+      <div class="why"><b>왜 묻나</b> 보유기간이 장기보유특별공제율(3년 이상 6%~최대 30%, 1세대1주택은 최대 80%)과 단기 양도 세율(2년 미만 60·70%)을 가릅니다(소득세법 §95·§104).</div>
+      <input type="date" data-k="acqDate"></div>
+    <div class="q"><label class="t">취득세·중개수수료·자본적 지출 등 필요경비</label>
+      <input type="text" class="money" data-k="exp" inputmode="numeric" placeholder="예: 20,000,000"><span class="unit" data-u="exp"></span></div>
+    <div class="q"><label class="t">이 부동산에 걸린 대출·전세보증금</label>
+      <div class="why"><b>왜 묻나</b> 채무를 함께 넘기면(부담부증여) 그 채무만큼은 「판 것」으로 보아 증여자에게 양도세가 나오고, 나머지만 증여세 대상입니다(상증법 §47, 소득세법 §88).</div>
+      <input type="text" class="money" data-k="debt" inputmode="numeric" placeholder="없으면 0"><span class="unit" data-u="debt"></span></div>
+    <div class="navbtn"><button type="button" class="btn" onclick="go(0)">◀ 이전</button><button type="button" class="btn n" onclick="go(2)">다음 — 지금 가진 분 ▶</button></div>
+  </div>
+
+  <!-- ③ 보유자 -->
+  <div class="card step hidden" data-step="2">
+    <h2>지금 이 부동산을 가진 분</h2>
+    <p class="lead">같은 부동산이라도 가진 사람의 세대 구성에 따라 양도세가 0원일 수도, 절반 가까이일 수도 있습니다.</p>
+    <div class="q"><label class="t">세대 전체의 주택 수 <span class="unit">(이 주택 포함)</span></label>
+      <div class="why"><b>왜 묻나</b> 조정대상지역 2주택은 기본세율 +20%p, 3주택 이상은 +30%p이고 장기보유특별공제도 없습니다(소득세법 §104 ⑦·§95 ②). 중과 유예는 2026.5.9.로 끝났습니다.</div>
+      <div class="opts" data-k="donorHouses"><label><input type="radio" value="1">1채</label><label><input type="radio" value="2">2채</label><label><input type="radio" value="3">3채 이상</label><label><input type="radio" value="0">주택 아님</label></div></div>
+    <div class="q"><label class="t">1세대 1주택 비과세 요건을 갖췄습니까 <span class="unit">(2년 이상 보유, 취득 당시 조정대상지역이면 2년 이상 거주)</span></label>
+      <div class="opts" data-k="exemptOK"><label><input type="radio" value="y">예</label><label><input type="radio" value="n">아니오</label><label><input type="radio" value="u">모름</label></div></div>
+    <div class="q"><label class="t">실제 거주한 기간 <span class="unit">(년)</span></label>
+      <input type="number" data-k="reside" min="0" max="60" step="1" placeholder="예: 10"></div>
+    <div class="q"><label class="t">가진 분의 나이</label>
+      <div class="why"><b>왜 묻나</b> 증여 후 10년 안에 상속이 열리면 그 증여재산은 상속재산에 다시 합산됩니다(상증법 §13 ①). 연세가 많을수록 「증여해 두면 빠진다」는 기대가 어긋날 수 있습니다.</div>
+      <input type="number" data-k="donorAge" min="20" max="110" placeholder="예: 72"></div>
+    <div class="q"><label class="t">배우자가 계십니까</label>
+      <div class="opts" data-k="spouseAlive"><label><input type="radio" value="y">예</label><label><input type="radio" value="n">아니오</label></div></div>
+    <div class="q"><label class="t">이 부동산 말고 다른 재산의 대략적인 합계 <span class="unit">(예금·다른 부동산·주식, 빚은 빼고)</span></label>
+      <div class="why"><b>왜 묻나</b> 상속세는 재산 전체에 매깁니다. 전체가 일괄공제 5억원과 배우자공제(최소 5억원) 안이면 상속 쪽이 세금이 없을 수 있습니다(상증법 §19·§21).</div>
+      <input type="text" class="money" data-k="otherEstate" inputmode="numeric" placeholder="예: 500,000,000"><span class="unit" data-u="otherEstate"></span></div>
+    <div class="navbtn"><button type="button" class="btn" onclick="go(1)">◀ 이전</button><button type="button" class="btn n" onclick="go(3)">다음 — 받을 분 · 계획 ▶</button></div>
+  </div>
+
+  <!-- ④ 수증자·계획 -->
+  <div class="card step hidden" data-step="3">
+    <h2>받을 분과 앞으로의 계획</h2>
+    <p class="lead">증여세는 받는 사람이 냅니다. 누구에게, 그동안 얼마를 줬는지가 공제와 세율을 정합니다.</p>
+    <div class="q"><label class="t">받을 분은 누구입니까</label>
+      <div class="opts" data-k="rel"><label><input type="radio" value="child">자녀</label><label><input type="radio" value="grandchild">손자녀</label><label><input type="radio" value="spouse">배우자</label><label><input type="radio" value="relative">그 밖의 친족</label></div>
+      <div class="why" style="margin-top:8px"><b>공제</b> 배우자 6억원, 성년 자녀·손자녀 5천만원(미성년 2천만원), 그 밖의 친족 1천만원 — 10년 합산(상증법 §53). 손자녀는 세액의 30%가 할증됩니다(§57).</div></div>
+    <div class="q"><label class="t">미성년자입니까</label>
+      <div class="opts" data-k="minor"><label><input type="radio" value="n">성년</label><label><input type="radio" value="y">미성년</label></div></div>
+    <div class="q"><label class="t">최근 10년 안에 같은 분(부부 포함)에게서 받은 증여 합계</label>
+      <div class="why"><b>왜 묻나</b> 10년 안의 증여는 합쳐서 누진세율을 매깁니다(상증법 §47 ②). 이미 공제를 썼다면 이번에는 공제가 없습니다.</div>
+      <input type="text" class="money" data-k="prior" inputmode="numeric" placeholder="없으면 0"><span class="unit" data-u="prior"></span></div>
+    <div class="q"><label class="t">혼인·출산 증여재산 공제로 쓸 수 있는 금액 <span class="unit">(혼인신고 전후 2년·출생 후 2년 이내, 합계 1억원 한도)</span></label>
+      <input type="text" class="money" data-k="marriage" inputmode="numeric" placeholder="해당 없으면 0"><span class="unit" data-u="marriage"></span></div>
+    <div class="q"><label class="t">받을 분이 증여세·취득세를 낼 현금이 있습니까</label>
+      <div class="why"><b>왜 묻나</b> 부모가 세금을 대신 내 주면 그 돈도 다시 증여입니다. 세금에 세금이 붙어 부담이 커집니다.</div>
+      <div class="opts" data-k="cash"><label><input type="radio" value="y">있다</label><label><input type="radio" value="n">없다 — 주는 분이 대신 낼 예정</label></div></div>
+    <div class="q"><label class="t">받은 뒤 팔 계획이 있습니까</label>
+      <div class="why"><b>왜 묻나 — 가장 자주 놓치는 부분</b> 배우자·자녀가 증여받고 10년 안에 팔면, 양도세는 준 사람이 처음 산 값으로 계산합니다(이월과세, 소득세법 §97의2). 「증여로 취득가액을 올려 양도세를 줄인다」는 계획은 10년을 넘겨야 성립합니다.</div>
+      <div class="opts" data-k="plan"><label><input type="radio" value="none">팔 계획 없음</label><label><input type="radio" value="in10">10년 안에 팔 수 있음</label><label><input type="radio" value="after10">10년 넘게 보유</label></div></div>
+    <div class="q"><label class="t">팔 때까지 예상 기간과 예상 매도가</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input type="number" data-k="planYears" min="0" max="40" placeholder="몇 년 뒤" style="max-width:120px"><span class="unit">년 뒤</span>
+      <input type="text" class="money" data-k="futurePrice" inputmode="numeric" placeholder="예상 매도가"><span class="unit" data-u="futurePrice"></span></div></div>
+    <div class="navbtn"><button type="button" class="btn" onclick="go(2)">◀ 이전</button><button type="button" class="btn p" onclick="go(4)">진단 결과 보기 ▶</button></div>
+  </div>
+
+  <!-- ⑤ 결과 -->
+  <div class="step hidden" data-step="4" id="resultBox">
+    <div class="card"><h2>나의 상황</h2><div class="summary" id="rSummary"></div>
+      <div class="navbtn nopr"><button type="button" class="btn sm" onclick="go(1)">✏ 입력 고치기</button><span><button type="button" class="btn sm" onclick="fillSample()">예시 넣기</button> <button type="button" class="btn sm" onclick="window.print()">🖨 인쇄 · PDF</button></span></div></div>
+    <div class="card"><h2>전문가 검토가 필요한 이유</h2><p class="lead">아래에 해당하면 자동 계산만으로 결정하지 마십시오. 사실관계에 따라 결론이 달라집니다.</p><div id="rFlags"></div></div>
+    <div class="card"><h2>선택지 비교</h2><p class="lead">같은 부동산, 같은 오늘을 기준으로 한 추정입니다. 「지금 내는 세금」과 「나중에 예상되는 세금」을 나눠 보십시오.</p>
+      <div class="scroll"><table class="cmp" id="rCmp"></table></div>
+      <div id="rDetail" style="margin-top:12px"></div></div>
+    <div class="card"><h2>반드시 확인할 사항</h2><div id="rMust"></div></div>
+    <div class="card"><h2>세무사의 실무 체크</h2><p class="lead">상담에서 먼저 보는 부분과 자주 놓치는 문제입니다.</p><div id="rChecks"></div></div>
+    <div class="card"><h2>근거와 기준일</h2><div class="basis" id="rBasis"></div>
+      <div class="links nopr"><a href="한백택스_증여세_계산기.html">증여세 계산기</a><a href="2026_양도소득세_계산기.html">양도세 — 다주택·분양권</a><a href="한백택스_부담부증여_계산기.html">부담부증여 계산기</a><a href="한백택스_증여세대납_계산기.html">증여세 대납 계산기</a><a href="한백택스_취득세_종합부동산세_계산기_v2.html">취득세·종부세 계산기</a><a href="한백택스_상속세_계산기.html">상속세 계산기</a></div></div>
+    <div class="card consult nopr"><h2>전문가 검토 요청</h2><p class="lead">위 진단 요약이 그대로 세무법인 한백택스에 전달됩니다. 같은 질문을 다시 받지 않고 이어서 상담합니다.</p>
+      <div class="row"><input id="cName" placeholder="성함"><input id="cPhone" placeholder="연락처" inputmode="tel"><input id="cEmail" placeholder="이메일(선택)" inputmode="email"></div>
+      <textarea id="cMemo" placeholder="더 알리고 싶은 사정 (선택)"></textarea>
+      <label class="c"><input type="checkbox" id="cAgree"><span>상담 목적으로 위 입력 요약과 연락처를 세무법인 한백택스에 보내는 데 동의합니다. (<a href="한백택스_개인정보처리방침.html" target="_blank" rel="noopener">개인정보처리방침</a>)</span></label>
+      <button type="button" class="btn p" id="cBtn" onclick="sendConsult()">📨 진단 결과로 상담 요청</button>
+      <span class="unit">전화 02-2277-3101</span>
+      <div id="cStatus" class="unit" style="display:block;margin:8px 0 0"></div></div>
+  </div>
+</div>
+
+<!-- ═══════════ 계산 엔진 — 화면과 분리된 순수 함수. scripts/tests/test_navigator.js 가 이 블록만 꺼내 Golden Case 로 검증한다 ═══════════ -->
+<script id="hbEngine">
+(function(root){
+'use strict';
+const BASIS={asOf:'2026-09-21',note:'2026년 9월 현재 시행 법령. 다주택 양도세 중과 유예 종료(2026.5.9.) 반영.'};
+/* 누진표: [상한, 세율, 누진 기초세액, 하한] */
+const INCOME=[[14e6,.06,0,0],[50e6,.15,84e4,14e6],[88e6,.24,624e4,50e6],[150e6,.35,1536e4,88e6],[300e6,.38,3706e4,150e6],[500e6,.40,9406e4,300e6],[1000e6,.42,17406e4,500e6],[Infinity,.45,38406e4,1000e6]];   /* 소득세법 §55 ① */
+const GIFT=[[1e8,.10,0,0],[5e8,.20,1e7,1e8],[10e8,.30,9e7,5e8],[30e8,.40,24e7,10e8],[Infinity,.50,104e7,30e8]];                                                              /* 상증법 §26(§56 준용) */
+function prog(base,T){base=Math.max(0,base);for(const [up,r,b,lo] of T){if(base<=up)return Math.floor(b+(base-lo)*r);}return 0;}
+const incomeTax=b=>prog(b,INCOME), giftRaw=b=>prog(b,GIFT);
+const HIGH=12e8;                                   /* 고가주택 기준 — 소득세법 시행령 §156 */
+const yearsBetween=(a,b)=>{const d1=new Date(a+'T00:00:00'),d2=new Date(b+'T00:00:00');if(isNaN(d1)||isNaN(d2))return 0;let y=d2.getFullYear()-d1.getFullYear();const m=d2.getMonth()-d1.getMonth();if(m<0||(m===0&&d2.getDate()<d1.getDate()))y--;const anniv=new Date(d1);anniv.setFullYear(d1.getFullYear()+y);return Math.max(0,y+(d2-anniv)/(365.25*864e5));};
+/* 장기보유특별공제율 — 소득세법 §95 ② 표1·표2 */
+function ltdRate(hold,oneHouse,reside){
+  const h=Math.floor(hold),r=Math.floor(reside||0);
+  if(h<3)return 0;
+  if(oneHouse&&r>=2){const hp=Math.min(.40,h*.04);const rp=r>=3?Math.min(.40,r*.04):.08;return hp+rp;}
+  return Math.min(.30,.06+(h-3)*.02);
+}
+/* 양도소득세 — o:{price,acq,exp,hold,reside,isHouse,exempt,heavy(0|2|3),extraExp} */
+function capGains(o){
+  const price=+o.price||0,acq=+o.acq||0,exp=+o.exp||0;
+  const room=Math.max(0,price-acq-exp);
+  const extra=Math.min(+o.extraExp||0,room);                 /* 증여세 상당액 한도 — 령 §163의2 ② 후단 */
+  let gain=room-extra,ratio=1,note='';
+  if(o.exempt){
+    if(price<=HIGH)return {gain:room,taxableGain:0,ltd:0,base:0,tax:0,local:0,total:0,ltdRate:0,note:'1세대 1주택 비과세(양도가액 12억원 이하)',exemptAll:true};
+    ratio=(price-HIGH)/price;gain=gain*ratio;note='1세대 1주택 고가주택 — 12억원 초과분만 과세(령 §160)';
+  }
+  const heavy=(o.isHouse&&!o.exempt)?(+o.heavy||0):0;
+  const lr=heavy?0:ltdRate(o.hold||0,!!o.exempt,o.reside||0);
+  const ltd=Math.floor(gain*lr);
+  const base=Math.max(0,Math.floor(gain)-ltd-25e5);         /* 기본공제 250만원 — §103 */
+  let tax=incomeTax(base)+(heavy?Math.floor(base*(heavy===3?.30:.20)):0);
+  let shortRate=0;const hd=o.hold||0;
+  if(hd<1)shortRate=o.isHouse?.70:.50;else if(hd<2)shortRate=o.isHouse?.60:.40;
+  if(shortRate){const st=Math.floor(base*shortRate);if(st>tax){tax=st;note=(note?note+' · ':'')+'단기 양도 세율 '+Math.round(shortRate*100)+'%';}}
+  if(heavy)note=(note?note+' · ':'')+'조정대상지역 '+(heavy===3?'3주택 이상 +30%p':'2주택 +20%p')+' 중과, 장기보유특별공제 배제';
+  const local=Math.floor(tax*.1);
+  return {gain:room,taxableGain:Math.floor(gain),ltd,ltdRate:lr,base,tax,local,total:tax+local,note,heavy,exemptAll:false};
+}
+/* 증여세 — o:{value,debt,rel('spouse'|'child'|'grandchild'|'relative'|'other'),minor,prior,marriage} */
+function giftTax(o){
+  const cap=o.rel==='spouse'?6e8:(o.rel==='child'||o.rel==='grandchild')?(o.minor?2e7:5e7):o.rel==='relative'?1e7:0;   /* §53 */
+  const net=Math.max(0,(+o.value||0)-(+o.debt||0));
+  let prior=+o.prior||0;if(prior<1e7)prior=0;                /* 합산은 1천만원 이상일 때 — §47 ② */
+  const mar=(o.rel==='child'||o.rel==='grandchild')?Math.min(+o.marriage||0,1e8):0;     /* §53의2 */
+  const baseAll=Math.max(0,prior+net-cap-mar);
+  const basePrior=Math.max(0,prior-cap);
+  const calc=Math.max(0,giftRaw(baseAll)-giftRaw(basePrior));   /* 기납부 증여세 산출세액 공제 — §58 */
+  const skip=o.rel==='grandchild';
+  const surcharge=skip?Math.floor(calc*((o.minor&&net>20e8)?.40:.30)):0;   /* §57 */
+  const computed=calc+surcharge;
+  const credit=Math.floor(computed*.03);                      /* 신고세액공제 3% — §69 ② */
+  return {cap,marriage:mar,net,base:baseAll-basePrior,baseAll,calc,surcharge,computed,credit,pay:computed-credit};
+}
+/* 증여 취득세(본세) — 지방세법 §11 ① 2호·§13의2 ②, 령 §28의6 */
+function acqTaxGift(o){
+  const lineal=o.rel==='spouse'||o.rel==='child'||o.rel==='grandchild';
+  const heavy=!!(o.isHouse&&o.adj&&(+o.std||0)>=3e8&&!(o.donorOneHouse&&lineal));
+  const rate=heavy?.12:.035;
+  return {rate,heavy,tax:Math.floor((+o.value||0)*rate)};
+}
+/* 상속세(거친 추정) — 일괄공제 5억원 + 배우자공제 최소 5억원, 신고세액공제 3% */
+function inheritTax(o){
+  const estate=Math.max(0,+o.estate||0);
+  const ded=5e8+(o.spouse?5e8:0);
+  const base=Math.max(0,estate-ded);
+  const calc=giftRaw(base),credit=Math.floor(calc*.03);
+  return {estate,ded,base,calc,credit,pay:calc-credit};
+}
+/* 진단 — 입력 하나로 선택지 전부 계산 */
+function diagnose(i,today){
+  today=today||new Date().toISOString().slice(0,10);
+  const isHouse=i.kind==='house',adj=i.adj==='y';
+  const value=+i.value||0,debt=Math.min(+i.debt||0,value);
+  const hold=i.acqDate?yearsBetween(i.acqDate,today):0;
+  const exempt=isHouse&&i.exemptOK==='y';
+  const dh=+i.donorHouses||0;
+  const heavy=(isHouse&&adj&&!exempt&&dh>=2)?(dh>=3?3:2):0;
+  const out={today,hold,heavy,isHouse,exempt};
+  /* A. 지금 매도 */
+  out.sell=capGains({price:value,acq:i.acq,exp:i.exp,hold,reside:i.reside,isHouse,exempt,heavy});
+  /* C. 증여(채무 없이 전부) */
+  const g=giftTax({value,debt:0,rel:i.rel,minor:i.minor==='y',prior:i.prior,marriage:i.marriage});
+  const a=acqTaxGift({value,std:i.std,isHouse,adj,donorOneHouse:dh===1,rel:i.rel});
+  out.gift={gift:g,acq:a,now:g.pay+a.tax};
+  /* 받은 뒤 매도 */
+  const py=+i.planYears||0,fp=+i.futurePrice||0;
+  if(i.plan!=='none'&&fp>0){
+    const carryRel=i.rel==='spouse'||i.rel==='child'||i.rel==='grandchild';
+    const normal=capGains({price:fp,acq:value,exp:a.tax,hold:py,reside:0,isHouse,exempt:false,heavy:0});
+    let carry=null,applied=normal,carried=false;
+    if(carryRel&&py<10){
+      carry=capGains({price:fp,acq:i.acq,exp:i.exp,hold:hold+py,reside:0,isHouse,exempt:false,heavy:0,extraExp:g.calc+g.surcharge});
+      if(carry.tax>=normal.tax){applied=carry;carried=true;}   /* §97의2 ② 3호 — 이월과세 세액이 더 적으면 적용하지 않음 */
+    }
+    out.gift.later={normal,carry,applied,carried,years:py,price:fp};
+  }
+  /* D. 부담부증여 */
+  if(debt>0){
+    const r=debt/value;
+    const tr=capGains({price:debt,acq:(+i.acq||0)*r,exp:(+i.exp||0)*r,hold,reside:i.reside,isHouse,exempt:false,heavy});
+    const bg=giftTax({value,debt,rel:i.rel,minor:i.minor==='y',prior:i.prior,marriage:i.marriage});
+    out.burden={ratio:r,transfer:tr,gift:bg,now:tr.total+bg.pay,exemptNote:exempt};
+  }
+  /* B. 계속 보유 → 상속 */
+  const est=(+i.otherEstate||0)+value-debt;
+  out.inherit=inheritTax({estate:est,spouse:i.spouseAlive==='y'});
+  out.inherit.acqTax=Math.floor((+i.std||value)*.028);        /* 상속 취득세 2.8%, 과세표준 시가표준액 — 지방세법 §11 ① 1호·§10의2 ② 1호 */
+  /* 증여 후 남는 재산의 상속세(10년 경과 가정) */
+  out.inheritAfterGift=inheritTax({estate:Math.max(0,+i.otherEstate||0),spouse:i.spouseAlive==='y'});
+  return out;
+}
+const API={BASIS,incomeTax,giftRaw,ltdRate,capGains,giftTax,acqTaxGift,inheritTax,diagnose,yearsBetween};
+if(typeof module!=='undefined'&&module.exports)module.exports=API;else root.HBE=API;
+})(typeof window!=='undefined'?window:globalThis);
+</script>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(+n||0).toLocaleString('ko-KR');
+const won=n=>fmt(n)+'원';
+const num=s=>{const v=parseFloat(String(s||'').replace(/[^\d.-]/g,''));return isNaN(v)?0:v;};
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function eok(n){n=+n||0;if(!n)return '';const e=Math.floor(n/1e8),m=Math.round((n%1e8)/1e4);return '= '+(e?e+'억':'')+(m?' '+fmt(m)+'만':'')+'원';}
+const LS='hbt_navi_v1';
+const DEF={sit:'gift',kind:'house',value:'',valueSrc:'',std:'',adj:'',acq:'',acqDate:'',exp:'',debt:'',donorHouses:'',exemptOK:'',reside:'',donorAge:'',spouseAlive:'',otherEstate:'',rel:'child',minor:'n',prior:'',marriage:'',cash:'',plan:'none',planYears:'',futurePrice:''};
+let S=Object.assign({},DEF),step=0;
+try{const r=localStorage.getItem(LS);if(r)S=Object.assign({},DEF,JSON.parse(r));}catch(e){}
+try{const q=new URLSearchParams(location.search).get('s');if(q&&['gift','sell','hold','debt'].indexOf(q)>=0)S.sit=q;}catch(e){}
+function persist(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
+const MONEY=['value','std','acq','exp','debt','otherEstate','prior','marriage','futurePrice'];
+
+function bind(){
+  document.querySelectorAll('#sitBox button').forEach(b=>b.addEventListener('click',()=>{S.sit=b.dataset.v;persist();paint();}));
+  document.querySelectorAll('.opts').forEach(box=>{
+    const k=box.dataset.k;
+    box.querySelectorAll('label').forEach(l=>l.addEventListener('click',e=>{e.preventDefault();S[k]=l.querySelector('input').value;persist();paint();}));
+  });
+  document.querySelectorAll('input[data-k]').forEach(el=>{
+    const k=el.dataset.k;
+    el.addEventListener('input',()=>{S[k]=MONEY.indexOf(k)>=0?num(el.value):el.value;persist();units();});
+    if(MONEY.indexOf(k)>=0)el.addEventListener('blur',()=>{if(S[k])el.value=fmt(S[k]);});
+  });
+  document.querySelectorAll('#stepBox button').forEach(b=>b.addEventListener('click',()=>go(+b.dataset.step)));
+}
+function units(){MONEY.forEach(k=>{const u=document.querySelector('[data-u="'+k+'"]');if(u)u.textContent=eok(S[k]);});}
+function paint(){
+  document.querySelectorAll('#sitBox button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.sit));
+  document.querySelectorAll('.opts').forEach(box=>{const k=box.dataset.k;box.querySelectorAll('label').forEach(l=>l.classList.toggle('on',l.querySelector('input').value===String(S[k])));});
+  document.querySelectorAll('input[data-k]').forEach(el=>{const k=el.dataset.k;if(document.activeElement===el)return;el.value=MONEY.indexOf(k)>=0?(S[k]?fmt(S[k]):''):(S[k]||'');});
+  units();
+}
+function go(n){
+  step=n;
+  document.querySelectorAll('.step').forEach(c=>c.classList.toggle('hidden',+c.dataset.step!==n));
+  document.querySelectorAll('#stepBox button').forEach(b=>{b.classList.toggle('on',+b.dataset.step===n);b.classList.toggle('done',+b.dataset.step<n);});
+  if(n===4)renderResult();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function fillSample(){
+  S=Object.assign({},DEF,{sit:'gift',kind:'house',value:1200000000,valueSrc:'trade',std:800000000,adj:'y',acq:400000000,acqDate:'2012-05-10',exp:20000000,debt:0,donorHouses:'2',exemptOK:'n',reside:5,donorAge:72,spouseAlive:'y',otherEstate:1500000000,rel:'child',minor:'n',prior:0,marriage:0,cash:'n',plan:'in10',planYears:5,futurePrice:1400000000});
+  persist();paint();renderResult();
+}
+
+/* ═══════ 결과 ═══════ */
+const REL={child:'자녀',grandchild:'손자녀',spouse:'배우자',relative:'친족'};
+const KIND={house:'주택',bldg:'상가·건물',land:'토지'};
+function flags(i,r){
+  const F=[];const add=(lv,t,d)=>F.push({lv,t,d});
+  if(!(+i.value))add('err','시가 미입력','시가가 없으면 어떤 비교도 할 수 없습니다. ②에서 시가를 넣어 주십시오.');
+  if(i.valueSrc==='public'||i.valueSrc==='unknown'||!i.valueSrc)add('err','시가 확인','공시가격이나 짐작으로 신고하면 세무서가 매매사례가액·감정가액으로 다시 매길 수 있습니다(상증법 §60 ②·⑤). 증여 전 시가 확인이 먼저입니다.');
+  if(r.heavy)add('err','다주택 중과','조정대상지역 '+(r.heavy===3?'3주택 이상':'2주택')+'으로 보았습니다. 주택 수에서 빠지는 주택(지방 저가·상속·임대 등)이 있으면 결과가 크게 달라집니다.');
+  if(i.exemptOK==='u'&&r.isHouse)add('err','비과세 요건','1세대 1주택 비과세 여부에 따라 양도세가 0원일 수도 있습니다. 세대 구성·보유·거주 요건을 서류로 확인해야 합니다.');
+  if(i.adj==='u'&&r.isHouse)add('warn','조정대상지역','지정 여부에 따라 양도세 중과와 증여 취득세 12%가 갈립니다.');
+  if(r.gift.acq.heavy)add('warn','증여 취득세 12%','조정대상지역 공시가격 3억원 이상 주택의 증여입니다. 1세대 1주택자가 배우자·직계존비속에게 주는 경우만 3.5%입니다.');
+  if(i.rel==='grandchild')add('warn','세대생략 할증','손자녀 증여는 산출세액의 30%(미성년·20억원 초과 40%)가 가산됩니다.');
+  if((+i.prior||0)>=1e7)add('warn','10년 합산','앞선 증여와 합쳐 누진세율이 적용됩니다. 과거 신고서의 과세표준·산출세액을 확인해야 정확합니다.');
+  if(i.cash==='n')add('err','세금 대납','증여세·취득세 '+won(r.gift.now)+'을 주는 분이 대신 내면 그 금액도 증여입니다. 대납분까지 포함한 세액은 증여세 대납 계산기로 다시 봐야 합니다.');
+  if((+i.debt||0)>0)add('warn','부담부증여','채무가 실제로 받는 분에게 넘어가고 받는 분이 갚는 것이 입증되어야 합니다. 배우자·직계존비속 사이에서는 인수되지 않은 것으로 추정합니다(상증법 §47 ③).');
+  if(i.plan==='in10')add('err','10년 내 매도','이월과세(소득세법 §97의2) 대상입니다. 증여로 취득가액이 올라가지 않습니다.');
+  if((+i.donorAge||0)>=75)add('warn','상속 합산 위험','증여 후 10년 안에 상속이 열리면 증여 당시 가액으로 상속재산에 합산됩니다(상증법 §13 ① 1호).');
+  if((+i.value||0)>=30e8)add('warn','고액 재산','30억원 이상은 평가·분할·납부 재원 설계를 함께 봐야 합니다.');
+  if(i.kind==='land')add('warn','토지','비사업용 토지는 세율이 10%p 높고(소득세법 §104 ① 8호), 농지는 감면·자경 요건이 따로 있습니다. 이 진단에는 반영하지 않았습니다.');
+  return F;
+}
+function summaryText(i,r){
+  const a=[];
+  a.push((i.donorAge?i.donorAge+'세인 ':'')+'보유자가 '+(i.acqDate?i.acqDate.slice(0,4)+'년에 ':'')+(+i.acq?won(i.acq)+'에 ':'')+'취득한 <b>'+KIND[i.kind]+'</b>'+(i.adj==='y'?'(조정대상지역)':'')+'의 현재 시가는 <b>'+won(i.value)+'</b>입니다.');
+  if(i.acqDate)a.push('보유기간은 약 <b>'+r.hold.toFixed(1)+'년</b>'+(i.reside?', 거주 '+i.reside+'년':'')+'이고'+(r.isHouse?' 세대 주택 수는 <b>'+(i.donorHouses==='3'?'3채 이상':(i.donorHouses||'?')+'채')+'</b>'+(r.exempt?'(1세대 1주택 비과세 요건 충족)':'')+'입니다.':' 주택이 아닙니다.'));
+  if(+i.debt)a.push('대출·전세보증금 '+won(i.debt)+'이 걸려 있습니다.');
+  a.push('받을 분은 <b>'+(i.minor==='y'?'미성년 ':'')+(REL[i.rel]||'')+'</b>이며 10년 내 받은 증여는 '+((+i.prior)?won(i.prior):'없습니다')+((+i.prior)?'입니다':'')+'.');
+  a.push(i.plan==='none'?'받은 뒤 팔 계획은 없습니다.':'받은 뒤 약 '+(i.planYears||'?')+'년 뒤 '+((+i.futurePrice)?won(i.futurePrice)+'에 ':'')+'매도할 수 있습니다.');
+  if(+i.otherEstate)a.push('이 부동산 외 재산은 약 '+won(i.otherEstate)+'입니다.');
+  return a.join(' ');
+}
+function renderResult(){
+  const i=S,r=HBE.diagnose(i);
+  $('rSummary').innerHTML=summaryText(i,r);
+  const F=flags(i,r);
+  $('rFlags').innerHTML=F.length?F.map(f=>'<div class="flag'+(f.lv==='warn'?' warn':'')+'"><b>'+esc(f.t)+'</b><span>'+esc(f.d)+'</span></div>').join(''):'<div class="chk">입력하신 범위에서는 특별한 위험 신호가 없습니다. 그래도 실행 전에는 시가와 세대 구성을 서류로 확인하십시오.</div>';
+  /* 비교표 */
+  const cols=[];
+  cols.push({k:'sell',t:'지금 매도',now:r.sell.total,who:'보유자(매도 대금에서)',nowD:r.sell.exemptAll?'1세대 1주택 비과세':'양도세 '+won(r.sell.tax)+' + 지방소득세 '+won(r.sell.local),later:'없음',laterD:'현금화 후 남은 돈은 나중에 상속재산이 됩니다.',cash:r.sell.total,cond:r.sell.note||'일반세율 · 장기보유특별공제 '+Math.round(r.sell.ltdRate*100)+'%',risk:'판 돈을 자녀에게 주면 그때 다시 증여세.'});
+  const gl=r.gift.later;
+  cols.push({k:'gift',t:'지금 증여',now:r.gift.now,who:'받는 분',nowD:'증여세 '+won(r.gift.gift.pay)+' + 취득세 '+won(r.gift.acq.tax)+'('+(r.gift.acq.rate*100)+'%)',later:gl?gl.applied.total:null,laterD:gl?(gl.years+'년 뒤 '+won(gl.price)+' 매도 시 양도세 등 '+won(gl.applied.total)+(gl.carried?' — 이월과세 적용(증여자의 취득가액 기준)':gl.carry?' — 이월과세를 적용한 세액이 더 적어 일반 계산':'')):'팔 때 양도세: 취득가액은 증여 당시 시가(10년 내 매도는 이월과세).',cash:r.gift.now,cond:'지방교육세·농어촌특별세 별도. 10년 내 상속 시 상속재산에 합산.',risk:i.cash==='n'?'세금 대납 시 추가 증여세.':'받는 분의 납부 자금 출처 소명.'});
+  if(r.burden)cols.push({k:'burden',t:'부담부증여',now:r.burden.now,who:'양도세는 주는 분, 증여세는 받는 분',nowD:'양도세 등 '+won(r.burden.transfer.total)+' + 증여세 '+won(r.burden.gift.pay),later:null,laterD:'취득세는 채무 부분 유상·나머지 무상으로 나눠 계산(부담부증여 계산기).',cash:r.burden.now,cond:'채무 비율 '+Math.round(r.burden.ratio*100)+'%'+(r.burden.exemptNote?' · 1세대 1주택이면 양도 부분 비과세 가능(이 표는 과세로 계산)':''),risk:'채무를 실제로 받는 분이 갚아야 함. 사후 관리 대상.'});
+  cols.push({k:'hold',t:'계속 보유 → 상속',now:0,who:'—',nowD:'지금 내는 세금 없음(보유세는 계속)',later:r.inherit.pay+r.inherit.acqTax,laterD:'현재 가치 기준 상속세 '+won(r.inherit.pay)+' + 취득세 '+won(r.inherit.acqTax)+'(2.8%). 공제 '+won(r.inherit.ded)+' 적용.',cash:0,cond:'상속인이 팔 때 취득가액은 상속 당시 시가 — 그동안의 양도차익은 과세되지 않음.',risk:'가격이 오르면 상속세도 오름. 상속세 납부 재원 필요.'});
+  const head='<thead><tr><th></th>'+cols.map(c=>'<th>'+c.t+'</th>').join('')+'</tr></thead>';
+  const row=(t,f)=>'<tr><th>'+t+'</th>'+cols.map(f).join('')+'</tr>';
+  $('rCmp').innerHTML=head+'<tbody>'+
+    row('지금 내는 세금',c=>'<td class="num"><span class="big">'+won(c.now)+'</span><small>'+c.nowD+'</small></td>')+
+    row('누가 내나',c=>'<td>'+c.who+'</td>')+
+    row('나중에 예상되는 세금',c=>'<td class="num">'+(c.later==null?'—':(typeof c.later==='number'?won(c.later):c.later))+'<small>'+c.laterD+'</small></td>')+
+    row('조건',c=>'<td>'+c.cond+'</td>')+
+    row('위험',c=>'<td>'+c.risk+'</td>')+'</tbody>';
+  /* 상세 */
+  const tr=(a,b)=>'<tr><td>'+a+'</td><td>'+b+'</td></tr>';
+  const cg=(t,x)=>'<details class="det"><summary>'+t+' — '+won(x.total)+'</summary><table>'+tr('양도차익',won(x.gain))+(x.taxableGain!==x.gain?tr('과세 대상 양도차익',won(x.taxableGain)):'')+tr('장기보유특별공제('+Math.round(x.ltdRate*100)+'%)',won(x.ltd))+tr('과세표준(기본공제 250만원 후)',won(x.base))+tr('양도소득세',won(x.tax))+tr('지방소득세(10%)',won(x.local))+(x.note?tr('적용',esc(x.note)):'')+'</table></details>';
+  const g=r.gift.gift;
+  let d=cg('지금 매도 — 양도세 계산',r.sell)+
+    '<details class="det"><summary>지금 증여 — 증여세 '+won(g.pay)+' · 취득세 '+won(r.gift.acq.tax)+'</summary><table>'+tr('증여재산가액',won(i.value))+tr('증여재산공제',won(g.cap))+(g.marriage?tr('혼인·출산 공제',won(g.marriage)):'')+((+i.prior)>=1e7?tr('10년 내 증여 합산',won(i.prior)):'')+tr('이번 증여분 과세표준',won(g.base))+tr('산출세액',won(g.calc))+(g.surcharge?tr('세대생략 할증',won(g.surcharge)):'')+tr('신고세액공제(3%)','−'+won(g.credit))+tr('<b>납부할 증여세</b>','<b>'+won(g.pay)+'</b>')+tr('취득세('+(r.gift.acq.rate*100)+'% · 시가인정액 기준)',won(r.gift.acq.tax))+'</table></details>';
+  if(gl){d+=cg('증여 후 '+gl.years+'년 뒤 매도 — 적용 세액'+(gl.carried?'(이월과세)':''),gl.applied);if(gl.carry&&!gl.carried)d+=cg('참고: 이월과세로 계산한 세액',gl.carry);if(gl.carried)d+=cg('참고: 같은 시점에 이월과세가 적용되지 않는다고 가정한 세액(증여 당시 시가가 취득가액)',gl.normal);}
+  if(r.burden)d+=cg('부담부증여 — 채무 부분 양도세(주는 분)',r.burden.transfer)+'<details class="det"><summary>부담부증여 — 증여세 '+won(r.burden.gift.pay)+'</summary><table>'+tr('증여세 과세가액(시가 − 채무)',won(r.burden.gift.net))+tr('과세표준',won(r.burden.gift.base))+tr('납부할 증여세',won(r.burden.gift.pay))+'</table></details>';
+  d+='<details class="det"><summary>계속 보유 → 상속 — 상속세 '+won(r.inherit.pay)+'</summary><table>'+tr('상속재산(이 부동산 + 다른 재산 − 채무)',won(r.inherit.estate))+tr('공제(일괄 5억원'+(i.spouseAlive==='y'?' + 배우자 최소 5억원':'')+')',won(r.inherit.ded))+tr('과세표준',won(r.inherit.base))+tr('납부할 상속세(신고세액공제 후)',won(r.inherit.pay))+tr('참고: 이 부동산을 증여하고 10년이 지난 뒤의 상속세',won(r.inheritAfterGift.pay))+'</table></details>';
+  $('rDetail').innerHTML=d;
+  /* 반드시 확인 */
+  const M=['시가를 무엇으로 볼지 — 같은 단지 최근 거래, 감정평가 필요 여부','세대 구성과 주택 수 — 주민등록·실제 거주, 주택 수에서 빠지는 주택이 있는지','받는 분이 세금을 낼 자금과 그 출처','받은 뒤 누가 살고, 언제 팔 가능성이 있는지','이 부동산 말고 다른 재산까지 포함한 전체 상속 그림'];
+  if(+i.debt)M.push('대출·보증금을 받는 분이 실제로 갚을 수 있는지(소득·상환 기록)');
+  $('rMust').innerHTML=M.map(m=>'<div class="chk">'+esc(m)+'</div>').join('');
+  /* 실무 체크 */
+  const C=[
+    ['증여는 「세율」보다 「평가」에서 사고가 납니다.','신고 후에도 평가기준일 전 6개월~후 3개월의 매매사례·감정가액이 나오면 그 가액이 시가가 됩니다. 아파트는 증여 전에 유사 매매사례를 먼저 조회합니다.','상증법 §60, 시행령 §49'],
+    ['증여로 양도세를 줄이려면 10년을 봐야 합니다.','배우자·직계존비속에게 증여한 뒤 10년 안에 팔면 취득가액은 준 사람이 산 값입니다. 다만 낸 증여세(산출세액 상당액)는 필요경비로 빼 줍니다.','소득세법 §97의2, 시행령 §163의2'],
+    ['「증여해 두면 상속재산에서 빠진다」는 10년 뒤의 이야기입니다.','상속개시 전 10년 안에 상속인에게 준 재산은 증여 당시 가액으로 상속재산에 합산됩니다. 대신 값이 오른 부분은 합산되지 않으므로, 오를 재산일수록 먼저 주는 의미가 있습니다.','상증법 §13 ① 1호, §60 ④'],
+    ['상속은 양도차익을 지웁니다.','상속받은 부동산을 팔 때 취득가액은 상속 당시 시가입니다. 오래 보유해 차익이 큰 부동산은 팔거나 증여하는 것보다 상속이 유리할 수 있습니다.','소득세법 시행령 §163 ⑨'],
+    ['세금을 누가 내는지가 세금을 바꿉니다.','받는 분에게 현금이 없어 부모가 대신 내면 그 세금도 증여입니다. 처음부터 현금을 함께 증여할지, 부담부증여로 할지 비교합니다.','상증법 §36·§47']
+  ];
+  if(r.isHouse)C.push(['주택은 「몇 채로 보는가」가 절반입니다.','조정대상지역 다주택은 중과세율에 장기보유특별공제도 없습니다. 매도 순서를 바꾸거나 주택 수에서 제외되는 주택을 확인하는 것만으로 세액이 달라집니다.','소득세법 §104 ⑦, §95 ②']);
+  $('rChecks').innerHTML=C.map(c=>'<div class="chk"><b>'+esc(c[0])+'</b><br>'+esc(c[1])+'<span class="law">'+esc(c[2])+'</span></div>').join('');
+  $('rBasis').innerHTML='계산 기준일 <b>'+r.today+'</b> · '+esc(HBE.BASIS.note)+'<br>적용: 증여세 세율·공제·할증·신고세액공제(상증법 §26·§53·§53의2·§57·§69), 10년 합산(§47 ②), 양도세 세율·중과·장기보유특별공제·기본공제(소득세법 §55·§95·§103·§104), 고가주택 12억원(시행령 §156·§160), 이월과세(§97의2), 증여 취득세 3.5%·12%(지방세법 §11·§13의2), 상속 일괄·배우자공제(상증법 §19·§21).<br>반영하지 않은 것: 지방교육세·농어촌특별세, 보유세, 각종 감면, 비사업용 토지, 일시적 2주택, 배우자 상속공제의 실제 분할액, 금융재산·동거주택 상속공제, 가격 변동. <b>추정치이며 신고용 계산이 아닙니다.</b>';
+  window.__lastResult={i,r,F,cols};
+}
+
+/* ═══════ 상담 요청 — 자료전송 메일중계(포털 공통) ═══════ */
+const RELAY={url:'https://script.google.com/macros/s/AKfycbxtBSiGZjkoJEl87cttAm1HUrR4A1D2zyz03S65NOkC6ezSUsHW_8BW5Pq5fkIyBZAK7A/exec',token:'hbtax-relay'};
+function consultText(memo){
+  const L=window.__lastResult;if(!L)return '';
+  const t=document.createElement('div');t.innerHTML=summaryText(L.i,L.r);
+  const A=['[의사결정 진단 상담 요청] 고민: '+({gift:'증여',sell:'매도',hold:'보유·상속',debt:'부담부증여'}[L.i.sit]||''),'',t.textContent,'','[선택지 비교 — 추정]'];
+  L.cols.forEach(c=>A.push('· '+c.t+': 지금 '+won(c.now)+(typeof c.later==='number'?' / 나중 '+won(c.later):'')+' — '+c.nowD));
+  A.push('','[검토 필요 사유]');L.F.forEach(f=>A.push('· '+f.t+': '+f.d));
+  if(memo)A.push('','[남긴 말]',memo);
+  A.push('','기준일 '+L.r.today+' · 한백택스 의사결정 진단');
+  return A.join('\n');
+}
+async function sendConsult(){
+  const name=$('cName').value.trim(),phone=$('cPhone').value.trim(),email=$('cEmail').value.trim();
+  const st=$('cStatus');
+  if(!name||!phone){alert('성함과 연락처를 적어 주십시오.');return;}
+  if(!$('cAgree').checked){alert('전송 동의에 체크해 주십시오.');return;}
+  if(!window.__lastResult)renderResult();
+  const btn=$('cBtn');btn.disabled=true;st.textContent='보내는 중…';
+  try{
+    const res=await fetch(RELAY.url,{method:'POST',body:JSON.stringify({token:RELAY.token,type:'consult',subject:'의사결정 진단 상담 요청',name,phone,email,text:consultText($('cMemo').value.trim()),page:location.href.split('?')[0],ua:navigator.userAgent})});
+    const j=await res.json();if(!j.ok)throw new Error(j.error||'전송 실패');
+    st.textContent='접수되었습니다'+(j.id?' · 접수번호 '+j.id:'')+' — 담당자가 연락드립니다.';st.style.color='#166534';
+  }catch(e){
+    st.textContent='자동 접수 실패('+e.message+'). 전화 02-2277-3101 또는 메일 hb090@hanbaektax.kr 로 연락해 주십시오.';st.style.color='#B91C1C';
+  }finally{btn.disabled=false;}
+}
+bind();paint();go(0);
+</script>
+</body>
+</html>
