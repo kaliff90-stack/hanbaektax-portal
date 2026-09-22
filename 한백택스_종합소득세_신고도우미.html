@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>종합소득세 신고 차근차근 도우미 — 처음 신고하는 분을 위한 단계별 입력 | 한백택스</title>
+<meta name="description" content="5월 종합소득세를 처음 신고하는 분도 순서대로 답하면 됩니다. 신고 대상 확인, 안내문 유형(S·A·B·C·D·E·F·G), 준비 자료, 장부·단순경비율·기준경비율 판정, 소득·공제 입력, 납부세액과 지방소득세, 홈택스 신고 순서까지 안내합니다.">
+<!--
+  세무법인 한백택스 종합소득세 신고 차근차근 도우미 v1 (2026-09-22)
+  대상: 세무 용어를 모르는 사업자·프리랜서·부업 소득자. 소득 종류를 고르면 필요한 질문만 나온다.
+  구조: 계산은 script#hbEngine 블록의 순수 함수(화면과 분리). scripts/tests/test_filing_wizards.js 가 이 블록만 꺼내 손계산 기대값과 대조한다.
+  근거(2026-09-22 K-Law MCP 확인): 소득세법 §14·§47·§50·§51·§51의3·§55·§59의2·§59의3·§59의4·§70·§77·§80·§81의5·§160,
+        소득세법 시행령 §87·§132·§143·§208, 시행규칙 §67, 조세특례제한법 §86의3·§104의8, 조특령 §104의5,
+        국세기본법 §47의2·§47의4·§48, 국기령 §27의4, 지방세법 §92.
+  참고(웹 1차 확인): 국세청 신고안내문 유형 문자(S·A·B·C·D·E·F·G·I·V) — 매년 안내문으로 확인.
+  한계: 참고용 추정치. 금융소득 종합과세·주택임대 분리과세·감면·이월결손금·성실신고확인 등은 전문가 검토.
+  입력은 이 브라우저(localStorage hbt_inc_wiz_v1)에만 저장되고, 「상담 요청」을 누를 때만 요약이 사무소로 전송된다.
+-->
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1B3A5C;--gold:#C8963E;--blue:#2F5D8A;--bg:#F4F6F9;--line:#DCE3EC;--gray:#6B7A8C;--red:#B91C1C;--green:#166534}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:15px;line-height:1.6}
+.top{background:#fff;border-bottom:2px solid var(--gold);padding:14px 20px}
+.top .in{max-width:1040px;margin:0 auto}
+.top h1{margin:0;font-size:21px;color:var(--navy)}
+.top .motto{display:inline-block;background:var(--navy);color:#fff;font-weight:800;border-radius:999px;padding:3px 12px;font-size:12px;margin-bottom:6px;letter-spacing:.5px}
+.top .sub{color:var(--gray);font-size:13px;margin-top:4px}
+.wrap{max-width:1040px;margin:0 auto;padding:16px 20px 60px}
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+.steps button{flex:1;min-width:100px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 6px;font:inherit;font-size:13px;font-weight:800;color:var(--gray);cursor:pointer}
+.steps button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.steps button.done{color:var(--navy);border-color:var(--gold)}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:14px}
+.card h2{margin:0 0 4px;font-size:17px;color:var(--navy)}
+.card h3{margin:14px 0 4px;font-size:15px;color:var(--navy);border-left:4px solid var(--gold);padding-left:8px}
+.card .lead{color:var(--gray);font-size:13.5px;margin:0 0 14px}
+.q{padding:12px 0;border-top:1px dashed var(--line)}
+.q:first-of-type{border-top:none;padding-top:0}
+.q .t{display:block;font-weight:800;color:#111;margin-bottom:3px;font-size:15px}
+.q .why{font-size:12.5px;color:var(--blue);background:#F1F6FB;border-left:3px solid var(--blue);padding:5px 9px;border-radius:0 6px 6px 0;margin:4px 0 8px}
+.q .where{font-size:12.5px;color:#5b4a1f;background:#FFF8E8;border-left:3px solid var(--gold);padding:5px 9px;border-radius:0 6px 6px 0;margin:4px 0 8px}
+.q input[type=number],.q input[type=text],.q select{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:9px;width:100%;max-width:300px;background:#fff}
+.q input.money{text-align:right;font-weight:700}
+.q input.sm{max-width:110px}
+.q .unit{font-size:12.5px;color:var(--gray);margin-left:6px}
+.q .calc{display:inline-block;font-size:12.5px;color:var(--navy);background:#F1F4F8;border-radius:7px;padding:3px 9px;margin-left:6px;font-weight:700}
+.opts{display:flex;gap:6px;flex-wrap:wrap}
+.opts label{border:1px solid var(--line);border-radius:999px;padding:7px 13px;cursor:pointer;font-size:13.5px;background:#fff}
+.opts input{display:none}
+.opts label.on{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:800}
+.big{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.big label{border:1.5px solid var(--line);border-radius:12px;padding:13px;cursor:pointer;background:#fff}
+.big label b{display:block;color:var(--navy);font-size:15px;margin-bottom:3px}
+.big label span{font-size:12.5px;color:var(--gray)}
+.big input{display:none}
+.big label.on{border-color:var(--gold);background:#fffdf7;box-shadow:0 0 0 2px #C8963E33}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.navbtn{display:flex;gap:8px;justify-content:space-between;margin-top:14px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 18px;font:inherit;font-weight:800;cursor:pointer;color:var(--navy)}
+.btn.p{background:var(--gold);color:#fff;border-color:var(--gold)}
+.btn.n{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn.sm{padding:6px 11px;font-size:12.5px}
+.ck{list-style:none;padding:0;margin:0}
+.ck li{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px dashed var(--line)}
+.ck li:first-child{border-top:none}
+.ck input{width:20px;height:20px;margin-top:2px;flex:0 0 auto}
+.ck b{display:block;color:#111}
+.ck small{display:block;color:var(--gray);font-size:12.5px}
+.result{background:linear-gradient(135deg,#1B3A5C,#24507d);color:#fff;border-radius:14px;padding:18px 20px;margin-bottom:14px}
+.result .lab{font-size:13px;opacity:.85}
+.result .amt{font-size:34px;font-weight:800;letter-spacing:-.5px;margin:2px 0}
+.result .due{font-size:14px;margin-top:6px}
+.result .due b{color:#F3D9A4}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th,.tbl td{border:1px solid var(--line);padding:8px 10px;vertical-align:top;text-align:left}
+.tbl thead th{background:var(--navy);color:#fff;text-align:center}
+.tbl td.num{text-align:right;font-weight:800;white-space:nowrap}
+.tbl td.no{text-align:center;color:var(--navy);font-weight:800;white-space:nowrap}
+.tbl tr.sum td{background:#FFF8E8;font-weight:800}
+.scroll{overflow-x:auto}
+.flag{display:flex;gap:9px;align-items:flex-start;border:1px solid #fca5a5;background:#fef2f2;color:#7f1d1d;border-radius:10px;padding:9px 12px;margin-bottom:7px;font-size:13.5px}
+.flag.warn{border-color:#fcd34d;background:#fffbeb;color:#78350f}
+.flag.ok{border-color:#86efac;background:#f0fdf4;color:#14532d}
+.flag.info{border-color:#93c5fd;background:#eff6ff;color:#1e3a8a}
+.flag b{white-space:nowrap}
+.steplist{counter-reset:s;list-style:none;padding:0;margin:0}
+.steplist li{position:relative;padding:8px 0 8px 38px;border-top:1px dashed var(--line);font-size:14px}
+.steplist li:first-child{border-top:none}
+.steplist li:before{counter-increment:s;content:counter(s);position:absolute;left:0;top:8px;width:26px;height:26px;border-radius:50%;background:var(--gold);color:#fff;font-weight:800;text-align:center;line-height:26px;font-size:13px}
+.steplist li b{color:var(--navy)}
+.steplist li small{display:block;color:var(--gray);font-size:12.5px}
+.basis{font-size:12.5px;color:var(--gray);line-height:1.8}
+.consult .row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.consult input,.consult textarea{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:9px;width:100%}
+.consult textarea{min-height:70px;margin-top:8px}
+.consult label.c{display:flex;gap:7px;align-items:flex-start;font-size:13px;margin:8px 0}
+.consult label.c input{width:auto;flex:0 0 auto;margin-top:4px}
+.links{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.links a{font-size:12.5px;font-weight:700;color:var(--blue);border:1px solid var(--line);border-radius:999px;padding:5px 11px;text-decoration:none;background:#fff}
+.judge{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fafbfd;margin-top:8px;font-size:14px}
+.judge b{color:var(--navy)}
+.hidden{display:none!important}
+@media(max-width:700px){
+  .wrap{padding:12px 12px 70px}.top{padding:12px}.top h1{font-size:18px}
+  .card{padding:14px}.consult .row,.row2,.row3{grid-template-columns:1fr}
+  .steps button{min-width:0;font-size:12px;padding:8px 3px}
+  .result .amt{font-size:28px}.tbl{font-size:12.5px}
+}
+@media print{.top .sub,.steps,.navbtn,.consult,.nopr{display:none!important}html,body{background:#fff}.card{border:none;padding:0 0 10px}.wrap{padding:0;max-width:none}}
+</style>
+</head>
+<body>
+<!-- HB-HOME v1 -->
+<script>
+/* 한백택스 홈 바 — 생성기: 02-도구 & 스크립트/Python 스크립트/홈바_주입.py
+   이 블록은 자동 생성이다. 직접 고치지 말고 생성기를 고쳐 다시 실행한다. */
+(function(){
+  if (window.self !== window.top) return;          /* 포털 iframe 안에서는 부모의 바를 쓴다 */
+  if (window.__hbHome) return;
+  window.__hbHome = 1;
+  var me = decodeURIComponent((location.pathname.split('/').pop() || '').toLowerCase());
+  var host = document.createElement('div');
+  host.id = 'hbHome';
+  host.setAttribute('data-nogate', '1');
+  host.style.cssText = 'display:block;position:sticky;top:0;z-index:2147483000;margin:0;padding:0;line-height:0';
+  var links = [
+    ['한백택스_세무계산_포털.html', '세무계산 포털'],
+    ['한백택스_모바일.html', '모바일 포털']
+  ].filter(function(l){ return l[0].toLowerCase() !== me; });
+  var sh = host.attachShadow({ mode: 'open' });
+  sh.innerHTML =
+    '<style>' +
+    ':host{all:initial;display:block}' +
+    '.bar{box-sizing:border-box;display:flex;align-items:center;gap:10px;height:42px;padding:0 16px;' +
+      'background:#fff;border-bottom:2px solid #C8963E;box-shadow:0 2px 8px rgba(15,36,64,.08);' +
+      'font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:13px;line-height:1;color:#1B3A5C}' +
+    '.home{display:inline-flex;align-items:center;gap:6px;background:#C8963E;color:#fff;font-weight:800;' +
+      'padding:7px 13px;border-radius:999px;text-decoration:none;white-space:nowrap;letter-spacing:-.2px}' +
+    '.home:hover{background:#b8862f}' +
+    '.ttl{font-weight:700;color:#1B3A5C;white-space:nowrap;opacity:.85}' +
+    '.sp{flex:1}' +
+    '.lnk{color:#35507A;font-weight:700;text-decoration:none;padding:6px 10px;border:1px solid #DCE5F0;border-radius:999px;white-space:nowrap;background:#F5F8FC}' +
+    '.lnk:hover{border-color:#C8963E;color:#1B3A5C}' +
+    '@media(max-width:640px){.bar{padding:0 10px;gap:6px;height:40px}.ttl{display:none}.lnk{padding:6px 8px;font-size:12px}}' +
+    '@media print{.bar{display:none}}' +
+    '</style>' +
+    '<div class="bar">' +
+      '<a class="home" href="index.html" title="한백택스 세무 도구 모음(메인 화면)으로">&#8592; 메인 화면</a>' +
+      '<span class="ttl">세무법인 한백택스 · 세무 도구</span>' +
+      '<span class="sp"></span>' +
+      links.map(function(l){ return '<a class="lnk" href="' + l[0] + '">' + l[1] + '</a>'; }).join('') +
+    '</div>';
+  var s = document.currentScript;
+  if (s && s.parentNode) s.parentNode.insertBefore(host, s);
+  else document.body.insertBefore(host, document.body.firstChild);
+})();
+</script>
+<!-- /HB-HOME -->
+<header class="top"><div class="in">
+  <span class="motto">세금, 계산 전에 판단부터</span>
+  <h1>📅 종합소득세 신고 차근차근 도우미</h1>
+  <div class="sub">5월 종합소득세, 처음이어도 괜찮습니다. 소득 종류를 고르고 순서대로 답하면 신고 대상 여부·경비 계산 방식·납부세액·홈택스 순서까지 정리해 드립니다. · 세무법인 한백택스</div>
+</div></header>
+
+<div class="wrap">
+<div class="steps" id="steps"></div>
+
+<!-- 0. 소득 종류 -->
+<section class="card" id="s0">
+  <h2>① 작년에 어떤 소득이 있었나요?</h2>
+  <p class="lead">해당하는 것을 모두 고르십시오. 고른 소득에 맞는 질문만 이어집니다.</p>
+  <div class="q"><span class="t">귀속연도 (소득이 생긴 해)</span>
+    <select id="year"><option value="2025">2025년 소득 → 2026년 5월 신고</option><option value="2026">2026년 소득 → 2027년 5월 신고</option></select>
+    <div class="why">종합소득세는 지난해 1월~12월 소득을 올해 5월 1일~31일에 신고·납부합니다(소득세법 §70 ①). 성실신고확인 대상자는 6월 30일까지.</div>
+  </div>
+  <div class="q"><span class="t">소득 종류</span>
+    <div class="big" id="incBox">
+      <label data-k="biz"><input type="checkbox"><b>🏪 사업소득 — 사업자등록 있음</b><span>가게·온라인 판매·임대(상가) 등. 부가세 신고를 하는 분.</span></label>
+      <label data-k="free"><input type="checkbox"><b>🧑‍💻 프리랜서 3.3% 소득</b><span>사업자등록 없이 용역비에서 3.3% 떼고 받은 분(강사·디자이너·배달·보험설계 등). 이것도 「사업소득」입니다.</span></label>
+      <label data-k="wage"><input type="checkbox"><b>💼 근로소득 — 직장 급여</b><span>회사에서 연말정산을 했더라도 다른 소득이 있으면 합쳐서 다시 신고합니다.</span></label>
+      <label data-k="other"><input type="checkbox"><b>🎤 기타소득 — 일시적 강연료·원고료·상금</b><span>한두 번 받은 것. 계속 반복하면 사업소득입니다.</span></label>
+      <label data-k="pension"><input type="checkbox"><b>👴 연금소득 — 국민연금·사적연금</b><span>공적연금은 연말정산되지만 다른 소득과 합쳐야 할 수 있습니다.</span></label>
+      <label data-k="fin"><input type="checkbox"><b>🏦 이자·배당 2,000만원 초과</b><span>2,000만원 이하는 원천징수로 끝. 초과하면 종합과세 — 전문가 검토 권장.</span></label>
+    </div>
+  </div>
+  <div class="judge" id="judge0"></div>
+  <div class="q"><span class="t">국세청 신고 안내문을 받으셨나요? (홈택스·손택스·우편·카톡)</span>
+    <div class="opts" id="typeBox">
+      <label data-v="">모름 / 못 받음</label><label data-v="S">S</label><label data-v="A">A</label><label data-v="B">B</label><label data-v="C">C</label><label data-v="D">D</label><label data-v="E">E</label><label data-v="F">F</label><label data-v="G">G</label><label data-v="I">I</label><label data-v="V">V</label>
+    </div>
+    <div class="why" id="typeWhy">안내문의 「신고안내 유형」 한 글자가 신고 방식을 정합니다. S·A·B·C는 복식부기(장부 필수), D는 기준경비율, E·F·G는 단순경비율, V는 주택임대 분리과세, I는 성실신고 사전안내입니다. (국세청 안내문 유형 — 매년 5월 안내문으로 확인)</div>
+  </div>
+  <div class="navbtn"><span></span><button class="btn n" onclick="go(1)">다음 — 준비할 자료 →</button></div>
+</section>
+
+<!-- 1. 준비 자료 -->
+<section class="card hidden" id="s1">
+  <h2>② 신고 전에 챙길 자료</h2>
+  <p class="lead">홈택스 「종합소득세 신고도움 서비스」에 대부분 모여 있습니다. 체크 상태는 이 브라우저에 저장됩니다.</p>
+  <ul class="ck" id="prepList"></ul>
+  <div class="navbtn"><button class="btn" onclick="go(0)">← 이전</button><button class="btn n" onclick="go(2)">다음 — 소득 입력 →</button></div>
+</section>
+
+<!-- 2. 소득 -->
+<section class="card hidden" id="s2">
+  <h2>③ 소득 — 얼마를 벌었나요</h2>
+  <p class="lead">「번 돈(수입금액)」에서 「쓴 돈(필요경비)」을 뺀 것이 소득금액입니다. 사업소득은 경비를 어떻게 인정받을지가 가장 중요합니다.</p>
+
+  <div id="bizSec">
+    <h3>사업소득 · 프리랜서</h3>
+    <div class="q"><span class="t">업종 구분</span>
+      <select id="grp">
+        <option value="a">도매·소매업, 농림어업, 광업, 부동산매매업 등</option>
+        <option value="b">제조업, 숙박·음식점업, 건설업, 운수·창고업, 정보통신업, 금융·보험업, 인적용역 프리랜서(강사·배달·보험설계 등)</option>
+        <option value="c">부동산임대업, 전문·과학·기술 서비스, 교육서비스, 보건·사회복지, 예술·스포츠, 그 밖의 개인서비스(미용·수리 등)</option>
+      </select>
+      <div class="why">업종 그룹별로 「장부를 안 써도 되는 규모」와 「단순경비율을 쓸 수 있는 규모」가 다릅니다(소득세법 시행령 §143 ④, §208 ⑤). 프리랜서 인적용역은 나(b) 그룹입니다.</div>
+    </div>
+    <div class="q"><div class="row3">
+      <div><span class="t">작년(귀속연도) 수입금액</span><input type="number" class="money" id="rev" placeholder="0"><span class="unit">원</span></div>
+      <div><span class="t">재작년(직전연도) 수입금액</span><input type="number" class="money" id="prevRev" placeholder="0"><span class="unit">원</span></div>
+      <div><span class="t">귀속연도에 새로 시작</span><div class="opts" id="newBox"><label data-v="n">아니요</label><label data-v="y">예(신규)</label></div></div>
+    </div>
+      <div class="where">사업자: 부가세 신고서 과세표준 합계(1기+2기) + 면세 매출(사업장현황신고). 프리랜서: 홈택스 → My홈택스 → 지급명세서 등 제출내역 → 「사업소득 지급명세서」 지급총액.</div>
+      <div class="why">직전연도 수입이 도소매 6,000만·제조·음식 3,600만·서비스 2,400만원 미만이면 「단순경비율」로 신고할 수 있고(당해 수입이 3억·1.5억·7,500만원 미만이어야 함), 그 이상이면 「기준경비율」 또는 장부. 직전연도 수입이 3억·1.5억·7,500만원 이상이면 복식부기 의무자입니다. 신규 사업자는 첫해 단순경비율·간편장부 대상입니다.</div>
+    </div>
+    <div class="q"><span class="t">변호사·세무사·의사·약사 등 전문직인가요?</span>
+      <div class="opts" id="profBox"><label data-v="n">아니요</label><label data-v="y">예</label></div>
+      <div class="why">전문직은 수입과 관계없이 단순경비율·간편장부 대상에서 제외됩니다(시행령 §143 ⑦ 2호, §208 ⑤ 단서).</div>
+    </div>
+    <div class="judge" id="judgeBiz"></div>
+    <div class="q"><span class="t">경비는 어떻게 인정받을까요?</span>
+      <div class="big" id="modeBox">
+        <label data-k="book"><input type="radio"><b>장부로 신고 (간편장부·복식부기)</b><span>실제 쓴 경비를 증빙으로 입력. 경비가 많으면 가장 유리. 복식부기는 세무사에게.</span></label>
+        <label data-k="simple"><input type="radio"><b>단순경비율로 신고</b><span>장부 없이 수입 × 경비율만큼 경비 인정. 소규모만 가능.</span></label>
+        <label data-k="std"><input type="radio"><b>기준경비율로 신고</b><span>매입·임차료·인건비는 증빙으로, 나머지는 수입 × 낮은 경비율. 장부 없으면 무기장 가산세 20%.</span></label>
+      </div>
+    </div>
+    <div class="q" id="bookQ"><span class="t">장부상 필요경비 합계</span><input type="number" class="money" id="expense" placeholder="0"><span class="unit">원</span>
+      <div class="where">간편장부의 경비 합계(매입·임차료·인건비·통신·차량·소모품·감가상각 등). 홈택스 「간편장부 작성」 또는 장부 프로그램. 증빙(세금계산서·카드·현금영수증) 없는 3만원 초과 경비는 인정이 어렵습니다.</div>
+    </div>
+    <div class="q" id="simpleQ"><span class="t">단순경비율 (%)</span><input type="number" class="sm" id="simpleRate" step="0.1" placeholder="예: 64.1"><span class="unit">%</span><span class="calc" id="simpleCalc"></span>
+      <div class="where">홈택스 → 조회/발급 → 기타 조회 → 「기준·단순경비율(업종코드)」에서 업종코드로 조회. 안내문에도 적혀 있습니다. 예: 학원강사(940903) 등 인적용역은 60%대.</div>
+    </div>
+    <div id="stdQ">
+      <div class="q"><span class="t">기준경비율 (%)</span><input type="number" class="sm" id="stdRate" step="0.1" placeholder="예: 18.5"><span class="unit">%</span>
+        <div class="where">같은 화면에서 「기준경비율」 값. 복식부기 의무자는 이 율의 절반만 적용됩니다(시행령 §143 ③ 1호 다목).</div></div>
+      <div class="q"><span class="t">증빙 있는 주요경비</span>
+        <div class="row3">
+          <div>상품·재료 매입비 <input type="number" class="money" id="mainCost" placeholder="0"></div>
+          <div>사업장 임차료 <input type="number" class="money" id="rent" placeholder="0"></div>
+          <div>직원 급여·퇴직급여 <input type="number" class="money" id="wages" placeholder="0"></div>
+        </div>
+        <div class="why">세금계산서·카드·현금영수증·계산서로 확인되는 것만(시행령 §143 ③ 1호 가·나목). 소득금액이 「단순경비율 소득 × 2.8배(복식 3.4배)」를 넘으면 그 배율 금액으로 낮춰 줍니다(시행규칙 §67).</div>
+        <div>단순경비율 (%) — 배율 한도 계산용 <input type="number" class="sm" id="simpleRate2" step="0.1" placeholder="예: 64.1"><span class="unit">%</span></div>
+      </div>
+    </div>
+    <div class="q" id="freeQ"><span class="t">프리랜서 — 미리 떼인 세금 (3.3% 중 소득세 3%)</span>
+      <input type="number" class="money" id="withheld" placeholder="0"><span class="unit">원</span><button class="btn sm" type="button" onclick="autoWh()">수입 × 3%</button>
+      <div class="where">지급명세서의 「소득세」 합계. 지방소득세 0.3%는 따로 정산되므로 여기엔 소득세만.</div>
+    </div>
+  </div>
+
+  <div id="wageSec">
+    <h3>근로소득</h3>
+    <div class="q"><div class="row2">
+      <div><span class="t">총급여 (비과세 제외)</span><input type="number" class="money" id="wage" placeholder="0"><span class="unit">원</span><span class="calc" id="wageCalc"></span></div>
+      <div><span class="t">연말정산 때 결정된 소득세 (결정세액)</span><input type="number" class="money" id="wageTax" placeholder="0"><span class="unit">원</span></div>
+    </div>
+      <div class="where">근로소득 원천징수영수증(회사 또는 홈택스 → 지급명세서 조회). ㉑ 총급여, 「결정세액」 소득세 칸.</div>
+      <div class="why">총급여에서 근로소득공제(소득세법 §47)를 뺀 것이 근로소득금액입니다. 연말정산에서 낸 세금은 「기납부세액」으로 다시 빼 줍니다.</div>
+    </div>
+    <div class="q"><span class="t">연말정산에서 받은 특별세액공제 합계 (보험료·의료비·교육비·기부금·월세)</span><input type="number" class="money" id="special" placeholder="0"><span class="unit">원</span>
+      <div class="why">비워 두면 표준세액공제 13만원을 적용합니다(§59의4 ⑨ 1호). 원천징수영수증의 특별세액공제 합계가 13만원보다 크면 그 값을 적으십시오.</div>
+    </div>
+  </div>
+
+  <div id="otherSec">
+    <h3>기타소득</h3>
+    <div class="q"><div class="row3">
+      <div><span class="t">받은 금액(총액)</span><input type="number" class="money" id="otherGross" placeholder="0"></div>
+      <div><span class="t">필요경비율</span><select id="otherRate"><option value="60">60% — 강연료·원고료·자문료 등 (시행령 §87 1의2호)</option><option value="80">80% — 공익 상금·주택입주 지체상금 (§87 1호)</option><option value="0">0% — 사례금·위약금 등 경비 인정 없음</option></select></div>
+      <div><span class="t">떼인 세금 (원천징수 소득세)</span><input type="number" class="money" id="otherWh" placeholder="0"></div>
+    </div>
+      <div class="why">기타소득금액(수입 − 경비)이 300만원 이하면 종합소득에 합치지 않고 끝낼 수 있습니다(분리과세 선택, §14 ③ 8호). 합치는 편이 환급이 나올 때도 있으니 결과에서 비교하십시오.</div>
+    </div>
+  </div>
+
+  <div id="pensionSec">
+    <h3>연금소득</h3>
+    <div class="q"><div class="row2">
+      <div><span class="t">연금소득금액 (연금소득공제 후)</span><input type="number" class="money" id="pensionInc" placeholder="0"></div>
+      <div><span class="t">떼인 세금 (원천징수·연말정산 결정세액)</span><input type="number" class="money" id="pensionWh" placeholder="0"></div>
+    </div>
+      <div class="where">국민연금공단 「연금소득 원천징수영수증」의 연금소득금액·결정세액. 사적연금은 연 1,500만원 이하면 분리과세 선택 가능(§14 ③ 9호).</div>
+    </div>
+  </div>
+
+  <div id="finSec">
+    <h3>이자·배당소득 (2,000만원 초과)</h3>
+    <div class="q"><div class="row2">
+      <div><span class="t">이자·배당 총액</span><input type="number" class="money" id="finGross" placeholder="0"></div>
+      <div><span class="t">떼인 세금 (원천징수 소득세 14%)</span><input type="number" class="money" id="finWh" placeholder="0"></div>
+    </div>
+      <div class="why">2,000만원 초과분만 다른 소득과 합산되며 배당가산(Gross-up)·비교과세 등 계산이 복잡합니다. 여기서는 초과분을 단순 합산한 추정치만 보여 주고, 실제 신고는 세무사 검토를 권합니다(§14 ③ 6호, §62).</div>
+    </div>
+  </div>
+  <div class="navbtn"><button class="btn" onclick="go(1)">← 이전</button><button class="btn n" onclick="go(3)">다음 — 공제 →</button></div>
+</section>
+
+<!-- 3. 공제 -->
+<section class="card hidden" id="s3">
+  <h2>④ 공제 — 세금을 줄여 주는 것</h2>
+  <p class="lead">가족과 납입액만 적으면 됩니다. 모르면 비워 두십시오(0으로 계산).</p>
+  <div class="q"><span class="t">인적공제 — 가족</span>
+    <div class="row3">
+      <div>배우자 (연 소득금액 100만원 이하) <div class="opts" id="spouseBox"><label data-v="n">없음</label><label data-v="y">있음</label></div></div>
+      <div>부양가족 수 (자녀 20세 이하·부모 60세 이상, 소득 100만원 이하) <input type="number" class="sm" id="deps" placeholder="0"><span class="unit">명</span></div>
+      <div>그중 70세 이상 <input type="number" class="sm" id="elderly" placeholder="0"><span class="unit">명</span></div>
+    </div>
+    <div class="row3" style="margin-top:8px">
+      <div>장애인 (본인 포함) <input type="number" class="sm" id="disabled" placeholder="0"><span class="unit">명</span></div>
+      <div>한부모 (배우자 없이 자녀 부양) <div class="opts" id="singleBox"><label data-v="n">아니요</label><label data-v="y">예</label></div></div>
+      <div>부녀자 (소득금액 3천만 이하 여성 세대주·기혼) <div class="opts" id="womanBox"><label data-v="n">아니요</label><label data-v="y">예</label></div></div>
+    </div>
+    <div class="why">본인·배우자·부양가족 1명당 150만원(§50), 70세 이상 100만원·장애인 200만원·한부모 100만원·부녀자 50만원 추가(§51). 다른 가족이 이미 공제받은 사람은 중복 안 됩니다.</div>
+  </div>
+  <div class="q"><div class="row3">
+    <div><span class="t">국민연금 보험료 납입액</span><input type="number" class="money" id="np" placeholder="0"><div class="where">국민연금공단 납부확인서 · 홈택스 신고도움 자료. 전액 소득공제(§51의3).</div></div>
+    <div id="yuQ"><span class="t">노란우산공제 납입액</span><input type="number" class="money" id="yu" placeholder="0"><span class="calc" id="yuCalc"></span><div class="where">중소기업중앙회 납입증명. 사업소득금액 4천만 이하 600만·6천만 이하 500만·1억 이하 400만·초과 200만원 한도(조특법 §86의3).</div></div>
+    <div><span class="t">그 밖의 소득공제</span><input type="number" class="money" id="otherDed" placeholder="0"><div class="where">주택청약·신용카드(근로자만)·벤처투자 등. 모르면 비워 두십시오.</div></div>
+  </div></div>
+  <div class="q"><span class="t">세액공제</span>
+    <div class="row3">
+      <div>8세 이상 자녀 수 <input type="number" class="sm" id="kids" placeholder="0"><span class="unit">명</span></div>
+      <div>귀속연도 출산·입양 <select id="born"><option value="0">없음</option><option value="1">첫째</option><option value="2">둘째</option><option value="3">셋째 이상</option></select></div>
+      <div>연금저축 납입액 <input type="number" class="money" id="pensionSave" placeholder="0"></div>
+    </div>
+    <div class="row3" style="margin-top:8px">
+      <div>IRP·퇴직연금 추가 납입 <input type="number" class="money" id="irp" placeholder="0"></div>
+      <div>기부금 <input type="number" class="money" id="donation" placeholder="0"></div>
+      <div>그 밖의 세액공제·감면 <input type="number" class="money" id="otherCredit" placeholder="0"><div class="where">중소기업 특별세액감면, 창업감면, 통합고용세액공제 등 — 세무사 확인.</div></div>
+    </div>
+    <div class="why">자녀 1명 25만·2명 55만·3명째부터 40만원씩, 출산 첫째 30만·둘째 50만·셋째 70만(§59의2). 연금계좌 납입액의 12%(종합소득 4,500만 이하 15%), 연금저축 600만·합계 900만원 한도(§59의3). 기부금 15%(1천만 초과분 30%)(§59의4 ④). 근로소득 없는 사업자는 표준세액공제 7만원(성실사업자 12만원)이 자동으로 붙습니다(§59의4 ⑨ 2호).</div>
+  </div>
+  <div class="q"><span class="t">홈택스에서 직접 전자신고하나요?</span>
+    <div class="opts" id="efBox"><label data-v="y">예 (1만원 공제)</label><label data-v="n">아니요 / 세무대리인</label></div>
+    <div class="why">본인이 전자신고하면 1만원 공제(조특법 §104의8 ①, 시행령 §104의5 ② 1호).</div>
+  </div>
+  <div class="navbtn"><button class="btn" onclick="go(2)">← 이전</button><button class="btn n" onclick="go(4)">다음 — 이미 낸 세금·기한 →</button></div>
+</section>
+
+<!-- 4. 기납부·기한 -->
+<section class="card hidden" id="s4">
+  <h2>⑤ 이미 낸 세금과 신고 시점</h2>
+  <div class="q" id="interimQ"><span class="t">11월 중간예납으로 낸 소득세</span><input type="number" class="money" id="interim" placeholder="0"><span class="unit">원</span>
+    <div class="where">작년 11월에 받은 「종합소득세 중간예납 고지서」 금액. 홈택스 신고 화면에 자동으로 뜹니다. 첫해 사업자는 없습니다.</div>
+  </div>
+  <div class="q"><span class="t">신고 기한(5월 31일)을 넘겼나요?</span>
+    <div class="opts" id="lateBox"><label data-v="n">아니요, 5월 안에 신고·납부</label><label data-v="y">예, 기한 후 신고</label></div>
+    <div class="q hidden" id="lateDays" style="border:none">기한 후 며칠 지났나요? <input type="number" class="sm" id="days" placeholder="0"><span class="unit">일</span>
+      <div class="why">무신고 가산세 20% (1개월 내 50%, 3개월 내 30%, 6개월 내 20% 감면) + 납부지연 하루 0.022%. (국세기본법 §47의2, §47의4, §48 ②, 시행령 §27의4)</div>
+    </div>
+  </div>
+  <div class="navbtn"><button class="btn" onclick="go(3)">← 이전</button><button class="btn p" onclick="go(5)">결과 보기 →</button></div>
+</section>
+
+<!-- 5. 결과 -->
+<section class="hidden" id="s5">
+  <div class="result">
+    <div class="lab" id="rLab">납부할 종합소득세</div>
+    <div class="amt" id="rAmt">0원</div>
+    <div class="due" id="rDue"></div>
+  </div>
+  <section class="card">
+    <h2>계산은 이렇게 되었습니다</h2>
+    <div class="scroll"><table class="tbl" id="calcTbl"></table></div>
+    <div id="flags" style="margin-top:12px"></div>
+  </section>
+  <section class="card">
+    <h2>홈택스에서 신고하는 순서</h2>
+    <ol class="steplist" id="howto"></ol>
+    <div class="links">
+      <a href="https://hometax.go.kr" target="_blank" rel="noopener">홈택스 열기 ↗</a>
+      <a href="2025년_종합소득세_확정신고_계산기.html">종소세 확정신고서 대응 계산기 →</a>
+      <a href="한백택스_종합소득세_계산기.html">종합소득세 간이추정 →</a>
+      <a href="업종코드_빠른검색_v5.html">업종코드 검색 →</a>
+      <a href="한백택스_가산세_계산기.html">가산세 계산기 →</a>
+    </div>
+  </section>
+  <section class="card consult">
+    <h2>혼자 하기 어렵다면 — 세무사에게 넘기기</h2>
+    <p class="lead">입력한 내용을 요약해 사무소로 보냅니다. 담당 세무사가 확인 후 연락드립니다. 장부 작성·복식부기·감면 검토는 별도 약정이 필요합니다.</p>
+    <div class="row"><input id="cName" placeholder="성함 / 상호"><input id="cPhone" placeholder="연락처" inputmode="tel"><input id="cEmail" placeholder="이메일(선택)" inputmode="email"></div>
+    <textarea id="cMemo" placeholder="궁금한 점이나 사정 (선택)"></textarea>
+    <label class="c"><input type="checkbox" id="cAgree"> 위 요약과 연락처를 세무법인 한백택스에 전송하는 데 동의합니다. (상담 목적 외 사용 안 함)</label>
+    <button type="button" class="btn p" id="cBtn" onclick="sendConsult()">📨 요약 보내고 상담 요청</button>
+    <div id="cStatus" style="font-size:13px;margin-top:8px"></div>
+  </section>
+  <section class="card">
+    <h2>근거와 한계</h2>
+    <div class="basis" id="basis"></div>
+    <div class="navbtn nopr"><button class="btn" onclick="go(4)">← 이전</button><span><button class="btn" onclick="window.print()">🖨 인쇄</button> <button class="btn" onclick="resetAll()">처음부터</button></span></div>
+  </section>
+</section>
+</div>
+
+<script id="hbEngine">
+/* ═══════ 계산 엔진 — 화면과 분리 ═══════ */
+const fl=Math.floor;
+/* 부동소수점 오차 방지: 곱셈 결과를 소수 6자리에서 반올림한 뒤 절사 */
+const mul=(a,b)=>fl(Math.round(a*b*1e6)/1e6);
+/* 소득세법 §55 ① 세율 */
+function incomeTax(base){base=Math.max(0,fl(base));
+  if(base<=14000000)return mul(base,0.06);if(base<=50000000)return 840000+mul(base-14000000,0.15);
+  if(base<=88000000)return 6240000+mul(base-50000000,0.24);if(base<=150000000)return 15360000+mul(base-88000000,0.35);
+  if(base<=300000000)return 37060000+mul(base-150000000,0.38);if(base<=500000000)return 94060000+mul(base-300000000,0.40);
+  if(base<=1000000000)return 174060000+mul(base-500000000,0.42);return 384060000+mul(base-1000000000,0.45);}
+/* 소득세법 §47 근로소득공제 (2천만원 한도) */
+function earnedDeduction(t){t=Math.max(0,fl(t));let d;
+  if(t<=5000000)d=mul(t,0.7);else if(t<=15000000)d=3500000+mul(t-5000000,0.4);else if(t<=45000000)d=7500000+mul(t-15000000,0.15);
+  else if(t<=100000000)d=12000000+mul(t-45000000,0.05);else d=14750000+mul(t-100000000,0.02);return Math.min(d,20000000);}
+/* 시행령 §143 ④ 단순경비율 기준 · §208 ⑤ 간편장부 기준 */
+const THR={a:{simple:60000000,book:300000000},b:{simple:36000000,book:150000000},c:{simple:24000000,book:75000000}};
+function classify({grp,rev,prevRev,isNew,prof}){
+  const t=THR[grp]||THR.c;rev=Math.max(0,fl(+rev||0));prevRev=Math.max(0,fl(+prevRev||0));
+  const bookSimple=!prof&&(isNew||prevRev<t.book);            /* 간편장부대상자 */
+  const simpleOK=!prof&&(isNew||prevRev<t.simple)&&rev<t.book; /* 단순경비율 적용대상자 */
+  const small=isNew||prevRev<48000000;                          /* 소규모사업자(무기장가산세 제외) — 령 §132 ④ 기준 준용 */
+  return{bookDuty:bookSimple?'simple':'double',simpleOK,small,thr:t};
+}
+/* 사업소득금액 */
+function bizIncome(o){
+  const rev=Math.max(0,fl(+o.rev||0));const simpleRate=Math.max(0,+o.simpleRate||0)/100;
+  const simpleInc=rev-mul(rev,simpleRate);
+  if(o.mode==='book'){const exp=Math.max(0,fl(+o.expense||0));return{income:rev-exp,rev,exp,mode:'book'};}
+  if(o.mode==='simple')return{income:simpleInc,rev,exp:rev-simpleInc,mode:'simple'};
+  /* 기준경비율: 수입 − 주요경비 − 수입×기준경비율(복식은 ½), 한도 = 단순경비율 소득 × 배율(간편 2.8·복식 3.4) — 령 §143 ③ 1호, 규칙 §67 */
+  let kr=Math.max(0,+o.stdRate||0)/100;if(o.bookDuty==='double')kr=kr/2;
+  const major=Math.max(0,fl(+o.mainCost||0))+Math.max(0,fl(+o.rent||0))+Math.max(0,fl(+o.wages||0));
+  let base=rev-Math.min(rev,major+mul(rev,kr));
+  const mult=o.bookDuty==='double'?3.4:2.8;const cap=simpleRate>0?mul(simpleInc,mult):Infinity;
+  const capped=base>cap;if(capped)base=cap;
+  return{income:base,rev,exp:rev-base,mode:'std',major,capped,cap,kr};
+}
+/* 기타소득금액 — 령 §87 */
+function otherIncome({gross,rate}){gross=Math.max(0,fl(+gross||0));const exp=mul(gross,(+rate||0)/100);return{income:gross-exp,exp};}
+/* 인적공제 §50·§51 */
+function personal({spouse,deps,elderly,disabled,single,woman}){
+  const n=1+(spouse?1:0)+Math.max(0,fl(+deps||0));let d=n*1500000+Math.max(0,fl(+elderly||0))*1000000+Math.max(0,fl(+disabled||0))*2000000;
+  if(single)d+=1000000;else if(woman)d+=500000;return d;}
+/* 노란우산 §86의3 */
+function yellow(bizInc,paid){paid=Math.max(0,fl(+paid||0));const cap=bizInc<=40000000?6000000:bizInc<=60000000?5000000:bizInc<=100000000?4000000:2000000;return Math.min(paid,cap,Math.max(0,bizInc));}
+/* 자녀세액공제 §59의2 (8세 이상) */
+function childCredit(n,born){n=Math.max(0,fl(+n||0));let c=n===0?0:n===1?250000:n===2?550000:550000+(n-2)*400000;c+=[0,300000,500000,700000][+born||0]||0;return c;}
+/* 연금계좌 §59의3 */
+function pensionCredit({save,irp,totalIncome,wageOnly,wage}){save=Math.min(Math.max(0,fl(+save||0)),6000000);const sum=Math.min(save+Math.max(0,fl(+irp||0)),9000000);
+  const low=wageOnly?wage<=55000000:totalIncome<=45000000;return mul(sum,low?0.15:0.12);}
+function donationCredit(a){a=Math.max(0,fl(+a||0));return a<=10000000?mul(a,0.15):1500000+mul(a-10000000,0.3);}
+function latePenalty({tax,days}){tax=Math.max(0,fl(+tax||0));days=Math.max(0,fl(+days||0));if(!tax||!days)return{none:0,delay:0,total:0,relief:0};
+  const relief=days<=30?0.5:days<=90?0.3:days<=180?0.2:0;const none=mul(mul(tax,0.2),1-relief);const delay=fl(tax*days*22/100000);return{none,delay,total:none+delay,relief};}
+/* 종합 계산 */
+function compute(i){
+  const has=k=>!!(i.inc&&i.inc[k]);const R={};
+  /* 사업 */
+  let biz=null,cls=null;
+  if(has('biz')||has('free')){cls=classify(i);biz=bizIncome({...i,bookDuty:cls.bookDuty});}
+  const bizInc=biz?biz.income:0;
+  const wageInc=has('wage')?Math.max(0,fl(+i.wage||0))-earnedDeduction(i.wage):0;
+  const oth=has('other')?otherIncome({gross:i.otherGross,rate:i.otherRate}):{income:0,exp:0};
+  const otherSep=has('other')&&oth.income<=3000000&&i.otherSeparate;   /* 분리과세 선택 */
+  const othInc=otherSep?0:oth.income;
+  const penInc=has('pension')?Math.max(0,fl(+i.pensionInc||0)):0;
+  const finGross=has('fin')?Math.max(0,fl(+i.finGross||0)):0;const finInc=Math.max(0,finGross-20000000);
+  const total=Math.max(0,bizInc)+wageInc+othInc+penInc+finInc+Math.min(0,bizInc);   /* 사업 결손은 다른 소득과 통산(단순화) */
+  const totalIncome=Math.max(0,total);
+  /* 소득공제 */
+  const pers=personal(i);const np=Math.max(0,fl(+i.np||0));const yu=biz?yellow(Math.max(0,bizInc),i.yu):0;const od=Math.max(0,fl(+i.otherDed||0));
+  let ded=pers+np+yu+od;if(ded>totalIncome)ded=totalIncome;
+  const base=totalIncome-ded;const calc=incomeTax(base);
+  /* 세액공제 */
+  const child=childCredit(i.kids,i.born);
+  const wageOnly=has('wage')&&!biz&&!has('other')&&!has('pension')&&!has('fin');
+  const pen=pensionCredit({save:i.pensionSave,irp:i.irp,totalIncome,wageOnly,wage:+i.wage||0});
+  const don=donationCredit(i.donation);
+  const special=has('wage')?Math.max(0,fl(+i.special||0)):0;
+  const std=has('wage')?(special>0?0:130000):(i.diligent?120000:70000);
+  const elec=i.elec?10000:0;const oc=Math.max(0,fl(+i.otherCredit||0));
+  let credits=child+pen+don+special+std+elec+oc;if(credits>calc)credits=calc;
+  let determined=calc-credits;
+  /* 무기장 가산세 §81의5 — 장부 없이 추계 신고한 간편장부·복식부기 대상자(소규모사업자 제외) */
+  let noBook=0;if(biz&&biz.mode!=='book'&&!cls.small&&totalIncome>0){noBook=mul(calc*Math.max(0,bizInc)/totalIncome,0.2);}
+  /* 기납부 */
+  const prepaid=Math.max(0,fl(+i.interim||0))+Math.max(0,fl(+i.withheld||0))+(has('wage')?Math.max(0,fl(+i.wageTax||0)):0)+(has('other')&&!otherSep?Math.max(0,fl(+i.otherWh||0)):0)+(has('pension')?Math.max(0,fl(+i.pensionWh||0)):0)+(has('fin')?Math.max(0,fl(+i.finWh||0)):0);
+  const beforeLate=determined+noBook-prepaid;
+  const late=latePenalty({tax:i.late?Math.max(0,determined+noBook):0,days:i.days});
+  const final=beforeLate+late.total;
+  const local=mul(determined,0.1);   /* 개인지방소득세 — 지방세법 §92 표준세율(소득세의 10%) */
+  return{biz,cls,bizInc,wageInc,oth,otherSep,othInc,penInc,finInc,totalIncome,pers,np,yu,od,ded,base,calc,child,pen,don,special,std,elec,oc,credits,determined,noBook,prepaid,late,final,local};
+}
+if(typeof module!=='undefined')module.exports={incomeTax,earnedDeduction,THR,classify,bizIncome,otherIncome,personal,yellow,childCredit,pensionCredit,donationCredit,latePenalty,compute};
+</script>
+<script>
+const $=id=>document.getElementById(id);
+const won=n=>(n<0?'−':'')+Math.abs(fl(n)).toLocaleString('ko-KR')+'원';
+const LS='hbt_inc_wiz_v1';
+const STEPS=['① 소득 종류','② 준비 자료','③ 소득','④ 공제','⑤ 기납부·기한','⑥ 결과'];
+let cur=0;
+const S={inc:{},type:'',isNew:'n',prof:'n',mode:'',spouse:'n',single:'n',woman:'n',ef:'y',late:'n',prep:{},
+  fields:['year','grp','rev','prevRev','expense','simpleRate','stdRate','mainCost','rent','wages','simpleRate2','withheld','wage','wageTax','special','otherGross','otherRate','otherWh','pensionInc','pensionWh','finGross','finWh','deps','elderly','disabled','np','yu','otherDed','kids','born','pensionSave','irp','donation','otherCredit','interim','days']};
+const PREP=[
+  ['홈택스 로그인 → 세금신고 → 종합소득세 → 「신고도움 서비스」','국세청이 파악한 소득·안내 유형·경비율·기납부세액이 한 화면에 나옵니다. 여기서 시작하십시오.',1,null],
+  ['사업소득 지급명세서 (프리랜서) — My홈택스 → 지급명세서 등 제출내역','지급총액과 떼인 소득세 3%.',1,'free'],
+  ['부가세 신고서 · 사업장현황신고서 — 작년 매출 합계','과세 매출(1기+2기)과 면세 매출. 수입금액이 됩니다.',1,'biz'],
+  ['경비 증빙 — 세금계산서·사업용 카드·현금영수증·인건비 지급명세서·임대차계약서','장부 신고나 기준경비율 주요경비에 필요. 홈택스 「신용카드 매입」「전자세금계산서」 조회.',1,'biz'],
+  ['업종코드와 경비율 — 홈택스 → 기타 조회 → 기준·단순경비율','단순경비율·기준경비율 %. 안내문에도 적혀 있습니다.',1,'biz'],
+  ['근로소득 원천징수영수증','총급여·결정세액·특별세액공제. 회사 또는 홈택스 지급명세서 조회.',1,'wage'],
+  ['기타소득 원천징수영수증 (강연료 등)','지급액과 떼인 세금.',1,'other'],
+  ['연금소득 원천징수영수증 (국민연금공단·금융기관)','연금소득금액·결정세액.',1,'pension'],
+  ['금융소득 원천징수 내역 (은행·증권사) — 2,000만원 초과','이자·배당 총액과 떼인 세금 14%.',1,'fin'],
+  ['부양가족 정보 — 주민등록등본·가족관계증명서','나이·소득 요건 확인. 다른 가족이 이미 공제받은 사람은 제외.',1,null],
+  ['국민연금 납부확인서 · 노란우산 납입증명 · 연금저축/IRP 납입증명 · 기부금영수증','소득공제·세액공제 증빙. 신고도움 서비스에 대부분 뜹니다.',1,null],
+  ['중간예납 고지서 (작년 11월)','이미 낸 소득세. 신고 화면에 자동 표시.',0,'biz'],
+  ['환급받을 계좌번호','본인 명의. 신고서 마지막에 적습니다.',0,null],
+];
+const HOWTO=[
+  ['홈택스 로그인 → 「세금신고」 → 「종합소득세 신고」 → 「정기신고」','기한이 지났으면 「기한 후 신고」. 단순경비율·근로 등 단순한 경우 「모두채움 신고」가 뜨면 확인만 하고 제출할 수 있습니다.'],
+  ['기본사항 — 주민등록번호 「조회」 → 신고 유형·기장의무·신고안내 유형 확인','국세청 안내 유형(S~G)이 자동으로 나옵니다. 다르게 신고하려면 여기서 바꿉니다(예: 추계 → 장부).'],
+  ['소득 종류 선택 → 「사업소득 사업장 명세」','업종코드·수입금액·기장 여부(간편장부/복식부기/추계-단순/추계-기준)를 사업장별로 입력. 「업종별 총수입금액 및 소득금액 계산」에서 경비율이 자동 적용됩니다.'],
+  ['근로·기타·연금·이자배당 소득 「불러오기」','원천징수영수증 자료가 자동으로 들어옵니다. 빠진 것은 직접 입력.'],
+  ['소득공제 — 인적공제·연금보험료·노란우산·그 밖의 공제','부양가족 주민번호 입력, 국민연금·노란우산은 「불러오기」.'],
+  ['세액공제·감면 — 자녀·연금계좌·기부금·표준·전자신고','근로소득자는 연말정산 특별세액공제 「불러오기」. 감면은 감면신청서 첨부.'],
+  ['기납부세액 — 중간예납·원천징수세액 확인','3.3% 원천징수·근로 결정세액이 자동 반영되는지 확인. 빠지면 이중 납부가 됩니다.'],
+  ['「신고서 작성완료」 → 「신고서 제출」 → 접수증','접수번호를 확인하고 「신고내역 조회」에서 다시 봅니다. 개인지방소득세 신고는 이어서 「지방소득세 신고」 버튼(위택스 연계)으로.'],
+  ['납부 — 「세금납부」 → 「납부할 세액 조회납부」','1천만원 초과면 「분납」 체크(2개월 뒤 7월 31일까지). 환급은 6월 말~7월 초 계좌 입금.'],
+];
+function bind(){
+  document.querySelectorAll('#incBox label').forEach(l=>l.onclick=e=>{e.preventDefault();S.inc[l.dataset.k]=!S.inc[l.dataset.k];paint();});
+  document.querySelectorAll('#typeBox label').forEach(l=>l.onclick=()=>{S.type=l.dataset.v;paint();});
+  [['newBox','isNew'],['profBox','prof'],['spouseBox','spouse'],['singleBox','single'],['womanBox','woman'],['efBox','ef'],['lateBox','late']].forEach(([b,k])=>document.querySelectorAll('#'+b+' label').forEach(l=>l.onclick=()=>{S[k]=l.dataset.v;paint();}));
+  document.querySelectorAll('#modeBox label').forEach(l=>l.onclick=e=>{e.preventDefault();S.mode=l.dataset.k;paint();});
+  S.fields.forEach(f=>{const el=$(f);if(el)el.addEventListener('input',()=>{S[f]=el.value;live();save();});});
+  ['grp','year','otherRate','born'].forEach(f=>$(f).addEventListener('change',()=>{S[f]=$(f).value;live();save();}));
+}
+function buildPrep(){const ul=$('prepList');ul.innerHTML='';PREP.forEach((p,i)=>{if(p[3]&&!S.inc[p[3]])return;if(p[3]==='biz'&&!S.inc.biz&&!S.inc.free)return;
+  const li=document.createElement('li');li.innerHTML=`<input type="checkbox" id="prep${i}" ${S.prep[i]?'checked':''}><div><b>${p[0]}</b><small>${p[1]}${p[2]?'':' (해당할 때만)'}</small></div>`;ul.appendChild(li);
+  li.querySelector('input').addEventListener('change',e=>{S.prep[i]=e.target.checked;save();});});}
+function paint(){
+  const has=k=>!!S.inc[k];const biz=has('biz')||has('free');
+  document.querySelectorAll('#incBox label').forEach(l=>l.classList.toggle('on',has(l.dataset.k)));
+  document.querySelectorAll('#typeBox label').forEach(l=>l.classList.toggle('on',l.dataset.v===S.type));
+  [['newBox','isNew'],['profBox','prof'],['spouseBox','spouse'],['singleBox','single'],['womanBox','woman'],['efBox','ef'],['lateBox','late']].forEach(([b,k])=>document.querySelectorAll('#'+b+' label').forEach(l=>l.classList.toggle('on',l.dataset.v===S[k])));
+  $('bizSec').classList.toggle('hidden',!biz);$('wageSec').classList.toggle('hidden',!has('wage'));$('otherSec').classList.toggle('hidden',!has('other'));
+  $('pensionSec').classList.toggle('hidden',!has('pension'));$('finSec').classList.toggle('hidden',!has('fin'));
+  $('freeQ').classList.toggle('hidden',!has('free'));$('yuQ').classList.toggle('hidden',!biz);$('interimQ').classList.toggle('hidden',!biz);
+  $('lateDays').classList.toggle('hidden',S.late!=='y');
+  if(has('free')&&!has('biz')&&$('grp').value==='a')$('grp').value='b';
+  /* 판정 */
+  const cls=classify({grp:$('grp').value,rev:$('rev').value,prevRev:$('prevRev').value,isNew:S.isNew==='y',prof:S.prof==='y'});
+  if(!S.mode)S.mode=cls.simpleOK?'simple':'std';
+  if(S.mode==='simple'&&!cls.simpleOK)S.mode='std';
+  document.querySelectorAll('#modeBox label').forEach(l=>{l.classList.toggle('on',l.dataset.k===S.mode);l.classList.toggle('hidden',l.dataset.k==='simple'&&!cls.simpleOK);});
+  $('bookQ').classList.toggle('hidden',S.mode!=='book');$('simpleQ').classList.toggle('hidden',S.mode!=='simple');$('stdQ').classList.toggle('hidden',S.mode!=='std');
+  const t=cls.thr;
+  $('judgeBiz').innerHTML=biz?`<b>판정</b> — ${S.prof==='y'?'전문직: 복식부기 의무, 단순경비율 불가.':cls.bookDuty==='simple'?`간편장부 대상자입니다(직전 수입 ${won(t.book)} 미만 또는 신규).`:`복식부기 의무자입니다(직전 수입 ${won(t.book)} 이상). 장부 없이 신고하면 무기장 가산세 20%, 기준경비율도 절반만 적용됩니다.`}
+    ${cls.simpleOK?`<br>단순경비율 적용 대상입니다(직전 수입 ${won(t.simple)} 미만·당해 ${won(t.book)} 미만). 장부 없이 가장 간단하게 신고할 수 있습니다.`:(S.prof==='y'?'':`<br>단순경비율은 쓸 수 없습니다(직전 수입 ${won(t.simple)} 이상 또는 당해 ${won(t.book)} 이상). 장부 또는 기준경비율로 신고합니다.`)}
+    ${cls.small?'<br>소규모사업자(신규 또는 직전 수입 4,800만원 미만)라 장부 없이 신고해도 무기장 가산세는 없습니다.':''}`:'';
+  /* 대상 여부 */
+  const J=[];
+  if(!Object.values(S.inc).some(Boolean))J.push('소득 종류를 고르면 신고 대상 여부를 알려 드립니다.');
+  else{
+    if(has('wage')&&!biz&&!has('other')&&!has('pension')&&!has('fin'))J.push('<b>근로소득만</b> 있고 회사에서 연말정산을 마쳤다면 종합소득세 신고를 하지 않아도 됩니다. 두 곳 이상에서 급여를 받았는데 합산 정산을 안 했다면 신고 대상입니다.');
+    if(biz)J.push('<b>사업·프리랜서 소득</b>이 있으면 금액과 관계없이 5월에 신고합니다. 3.3% 떼였다면 대부분 <b>환급</b>이 나옵니다.');
+    if(has('other'))J.push('<b>기타소득</b>은 소득금액(수입−경비) 300만원 이하면 분리과세로 끝낼 수 있고, 합산하면 환급이 될 때도 있습니다.');
+    if(has('fin'))J.push('<b>이자·배당 2,000만원 초과</b>는 종합과세 대상입니다. 계산이 복잡하니 세무사 검토를 권합니다.');
+    if(has('pension'))J.push('<b>공적연금</b>만 있으면 연말정산으로 끝나지만, 다른 소득과 함께면 합산 신고합니다. 사적연금 1,500만원 이하는 분리과세 선택 가능.');
+  }
+  $('judge0').innerHTML=J.map(x=>'· '+x).join('<br>');
+  const TW={S:'S — 성실신고확인 대상(복식부기). 세무사의 확인서가 필요하고 기한은 6월 30일.',A:'A — 복식부기 의무자, 외부조정 대상(세무사 조정계산서 필요).',B:'B — 복식부기 의무자, 자기조정 가능.',C:'C — 복식부기 의무자(간소).',D:'D — 간편장부 대상자 · 기준경비율. 장부 없으면 기준경비율로.',E:'E — 단순경비율 · 소득이 둘 이상(근로+사업 등).',F:'F — 단순경비율 · 납부세액 있음.',G:'G — 단순경비율 · 납부세액 없음(환급 가능).',I:'I — 성실신고 사전안내. 동종업계보다 소득이 낮게 신고된 경우 등. 꼼꼼히 신고.',V:'V — 주택임대소득 2,000만원 이하 분리과세 선택 가능.'};
+  $('typeWhy').innerHTML=(S.type?'<b>'+TW[S.type]+'</b><br>':'')+'안내문의 「신고안내 유형」 한 글자가 신고 방식을 정합니다. S·A·B·C는 복식부기(장부 필수), D는 기준경비율, E·F·G는 단순경비율, V는 주택임대 분리과세, I는 성실신고 사전안내입니다. (국세청 안내문 유형 — 매년 5월 안내문으로 확인)';
+  if(['S','A','B','C'].includes(S.type)&&cls.bookDuty==='simple'&&biz)$('judgeBiz').innerHTML+='<br><span style="color:var(--red)">안내문 유형(복식부기)과 입력한 수입금액 판정이 다릅니다. 안내문이 우선이니 직전연도 수입금액을 다시 확인하십시오.</span>';
+  buildPrep();live();save();
+}
+function live(){
+  const rev=+$('rev').value||0,sr=+$('simpleRate').value||0;$('simpleCalc').textContent=rev&&sr?`경비 ${won(fl(rev*sr/100))} → 소득금액 ${won(rev-fl(rev*sr/100))}`:'';
+  const w=+$('wage').value||0;$('wageCalc').textContent=w?`근로소득공제 ${won(earnedDeduction(w))} → 소득금액 ${won(w-earnedDeduction(w))}`:'';
+  const yu=+$('yu').value||0;$('yuCalc').textContent=yu?'한도는 결과에서 적용':'';
+}
+function autoWh(){$('withheld').value=fl((+$('rev').value||0)*0.03);S.withheld=$('withheld').value;save();}
+function inputs(o){const v=id=>$(id).value;
+  return{inc:{...S.inc},grp:v('grp'),rev:v('rev'),prevRev:v('prevRev'),isNew:S.isNew==='y',prof:S.prof==='y',mode:S.mode,expense:v('expense'),simpleRate:S.mode==='std'?v('simpleRate2'):v('simpleRate'),stdRate:v('stdRate'),mainCost:v('mainCost'),rent:v('rent'),wages:v('wages'),
+    withheld:S.inc.free?v('withheld'):0,wage:v('wage'),wageTax:v('wageTax'),special:v('special'),otherGross:v('otherGross'),otherRate:v('otherRate'),otherWh:v('otherWh'),otherSeparate:!!(o&&o.sep),pensionInc:v('pensionInc'),pensionWh:v('pensionWh'),finGross:v('finGross'),finWh:v('finWh'),
+    spouse:S.spouse==='y',deps:v('deps'),elderly:v('elderly'),disabled:v('disabled'),single:S.single==='y',woman:S.woman==='y',np:v('np'),yu:v('yu'),otherDed:v('otherDed'),kids:v('kids'),born:v('born'),pensionSave:v('pensionSave'),irp:v('irp'),donation:v('donation'),otherCredit:v('otherCredit'),elec:S.ef==='y',interim:v('interim'),late:S.late==='y',days:v('days'),year:v('year')};}
+function render(){
+  let i=inputs();let r=compute(i);
+  /* 기타소득 분리과세 비교 — 합산이 불리하면 분리과세 결과를 보여 준다 */
+  let sepNote='';if(S.inc.other&&r.oth.income<=3000000){const i2=inputs({sep:true});const r2=compute(i2);if(r2.final<r.final){sepNote=`기타소득 ${won(r.oth.income)}은 합산하면 ${won(r.final)}, 분리과세(원천징수로 종결)하면 ${won(r2.final)} — 분리과세가 유리해 분리과세로 계산했습니다.`;i=i2;r=r2;}else sepNote=`기타소득을 합산하는 편이 유리합니다(합산 ${won(r.final)} / 분리 ${won(r2.final)}).`;}
+  window.__lastResult={i,r};
+  const refund=r.final<0;const y=+i.year;
+  $('rLab').textContent=refund?'돌려받을 종합소득세 (환급)':'납부할 종합소득세';$('rAmt').textContent=won(Math.abs(r.final));
+  $('rDue').innerHTML=`신고·납부 기한 <b>${y+1}년 5월 31일</b>${S.type==='S'?' (성실신고확인 대상 6월 30일)':''} · 개인지방소득세 <b>${won(r.local)}</b> 별도 (소득세의 10%, 위택스)${refund?' · 환급은 신고 후 약 한 달 뒤 계좌 입금':''}`;
+  const rows=[];const R=(a,b,c,cls)=>rows.push(`<tr class="${cls||''}"><td>${a}</td><td>${b||''}</td><td class="num">${c}</td></tr>`);
+  if(r.biz)R('사업소득금액',r.biz.mode==='book'?`수입 ${won(r.biz.rev)} − 장부 경비 ${won(r.biz.exp)}`:r.biz.mode==='simple'?`수입 ${won(r.biz.rev)} × (1 − 단순경비율 ${i.simpleRate}%)`:`수입 ${won(r.biz.rev)} − 주요경비 ${won(r.biz.major)} − 수입 × 기준경비율 ${(r.biz.kr*100).toFixed(2)}%${r.biz.capped?' → 배율 한도 적용':''}`,won(r.bizInc));
+  if(S.inc.wage)R('근로소득금액',`총급여 ${won(+i.wage||0)} − 근로소득공제 ${won(earnedDeduction(i.wage))}`,won(r.wageInc));
+  if(S.inc.other)R('기타소득금액',r.otherSep?'분리과세 선택 — 합산 제외':`수입 ${won(+i.otherGross||0)} − 필요경비 ${i.otherRate}%`,won(r.othInc));
+  if(S.inc.pension)R('연금소득금액','',won(r.penInc));if(S.inc.fin)R('금융소득 (2,000만원 초과분)','단순 합산 추정',won(r.finInc));
+  R('종합소득금액','',won(r.totalIncome),'sum');
+  R('소득공제',`인적공제 ${won(r.pers)} + 국민연금 ${won(r.np)}${r.yu?' + 노란우산 '+won(r.yu):''}${r.od?' + 기타 '+won(r.od):''}`,'− '+won(r.ded));
+  R('과세표준','',won(r.base),'sum');R('산출세액','6~45% 누진세율 (§55)',won(r.calc));
+  R('세액공제',[r.child?'자녀 '+won(r.child):'',r.pen?'연금계좌 '+won(r.pen):'',r.don?'기부금 '+won(r.don):'',r.special?'특별세액공제 '+won(r.special):'',r.std?'표준 '+won(r.std):'',r.elec?'전자신고 '+won(r.elec):'',r.oc?'기타 '+won(r.oc):''].filter(Boolean).join(' + '),'− '+won(r.credits));
+  R('결정세액','',won(r.determined),'sum');
+  if(r.noBook)R('무기장 가산세','산출세액 × 사업소득 비율 × 20% (§81의5)','+ '+won(r.noBook));
+  R('이미 낸 세금(기납부)',[+i.interim?'중간예납 '+won(+i.interim):'',+i.withheld?'3% 원천징수 '+won(+i.withheld):'',S.inc.wage&&+i.wageTax?'근로 결정세액 '+won(+i.wageTax):'',S.inc.other&&!r.otherSep&&+i.otherWh?'기타소득 원천징수 '+won(+i.otherWh):'',S.inc.pension&&+i.pensionWh?'연금 '+won(+i.pensionWh):'',S.inc.fin&&+i.finWh?'금융 '+won(+i.finWh):''].filter(Boolean).join(' + '),'− '+won(r.prepaid));
+  if(r.late.total){R('무신고 가산세',`20%${r.late.relief?' × (1 − '+r.late.relief*100+'% 감면)':''}`,'+ '+won(r.late.none));R('납부지연 가산세',`${i.days}일 × 0.022%`,'+ '+won(r.late.delay));}
+  R(refund?'환급받을 세액':'납부할 세액','',won(r.final),'sum');R('개인지방소득세 (별도 납부)','결정세액 × 10% — 홈택스 신고 후 위택스 연계 화면에서 함께 신고',won(r.local));
+  $('calcTbl').innerHTML='<thead><tr><th>항목</th><th>계산</th><th>금액</th></tr></thead><tbody>'+rows.join('')+'</tbody>';
+  const F=[];
+  if(sepNote)F.push(['info','기타소득',sepNote]);
+  if(r.biz&&r.cls&&r.cls.simpleOK&&r.biz.mode!=='simple'&&r.biz.mode!=='book')F.push(['warn','경비율','단순경비율 대상인데 기준경비율로 계산했습니다. 보통 단순경비율이 훨씬 유리합니다. ③에서 바꿔 보십시오.']);
+  if(r.noBook)F.push(['','무기장 가산세',`장부 없이 신고해 무기장 가산세 ${won(r.noBook)}이 붙습니다. 간편장부만 써도 이 가산세가 없어지고 경비를 실제대로 인정받습니다.`]);
+  if(r.biz&&r.biz.capped)F.push(['warn','배율 한도','기준경비율 소득금액이 단순경비율 소득 × 배율을 넘어 배율 한도로 낮춰 계산했습니다(시행령 §143 ③ 1호 단서, 2027년까지). 홈택스도 같은 방식으로 계산합니다.']);
+  if(r.final>10000000)F.push(['ok','분납','납부세액이 1천만원을 넘어 일부를 7월 31일까지 나눠 낼 수 있습니다(§77). 신고서 「분납할 세액」 칸에 적습니다.']);
+  if(S.inc.fin)F.push(['warn','금융소득','금융소득 종합과세는 배당가산·비교과세(원천징수세액 이상) 계산이 필요합니다. 이 결과는 단순 추정이니 세무사 검토를 받으십시오.']);
+  if(S.inc.free&&!+i.withheld)F.push(['warn','원천징수','프리랜서 3.3% 떼인 세금(소득세 3%)을 적지 않았습니다. 빠지면 환급이 줄어듭니다.']);
+  if(r.determined===0&&r.prepaid>0)F.push(['ok','환급','결정세액이 0원이라 떼인 세금을 전부 돌려받습니다. 신고를 해야 환급됩니다.']);
+  if(['S','A','B','C'].includes(S.type)&&r.biz&&r.biz.mode!=='book')F.push(['','복식부기','안내문 유형이 복식부기 의무자입니다. 추계 신고는 무기장 가산세와 기준경비율 절반 적용으로 불리하고, S유형은 성실신고확인서가 없으면 신고를 안 한 것으로 봅니다(§70 ④). 세무사에게 맡기십시오.']);
+  F.push(['','참고','이 결과는 입력값에 따른 추정입니다. 이월결손금·감면·주택임대 분리과세·성실신고확인비용 공제·건강보험료 공제(근로자) 등은 반영하지 않았습니다. 홈택스 신고도움 서비스의 국세청 자료가 기준입니다.']);
+  $('flags').innerHTML=F.map(f=>`<div class="flag ${f[0]}"><b>${f[1]}</b><span>${f[2]}</span></div>`).join('');
+  $('howto').innerHTML=HOWTO.map(h=>`<li><b>${h[0]}</b><small>${h[1]}</small></li>`).join('');
+  $('basis').innerHTML=['소득세법 §14(분리과세)·§47(근로소득공제)·§50·§51(인적공제)·§51의3(연금보험료)·§55(세율)·§59의2(자녀)·§59의3(연금계좌)·§59의4(특별·표준세액공제)·§70(확정신고 5.31)·§77(분납)·§80(추계)·§81의5(무기장 가산세 20%)·§160(장부) — 2026-09-22 법제처 원문 확인',
+    '소득세법 시행령 §87(기타소득 필요경비 60%·80%)·§132 ④(소규모사업자)·§143(단순경비율 기준 6천만·3,600만·2,400만 / 기준경비율·복식 ½)·§208 ⑤(간편장부 기준 3억·1.5억·7,500만), 시행규칙 §67(배율 2.8·3.4)',
+    '조세특례제한법 §86의3(노란우산 600·500·400·200만), §104의8·시행령 §104의5(전자신고 1만원) · 국세기본법 §47의2·§47의4·§48, 시행령 §27의4 · 지방세법 §92(개인지방소득세)',
+    '국세청 신고안내 유형(S·A·B·C·D·E·F·G·I·V)은 웹 1차 확인 자료로, 매년 5월 안내문이 기준입니다. 자녀세액공제 연령(8세)은 현행 조문 기준이며 개정 시행 시기는 별도 확인이 필요합니다.',
+    '금액은 원 미만 절사. 결과는 참고용이며 실제 신고는 홈택스 자료와 세무사 검토를 기준으로 합니다.'].map(x=>'· '+x).join('<br>');
+}
+function go(n){
+  if(n>=1&&!Object.values(S.inc).some(Boolean)){alert('소득 종류를 하나 이상 골라 주십시오.');return;}
+  cur=n;for(let k=0;k<6;k++)$('s'+k).classList.toggle('hidden',k!==n);
+  const sb=$('steps');sb.innerHTML='';STEPS.forEach((t,k)=>{const b=document.createElement('button');b.textContent=t;b.className=k===n?'on':(k<n?'done':'');b.onclick=()=>go(k);sb.appendChild(b);});
+  if(n===1)buildPrep();if(n===5)render();window.scrollTo({top:0,behavior:'smooth'});save();
+}
+function save(){try{const o={S:{...S,fields:undefined},cur};S.fields.forEach(f=>{const el=$(f);if(el)o.S[f]=el.value;});localStorage.setItem(LS,JSON.stringify(o));}catch(e){}}
+function load(){try{const o=JSON.parse(localStorage.getItem(LS)||'null');if(!o)return;Object.assign(S,o.S,{fields:S.fields});S.fields.forEach(f=>{const el=$(f);if(el&&o.S[f]!=null)el.value=o.S[f];});}catch(e){}}
+function resetAll(){if(!confirm('입력을 모두 지우고 처음부터 시작할까요?'))return;localStorage.removeItem(LS);location.reload();}
+const RELAY={url:'https://script.google.com/macros/s/AKfycbxtBSiGZjkoJEl87cttAm1HUrR4A1D2zyz03S65NOkC6ezSUsHW_8BW5Pq5fkIyBZAK7A/exec',token:'hbtax-relay'};
+function consultText(memo){const L=window.__lastResult;if(!L)return '';const{i,r}=L;
+  const A=[`[종합소득세 신고 도우미 상담 요청] ${i.year}년 귀속 · 소득: ${Object.keys(i.inc).filter(k=>i.inc[k]).join(',')} · 안내유형 ${S.type||'미확인'}`,''];
+  if(r.biz)A.push(`사업: 업종그룹 ${i.grp}, 수입 ${won(r.biz.rev)}, 직전 ${won(+i.prevRev||0)}, ${i.isNew?'신규, ':''}${r.cls.bookDuty==='double'?'복식부기의무':'간편장부대상'}${r.cls.simpleOK?'·단순경비율 가능':''}, 신고방식 ${r.biz.mode}, 소득금액 ${won(r.bizInc)}`);
+  if(i.inc.wage)A.push(`근로: 총급여 ${won(+i.wage||0)}, 결정세액 ${won(+i.wageTax||0)}`);
+  A.push(`종합소득금액 ${won(r.totalIncome)} − 소득공제 ${won(r.ded)} = 과세표준 ${won(r.base)}, 산출 ${won(r.calc)} − 세액공제 ${won(r.credits)} = 결정 ${won(r.determined)}${r.noBook?' + 무기장 '+won(r.noBook):''} − 기납부 ${won(r.prepaid)} → ${won(r.final)} (지방소득세 ${won(r.local)})`);
+  if(memo)A.push('','[남긴 말]',memo);A.push('','한백택스 종합소득세 신고 차근차근 도우미 · '+new Date().toISOString().slice(0,10));return A.join('\n');}
+async function sendConsult(){const name=$('cName').value.trim(),phone=$('cPhone').value.trim(),email=$('cEmail').value.trim();const st=$('cStatus');
+  if(!name||!phone){alert('성함과 연락처를 적어 주십시오.');return;}if(!$('cAgree').checked){alert('전송 동의에 체크해 주십시오.');return;}
+  if(!window.__lastResult)render();const btn=$('cBtn');btn.disabled=true;st.textContent='보내는 중…';
+  try{const res=await fetch(RELAY.url,{method:'POST',body:JSON.stringify({token:RELAY.token,type:'consult',subject:'종합소득세 신고 도우미 상담 요청',name,phone,email,text:consultText($('cMemo').value.trim()),page:location.href.split('?')[0],ua:navigator.userAgent})});
+    const j=await res.json();if(!j.ok)throw new Error(j.error||'전송 실패');st.textContent='접수되었습니다'+(j.id?' · 접수번호 '+j.id:'')+' — 담당자가 연락드립니다.';st.style.color='#166534';}
+  catch(e){st.textContent='자동 접수 실패('+e.message+'). 전화 02-2277-3101 또는 메일 hb090@hanbaektax.kr 로 연락해 주십시오.';st.style.color='#B91C1C';}
+  finally{btn.disabled=false;}}
+bind();load();['grp','year','otherRate','born'].forEach(f=>{if(S[f])$(f).value=S[f];});paint();go(0);
+</script>
+</body>
+</html>

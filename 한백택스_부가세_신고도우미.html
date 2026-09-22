@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>부가세 신고 차근차근 도우미 — 처음 신고하는 사장님을 위한 단계별 입력 | 한백택스</title>
+<meta name="description" content="부가가치세를 처음 신고하는 사장님도 순서대로 답하면 됩니다. 일반과세·간이과세 판별, 준비할 자료, 매출·매입 입력, 공제·예정고지, 납부세액과 홈택스 신고서 항목 번호까지 차근차근 안내합니다.">
+<!--
+  세무법인 한백택스 부가세 신고 차근차근 도우미 v1 (2026-09-22)
+  대상: 세무 용어를 모르는 일반 사업자. 「받은 돈」「쓴 돈」처럼 쉬운 말로 묻고, 답한 값을 신고서 항목 번호(별지 제21호서식)에 대응시켜 준다.
+  구조: 계산은 script#hbEngine 블록의 순수 함수(화면과 분리). scripts/tests/test_filing_wizards.js 가 이 블록만 꺼내 손계산 기대값과 대조한다.
+  근거(2026-09-22 K-Law MCP 확인): 부가가치세법 §37·§39·§42·§46·§48·§49·§60·§61·§63·§66·§67·§69,
+        부가가치세법 시행령 §84·§88·§109·§111, 국세기본법 §47의2·§47의3·§47의4·§48, 국세기본법 시행령 §27의4,
+        조세특례제한법 §104의8, 조세특례제한법 시행령 §104의5.
+  한계: 참고용 추정치. 영세율·대손·재고매입·공통매입 안분·수입세금계산서 등 특수 항목은 전문가용 「부가가치세 시뮬레이터」로.
+  입력은 이 브라우저(localStorage hbt_vat_wiz_v1)에만 저장되고, 「상담 요청」을 누를 때만 요약이 사무소로 전송된다.
+-->
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1B3A5C;--gold:#C8963E;--blue:#2F5D8A;--bg:#F4F6F9;--line:#DCE3EC;--gray:#6B7A8C;--red:#B91C1C;--green:#166534}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:15px;line-height:1.6}
+.top{background:#fff;border-bottom:2px solid var(--gold);padding:14px 20px}
+.top .in{max-width:1040px;margin:0 auto}
+.top h1{margin:0;font-size:21px;color:var(--navy)}
+.top .motto{display:inline-block;background:var(--navy);color:#fff;font-weight:800;border-radius:999px;padding:3px 12px;font-size:12px;margin-bottom:6px;letter-spacing:.5px}
+.top .sub{color:var(--gray);font-size:13px;margin-top:4px}
+.wrap{max-width:1040px;margin:0 auto;padding:16px 20px 60px}
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+.steps button{flex:1;min-width:110px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 6px;font:inherit;font-size:13px;font-weight:800;color:var(--gray);cursor:pointer}
+.steps button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.steps button.done{color:var(--navy);border-color:var(--gold)}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:14px}
+.card h2{margin:0 0 4px;font-size:17px;color:var(--navy)}
+.card .lead{color:var(--gray);font-size:13.5px;margin:0 0 14px}
+.q{padding:12px 0;border-top:1px dashed var(--line)}
+.q:first-of-type{border-top:none;padding-top:0}
+.q .t{display:block;font-weight:800;color:#111;margin-bottom:3px;font-size:15px}
+.q .why{font-size:12.5px;color:var(--blue);background:#F1F6FB;border-left:3px solid var(--blue);padding:5px 9px;border-radius:0 6px 6px 0;margin:4px 0 8px}
+.q .where{font-size:12.5px;color:#5b4a1f;background:#FFF8E8;border-left:3px solid var(--gold);padding:5px 9px;border-radius:0 6px 6px 0;margin:4px 0 8px}
+.q input[type=number],.q input[type=text],.q select{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:9px;width:100%;max-width:300px;background:#fff}
+.q input.money{text-align:right;font-weight:700}
+.q .unit{font-size:12.5px;color:var(--gray);margin-left:6px}
+.q .calc{display:inline-block;font-size:12.5px;color:var(--navy);background:#F1F4F8;border-radius:7px;padding:3px 9px;margin-left:6px;font-weight:700}
+.opts{display:flex;gap:6px;flex-wrap:wrap}
+.opts label{border:1px solid var(--line);border-radius:999px;padding:7px 13px;cursor:pointer;font-size:13.5px;background:#fff}
+.opts input{display:none}
+.opts label.on{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:800}
+.big{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.big label{border:1.5px solid var(--line);border-radius:12px;padding:13px;cursor:pointer;background:#fff}
+.big label b{display:block;color:var(--navy);font-size:15px;margin-bottom:3px}
+.big label span{font-size:12.5px;color:var(--gray)}
+.big input{display:none}
+.big label.on{border-color:var(--gold);background:#fffdf7;box-shadow:0 0 0 2px #C8963E33}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.navbtn{display:flex;gap:8px;justify-content:space-between;margin-top:14px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 18px;font:inherit;font-weight:800;cursor:pointer;color:var(--navy)}
+.btn.p{background:var(--gold);color:#fff;border-color:var(--gold)}
+.btn.n{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn.sm{padding:6px 11px;font-size:12.5px}
+.ck{list-style:none;padding:0;margin:0}
+.ck li{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px dashed var(--line)}
+.ck li:first-child{border-top:none}
+.ck input{width:20px;height:20px;margin-top:2px;flex:0 0 auto}
+.ck b{display:block;color:#111}
+.ck small{display:block;color:var(--gray);font-size:12.5px}
+.result{background:linear-gradient(135deg,#1B3A5C,#24507d);color:#fff;border-radius:14px;padding:18px 20px;margin-bottom:14px}
+.result .lab{font-size:13px;opacity:.85}
+.result .amt{font-size:34px;font-weight:800;letter-spacing:-.5px;margin:2px 0}
+.result .due{font-size:14px;margin-top:6px}
+.result .due b{color:#F3D9A4}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th,.tbl td{border:1px solid var(--line);padding:8px 10px;vertical-align:top;text-align:left}
+.tbl thead th{background:var(--navy);color:#fff;text-align:center}
+.tbl td.num{text-align:right;font-weight:800;white-space:nowrap}
+.tbl td.no{text-align:center;color:var(--navy);font-weight:800;white-space:nowrap;width:52px}
+.tbl tr.sum td{background:#FFF8E8;font-weight:800}
+.tbl tr.dim td{color:var(--gray)}
+.scroll{overflow-x:auto}
+.flag{display:flex;gap:9px;align-items:flex-start;border:1px solid #fca5a5;background:#fef2f2;color:#7f1d1d;border-radius:10px;padding:9px 12px;margin-bottom:7px;font-size:13.5px}
+.flag.warn{border-color:#fcd34d;background:#fffbeb;color:#78350f}
+.flag.ok{border-color:#86efac;background:#f0fdf4;color:#14532d}
+.flag b{white-space:nowrap}
+.steplist{counter-reset:s;list-style:none;padding:0;margin:0}
+.steplist li{position:relative;padding:8px 0 8px 38px;border-top:1px dashed var(--line);font-size:14px}
+.steplist li:first-child{border-top:none}
+.steplist li:before{counter-increment:s;content:counter(s);position:absolute;left:0;top:8px;width:26px;height:26px;border-radius:50%;background:var(--gold);color:#fff;font-weight:800;text-align:center;line-height:26px;font-size:13px}
+.steplist li b{color:var(--navy)}
+.steplist li small{display:block;color:var(--gray);font-size:12.5px}
+.basis{font-size:12.5px;color:var(--gray);line-height:1.8}
+.consult .row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.consult input,.consult textarea{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:9px;width:100%}
+.consult textarea{min-height:70px;margin-top:8px}
+.consult label.c{display:flex;gap:7px;align-items:flex-start;font-size:13px;margin:8px 0}
+.consult label.c input{width:auto;flex:0 0 auto;margin-top:4px}
+.links{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.links a{font-size:12.5px;font-weight:700;color:var(--blue);border:1px solid var(--line);border-radius:999px;padding:5px 11px;text-decoration:none;background:#fff}
+details.det{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:7px;background:#fafbfd}
+details.det summary{cursor:pointer;font-weight:800;color:var(--navy)}
+.hidden{display:none!important}
+@media(max-width:700px){
+  .wrap{padding:12px 12px 70px}.top{padding:12px}.top h1{font-size:18px}
+  .card{padding:14px}.consult .row{grid-template-columns:1fr}.row2{grid-template-columns:1fr}
+  .steps button{min-width:0;font-size:12px;padding:8px 3px}
+  .result .amt{font-size:28px}.tbl{font-size:12.5px}
+}
+@media print{
+  .top .sub,.steps,.navbtn,.consult,.nopr{display:none!important}
+  html,body{background:#fff}.card{border:none;padding:0 0 10px}.wrap{padding:0;max-width:none}
+}
+</style>
+</head>
+<body>
+<!-- HB-HOME v1 -->
+<script>
+/* 한백택스 홈 바 — 생성기: 02-도구 & 스크립트/Python 스크립트/홈바_주입.py
+   이 블록은 자동 생성이다. 직접 고치지 말고 생성기를 고쳐 다시 실행한다. */
+(function(){
+  if (window.self !== window.top) return;          /* 포털 iframe 안에서는 부모의 바를 쓴다 */
+  if (window.__hbHome) return;
+  window.__hbHome = 1;
+  var me = decodeURIComponent((location.pathname.split('/').pop() || '').toLowerCase());
+  var host = document.createElement('div');
+  host.id = 'hbHome';
+  host.setAttribute('data-nogate', '1');
+  host.style.cssText = 'display:block;position:sticky;top:0;z-index:2147483000;margin:0;padding:0;line-height:0';
+  var links = [
+    ['한백택스_세무계산_포털.html', '세무계산 포털'],
+    ['한백택스_모바일.html', '모바일 포털']
+  ].filter(function(l){ return l[0].toLowerCase() !== me; });
+  var sh = host.attachShadow({ mode: 'open' });
+  sh.innerHTML =
+    '<style>' +
+    ':host{all:initial;display:block}' +
+    '.bar{box-sizing:border-box;display:flex;align-items:center;gap:10px;height:42px;padding:0 16px;' +
+      'background:#fff;border-bottom:2px solid #C8963E;box-shadow:0 2px 8px rgba(15,36,64,.08);' +
+      'font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:13px;line-height:1;color:#1B3A5C}' +
+    '.home{display:inline-flex;align-items:center;gap:6px;background:#C8963E;color:#fff;font-weight:800;' +
+      'padding:7px 13px;border-radius:999px;text-decoration:none;white-space:nowrap;letter-spacing:-.2px}' +
+    '.home:hover{background:#b8862f}' +
+    '.ttl{font-weight:700;color:#1B3A5C;white-space:nowrap;opacity:.85}' +
+    '.sp{flex:1}' +
+    '.lnk{color:#35507A;font-weight:700;text-decoration:none;padding:6px 10px;border:1px solid #DCE5F0;border-radius:999px;white-space:nowrap;background:#F5F8FC}' +
+    '.lnk:hover{border-color:#C8963E;color:#1B3A5C}' +
+    '@media(max-width:640px){.bar{padding:0 10px;gap:6px;height:40px}.ttl{display:none}.lnk{padding:6px 8px;font-size:12px}}' +
+    '@media print{.bar{display:none}}' +
+    '</style>' +
+    '<div class="bar">' +
+      '<a class="home" href="index.html" title="한백택스 세무 도구 모음(메인 화면)으로">&#8592; 메인 화면</a>' +
+      '<span class="ttl">세무법인 한백택스 · 세무 도구</span>' +
+      '<span class="sp"></span>' +
+      links.map(function(l){ return '<a class="lnk" href="' + l[0] + '">' + l[1] + '</a>'; }).join('') +
+    '</div>';
+  var s = document.currentScript;
+  if (s && s.parentNode) s.parentNode.insertBefore(host, s);
+  else document.body.insertBefore(host, document.body.firstChild);
+})();
+</script>
+<!-- /HB-HOME -->
+<header class="top"><div class="in">
+  <span class="motto">세금, 계산 전에 판단부터</span>
+  <h1>🧾 부가세 신고 차근차근 도우미</h1>
+  <div class="sub">세무 용어를 몰라도 됩니다. 순서대로 답하면 납부할 세금과 홈택스 신고서에 적을 칸(항목 번호)까지 정리해 드립니다. · 세무법인 한백택스</div>
+</div></header>
+
+<div class="wrap">
+<div class="steps" id="steps"></div>
+
+<!-- ───────── 0. 나는 어떤 사업자? ───────── -->
+<section class="card" id="s0">
+  <h2>① 나는 어떤 사업자인가요?</h2>
+  <p class="lead">사업자등록증에 「일반과세자」 또는 「간이과세자」라고 적혀 있습니다. 홈택스 로그인 후 「My홈택스 → 사업자등록 사항」에서도 확인됩니다.</p>
+  <div class="q"><span class="t">과세 유형</span>
+    <div class="big" id="kindBox">
+      <label data-k="general"><input type="radio" name="kind" value="general"><b>일반과세자</b><span>매출세액(10%)에서 매입세액을 빼서 납부. 법인은 모두 일반과세.</span></label>
+      <label data-k="simple"><input type="radio" name="kind" value="simple"><b>간이과세자</b><span>연 매출(공급대가) 1억 400만원 미만 개인사업자. 업종별 부가가치율로 간단히 계산. 4,800만원 미만이면 납부 면제.</span></label>
+    </div>
+    <div class="why">일반과세는 「받은 부가세 − 낸 부가세」, 간이과세는 「받은 돈 × 업종별 부가가치율 × 10%」로 계산합니다. 유형이 다르면 신고 화면과 계산이 완전히 다릅니다. (부가가치세법 §37, §63, 시행령 §109)</div>
+  </div>
+  <div class="q"><span class="t">이번에 하는 신고</span>
+    <div class="opts" id="periodBox">
+      <label data-v="1c"><input type="radio" name="period" value="1c">제1기 확정 (1.1~6.30분 → 7.25까지)</label>
+      <label data-v="2c"><input type="radio" name="period" value="2c">제2기 확정 (7.1~12.31분 → 다음해 1.25까지)</label>
+      <label data-v="1p" class="gen-only"><input type="radio" name="period" value="1p">제1기 예정 (1.1~3.31분 → 4.25까지)</label>
+      <label data-v="2p" class="gen-only"><input type="radio" name="period" value="2p">제2기 예정 (7.1~9.30분 → 10.25까지)</label>
+      <label data-v="yr" class="simp-only"><input type="radio" name="period" value="yr">간이과세 연 1회 확정 (1.1~12.31분 → 다음해 1.25까지)</label>
+      <label data-v="close"><input type="radio" name="period" value="close">폐업 신고 (폐업일이 속한 달의 다음 달 25일까지)</label>
+    </div>
+    <div class="why">개인 일반과세자는 보통 확정신고만 하고, 예정분은 세무서가 직전 납부세액의 절반을 「예정고지」로 보냅니다(50만원 미만이면 고지 없음). 간이과세자는 1년에 한 번 신고하고 7월에 예정부과 고지를 받을 수 있습니다. (§48 ③, §49, §66, §67)</div>
+  </div>
+  <div class="q"><span class="t">주된 업종</span>
+    <select id="ind">
+      <option value="retail">소매업 · 음식점업 · 재생용 재료수집</option>
+      <option value="manu">제조업 · 농림어업 · 소화물 전문운송</option>
+      <option value="lodging">숙박업</option>
+      <option value="constr">건설업 · 운수·창고업 · 정보통신업</option>
+      <option value="prof">금융·보험 서비스 · 전문·과학·기술 · 사업시설관리 · 부동산 관련 · 부동산임대</option>
+      <option value="other">그 밖의 서비스업 (미용·학원·수리 등)</option>
+    </select>
+    <div class="why">간이과세자는 업종별 부가가치율(15·20·25·30·40%)이 세액을 좌우하고(시행령 §111 ②), 일반과세자는 소비자 상대 업종인지에 따라 신용카드 발행세액공제(1.3%)를 받을 수 있는지가 갈립니다(§46 ①, 시행령 §88).</div>
+  </div>
+  <div class="q"><span class="t">사업자 구분</span>
+    <div class="opts" id="entBox">
+      <label data-v="ind"><input type="radio" name="ent" value="ind">개인사업자</label>
+      <label data-v="corp"><input type="radio" name="ent" value="corp">법인</label>
+    </div>
+  </div>
+  <div class="q simp-only"><span class="t">작년 한 해 매출(공급대가, 부가세 포함 총액)</span>
+    <input type="number" class="money" id="prevSupply" placeholder="예: 60000000"><span class="unit">원</span>
+    <div class="why">1억 400만원 이상이면 다음 해 7월 1일부터 일반과세자로 바뀝니다. 4,800만원 미만이면 세금계산서 대신 영수증만 발급하고, 그해 매출도 4,800만원 미만이면 납부가 면제됩니다. (§61 ①, §69, 시행령 §109 ①)</div>
+  </div>
+  <div class="navbtn"><span></span><button class="btn n" onclick="go(1)">다음 — 준비할 자료 →</button></div>
+</section>
+
+<!-- ───────── 1. 준비 자료 ───────── -->
+<section class="card hidden" id="s1">
+  <h2>② 신고 전에 챙길 자료</h2>
+  <p class="lead">대부분 홈택스에서 그대로 조회됩니다. 체크하면서 준비하십시오. 체크 상태는 이 브라우저에 저장됩니다.</p>
+  <ul class="ck" id="prepList"></ul>
+  <div class="navbtn"><button class="btn" onclick="go(0)">← 이전</button><button class="btn n" onclick="go(2)">다음 — 받은 돈(매출) →</button></div>
+</section>
+
+<!-- ───────── 2. 매출 ───────── -->
+<section class="card hidden" id="s2">
+  <h2>③ 받은 돈 — 매출</h2>
+  <p class="lead">이번 신고 기간에 손님·거래처에서 받은 돈을 「어떤 증빙으로 받았는지」별로 나눠 적습니다. 같은 매출을 두 군데에 적지 않도록 주의하십시오.</p>
+
+  <div class="gen-only">
+    <div class="q"><span class="t">1) 세금계산서를 발행한 매출</span>
+      <div class="where">홈택스 → 조회/발급 → 전자세금계산서 → 「매출 합계표」에서 이번 기간 공급가액·세액을 그대로 옮깁니다. 종이세금계산서를 썼다면 그 합계를 더합니다.</div>
+      <div class="row2">
+        <div>공급가액 <input type="number" class="money" id="tiSupply" placeholder="0"><span class="unit">원</span></div>
+        <div>세액 <input type="number" class="money" id="tiVat" placeholder="0"><span class="unit">원</span> <button class="btn sm" type="button" onclick="autoVat('tiSupply','tiVat')">공급가액×10%</button></div>
+      </div>
+      <div class="why">신고서 ① 세금계산서 발급분. 카드로 결제받고 세금계산서도 끊어 준 거래는 여기에만 적고 아래 카드 매출에서는 뺍니다.</div>
+    </div>
+    <div class="q"><span class="t">2) 신용카드 · 현금영수증으로 받은 매출</span>
+      <div class="where">홈택스 → 조회/발급 → 「신용카드 매출자료 조회」와 「현금영수증 매출내역」에서 이번 기간 합계(부가세 포함 승인 총액)를 봅니다. 배달앱·PG 결제도 포함됩니다.</div>
+      <div>승인 총액(부가세 포함) <input type="number" class="money" id="cardTotal" placeholder="0"><span class="unit">원</span><span class="calc" id="cardCalc"></span></div>
+      <div class="why">손님이 낸 금액에는 부가세 10%가 들어 있으므로 총액 ÷ 1.1 이 공급가액, 나머지가 세액입니다. 신고서 ③ 신용카드·현금영수증 발행분. 이 금액은 뒤에서 「신용카드 발행세액공제」 계산에도 그대로 씁니다.</div>
+    </div>
+    <div class="q"><span class="t">3) 그 밖의 매출 — 현금·계좌이체로 받고 영수증을 끊지 않은 매출</span>
+      <div>받은 총액(부가세 포함) <input type="number" class="money" id="otherTotal" placeholder="0"><span class="unit">원</span><span class="calc" id="otherCalc"></span></div>
+      <div class="why">신고서 ④ 기타(정규영수증 외 매출분). 장부·통장으로 확인한 금액을 적습니다. 빠뜨리면 나중에 과소신고 가산세(10%)와 납부지연 이자가 붙습니다. (국세기본법 §47의3, §47의4)</div>
+    </div>
+    <div class="q"><span class="t">4) 영세율 매출 (수출 등) — 해당할 때만</span>
+      <div>공급가액 <input type="number" class="money" id="zeroSupply" placeholder="0"><span class="unit">원</span></div>
+      <div class="why">세액은 0이지만 신고서 ⑤·⑥에 적어야 합니다. 신고하지 않으면 영세율 과세표준의 0.5% 가산세가 있습니다(국세기본법 §47의2 ② 2호). 수출실적명세서 등 첨부가 필요하므로 전문가 확인을 권합니다.</div>
+    </div>
+  </div>
+
+  <div class="simp-only">
+    <div class="q"><span class="t">이번 기간에 받은 돈 전부 (공급대가 = 부가세 포함 총액)</span>
+      <div class="where">세금계산서·카드·현금영수증·현금 매출을 모두 합칩니다. 홈택스 「신용카드 매출자료 조회」「현금영수증 매출내역」과 통장 입금을 더합니다.</div>
+      <div>주된 업종 매출 <input type="number" class="money" id="sSupply1" placeholder="0"><span class="unit">원</span><span class="calc" id="sRate1"></span></div>
+      <div class="why">간이과세자는 받은 돈(공급대가)에 업종별 부가가치율과 10%를 곱합니다(§63 ②). 예: 음식점 1,000만원 → 1,000만 × 15% × 10% = 15만원.</div>
+    </div>
+    <div class="q"><span class="t">다른 업종 매출이 따로 있다면</span>
+      <div class="row2">
+        <div><select id="sInd2"><option value="">없음</option><option value="retail">소매·음식점 (15%)</option><option value="manu">제조·농림어업 (20%)</option><option value="lodging">숙박 (25%)</option><option value="constr">건설·운수·정보통신 (30%)</option><option value="prof">금융보험·전문서비스·부동산임대 (40%)</option><option value="other">그 밖의 서비스 (30%)</option></select></div>
+        <div><input type="number" class="money" id="sSupply2" placeholder="0"><span class="unit">원</span></div>
+      </div>
+    </div>
+    <div class="q"><span class="t">그중 신용카드·현금영수증으로 받은 금액</span>
+      <div><input type="number" class="money" id="sCardTotal" placeholder="0"><span class="unit">원</span></div>
+      <div class="why">발행금액의 1.3%를 세액에서 빼 줍니다(연 1,000만원 한도, 2026년까지). (§46 ①)</div>
+    </div>
+  </div>
+  <div class="flag warn" id="salesFlag"><b>확인</b><span id="salesFlagText"></span></div>
+  <div class="navbtn"><button class="btn" onclick="go(1)">← 이전</button><button class="btn n" onclick="go(3)">다음 — 쓴 돈(매입) →</button></div>
+</section>
+
+<!-- ───────── 3. 매입 ───────── -->
+<section class="card hidden" id="s3">
+  <h2>④ 쓴 돈 — 매입 (돌려받을 수 있는 부가세)</h2>
+  <p class="lead">사업에 쓴 돈 중 「부가세가 따로 표시된 증빙」이 있는 것만 공제됩니다. 세금계산서, 사업용 신용카드 전표, 지출증빙용 현금영수증이 그것입니다.</p>
+
+  <div class="gen-only">
+    <div class="q"><span class="t">1) 세금계산서를 받은 매입 — 일반 (재료·상품·임차료·수수료 등)</span>
+      <div class="where">홈택스 → 전자세금계산서 → 「매입 합계표」. 종이세금계산서·수입세금계산서가 있으면 더합니다.</div>
+      <div class="row2">
+        <div>공급가액 <input type="number" class="money" id="inSupply" placeholder="0"><span class="unit">원</span></div>
+        <div>세액 <input type="number" class="money" id="inVat" placeholder="0"><span class="unit">원</span> <button class="btn sm" type="button" onclick="autoVat('inSupply','inVat')">×10%</button></div>
+      </div>
+      <div class="why">신고서 ⑩ 세금계산서 수취분 일반매입.</div>
+    </div>
+    <div class="q"><span class="t">2) 세금계산서를 받은 매입 — 고정자산 (기계·차량·인테리어·비품 등 오래 쓰는 것)</span>
+      <div class="row2">
+        <div>공급가액 <input type="number" class="money" id="faSupply" placeholder="0"><span class="unit">원</span></div>
+        <div>세액 <input type="number" class="money" id="faVat" placeholder="0"><span class="unit">원</span> <button class="btn sm" type="button" onclick="autoVat('faSupply','faVat')">×10%</button></div>
+      </div>
+      <div class="why">신고서 ⑪ 고정자산매입. 위 ①과 나눠 적을 뿐 공제 효과는 같습니다. 큰 시설투자로 환급이 나오면 「조기환급」 신고도 가능합니다.</div>
+    </div>
+    <div class="q"><span class="t">3) 사업용 신용카드 · 현금영수증으로 산 것 (부가세가 구분된 것만)</span>
+      <div class="where">홈택스 → 조회/발급 → 현금영수증 → 「사업용 신용카드 매입세액 공제 확인/변경」에서 이번 기간 「공제」로 표시된 합계를 봅니다. 등록하지 않은 카드는 전표를 모아 합산합니다.</div>
+      <div class="row2">
+        <div>일반 매입 총액(부가세 포함) <input type="number" class="money" id="cardInTotal" placeholder="0"><span class="unit">원</span><span class="calc" id="cardInCalc"></span></div>
+        <div>고정자산 총액(부가세 포함) <input type="number" class="money" id="cardFaTotal" placeholder="0"><span class="unit">원</span></div>
+      </div>
+      <div class="why">신고서 ⑭ 그 밖의 공제매입세액 → ㉛ 신용카드 일반매입 / ㉜ 고정자산매입. 「신용카드매출전표등 수령명세서」를 함께 제출합니다(§46 ③). 간이과세자(영수증 발급 대상)·면세사업자에게서 받은 전표, 접대비, 비영업용 승용차 관련 전표는 공제되지 않으니 홈택스에서 「불공제」로 바꿉니다.</div>
+    </div>
+    <div class="q"><span class="t">4) 위 ①·②에 들어 있지만 공제가 안 되는 세액</span>
+      <div><input type="number" class="money" id="nonDedVat" placeholder="0"><span class="unit">원</span></div>
+      <div class="why">신고서 ⑯ 공제받지 못할 매입세액. 접대비(기업업무추진비), 개별소비세 과세 승용차(경차·9인승 이상·화물차 제외)의 구입·임차·유지비, 면세사업 관련, 사업과 무관한 지출, 사업자등록 전 매입(과세기간 끝난 뒤 20일 안에 등록하면 예외)이 여기 해당합니다(§39 ①). 세금계산서를 받았어도 이 세액은 빼야 합니다.</div>
+    </div>
+    <div class="q" id="deemedQ"><span class="t">5) 면세 농·축·수산물을 사서 조리·제조한 경우 — 의제매입세액</span>
+      <div class="where">농산물·정육·수산물은 부가세 면세라 세액이 없지만, 음식점·제조업은 매입액의 일정 비율을 공제해 줍니다. 계산서·카드·현금영수증으로 산 면세 농산물 합계를 적습니다.</div>
+      <div class="row2">
+        <div>면세 농산물 등 매입액 <input type="number" class="money" id="deemedAmt" placeholder="0"><span class="unit">원</span></div>
+        <div><select id="deemedKind">
+          <option value="rest_ind">음식점 · 개인 (과세표준 2억 이하 9/109, 초과 8/108)</option>
+          <option value="rest_corp">음식점 · 법인 (6/106)</option>
+          <option value="rest_ent">과세유흥장소 (2/102)</option>
+          <option value="manu_small">제조업 · 개인·중소기업 (4/104)</option>
+          <option value="manu_rice">과자점·도정·제분·떡방앗간 개인 (6/106)</option>
+          <option value="etc">그 밖의 사업 (2/102)</option>
+        </select></div>
+      </div>
+      <div class="why">신고서 ㉝ 의제매입세액. 한도는 이번 기간 과세표준(위 매출 공급가액 합계)에 한도율을 곱한 금액입니다 — 개인 음식점 1억 이하 75%, 2억 이하 70%, 2억 초과 60%, 그 밖의 개인 65%/55%, 법인 50% (2027.12.31.까지, 시행령 §84 ②). 「의제매입세액 공제신고서」를 함께 냅니다. (§42)</div>
+    </div>
+  </div>
+
+  <div class="simp-only">
+    <div class="q"><span class="t">세금계산서 · 사업용 카드 · 현금영수증으로 산 것 (공급대가, 부가세 포함 총액)</span>
+      <div class="where">홈택스 「매입 합계표」 합계금액과 「사업용 신용카드 매입」 공제분 합계를 더합니다.</div>
+      <div><input type="number" class="money" id="sInTotal" placeholder="0"><span class="unit">원</span><span class="calc" id="sInCalc"></span></div>
+      <div class="why">간이과세자는 매입세액 대신 「받은 세금계산서 등 공급대가 × 0.5%」를 빼 줍니다(§63 ③). 접대비·승용차 등 불공제 대상은 뺍니다.</div>
+    </div>
+  </div>
+  <div class="flag warn" id="inFlag"><b>확인</b><span id="inFlagText"></span></div>
+  <div class="navbtn"><button class="btn" onclick="go(2)">← 이전</button><button class="btn n" onclick="go(4)">다음 — 공제·이미 낸 세금 →</button></div>
+</section>
+
+<!-- ───────── 4. 공제·기납부·가산세 ───────── -->
+<section class="card hidden" id="s4">
+  <h2>⑤ 깎아 주는 것과 이미 낸 것</h2>
+  <p class="lead">여기까지 오면 세금은 거의 정해졌습니다. 몇 가지만 더 확인합니다.</p>
+  <div class="q gen-only"><span class="t">신용카드 발행세액공제 대상인가요?</span>
+    <div class="opts" id="ccBox">
+      <label data-v="y"><input type="radio" name="cc" value="y">예 — 개인사업자이고 주로 소비자에게 판다 (소매·음식·숙박·서비스 등)</label>
+      <label data-v="n"><input type="radio" name="cc" value="n">아니요 — 법인이거나, 작년 공급가액 10억 초과, 또는 주로 사업자 상대</label>
+    </div>
+    <div class="why">③에서 적은 카드·현금영수증 매출 총액의 1.3%를 세액에서 빼 줍니다(연 1,000만원 한도, 2026.12.31.까지 · 2027년부터 1%·500만원). 신고서 ⑲. 납부세액을 넘는 부분은 없어집니다. (§46 ①·②, 시행령 §88 ③)</div>
+    <div class="q" style="border:none;padding-top:6px">올해 앞선 신고에서 이미 받은 발행세액공제액 <input type="number" class="money" id="ccUsed" placeholder="0"><span class="unit">원 (제2기 확정신고라면 제1기에 받은 금액)</span></div>
+  </div>
+  <div class="q"><span class="t">홈택스에서 직접 전자신고하나요?</span>
+    <div class="opts" id="efBox"><label data-v="y"><input type="radio" name="ef" value="y">예 (확정신고 5,000원 공제)</label><label data-v="n"><input type="radio" name="ef" value="n">아니요 / 세무대리인이 신고</label></div>
+    <div class="why">확정신고를 본인이 전자신고하면 5,000원을 빼 줍니다. 신고서 ㉞ 전자신고세액공제. 매출·매입이 모두 없는 일반과세자는 제외. (조세특례제한법 §104의8 ②, 시행령 §104의5 ④)</div>
+  </div>
+  <div class="q gen-only"><span class="t">예정고지로 이미 낸 세금 (확정신고 때만)</span>
+    <div class="where">4월·10월에 받은 「부가가치세 예정고지서」 금액. 홈택스 → 세금신고 → 부가가치세 신고 화면에서 자동으로 뜹니다. 안 냈어도 고지된 금액을 적습니다(체납분은 별도 납부).</div>
+    <div><input type="number" class="money" id="prepaid" placeholder="0"><span class="unit">원</span></div>
+    <div class="why">신고서 ㉒ 예정고지세액. 확정신고 세액에서 뺍니다(§49 ② 2호). 예정신고를 직접 했다면 그때 납부한 세액 대신 ㉑ 예정신고 미환급세액을 확인합니다.</div>
+  </div>
+  <div class="q simp-only"><span class="t">7월 예정부과로 이미 낸 세금</span>
+    <div><input type="number" class="money" id="sPrepaid" placeholder="0"><span class="unit">원</span></div>
+    <div class="why">직전 연도 납부세액의 절반을 7월에 고지받아 냈다면 여기서 뺍니다(§66 ①, §67 ②).</div>
+  </div>
+  <div class="q"><span class="t">신고 기한을 넘겼나요?</span>
+    <div class="opts" id="lateBox"><label data-v="n"><input type="radio" name="late" value="n">아니요, 기한 안에 신고·납부</label><label data-v="y"><input type="radio" name="late" value="y">예, 기한이 지났습니다 (기한 후 신고)</label></div>
+    <div class="q hidden" id="lateDays" style="border:none">기한 후 며칠 지났나요? <input type="number" id="days" placeholder="0" style="max-width:120px"><span class="unit">일</span>
+      <div class="why">무신고 가산세 20% (1개월 이내 신고 시 50%, 3개월 이내 30%, 6개월 이내 20% 감면) + 납부지연 이자 하루 0.022%. 간이과세 납부면제자는 무신고 가산세가 없습니다. (국세기본법 §47의2, §47의4, §48 ②, 시행령 §27의4)</div>
+    </div>
+  </div>
+  <div class="navbtn"><button class="btn" onclick="go(3)">← 이전</button><button class="btn p" onclick="go(5)">결과 보기 →</button></div>
+</section>
+
+<!-- ───────── 5. 결과 ───────── -->
+<section class="hidden" id="s5">
+  <div class="result">
+    <div class="lab" id="rLab">이번에 납부할 부가가치세</div>
+    <div class="amt" id="rAmt">0원</div>
+    <div class="due" id="rDue"></div>
+  </div>
+  <section class="card">
+    <h2>계산은 이렇게 되었습니다</h2>
+    <div class="scroll"><table class="tbl" id="calcTbl"></table></div>
+    <div id="flags" style="margin-top:12px"></div>
+  </section>
+  <section class="card" id="mapCard">
+    <h2>홈택스 신고서에 적을 칸 <small style="font-weight:400;color:var(--gray)">— 일반과세자 부가가치세 신고서(별지 제21호서식) 항목 번호</small></h2>
+    <p class="lead">홈택스 화면의 항목 번호와 같습니다. 이 표를 옆에 두고 하나씩 옮겨 적으십시오. 0원인 칸은 비워 둡니다.</p>
+    <div class="scroll"><table class="tbl" id="mapTbl"></table></div>
+  </section>
+  <section class="card">
+    <h2>홈택스에서 신고하는 순서</h2>
+    <ol class="steplist" id="howto"></ol>
+    <div class="links">
+      <a href="https://hometax.go.kr" target="_blank" rel="noopener">홈택스 열기 ↗</a>
+      <a href="한백택스_부가가치세_신고시뮬레이터.html">전문가용 부가가치세 시뮬레이터 →</a>
+      <a href="한백택스_가산세_계산기.html">가산세 계산기 →</a>
+      <a href="한백택스_세금신고기한_캘린더.html">신고기한 캘린더 →</a>
+    </div>
+  </section>
+  <section class="card consult">
+    <h2>혼자 하기 어렵다면 — 세무사에게 넘기기</h2>
+    <p class="lead">입력한 내용을 요약해 사무소로 보냅니다. 담당 세무사가 확인 후 연락드립니다. 대리 신고는 별도 약정이 필요합니다.</p>
+    <div class="row"><input id="cName" placeholder="성함 / 상호"><input id="cPhone" placeholder="연락처" inputmode="tel"><input id="cEmail" placeholder="이메일(선택)" inputmode="email"></div>
+    <textarea id="cMemo" placeholder="궁금한 점이나 사정 (선택)"></textarea>
+    <label class="c"><input type="checkbox" id="cAgree"> 위 요약과 연락처를 세무법인 한백택스에 전송하는 데 동의합니다. (상담 목적 외 사용 안 함)</label>
+    <button type="button" class="btn p" id="cBtn" onclick="sendConsult()">📨 요약 보내고 상담 요청</button>
+    <div id="cStatus" style="font-size:13px;margin-top:8px"></div>
+  </section>
+  <section class="card">
+    <h2>근거와 한계</h2>
+    <div class="basis" id="basis"></div>
+    <div class="navbtn nopr"><button class="btn" onclick="go(4)">← 이전</button><span><button class="btn" onclick="window.print()">🖨 인쇄</button> <button class="btn" onclick="resetAll()">처음부터</button></span></div>
+  </section>
+</section>
+</div>
+
+<script id="hbEngine">
+/* ═══════ 계산 엔진 — 화면과 분리. 같은 입력 = 같은 결과 ═══════ */
+const fl=Math.floor;
+/* 부동소수점 오차 방지: 곱셈 결과를 소수 6자리에서 반올림한 뒤 절사 */
+const mul=(a,b)=>fl(Math.round(a*b*1e6)/1e6);
+/* 부가세 포함 총액 → 공급가액·세액 (공급가액 원 미만 절사) */
+function split(total){total=Math.max(0,fl(+total||0));const supply=fl(total*10/11);return{supply,vat:total-supply};}
+/* 간이과세 업종별 부가가치율 — 부가세령 §111 ② */
+const SIMPLE_RATE={retail:0.15,manu:0.20,lodging:0.25,constr:0.30,prof:0.40,other:0.30};
+/* 의제매입 공제율 — 부가세법 §42 ① (개인 음식점 과세표준 2억 이하 9/109는 2026.12.31.까지) */
+function deemedRate(kind,taxBase){
+  if(kind==='rest_ind')return taxBase<=200000000?[9,109]:[8,108];
+  if(kind==='rest_corp')return[6,106];if(kind==='rest_ent')return[2,102];
+  if(kind==='manu_small')return[4,104];if(kind==='manu_rice')return[6,106];return[2,102];
+}
+/* 의제매입 한도율 — 부가세령 §84 ② (2027.12.31.까지 특례) */
+function deemedLimitRate(kind,taxBase,corp){
+  if(corp)return 0.5;
+  if(kind==='rest_ind'||kind==='rest_ent')return taxBase<=100000000?0.75:taxBase<=200000000?0.70:0.60;
+  return taxBase<=200000000?0.65:0.55;
+}
+function deemedCredit({amount,kind,taxBase,corp}){
+  amount=Math.max(0,fl(+amount||0));if(!amount)return{credit:0,raw:0,limit:0,rate:[0,1]};
+  const r=deemedRate(kind,taxBase);const raw=fl(amount*r[0]/r[1]);
+  const limit=fl(mul(taxBase,deemedLimitRate(kind,taxBase,corp))*r[0]/r[1]);
+  return{credit:Math.min(raw,limit),raw,limit,rate:r};
+}
+/* 신용카드 발행세액공제 — 부가세법 §46 ① 3호 (2026.12.31.까지 1.3%·연 1천만원, 이후 1%·500만원), ② 납부세액 한도 */
+function cardCredit({cardTotal,eligible,used,year,cap}){
+  if(!eligible)return{credit:0,raw:0};
+  const y=+year||2026;const rate=y<=2026?0.013:0.01,annual=y<=2026?10000000:5000000;
+  const raw=mul(Math.max(0,+cardTotal||0),rate);
+  const remain=Math.max(0,annual-Math.max(0,+used||0));
+  return{credit:Math.max(0,Math.min(raw,remain,cap)),raw,remain};
+}
+/* 기한 후 신고 가산세 — 국기법 §47의2(20%), §48 ② 2호 감면, §47의4·국기령 §27의4(1일 0.022%) */
+function latePenalty({tax,days,exempt}){
+  tax=Math.max(0,fl(+tax||0));days=Math.max(0,fl(+days||0));
+  if(!tax||!days)return{none:0,delay:0,total:0,relief:0};
+  const relief=days<=30?0.5:days<=90?0.3:days<=180?0.2:0;
+  const none=exempt?0:mul(mul(tax,0.2),1-relief);
+  const delay=fl(tax*days*22/100000);
+  return{none,delay,total:none+delay,relief};
+}
+/* 일반과세자 */
+function vatGeneral(i){
+  const ti={supply:fl(+i.tiSupply||0),vat:fl(+i.tiVat||0)};
+  const card=split(i.cardTotal),other=split(i.otherTotal);const zero=fl(+i.zeroSupply||0);
+  const salesSupply=ti.supply+card.supply+other.supply+zero,salesVat=ti.vat+card.vat+other.vat;
+  const taxBase=salesSupply;
+  const inN={supply:fl(+i.inSupply||0),vat:fl(+i.inVat||0)},inFa={supply:fl(+i.faSupply||0),vat:fl(+i.faVat||0)};
+  const cardIn=split(i.cardInTotal),cardFa=split(i.cardFaTotal);
+  const deemed=deemedCredit({amount:i.deemedAmt,kind:i.deemedKind,taxBase:salesSupply-zero,corp:i.corp});
+  const otherIn=cardIn.vat+cardFa.vat+deemed.credit;
+  const inTotal=inN.vat+inFa.vat+otherIn;const nonDed=Math.min(fl(+i.nonDedVat||0),inN.vat+inFa.vat);
+  const inNet=inTotal-nonDed;
+  const payTax=salesVat-inNet;                       /* ⑱ 납부(환급)세액 */
+  const isConfirm=i.period!=='1p'&&i.period!=='2p';
+  const elec=(i.elec&&isConfirm&&(salesSupply||inTotal))?5000:0;  /* ㉞ */
+  const cc=cardCredit({cardTotal:i.cardTotal,eligible:i.ccEligible&&!i.corp,used:i.ccUsed,year:i.year,cap:Math.max(0,payTax-elec)});
+  const credits=elec+cc.credit;                      /* ⑳ */
+  const prepaid=isConfirm?fl(+i.prepaid||0):0;      /* ㉒ */
+  const beforePen=payTax-credits-prepaid;
+  const pen=latePenalty({tax:i.late?Math.max(0,beforePen):0,days:i.days,exempt:false});
+  const final=beforePen+pen.total;                   /* ㉗ */
+  return{kind:'general',ti,card,other,zero,salesSupply,salesVat,taxBase,inN,inFa,cardIn,cardFa,deemed,otherIn,inTotal,nonDed,inNet,payTax,elec,cc,credits,prepaid,pen,final,isConfirm};
+}
+/* 간이과세자 */
+function vatSimple(i){
+  const rows=(i.rows||[]).map(r=>{const s=fl(+r.supply||0),rate=SIMPLE_RATE[r.ind]||0.3;return{ind:r.ind,supply:s,rate,tax:mul(s,rate*0.1)};}).filter(r=>r.supply>0);
+  const supply=rows.reduce((a,r)=>a+r.supply,0),payTax=rows.reduce((a,r)=>a+r.tax,0);
+  const months=Math.max(1,Math.min(12,+i.months||12));const annual=fl(supply*12/months);
+  const exempt=annual<48000000;                                   /* §69 ① */
+  const inCredit=mul(Math.max(0,+i.inTotal||0),0.005);             /* §63 ③ 1호 */
+  const consumer=['retail','lodging','other','constr'].includes(i.ind)||annual<48000000;
+  const cc=cardCredit({cardTotal:i.cardTotal,eligible:consumer,used:i.ccUsed,year:i.year,cap:Math.max(0,payTax-inCredit)});
+  const elec=i.elec?5000:0;
+  let credits=inCredit+cc.credit+elec;if(credits>payTax)credits=payTax;  /* §63 ⑥ */
+  const prepaid=fl(+i.prepaid||0);
+  let beforePen=exempt?0:payTax-credits;
+  const pen=latePenalty({tax:i.late?Math.max(0,beforePen):0,days:i.days,exempt});
+  const final=exempt?(pen.total-prepaid):(beforePen-prepaid+pen.total);
+  return{kind:'simple',rows,supply,annual,months,exempt,payTax,inCredit,cc,elec,credits,prepaid,pen,final};
+}
+if(typeof module!=='undefined')module.exports={split,SIMPLE_RATE,deemedRate,deemedLimitRate,deemedCredit,cardCredit,latePenalty,vatGeneral,vatSimple};
+</script>
+<script>
+/* ═══════ 화면 ═══════ */
+const $=id=>document.getElementById(id);
+const won=n=>(n<0?'−':'')+Math.abs(fl(n)).toLocaleString('ko-KR')+'원';
+const LS='hbt_vat_wiz_v1';
+const STEPS=['① 사업자 유형','② 준비 자료','③ 받은 돈','④ 쓴 돈','⑤ 공제·기납부','⑥ 결과'];
+let cur=0;
+const S={kind:'',period:'',ind:'retail',ent:'ind',prevSupply:'',prep:{},cc:'',ef:'y',late:'n',
+  fields:['tiSupply','tiVat','cardTotal','otherTotal','zeroSupply','sSupply1','sInd2','sSupply2','sCardTotal','inSupply','inVat','faSupply','faVat','cardInTotal','cardFaTotal','nonDedVat','deemedAmt','deemedKind','sInTotal','ccUsed','prepaid','sPrepaid','days','ind','prevSupply']};
+const PREP=[
+  ['사업자등록증 · 홈택스 로그인(공동·금융인증서 또는 간편인증)','과세유형·사업자번호 확인. 로그인이 안 되면 신고 자체를 못 합니다.',1],
+  ['전자세금계산서 매출·매입 합계 (홈택스 → 조회/발급 → 전자세금계산서 → 합계표)','발행한 것(매출)과 받은 것(매입)을 이번 기간으로 조회. 종이세금계산서는 따로 모읍니다.',1],
+  ['신용카드 매출 자료 (홈택스 → 조회/발급 → 신용카드 매출자료 조회)','카드사·배달앱·PG 결제 승인 총액. 세금계산서를 함께 끊은 거래는 중복이니 표시해 둡니다.',1],
+  ['현금영수증 매출 내역 (홈택스 → 현금영수증 → 매출내역 조회)','발행한 현금영수증 총액.',1],
+  ['현금·계좌이체 매출 (통장·장부·POS)','영수증을 끊지 않은 매출. 통장 입금과 POS 매출을 대조합니다.',1],
+  ['사업용 신용카드 매입 (홈택스 → 현금영수증 → 사업용 신용카드 → 매입세액 공제 확인/변경)','공제/불공제를 거래별로 확인. 접대비·주유(승용차)·면세·간이과세자 거래는 「불공제」로.',1],
+  ['지출증빙용 현금영수증 매입 (홈택스 → 현금영수증 → 매입내역 조회)','「지출증빙」으로 발급받은 것만 공제됩니다. 소득공제용으로 받은 것은 안 됩니다.',1],
+  ['예정고지서 · 예정부과 고지서','4월·10월(일반) 또는 7월(간이)에 받은 고지 금액. 홈택스 신고 화면에 자동 표시되지만 금액을 알아 둡니다.',1],
+  ['면세 농산물 계산서·영수증 (음식점·제조업만)','의제매입세액 공제용. 매입처별 계산서 합계표를 준비합니다.',0],
+  ['수출 서류 (수출신고필증·외화입금증명 등, 영세율 매출이 있을 때만)','영세율 첨부서류 미제출 시 가산세.',0],
+  ['환급받을 계좌 (환급이 나올 때)','본인 명의 계좌번호. 신고서 마지막 「환급계좌」에 적습니다.',0],
+];
+const HOWTO_GEN=[
+  ['홈택스 로그인 → 「세금신고」 → 「부가가치세 신고」 → 「일반과세자」','정기신고(확정·예정) 또는 기한후신고를 고릅니다.'],
+  ['기본정보 입력 — 사업자등록번호 「확인」','상호·업종이 자동으로 나옵니다. 「저장 후 다음이동」.'],
+  ['입력서식 선택','매출 있는 항목(세금계산서·신용카드·기타), 매입(세금계산서·신용카드 수령명세서·의제매입), 경감공제(신용카드 발행공제)에 체크.'],
+  ['과세표준 및 매출세액','① 세금계산서 발급분 「작성하기」→ 전자세금계산서 불러오기. ③ 신용카드·현금영수증 발행분 「작성하기」→ 조회 후 공급가액·세액 입력. ④ 기타 매출 입력.'],
+  ['매입세액','⑩ 일반매입·⑪ 고정자산 「작성하기」→ 전자세금계산서 불러오기. ⑭ 그 밖의 공제매입세액 → 신용카드매출전표등 수령명세서(사업용 카드 조회) · 의제매입세액 공제신고서. ⑯ 공제받지 못할 매입세액 명세.'],
+  ['경감·공제세액','⑲ 신용카드매출전표등 발행공제 「작성하기」→ 발행금액 입력하면 1.3% 자동. 전자신고세액공제는 자동 반영.'],
+  ['예정고지세액 · 가산세','㉒ 예정고지세액은 자동으로 뜹니다. 기한 후 신고면 가산세 화면에서 무신고·납부지연 입력.'],
+  ['신고서 제출 → 접수증 확인','「신고서 제출하기」 뒤 접수번호가 나와야 신고가 끝난 것입니다. 「신고내역 조회」에서 다시 확인.'],
+  ['납부하기','「세금납부」 → 「납부할 세액 조회납부」 → 계좌이체·카드·간편결제. 기한 안에 납부해야 납부지연 이자가 붙지 않습니다. 환급이면 계좌 확인 후 기다립니다(확정신고 후 30일 이내).'],
+];
+const HOWTO_SIMP=[
+  ['홈택스 로그인 → 「세금신고」 → 「부가가치세 신고」 → 「간이과세자」','정기신고(1월) 또는 예정신고(7월, 세금계산서 발급자)를 고릅니다.'],
+  ['기본정보 — 사업자등록번호 「확인」 → 「저장 후 다음이동」','업종별 부가가치율이 자동으로 붙습니다.'],
+  ['과세표준 및 매출세액','업종별 「공급대가(부가세 포함 총액)」를 입력하면 세액이 자동 계산됩니다. 신용카드·현금영수증 발행금액도 함께 적습니다.'],
+  ['공제세액','매입처별 세금계산서합계표·신용카드매출전표등 수령명세서를 「작성하기」로 불러오면 0.5% 공제가 잡힙니다. 신용카드 발행공제(1.3%)·전자신고공제(5,000원) 확인.'],
+  ['예정부과세액','7월에 낸 예정부과 세액이 자동으로 빠집니다.'],
+  ['신고서 제출 → 접수증 → 납부','공급대가 4,800만원 미만이면 납부세액이 0으로 나옵니다(신고는 해야 합니다).'],
+];
+
+function bind(){
+  document.querySelectorAll('#kindBox label').forEach(l=>l.onclick=()=>{S.kind=l.dataset.k;paint();});
+  document.querySelectorAll('#periodBox label').forEach(l=>l.onclick=()=>{S.period=l.dataset.v;paint();});
+  document.querySelectorAll('#entBox label').forEach(l=>l.onclick=()=>{S.ent=l.dataset.v;paint();});
+  document.querySelectorAll('#ccBox label').forEach(l=>l.onclick=()=>{S.cc=l.dataset.v;paint();});
+  document.querySelectorAll('#efBox label').forEach(l=>l.onclick=()=>{S.ef=l.dataset.v;paint();});
+  document.querySelectorAll('#lateBox label').forEach(l=>l.onclick=()=>{S.late=l.dataset.v;paint();});
+  S.fields.forEach(f=>{const el=$(f);if(el)el.addEventListener('input',()=>{S[f]=el.value;live();save();});});
+  $('ind').addEventListener('change',()=>{S.ind=$('ind').value;live();save();});
+  $('deemedKind').addEventListener('change',()=>{S.deemedKind=$('deemedKind').value;save();});
+  $('sInd2').addEventListener('change',()=>{S.sInd2=$('sInd2').value;live();save();});
+  const ul=$('prepList');
+  PREP.forEach((p,i)=>{const li=document.createElement('li');li.innerHTML=`<input type="checkbox" id="prep${i}"><div><b>${p[0]}</b><small>${p[1]}${p[2]?'':' (해당할 때만)'}</small></div>`;ul.appendChild(li);
+    li.querySelector('input').addEventListener('change',e=>{S.prep[i]=e.target.checked;save();});});
+}
+function autoVat(a,b){$(b).value=fl((+$(a).value||0)*0.1);S[b]=$(b).value;live();save();}
+function paint(){
+  const simp=S.kind==='simple';
+  document.querySelectorAll('.gen-only').forEach(e=>e.classList.toggle('hidden',simp));
+  document.querySelectorAll('.simp-only').forEach(e=>e.classList.toggle('hidden',!simp));
+  document.querySelectorAll('#kindBox label').forEach(l=>l.classList.toggle('on',l.dataset.k===S.kind));
+  document.querySelectorAll('#periodBox label').forEach(l=>l.classList.toggle('on',l.dataset.v===S.period));
+  document.querySelectorAll('#entBox label').forEach(l=>l.classList.toggle('on',l.dataset.v===S.ent));
+  document.querySelectorAll('#ccBox label').forEach(l=>l.classList.toggle('on',l.dataset.v===S.cc));
+  document.querySelectorAll('#efBox label').forEach(l=>l.classList.toggle('on',l.dataset.v===S.ef));
+  document.querySelectorAll('#lateBox label').forEach(l=>l.classList.toggle('on',l.dataset.v===S.late));
+  $('lateDays').classList.toggle('hidden',S.late!=='y');
+  $('deemedQ').classList.toggle('hidden',!['retail','manu'].includes(S.ind));
+  if(S.cc===''&&S.kind==='general')S.cc=(S.ent==='ind'&&['retail','lodging','other'].includes(S.ind))?'y':'n';
+  document.querySelectorAll('#ccBox label').forEach(l=>l.classList.toggle('on',l.dataset.v===S.cc));
+  live();save();
+}
+function live(){
+  const c=split($('cardTotal').value);$('cardCalc').textContent=c.supply?`공급가액 ${won(c.supply)} · 세액 ${won(c.vat)}`:'';
+  const o=split($('otherTotal').value);$('otherCalc').textContent=o.supply?`공급가액 ${won(o.supply)} · 세액 ${won(o.vat)}`:'';
+  const ci=split($('cardInTotal').value);$('cardInCalc').textContent=ci.vat?`공제 세액 ${won(ci.vat)}`:'';
+  const r=SIMPLE_RATE[$('ind').value]||0.3;const s1=+$('sSupply1').value||0;$('sRate1').textContent=s1?`× ${r*100}% × 10% = ${won(fl(s1*r*0.1))}`:`부가가치율 ${r*100}%`;
+  const si=+$('sInTotal').value||0;$('sInCalc').textContent=si?`× 0.5% = ${won(fl(si*0.005))}`:'';
+  const ti=+$('tiSupply').value||0,cd=+$('cardTotal').value||0;
+  $('salesFlag').classList.toggle('hidden',!(ti&&cd));$('salesFlagText').textContent='세금계산서 매출과 카드 매출이 둘 다 있습니다. 카드로 결제받고 세금계산서도 발행한 거래가 있으면 카드 매출에서 그 금액을 빼야 두 번 신고하지 않습니다.';
+  const nd=+$('nonDedVat').value||0,iv=(+$('inVat').value||0)+(+$('faVat').value||0);
+  $('inFlag').classList.toggle('hidden',!(iv&&!nd));$('inFlagText').textContent='세금계산서 매입 중에 접대비·승용차(경차·9인승 이상 제외) 관련 세액이 있으면 「공제 안 되는 세액」에 적어 빼 주십시오. 빠뜨리면 나중에 추징됩니다.';
+}
+function inputs(){
+  const v=id=>$(id).value;
+  const year=(()=>{const y=new Date().getFullYear();return S.period==='2c'?y-1:y;})();
+  if(S.kind==='simple'){
+    const rows=[{ind:S.ind,supply:v('sSupply1')}];if(v('sInd2'))rows.push({ind:v('sInd2'),supply:v('sSupply2')});
+    return{kind:'simple',rows,ind:S.ind,months:12,inTotal:v('sInTotal'),cardTotal:v('sCardTotal'),ccUsed:0,year,elec:S.ef==='y',prepaid:v('sPrepaid'),late:S.late==='y',days:v('days'),period:S.period};
+  }
+  return{kind:'general',period:S.period,corp:S.ent==='corp',year,tiSupply:v('tiSupply'),tiVat:v('tiVat'),cardTotal:v('cardTotal'),otherTotal:v('otherTotal'),zeroSupply:v('zeroSupply'),
+    inSupply:v('inSupply'),inVat:v('inVat'),faSupply:v('faSupply'),faVat:v('faVat'),cardInTotal:v('cardInTotal'),cardFaTotal:v('cardFaTotal'),nonDedVat:v('nonDedVat'),
+    deemedAmt:['retail','manu'].includes(S.ind)?v('deemedAmt'):0,deemedKind:v('deemedKind'),ccEligible:S.cc==='y',ccUsed:v('ccUsed'),elec:S.ef==='y',prepaid:v('prepaid'),late:S.late==='y',days:v('days')};
+}
+function dueText(){
+  const y=new Date().getFullYear();
+  const m={'1c':`${y}년 7월 25일`,'2c':`${y+1}년 1월 25일`,'1p':`${y}년 4월 25일`,'2p':`${y}년 10월 25일`,'yr':`${y+1}년 1월 25일`,'close':'폐업일이 속한 달의 다음 달 25일'}[S.period]||'과세기간 종료 후 25일';
+  return m;
+}
+function render(){
+  const i=inputs();const r=i.kind==='simple'?vatSimple(i):vatGeneral(i);window.__lastResult={i,r};
+  const refund=r.final<0;
+  $('rLab').textContent=refund?'돌려받을 부가가치세 (환급)':(r.exempt?'납부할 부가가치세 — 납부 면제':'이번에 납부할 부가가치세');
+  $('rAmt').textContent=won(Math.abs(r.final));
+  $('rDue').innerHTML=`신고·납부 기한 <b>${dueText()}</b>`+(refund?' · 환급은 확정신고 기한 뒤 30일 안에 계좌로 들어옵니다.':'')+(r.exempt?' · 공급대가 연환산 4,800만원 미만이라 납부 의무가 면제됩니다(신고는 합니다).':'');
+  const rows=[];const R=(a,b,c,cls)=>rows.push(`<tr class="${cls||''}"><td>${a}</td><td>${b||''}</td><td class="num">${c}</td></tr>`);
+  if(r.kind==='general'){
+    R('매출세액 — 받은 부가세',`세금계산서 ${won(r.ti.vat)} + 카드·현금영수증 ${won(r.card.vat)} + 기타 ${won(r.other.vat)}`,won(r.salesVat));
+    R('매입세액 — 낸 부가세',`세금계산서 ${won(r.inN.vat+r.inFa.vat)} + 카드·현금영수증 ${won(r.cardIn.vat+r.cardFa.vat)}${r.deemed.credit?' + 의제매입 '+won(r.deemed.credit):''}${r.nonDed?' − 불공제 '+won(r.nonDed):''}`,'− '+won(r.inNet));
+    R('납부(환급)세액','매출세액 − 매입세액 (신고서 ⑱)',won(r.payTax),'sum');
+    if(r.elec)R('전자신고세액공제','확정신고 본인 전자신고','− '+won(r.elec));
+    if(r.cc.credit)R('신용카드 발행세액공제',`카드·현금영수증 매출 ${won(+i.cardTotal||0)} × ${(i.year<=2026?1.3:1)}%${r.cc.raw>r.cc.credit?' (한도 적용)':''}`,'− '+won(r.cc.credit));
+    if(r.prepaid)R('예정고지로 이미 낸 세액','신고서 ㉒','− '+won(r.prepaid));
+    if(r.pen.total){R('무신고 가산세',`20%${r.pen.relief?' × (1 − '+r.pen.relief*100+'% 감면)':''}`,'+ '+won(r.pen.none));R('납부지연 가산세',`${i.days}일 × 0.022%`,'+ '+won(r.pen.delay));}
+    R(refund?'환급받을 세액':'차가감 납부할 세액','신고서 ㉗',won(r.final),'sum');
+  }else{
+    r.rows.forEach(x=>R(`매출세액 — ${indName(x.ind)}`,`공급대가 ${won(x.supply)} × ${x.rate*100}% × 10%`,won(x.tax)));
+    R('납부세액 합계','',won(r.payTax),'sum');
+    if(r.inCredit)R('세금계산서 등 수취 공제',`${won(+i.inTotal)} × 0.5%`,'− '+won(r.inCredit));
+    if(r.cc.credit)R('신용카드 발행세액공제',`${won(+i.cardTotal||0)} × 1.3%`,'− '+won(r.cc.credit));
+    if(r.elec)R('전자신고세액공제','','− '+won(r.elec));
+    if(r.exempt)R('납부의무 면제',`연환산 공급대가 ${won(r.annual)} < 4,800만원`,'→ 0원','sum');
+    if(r.prepaid)R('예정부과로 이미 낸 세액','','− '+won(r.prepaid));
+    if(r.pen.total){if(r.pen.none)R('무신고 가산세','','+ '+won(r.pen.none));R('납부지연 가산세',`${i.days}일 × 0.022%`,'+ '+won(r.pen.delay));}
+    R(refund?'환급(예정부과 초과분)':'차가감 납부할 세액','',won(r.final),'sum');
+  }
+  $('calcTbl').innerHTML='<thead><tr><th>항목</th><th>계산</th><th>금액</th></tr></thead><tbody>'+rows.join('')+'</tbody>';
+  /* 확인 사항 */
+  const F=[];
+  if(r.kind==='general'){
+    if(r.payTax<0)F.push(['ok','환급','매입세액이 매출세액보다 큽니다. 시설투자 때문이라면 「조기환급」 신고로 더 빨리 받을 수 있습니다(§59 ②). 매출 누락이 아닌지 한 번 더 확인하십시오.']);
+    if(r.cc.raw>r.cc.credit&&r.cc.credit>=0&&i.ccEligible)F.push(['warn','한도','신용카드 발행세액공제가 연 한도(1,000만원) 또는 납부세액 한도에 걸려 일부만 적용됐습니다.']);
+    if(r.deemed.raw>r.deemed.credit)F.push(['warn','의제매입 한도','면세 농산물 매입액 × 공제율이 한도(과세표준 × 한도율)를 넘어 한도까지만 공제됩니다.']);
+    if(!r.isConfirm&&+i.prepaid)F.push(['warn','예정신고','예정신고에서는 예정고지세액을 빼지 않습니다. 개인사업자는 보통 예정신고 대신 고지서로 납부합니다.']);
+    if(r.salesVat&&!r.inTotal)F.push(['warn','매입 없음','매입세액이 0원입니다. 사업용 카드·세금계산서를 조회했는지 확인하십시오. 놓친 만큼 세금을 더 냅니다.']);
+    if(+i.zeroSupply)F.push(['warn','영세율','영세율 매출은 첨부서류(수출실적명세서 등)가 필요합니다. 전문가 확인을 권합니다.']);
+  }else{
+    if(r.annual>=104000000)F.push(['','유형 전환','연환산 공급대가가 1억 400만원 이상입니다. 다음 해 7월 1일부터 일반과세자로 전환됩니다(§61 ①, 시행령 §109 ①). 전환 통지를 확인하십시오.']);
+    if(r.exempt)F.push(['ok','납부 면제','4,800만원 미만이라 납부세액은 없지만 신고는 해야 합니다. 미등록 가산세 등은 별도입니다(§69 ②).']);
+    if(r.credits>=r.payTax&&r.payTax)F.push(['warn','공제 한도','간이과세자는 공제액이 납부세액을 넘어도 환급되지 않습니다(§63 ⑥).']);
+  }
+  if(i.late)F.push(['','기한 후 신고','하루라도 빨리 신고할수록 무신고 가산세 감면(1개월 내 50%)이 커지고 납부지연 이자가 줄어듭니다.']);
+  F.push(['','참고','이 결과는 입력값에 따른 추정입니다. 대손세액·재고매입세액·공통매입세액 안분·면세 겸업·수입세금계산서 등은 반영하지 않았습니다. 실제 신고서 금액은 홈택스 조회 자료가 기준입니다.']);
+  $('flags').innerHTML=F.map(f=>`<div class="flag ${f[0]}"><b>${f[1]}</b><span>${f[2]}</span></div>`).join('');
+  /* 신고서 항목 매핑 */
+  if(r.kind==='general'){
+    const M=[];const A=(no,name,v,note)=>{if(v||note)M.push(`<tr class="${v?'':'dim'}"><td class="no">${no}</td><td>${name}${note?'<br><small style="color:var(--gray)">'+note+'</small>':''}</td><td class="num">${v?won(v):'—'}</td></tr>`);};
+    M.push('<tr><td colspan="3" style="background:#F1F4F8;font-weight:800;color:var(--navy)">과세표준 및 매출세액</td></tr>');
+    A('①','세금계산서 발급분 — 공급가액 / 세액',r.ti.supply,`세액 ${won(r.ti.vat)}`);
+    A('③','신용카드·현금영수증 발행분 — 공급가액 / 세액',r.card.supply,`세액 ${won(r.card.vat)}`);
+    A('④','기타(정규영수증 외 매출분) — 공급가액 / 세액',r.other.supply,`세액 ${won(r.other.vat)}`);
+    A('⑤·⑥','영세율 — 세금계산서 발급분 / 기타',r.zero,'세액 0');
+    A('⑨','합계 (과세표준 / 매출세액 ㉮)',r.salesSupply,`매출세액 ${won(r.salesVat)}`);
+    M.push('<tr><td colspan="3" style="background:#F1F4F8;font-weight:800;color:var(--navy)">매입세액</td></tr>');
+    A('⑩','세금계산서 수취분 — 일반매입 (공급가액 / 세액)',r.inN.supply,`세액 ${won(r.inN.vat)}`);
+    A('⑪','세금계산서 수취분 — 고정자산매입',r.inFa.supply,`세액 ${won(r.inFa.vat)}`);
+    A('⑭','그 밖의 공제매입세액 (아래 ㉛~㉝ 합계)',r.otherIn,'');
+    A('㉛','　신용카드매출전표등 수령명세서 제출분 — 일반매입',r.cardIn.supply,`세액 ${won(r.cardIn.vat)}`);
+    A('㉜','　신용카드매출전표등 — 고정자산매입',r.cardFa.supply,`세액 ${won(r.cardFa.vat)}`);
+    A('㉝','　의제매입세액',r.deemed.credit,r.deemed.credit?`면세 매입액 ${won(+i.deemedAmt)} × ${r.deemed.rate[0]}/${r.deemed.rate[1]}`:'');
+    A('⑮','합계',r.inTotal,'');
+    A('⑯','공제받지 못할 매입세액',r.nonDed,'');
+    A('⑰','차감계 (⑮ − ⑯) 매입세액 ㉯',r.inNet,'');
+    A('⑱','납부(환급)세액 (㉮ − ㉯)',r.payTax,'');
+    M.push('<tr><td colspan="3" style="background:#F1F4F8;font-weight:800;color:var(--navy)">경감·공제세액 · 기납부 · 가산세</td></tr>');
+    A('㉞','그 밖의 경감·공제세액 — 전자신고세액공제',r.elec,'');
+    A('⑲','신용카드매출전표등 발행공제 등',r.cc.credit,r.cc.credit?`발행금액 ${won(+i.cardTotal||0)}`:'');
+    A('⑳','합계 (경감·공제세액)',r.credits,'');
+    A('㉒','예정고지세액',r.prepaid,'');
+    A('㉖','가산세액 계',r.pen.total,'');
+    A('㉗','차가감하여 납부할 세액 (환급받을 세액)',r.final,'');
+    $('mapTbl').innerHTML='<thead><tr><th>항목</th><th>이름</th><th>금액</th></tr></thead><tbody>'+M.join('')+'</tbody>';
+    $('mapCard').classList.remove('hidden');
+  }else{
+    const M=r.rows.map(x=>`<tr><td class="no">과세표준</td><td>${indName(x.ind)} — 공급대가 (부가가치율 ${x.rate*100}%)</td><td class="num">${won(x.supply)}</td></tr>`);
+    M.push(`<tr><td class="no">납부세액</td><td>과세표준 × 부가가치율 × 10%</td><td class="num">${won(r.payTax)}</td></tr>`);
+    M.push(`<tr><td class="no">공제</td><td>매입세금계산서등 수취세액공제 (0.5%) / 신용카드매출전표등 발행세액공제 (1.3%) / 전자신고세액공제</td><td class="num">${won(r.inCredit)} / ${won(r.cc.credit)} / ${won(r.elec)}</td></tr>`);
+    M.push(`<tr><td class="no">예정부과</td><td>예정부과(신고) 세액</td><td class="num">${won(r.prepaid)}</td></tr>`);
+    M.push(`<tr><td class="no">가산세</td><td>가산세액 계</td><td class="num">${won(r.pen.total)}</td></tr>`);
+    M.push(`<tr class="sum"><td class="no">납부</td><td>차가감 납부할 세액${r.exempt?' — 납부 면제':''}</td><td class="num">${won(r.final)}</td></tr>`);
+    $('mapTbl').innerHTML='<thead><tr><th>구분</th><th>간이과세자 신고서(별지 제44호서식) 항목</th><th>금액</th></tr></thead><tbody>'+M.join('')+'</tbody>';
+    $('mapCard').querySelector('h2').innerHTML='홈택스 신고서에 적을 칸 <small style="font-weight:400;color:var(--gray)">— 간이과세자 신고서 항목</small>';
+  }
+  $('howto').innerHTML=(r.kind==='general'?HOWTO_GEN:HOWTO_SIMP).map(h=>`<li><b>${h[0]}</b><small>${h[1]}</small></li>`).join('');
+  $('basis').innerHTML=['부가가치세법 §37(납부세액 계산)·§39(불공제 매입세액)·§42(의제매입세액)·§46(신용카드 발행세액공제 1.3%, 2026.12.31.까지·연 1,000만원)·§48·§49(예정·확정신고)·§60(가산세)·§61·§63·§66·§67·§69(간이과세) — 2026-09-22 법제처 원문 확인',
+    '부가가치세법 시행령 §84(의제매입 한도, 2027.12.31.까지 특례)·§88(신용카드공제 대상 10억)·§109(간이과세 기준 1억 400만원)·§111(업종별 부가가치율)',
+    '국세기본법 §47의2(무신고 20%)·§47의3(과소신고 10%)·§47의4(납부지연)·§48(감면), 시행령 §27의4(1일 0.022%) · 조세특례제한법 §104의8, 시행령 §104의5(전자신고 5,000원)',
+    '금액은 원 미만 절사. 홈택스 화면 이름은 개편에 따라 다를 수 있습니다. 결과는 참고용이며 실제 신고서는 홈택스 조회 자료와 세무사 검토를 기준으로 합니다.'].map(x=>'· '+x).join('<br>');
+}
+function indName(k){return{retail:'소매·음식점',manu:'제조·농림어업',lodging:'숙박',constr:'건설·운수·정보통신',prof:'금융보험·전문서비스·부동산임대',other:'그 밖의 서비스'}[k]||k;}
+function go(n){
+  if(n>=1&&!S.kind){alert('과세 유형(일반·간이)을 먼저 골라 주십시오.');return;}
+  if(n>=2&&!S.period){alert('이번에 하는 신고 종류를 골라 주십시오.');return;}
+  cur=n;for(let k=0;k<6;k++)$('s'+k).classList.toggle('hidden',k!==n);
+  const sb=$('steps');sb.innerHTML='';STEPS.forEach((t,k)=>{const b=document.createElement('button');b.textContent=t;b.className=k===n?'on':(k<n?'done':'');b.onclick=()=>go(k);sb.appendChild(b);});
+  if(n===5)render();window.scrollTo({top:0,behavior:'smooth'});save();
+}
+function save(){try{const o={S:{...S,fields:undefined},cur};S.fields.forEach(f=>{const el=$(f);if(el)o.S[f]=el.value;});localStorage.setItem(LS,JSON.stringify(o));}catch(e){}}
+function load(){try{const o=JSON.parse(localStorage.getItem(LS)||'null');if(!o)return;Object.assign(S,o.S,{fields:S.fields});S.fields.forEach(f=>{const el=$(f);if(el&&o.S[f]!=null)el.value=o.S[f];});
+  Object.keys(S.prep||{}).forEach(i=>{const el=$('prep'+i);if(el)el.checked=!!S.prep[i];});}catch(e){}}
+function resetAll(){if(!confirm('입력을 모두 지우고 처음부터 시작할까요?'))return;localStorage.removeItem(LS);location.reload();}
+/* ═══════ 상담 요청 — 자료전송 메일중계(포털 공통) ═══════ */
+const RELAY={url:'https://script.google.com/macros/s/AKfycbxtBSiGZjkoJEl87cttAm1HUrR4A1D2zyz03S65NOkC6ezSUsHW_8BW5Pq5fkIyBZAK7A/exec',token:'hbtax-relay'};
+function consultText(memo){
+  const L=window.__lastResult;if(!L)return '';const{i,r}=L;
+  const A=[`[부가세 신고 도우미 상담 요청] ${r.kind==='general'?'일반과세':'간이과세'} · ${S.ent==='corp'?'법인':'개인'} · 업종 ${indName(S.ind)} · 신고 ${S.period}`,''];
+  if(r.kind==='general'){A.push(`매출: 세금계산서 ${won(r.ti.supply)}/${won(r.ti.vat)}, 카드·현금영수증 총액 ${won(+i.cardTotal||0)}, 기타 총액 ${won(+i.otherTotal||0)}, 영세율 ${won(r.zero)}`,
+    `매입: 세금계산서 일반 ${won(r.inN.supply)}/${won(r.inN.vat)}, 고정자산 ${won(r.inFa.supply)}/${won(r.inFa.vat)}, 카드 총액 ${won(+i.cardInTotal||0)}, 불공제 ${won(r.nonDed)}, 의제매입 ${won(r.deemed.credit)}`,
+    `납부(환급)세액 ${won(r.payTax)} − 공제 ${won(r.credits)} − 예정고지 ${won(r.prepaid)} + 가산세 ${won(r.pen.total)} = ${won(r.final)}`);}
+  else{A.push(`공급대가 ${won(r.supply)} (연환산 ${won(r.annual)}${r.exempt?' · 납부면제':''}), 납부세액 ${won(r.payTax)}, 공제 ${won(r.credits)}, 예정부과 ${won(r.prepaid)}, 가산세 ${won(r.pen.total)} → ${won(r.final)}`);}
+  if(memo)A.push('','[남긴 말]',memo);A.push('','한백택스 부가세 신고 차근차근 도우미 · '+new Date().toISOString().slice(0,10));return A.join('\n');
+}
+async function sendConsult(){
+  const name=$('cName').value.trim(),phone=$('cPhone').value.trim(),email=$('cEmail').value.trim();const st=$('cStatus');
+  if(!name||!phone){alert('성함과 연락처를 적어 주십시오.');return;}if(!$('cAgree').checked){alert('전송 동의에 체크해 주십시오.');return;}
+  if(!window.__lastResult)render();const btn=$('cBtn');btn.disabled=true;st.textContent='보내는 중…';
+  try{const res=await fetch(RELAY.url,{method:'POST',body:JSON.stringify({token:RELAY.token,type:'consult',subject:'부가세 신고 도우미 상담 요청',name,phone,email,text:consultText($('cMemo').value.trim()),page:location.href.split('?')[0],ua:navigator.userAgent})});
+    const j=await res.json();if(!j.ok)throw new Error(j.error||'전송 실패');st.textContent='접수되었습니다'+(j.id?' · 접수번호 '+j.id:'')+' — 담당자가 연락드립니다.';st.style.color='#166534';}
+  catch(e){st.textContent='자동 접수 실패('+e.message+'). 전화 02-2277-3101 또는 메일 hb090@hanbaektax.kr 로 연락해 주십시오.';st.style.color='#B91C1C';}
+  finally{btn.disabled=false;}
+}
+bind();load();$('ind').value=S.ind||'retail';if(S.deemedKind)$('deemedKind').value=S.deemedKind;if(S.sInd2)$('sInd2').value=S.sInd2;paint();go(0);
+</script>
+</body>
+</html>
