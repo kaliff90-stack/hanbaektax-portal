@@ -430,6 +430,18 @@ pre.out{background:#0f172a;color:#a7f3d0;font-family:Consolas,monospace;font-siz
   <div class="card">
     <h2>정산 결과 <span class="actions"><button class="btn btn-g btn-sm" onclick="applyYEtoReport()">신고서 A04에 반영</button></span></h2>
     <div id="ye_result"><div class="empty">대상 직원을 선택하고 [정산 계산]을 누르세요.</div></div>
+    <div class="card" style="margin-top:14px;border:1px dashed var(--gold)">
+      <h3 style="margin:0 0 6px;font-size:14px;color:var(--navy)">인정상여(소득처분) 재정산 — 원천징수할 세액 <span class="hint">(법인세법 §67 상여 처분 · 소득세법 §135 ④ → §131 ②)</span></h3>
+      <div class="note">법인세 신고·결정으로 대표자 등에게 상여 처분된 금액은 그 귀속연도 근로소득에 넣어 <b>연말정산을 다시 하고</b>, 재정산 결정세액과 당초 결정세액의 차액을 원천징수합니다. 지급시기는 법인이 신고한 경우 <b>신고일(수정신고일)</b>, 결정·경정된 경우 <b>소득금액변동통지서를 받은 날</b>이며, 그 다음 달 10일까지 원천세를 신고·납부합니다(반기 납부자는 반기). 위 연말정산 입력값(공제 등)을 그대로 씁니다.</div>
+      <div class="grid" style="margin-top:8px">
+        <label class="fld">인정상여 금액(귀속연도 합계)<input type="number" id="ye_recog" value="0" min="0"></label>
+        <label class="fld">위 총급여액에 이미 포함됨<select id="ye_recogIncl"><option value="0">아니오(총급여에 더해서 재정산)</option><option value="1">예(급여대장에서 불러온 경우)</option></select></label>
+        <label class="fld">지급시기 구분<select id="ye_recogWhen"><option value="report">법인세 신고일·수정신고일</option><option value="notice">소득금액변동통지서 수령일</option></select></label>
+        <label class="fld">그 날짜<input type="date" id="ye_recogDate"></label>
+      </div>
+      <div class="toolbar" style="margin-top:6px"><button class="btn btn-o btn-sm" onclick="recogFromLedger()">급여대장 인정상여 불러오기</button><button class="btn btn-p btn-sm" onclick="recogRecalc()">재정산 계산</button></div>
+      <div id="ye_recogResult"></div>
+    </div>
   </div>
   <!-- 전산매체용 상세명세(E·F·G·H·I 레코드) -->
   <div class="card">
@@ -1638,6 +1650,35 @@ function calcYE(){
     </tbody>
   </table>`
   + ntMyeongseHTML(id,yr);
+}
+// ── 인정상여(소득처분) 재정산: 인정상여를 포함해 연말정산을 다시 하고 당초 결정세액과의 차액을 원천징수 ──
+function recogFromLedger(){const id=$('ye_emp').value;if(!id){alert('직원을 선택하세요.');return;}const A=payAnnual(id,parseInt($('ye_year').value)||2026);
+  $('ye_recog').value=A.recog||0;$('ye_recogIncl').value=A.recog>0?'1':'0';
+  if(!A.recog)alert('급여대장 '+$('ye_year').value+'년에 인정상여(C28) 입력이 없습니다. 금액을 직접 넣으십시오.');}
+function recogRecalc(){
+  const id=$('ye_emp').value;if(!id){alert('직원을 선택하세요.');return;}
+  const inp=readYEInputs();{const A=payAnnual(id,inp.year);inp.relief=A.rl;inp.reliefT=A.rlT;}
+  const recog=num($('ye_recog').value);if(recog<=0){alert('인정상여 금액을 넣으십시오.');return;}
+  const incl=$('ye_recogIncl').value==='1';
+  const baseGross=Math.max(incl?inp.gross-recog:inp.gross,0);
+  const r0=yearEnd(Object.assign({},inp,{gross:baseGross}));           // 당초(인정상여 제외)
+  const r1=yearEnd(Object.assign({},inp,{gross:baseGross+recog}));     // 재정산(인정상여 포함)
+  const diff=Math.max(fl(r1.decided-r0.decided,10),0),local=fl(diff*0.1,10);
+  const dt=$('ye_recogDate').value;let due='';
+  if(dt){const d=new Date(dt+'T00:00:00');const n=new Date(d.getFullYear(),d.getMonth()+1,10);due=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-10';}
+  const whenT=$('ye_recogWhen').value==='notice'?'소득금액변동통지서 수령일':'법인세 신고일(수정신고일)';
+  const row=(k,a,b)=>`<tr><td class="l">${k}</td><td>${won(a)}</td><td>${won(b)}</td><td>${won(b-a)}</td></tr>`;
+  $('ye_recogResult').innerHTML=`
+  <div class="sumbar" style="margin-top:8px">
+    <div class="box"><div class="k">인정상여</div><div class="v">${won(recog)}원</div></div>
+    <div class="box"><div class="k">추가 원천징수 소득세</div><div class="v">${won(diff)}원</div></div>
+    <div class="box" style="background:linear-gradient(135deg,#9f1239,#e11d48)"><div class="k">소득세 + 지방소득세</div><div class="v">${won(diff+local)}원</div></div>
+  </div>
+  <table><thead><tr><th class="l">항목</th><th>당초(제외)</th><th>재정산(포함)</th><th>차액</th></tr></thead><tbody>
+    ${row('총급여액',r0.gross,r1.gross)}${row('근로소득금액',r0.earnedInc,r1.earnedInc)}${row('과세표준',r0.taxBase,r1.taxBase)}${row('산출세액',r0.calcTax,r1.calcTax)}${row('근로소득세액공제',r0.eitc,r1.eitc)}
+    <tr class="totrow"><td class="l">결정세액</td><td>${won(r0.decided)}</td><td>${won(r1.decided)}</td><td>${won(diff)}</td></tr>
+  </tbody></table>
+  <div class="note" style="margin-top:6px">지급시기: ${whenT}${dt?' '+dt:''}${due?' → <b>원천세 신고·납부기한 '+due+'</b>':' (날짜를 넣으면 납부기한을 계산)'} · 원천징수이행상황신고서 근로소득 <b>연말정산(A04)</b> 란에 인원·총지급액(인정상여)·소득세 ${won(diff)}원으로 기재하고, 근로소득 지급명세서(C28 인정상여)를 수정 제출합니다. 지방소득세 ${won(local)}원은 위택스 특별징수. 적용방식: 당초 ${r0.mode} / 재정산 ${r1.mode}.</div>`;
 }
 function applyYEtoReport(){
   const yr=$('ye_year').value;const data=DB.ye[yr]||{};
