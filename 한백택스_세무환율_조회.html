@@ -267,6 +267,7 @@ tr:hover td{background:color-mix(in srgb,var(--blue) 8%,transparent)}
   <!-- ══ 탭 (C안, 2026-09-14): 기본 탭 = 기준환율 조회. #series 처럼 해시로 특정 탭을 바로 열 수 있다 ══ -->
   <div class="tabs" role="tablist" aria-label="세무환율 조회 메뉴" id="tabs">
     <button class="tab" role="tab" type="button" data-tab="base" aria-selected="true" aria-controls="pnl-base">기준환율 조회</button>
+    <button class="tab" role="tab" type="button" data-tab="retail" aria-selected="false" aria-controls="pnl-retail" tabindex="-1">생활환율 (환전·송금)</button>
     <button class="tab" role="tab" type="button" data-tab="series" aria-selected="false" aria-controls="pnl-series" tabindex="-1">기간·통계</button>
     <button class="tab" role="tab" type="button" data-tab="customs" aria-selected="false" aria-controls="pnl-customs" tabindex="-1">과세환율</button>
     <button class="tab" role="tab" type="button" data-tab="conv" aria-selected="false" aria-controls="pnl-conv" tabindex="-1">환산기</button>
@@ -371,6 +372,31 @@ tr:hover td{background:color-mix(in srgb,var(--blue) 8%,transparent)}
       <button class="btn small" type="button" id="btnCopy">복사</button>
     </div>
     <div class="note" id="cvNote">환율 출처가 참고환율일 때는 결과 옆에 "참고환율"이 표시됩니다. 신고서에는 공식 매매기준율을 확인한 뒤 사용하십시오.</div>
+  </section>
+  </div>
+
+  <!-- ══ 탭 1-2. 생활환율 — 은행 창구·앱에서 환전·송금할 때 (하나은행 대고객 고시) ══ -->
+  <div class="panel" id="pnl-retail" role="tabpanel" hidden>
+  <section class="card" id="secRetail">
+    <h2>생활환율 — 환전·송금할 때 실제 적용되는 환율 <span class="badge" id="bdRetail">읽는 중</span></h2>
+    <p class="desc">세무 신고에 쓰는 매매기준율이 아니라, <b>일반인이 은행 창구·앱에서 외화를 사고팔거나 송금할 때</b> 적용되는 대고객 환율입니다. 하나은행 고시(당일 최종 회차)를 수집 작업이 30분마다 읽어 옵니다. 은행·영업점·앱마다 고시와 우대율이 다르므로 참고용입니다.</p>
+    <div id="retailStatus" class="note" style="margin-bottom:10px"></div>
+    <div class="card" style="background:#fffdf7;border:1px dashed var(--gold);padding:12px 14px;margin-bottom:12px">
+      <h3 style="margin:0 0 8px;font-size:15px;color:var(--navy)">환전 계산기 <span class="hint">우대율을 넣으면 스프레드(기준율과의 차이)를 그만큼 깎아 계산합니다</span></h3>
+      <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+        <label class="fld" style="min-width:150px">통화<select id="rtCur"></select></label>
+        <label class="fld" style="min-width:210px">거래<select id="rtKind">
+          <option value="cashBuy">외화 현찰 사기 (원화 → 외화)</option>
+          <option value="cashSell">외화 현찰 팔기 (외화 → 원화)</option>
+          <option value="ttSend">해외 송금 보내기 (원화 → 외화)</option>
+          <option value="ttRecv">해외 송금 받기 (외화 → 원화)</option></select></label>
+        <label class="fld" style="min-width:160px">금액 <span class="hint" id="rtAmtUnit">(외화)</span><input id="rtAmt" inputmode="decimal" placeholder="예: 1,000"></label>
+        <label class="fld" style="min-width:110px">환율 우대율(%)<input id="rtPref" inputmode="numeric" value="0" placeholder="0~90"></label>
+      </div>
+      <div id="rtResult" class="note" style="margin-top:8px;font-size:14px"></div>
+    </div>
+    <div id="retailBody"><div class="loading">생활환율을 불러오는 중</div></div>
+    <p class="note" style="margin-top:8px">현찰 살 때·팔 때 옆의 %는 매매기준율 대비 스프레드(환전 수수료율)입니다. 우대율 90%라면 스프레드의 10%만 부담합니다. 미국 달러·일본 엔·유로는 스프레드 1.5~2%, 중국 위안 등은 5% 안팎, 그 밖의 통화는 더 큽니다. 송금은 현찰보다 스프레드가 작습니다. 세금 신고·장부 환산에는 「기준환율 조회」 탭의 매매기준율·과세환율을 쓰십시오.</p>
   </section>
   </div>
 
@@ -567,6 +593,58 @@ async function getJSON(url, ms){
 }
 /* 수출입은행 cur_unit("JPY(100)") → 코드·단위 */
 function splitUnit(u){ const m=/^([A-Z]{3})(?:\((\d+)\))?$/.exec(String(u).trim()); return m?{c:m[1],u:m[2]?Number(m[2]):1}:{c:String(u),u:1}; }
+
+/* ══════════ 1-2. 생활환율 (하나은행 대고객 고시 — retail/latest.json) ══════════
+ * {date, round, time, rates:[{code,name,unit,cashBuy,cashBuySpread,cashSell,cashSellSpread,ttSend,ttRecv,checkSell,base}]}
+ * 환전 계산: 우대율 p 를 넣으면 적용환율 = 기준율 + (고시환율 − 기준율) × (1 − p). 살 때는 기준율보다 높고 팔 때는 낮다. */
+S.retail=null;
+async function loadRetail(){
+  const body=$('retailBody'), bd=$('bdRetail');
+  try{
+    const d=await getJSON(DATA_BASE+'retail/latest.json?t='+Date.now());
+    if(!d||!Array.isArray(d.rates)||!d.rates.length) throw new Error('empty');
+    S.retail=d; bd.textContent='하나은행 고시'; bd.className='badge';
+    $('retailStatus').innerHTML='고시일 <b>'+esc(d.date)+'</b>'+(d.round?' · '+d.round+'회차':'')+(d.time?' '+esc(d.time):'')+' · 수집 '+kstStamp(d.fetched_at)+' · '+d.rates.length+'개 통화';
+    renderRetail(body,d); fillRetailSel(d); rtCalc();
+  }catch(e){
+    S.retail=null; bd.textContent='미연결'; bd.className='badge bad';
+    body.innerHTML='<div class="note bad"><b>생활환율 수집본이 아직 없습니다.</b> 수집 작업(fx-collect.yml)이 평일 11시 이후 처음 실행되면 채워집니다. 그때까지는 각 은행 앱의 환율조회를 이용하십시오.</div>';
+    $('retailStatus').textContent='';
+  }
+}
+function renderRetail(el,d){
+  const sp=v=>v==null?'':' <span class="hint">('+v+'%)</span>';
+  let h='<div class="tblwrap"><table><thead><tr><th>통화</th><th>매매기준율</th><th>현찰 살 때<br><span class="hint">(원화→외화)</span></th><th>현찰 팔 때<br><span class="hint">(외화→원화)</span></th><th>송금 보낼 때</th><th>송금 받을 때</th></tr></thead><tbody>';
+  d.rates.forEach(r=>{
+    h+='<tr><td><b>'+esc(r.code)+'</b>'+(r.unit>1?' ('+r.unit+')':'')+' <span class="hint">'+esc(r.name)+'</span></td>'
+      +'<td class="r">'+fmtRate(r.base)+'</td><td class="r">'+fmtRate(r.cashBuy)+sp(r.cashBuySpread)+'</td><td class="r">'+fmtRate(r.cashSell)+sp(r.cashSellSpread)+'</td>'
+      +'<td class="r">'+fmtRate(r.ttSend)+'</td><td class="r">'+fmtRate(r.ttRecv)+'</td></tr>';
+  });
+  el.innerHTML=h+'</tbody></table></div>';
+}
+function fillRetailSel(d){
+  const sel=$('rtCur'); const cur=sel.value||LS.get('hbt_rt_cur','USD');
+  sel.innerHTML=d.rates.filter(r=>r.cashBuy||r.ttSend).map(r=>'<option value="'+esc(r.code)+'">'+esc(r.code)+(r.unit>1?'('+r.unit+')':'')+' '+esc(r.name)+'</option>').join('');
+  sel.value=[...sel.options].some(o=>o.value===cur)?cur:'USD';
+}
+function rtCalc(){
+  const d=S.retail, out=$('rtResult'); if(!d){ out.textContent=''; return; }
+  const code=$('rtCur').value, kind=$('rtKind').value, r=d.rates.find(x=>x.code===code); if(!r){ out.textContent=''; return; }
+  LS.set('hbt_rt_cur',code);
+  const amt=parseNum($('rtAmt').value); let pref=parseNum($('rtPref').value); if(isNaN(pref)||pref<0) pref=0; if(pref>100) pref=100;
+  const posted=r[kind]; if(posted==null){ out.innerHTML='<span class="bad">이 통화는 '+({cashBuy:'현찰 살 때',cashSell:'현찰 팔 때',ttSend:'송금 보낼 때',ttRecv:'송금 받을 때'})[kind]+' 환율이 고시되지 않습니다.</span>'; return; }
+  const applied = r.base + (posted - r.base) * (1 - pref/100);
+  const per=r.unit||1, toKrw=(kind==='cashSell'||kind==='ttRecv');
+  $('rtAmtUnit').textContent = toKrw ? '('+code+')' : '(원화)';
+  const lbl={cashBuy:'현찰 살 때',cashSell:'현찰 팔 때',ttSend:'송금 보낼 때',ttRecv:'송금 받을 때'}[kind];
+  let h='적용 환율 <b>'+fmtRate(applied)+'원</b> / '+per+' '+code+' <span class="hint">('+lbl+' 고시 '+fmtRate(posted)+', 매매기준율 '+fmtRate(r.base)+(pref?', 우대 '+pref+'%':'')+')</span>';
+  if(!isNaN(amt)&&amt>0){
+    if(toKrw){ const krw=amt/per*applied, atBase=amt/per*r.base; h+='<br>'+fmt(amt,2)+' '+code+' → <b>'+fmt(Math.floor(krw),0)+'원</b> <span class="hint">기준율 대비 비용 '+fmt(Math.round(atBase-krw),0)+'원</span>'; }
+    else { const fx=amt/applied*per, atBase=amt/r.base*per; h+='<br>'+fmt(amt,0)+'원 → <b>'+fmt(fx,2)+' '+code+'</b> <span class="hint">기준율이면 '+fmt(atBase,2)+' '+code+' — 비용 '+fmt(atBase-fx,2)+' '+code+'</span>'; }
+  }
+  out.innerHTML=h;
+}
+['rtCur','rtKind','rtAmt','rtPref'].forEach(id=>{ const el=$(id); if(el){ el.addEventListener('input',rtCalc); el.addEventListener('change',rtCalc); } });
 
 /* ══════════ 1. 공식 매매기준율 ══════════ */
 async function loadOfficial(){
@@ -1112,7 +1190,7 @@ function updateStatus(){
 /* ══════════ 탭 (C안, 2026-09-14) ══════════
  * 기본 탭은 항상 「기준환율 조회」. 주소 해시(#series·#customs·#conv·#ref·#guide)로 특정 탭을 바로 열 수 있고,
  * 탭을 누르면 해시를 바꿔 두어 뒤로 가기·북마크가 된다. 데이터는 탭과 무관하게 열 때 한 번에 읽는다. */
-const TABS=['base','series','customs','conv','ref','guide'];
+const TABS=['base','retail','series','customs','conv','ref','guide'];
 function showTab(id, opt){
   if(!TABS.includes(id)) id='base';
   document.querySelectorAll('#tabs .tab').forEach(b=>{ const on=b.dataset.tab===id; b.setAttribute('aria-selected', on?'true':'false'); b.tabIndex=on?0:-1; });
@@ -1137,7 +1215,7 @@ async function init(){
   $('cuDate').value = kstToday();
   { const t=new Date(kstToday()+'T00:00:00'); const f=new Date(t); f.setMonth(f.getMonth()-6); $('srFrom').value=iso(f); $('srTo').value=iso(t); $('srTo').max=kstToday(); }
   $('cvAmt').value = LS.get('hbt_fx_amt','');
-  await Promise.allSettled([loadOfficial(), loadRef(), loadCustoms(), loadSeriesIndex()]);
+  await Promise.allSettled([loadOfficial(), loadRef(), loadCustoms(), loadSeriesIndex(), loadRetail()]);
   if(!S.current && S.ref) setCurrent('ref', S.ref);
   updateStatus();
   HBA.lastLoad=Date.now();

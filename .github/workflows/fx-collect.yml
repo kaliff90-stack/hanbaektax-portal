@@ -537,6 +537,58 @@ jobs:
           })().catch(e => { console.error(e.message); process.exit(1); });
           EOF
 
+      - name: 생활환율 수집 (하나은행 대고객 고시 — 현찰·송금)
+        # 일반인이 은행 창구·앱에서 환전·송금할 때 적용되는 환율. 하나은행 환율조회 화면이 쓰는 조회 주소(전체 통화 최종 고시)를
+        # 그대로 받아 표를 읽는다. 실패해도 공식 환율 수집·푸시는 막지 않는다. 결과: retail/latest.json, retail/YYYY-MM-DD.json
+        continue-on-error: true
+        run: |
+          node - <<'EOF'
+          const fs = require('fs');
+          const { execFileSync } = require('child_process');
+          const OUT = 'data/retail'; fs.mkdirSync(OUT, { recursive: true });
+          const kst = new Date(Date.now() + 9 * 3600 * 1000), ymd = kst.toISOString().slice(0, 10).replace(/-/g, ''), dash = kst.toISOString().slice(0, 10);
+          const num = s => { const v = parseFloat(String(s ?? '').replace(/,/g, '')); return isNaN(v) ? null : v; };
+          const strip = s => String(s).replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+          const UA = 'Mozilla/5.0 (X11; Linux x86_64) hanbaektax-fx-collect';
+          async function post(url, body) {
+            try {
+              const r = await fetch(url, { method: 'POST', body, headers: { 'User-Agent': UA, 'Content-Type': 'application/x-www-form-urlencoded' }, signal: AbortSignal.timeout(25000) });
+              if (!r.ok) throw new Error('HTTP ' + r.status);
+              return await r.text();
+            } catch (e) {
+              console.warn('fetch 실패(' + (e.cause && e.cause.code || e.message) + ') → curl 대체');
+              return execFileSync('curl', ['-sS', '--fail', '--max-time', '25', '-A', UA, '-X', 'POST', '--data', body, url], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
+            }
+          }
+          const rowsOf = html => [...html.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/g)].map(m => [...m[1].matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/g)].map(c => strip(c[1])));
+          (async () => {
+            const base = 'https://www.kebhana.com/cms/rate/';
+            const common = `ajax=true&tmpInqStrDt=${ymd}&pbldDvCd=3&pbldSqn=&inqStrDt=${ymd}&inqKindCd=1&hid_key_data=&requestTarget=searchContentDiv`;
+            const all = rowsOf(await post(base + 'wpfxd651_01i_01.do', common)).filter(r => r.length >= 11 && /[A-Z]{3}/.test(r[0]));
+            if (!all.length) { console.error('생활환율: 표를 읽지 못했습니다'); process.exit(1); }
+            const rates = all.map(r => {
+              const m = /^(.*?)\s*([A-Z]{3})\s*(?:\((\d+)\))?$/.exec(r[0]) || [null, r[0], r[0], null];
+              return { code: m[2], name: m[1].trim(), unit: m[3] ? +m[3] : 1,
+                       cashBuy: num(r[1]), cashBuySpread: num(r[2]), cashSell: num(r[3]), cashSellSpread: num(r[4]),
+                       ttSend: num(r[5]), ttRecv: num(r[6]), checkSell: num(r[7]), base: num(r[8]), feeRate: num(r[9]), usdRate: num(r[10]) };
+            });
+            /* 회차·고시시각: 미국달러 회차별 조회의 첫 자료행 */
+            let round = null, time = null;
+            try {
+              const usd = rowsOf(await post(base + 'wpfxd651_07i_01.do', 'curCd=USD&' + common)).find(r => r.length >= 11 && /^\d+$/.test(r[0]));
+              if (usd) { round = +usd[0]; time = usd[1]; }
+            } catch (e) { console.warn('회차 조회 실패: ' + e.message); }
+            const doc = { date: dash, round, time, source: '하나은행 대고객 고시환율(전체 통화 최종 회차) — kebhana.com 환율조회', fetched_at: new Date().toISOString(),
+                          note: '은행·영업점·앱마다 고시와 우대율이 다르다. 현찰 살 때/팔 때·송금 보낼 때/받을 때는 하나은행 고시 기준이며 참고용.', rates };
+            const latest = OUT + '/latest.json', daily = OUT + '/' + dash + '.json';
+            let prev = null; try { prev = JSON.parse(fs.readFileSync(latest, 'utf8')); } catch (e) {}
+            const same = prev && prev.date === doc.date && prev.round === doc.round && JSON.stringify(prev.rates) === JSON.stringify(doc.rates);
+            if (same) { console.log(`생활환율: ${dash} ${round}회차 변경 없음`); return; }
+            fs.writeFileSync(latest, JSON.stringify(doc, null, 1)); fs.writeFileSync(daily, JSON.stringify(doc, null, 1));
+            console.log(`생활환율: ${dash} ${round ?? '?'}회차 ${time ?? ''} · ${rates.length}개 통화 저장`);
+          })().catch(e => { console.error('생활환율 수집 실패: ' + e.message); process.exit(1); });
+          EOF
+
       - name: fx-data 커밋 · 푸시
         run: |
           cd data
