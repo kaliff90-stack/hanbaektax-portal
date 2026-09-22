@@ -112,6 +112,7 @@
 <meta name="apple-mobile-web-app-title" content="한백 원천·연말정산">
 <title>한백택스 원천징수·연말정산 시스템</title>
 <meta name="description" content="원천징수·연말정산 시스템 — 간이세액표 원천세, 연말정산, 지급명세서 전산매체 파일 작성">
+<script src="한백택스_간이세액표_2026.js"></script><!-- 소득세법 시행령 별표 2 근로소득 간이세액표(2026.2.27 개정) 공용 모듈 -->
 <style>
 :root{
   --bg:#f1f5f9; --card:#fff; --line:#e2e8f0; --t1:#0f172a; --t2:#64748b;
@@ -309,12 +310,12 @@ pre.out{background:#0f172a;color:#a7f3d0;font-family:Consolas,monospace;font-siz
     <table id="empTable">
       <thead><tr>
         <th class="l">성명</th><th>주민등록번호(13자리)</th><th>입사일</th><th>퇴사일</th><th>구분</th>
-        <th>공제대상가족수<br>(본인포함)</th><th>9~20세<br>자녀수</th><th class="c">전산매체<br>인적사항</th><th class="c">관리</th>
+        <th>공제대상가족수<br>(본인포함)</th><th>8~20세<br>자녀수</th><th class="c">전산매체<br>인적사항</th><th class="c">관리</th>
       </tr></thead>
       <tbody id="empBody"></tbody>
     </table>
     </div>
-    <div class="note">공제대상가족수 = 본인 + 배우자 + 기본공제 부양가족(9~20세 자녀 포함). 간이세액 자동계산에 사용됩니다. 주민등록번호는 13자리 형식을 검사합니다(외국인은 외국인등록번호).</div>
+    <div class="note">공제대상가족수 = 본인 + 배우자 + 기본공제 부양가족(8~20세 자녀 포함) — 간이세액표 해당란(별표 2 주석 2). 8~20세 자녀수는 표 세액에서 1명 20,830·2명 45,830·3명 이상 +33,330/명을 차감합니다(주석 3). 원천징수 비율(80·100·120%, 령 §194 ①)은 [상세]에서 정합니다. 주민등록번호는 13자리 형식을 검사합니다(외국인은 외국인등록번호).</div>
   </div>
 </div>
 
@@ -341,7 +342,7 @@ pre.out{background:#0f172a;color:#a7f3d0;font-family:Consolas,monospace;font-siz
     <div class="toolbar">
       <label class="fld">귀속연월<input type="month" id="payYM" onchange="renderPay()"></label>
       <span class="pill" id="payCount">0명</span>
-      <span class="hint">급여·상여·인정상여는 열에서, 기타 과세항목·비과세·감면은 [항목 명세]에서 코드별로 입력합니다. 총지급액 = 과세대상 + 비과세. 소득세는 간이세액(감면율 적용) 자동값이며 실지급 원천징수액으로 수정할 수 있습니다. 일용은 근무일수·최종근무일을 넣으면 일 단위로 계산됩니다.</span>
+      <span class="hint">급여·상여·인정상여는 열에서, 기타 과세항목·비과세·감면은 [항목 명세]에서 코드별로 입력합니다. 총지급액 = 과세대상 + 비과세. 소득세는 <b>간이세액표(별표 2, 2026.2.27 개정) 해당란</b>에서 8~20세 자녀 차감·원천징수 비율·감면율을 적용한 자동값이며, 세액 칸에 마우스를 올리면 계산 근거가 보입니다. 상여가 있는 달은 §136 ①(상여÷지급대상기간 월수 + 월평균급여의 간이세액 × 월수 − 기납부세액)로 계산하고, 기간을 비우면 자동(그 해 1월 또는 직전 상여 다음 달부터)입니다. 직접 입력하면 그 값이 우선합니다. 일용은 근무일수·최종근무일을 넣으면 일 단위로 계산됩니다.</span>
     </div>
     <div style="overflow-x:auto">
     <table id="payTable">
@@ -420,11 +421,11 @@ pre.out{background:#0f172a;color:#a7f3d0;font-family:Consolas,monospace;font-siz
       <label class="fld">교육비 세액공제대상액(§59의4③) <input type="number" id="ye_edu" value="0" oninput="calcYE()"></label>
       <label class="fld">기부금(§59의4④) <input type="number" id="ye_donation" value="0" oninput="calcYE()"></label>
       <label class="fld">월세 세액공제액(조특§95의2) <input type="number" id="ye_rent" value="0" oninput="calcYE()"></label>
-      <label class="fld">9~20세 자녀수(§59의2) <input type="number" id="ye_children" value="0" min="0" oninput="calcYE()"></label>
+      <label class="fld">8세 이상 자녀수(§59의2) <input type="number" id="ye_children" value="0" min="0" oninput="calcYE()"></label>
       <label class="fld">출산·입양 순위(§59의2③)
         <select id="ye_birth" onchange="calcYE()"><option value="0">해당없음</option><option value="1">첫째 30만</option><option value="2">둘째 50만</option><option value="3">셋째↑ 70만</option></select></label>
     </div>
-    <div class="note">자녀세액공제(§59의2) 대상 연령은 2026 귀속 <b>9세 이상</b>(2027년 10세 → 2030년 13세로 단계적 상향, 아동수당 중복수혜 방지) 20세 이하 자녀·손자녀. · 의료비 700만 한도/난임30%·미숙아20%, 보장성 장애인전용 15%, 기부금 소득금액 한도, 부녀자 종합소득금액 3천만↓ 요건은 입력값 산정 시 반영하세요(v1은 입력 공제대상액 기준 계산).</div>
+    <div class="note">자녀세액공제(§59의2) 대상 연령은 2026 귀속 <b>8세 이상</b>(2027.1.1. 시행분부터 13세 이상 — 2026-09-22 K-Law 확인) 20세 이하 자녀·손자녀. · 의료비 700만 한도/난임30%·미숙아20%, 보장성 장애인전용 15%, 기부금 소득금액 한도, 부녀자 종합소득금액 3천만↓ 요건은 입력값 산정 시 반영하세요(v1은 입력 공제대상액 기준 계산).</div>
   </div>
   <div class="card">
     <h2>정산 결과 <span class="actions"><button class="btn btn-g btn-sm" onclick="applyYEtoReport()">신고서 A04에 반영</button></span></h2>
@@ -654,9 +655,16 @@ function earnedTaxCredit(calc,sal){
   else lim=Math.max(500000-(sal-120000000)*0.5,200000);
   return Math.min(base,lim);
 }
-// 근로소득 간이세액 (자동계산 근사: 연환산 결정세액 ÷12, 9~20세 자녀 차감)
-//   ※ 정확한 간이세액표(소득세법 시행령 별표2) 대용 — 실지급액은 수정 가능
-function simpleTax(monthlyTaxable, family, children){
+// 근로소득 간이세액 — 소득세법 시행령 별표 2(2026.2.27 개정) 실제 표(공용 모듈 한백택스_간이세액표_2026.js).
+//   family 공제대상가족수(본인 포함) · children 8~20세 자녀수 · ratio 원천징수 비율(령 §194 ①: 0.8/1/1.2) · 소액부징수(§86 1호) 반영
+//   모듈을 못 읽는 환경(오프라인 옛 캐시)에서는 아래 근사식으로 대체하고 화면에 알린다.
+function simpleTaxDetail(monthlyTaxable, family, children, ratio){
+  if(window.HB_SIMPLE_TAX)return HB_SIMPLE_TAX.monthly({won:monthlyTaxable,family:family,children:children,ratio:ratio||1});
+  const t=simpleTaxApprox(monthlyTaxable,family,children);
+  return {tax:fl(t*(ratio||1),10),table:t,childCut:0,afterChild:t,ratio:ratio||1,smallExempt:false,approx:true};
+}
+function simpleTax(monthlyTaxable, family, children, ratio){return simpleTaxDetail(monthlyTaxable,family,children,ratio).tax;}
+function simpleTaxApprox(monthlyTaxable, family, children){
   if(monthlyTaxable<=1060000)return 0; // 월 106만원 이하 비과세 기준 근사
   const annual=monthlyTaxable*12;
   const ded=earnedDed(annual);
@@ -687,7 +695,7 @@ function dayWorkerTax(taxableMonthly,days){
   return per*days;
 }
 function calcInsurance(taxable){
-  const npBase=Math.min(Math.max(taxable,RATE.npMin),RATE.npMax);
+  const npBase=Math.min(Math.max(fl(taxable,1000),RATE.npMin),RATE.npMax);   // 기준소득월액: 천원 미만 절사 후 상·하한(2026.7~2027.6)
   const np=fl(npBase*RATE.np,10);
   const hi=fl(taxable*RATE.hi,10);
   const ltc=fl(hi*RATE.ltc,10);
@@ -715,7 +723,7 @@ function loadBiz(){const b=DB.biz;['name','ceo','no','type','addr','tel','half',
 function saveBiz(){const b={};['name','ceo','no','type','addr','tel','half','regno','taxOffice','email','submitter','agentNo','htxId','dept','staff'].forEach(k=>b[k]=$('biz_'+k).value);DB.biz=b;DB.save();alert('사업장 정보가 저장되었습니다.');}
 
 // ===== ② 직원관리 — 지급명세서 인적사항(근로 C7~C19 · 퇴직 C7~C15 · 간이 C9~C10 · 일용 C8~C9) =====
-const EMP_DEF={name:'',rrn:'',join:'',leave:'',type:'일반',family:1,children:0,resident:'1',foreigner:'1',nation:'',country:'',flat:'2',dispatch:'2',householder:'1',religious:'2',exec:'2',dbDate:'',ret2011:0,tel:'',reliefFrom:'',reliefTo:''};
+const EMP_DEF={name:'',rrn:'',join:'',leave:'',type:'일반',family:1,children:0,ratio:'1',resident:'1',foreigner:'1',nation:'',country:'',flat:'2',dispatch:'2',householder:'1',religious:'2',exec:'2',dbDate:'',ret2011:0,tel:'',reliefFrom:'',reliefTo:''};
 function addEmp(){DB.emps.push(Object.assign({id:'e'+Date.now()+Math.floor(Math.random()*1000)},EMP_DEF));DB.save();renderEmp();}
 function delEmp(id){if(!confirm('이 직원을 삭제할까요? (관련 급여 데이터는 유지)'))return;DB.emps=DB.emps.filter(e=>e.id!==id);DB.save();renderEmp();}
 function updEmp(id,k,v){const e=DB.emps.find(x=>x.id===id);if(!e)return;e[k]=(k==='family'||k==='children'||k==='ret2011')?num(v):v;
@@ -768,11 +776,16 @@ function openEmp(id){const e=DB.emps.find(x=>x.id===id);if(!e)return;_empCtx=id;
       <label class="fld">확정급여형(DB) 퇴직연금 가입일 (C14)<input type="date" id="em_dbDate" value="${e.dbDate||''}"></label>
       <label class="fld">2011.12.31 퇴직 가정 퇴직소득금액 (C15, 임원만)<input id="em_ret2011" value="${won(e.ret2011||0)}"></label>
     </div>
+    <div class="nt-sec-hd"><span class="tag tag-rep">원천징수</span>매월 원천징수 방법 (소득세법 시행령 §194)</div>
+    <div class="grid">
+      <label class="fld">원천징수세액 비율 (령 §194 ① 단서 — 근로자 신청 시)${sel('ratio',[['1','100% (기본)'],['0.8','80% (조정 신청)'],['1.2','120% (조정 신청)']])}</label>
+    </div>
+    <div class="note">비율은 소득세 원천징수세액 조정신청서 또는 소득·세액공제신고서로 신청한 달 이후 지급분부터 적용됩니다(령 §194 ③·④). 종된 근무지는 본인 기본공제만 있는 것으로 보아 1명 란을 적용합니다(령 §194 ②).</div>
     <div class="note">비워 두면 내국인·거주자·세대주·비임원 등 기본값으로 수록됩니다. 외국인은 주민등록번호란에 외국인등록번호를 넣고 국적 코드를 고르십시오.</div>`;
   $('empModal').classList.add('on');}
 function closeEmp(){$('empModal').classList.remove('on');}
 function saveEmp(){const e=DB.emps.find(x=>x.id===_empCtx);if(!e)return;
-  ['resident','country','foreigner','nation','flat','dispatch','householder','religious','exec'].forEach(k=>{const el=$('em_'+k);if(el)e[k]=el.value;});
+  ['resident','country','foreigner','nation','flat','dispatch','householder','religious','exec','ratio'].forEach(k=>{const el=$('em_'+k);if(el)e[k]=el.value;});
   e.tel=$('em_tel').value;e.reliefFrom=$('em_reliefFrom').value;e.reliefTo=$('em_reliefTo').value;e.dbDate=$('em_dbDate').value;e.ret2011=num($('em_ret2011').value);
   if(e.resident==='1')e.country='';if(e.foreigner==='1')e.nation='';
   DB.save();closeEmp();renderEmp();}
@@ -885,16 +898,61 @@ function getPay(ym,id){if(!DB.pays[ym])DB.pays[ym]={};if(!DB.pays[ym][id])DB.pay
   return p;}
 function syncNontax(p){p.nontax=ntSum(p).all;p.gross=payGross(p);} // downstream 호환(gross·nontax 유지)
 function updPay(ym,id,k,v){const p=getPay(ym,id);
-  if(k==='workYM'||k==='taxManual')p[k]=v; else p[k]=num(v);
+  if(k==='workYM'||k==='taxManual'||k==='bonusKind')p[k]=v; else if(k==='bonusM'||k==='bonusPaid')p[k]=(String(v).trim()===''?null:num(v)); else p[k]=num(v);
   if(k!=='tax')p.tax=null; // 지급액·근무일수 변경 시 세액 자동 재계산
   syncNontax(p);DB.save();renderPay();}
-// 월 원천징수 소득세: 일용은 일 단위(§47②·§129①4·§59③), 일반은 간이세액 × (1-감면율)
-function payTax(e,p){
+// ── 상여 등의 지급대상기간(§136 ①·령 §195 ①) 자동 산정 ──
+//   지급대상기간이 있는 상여: 급여대장에 적은 월수(bonusM). 없으면 그 해 1월(입사가 그 해면 입사월)부터 지급월까지,
+//   같은 해에 앞서 상여를 받은 달이 있으면 그 다음 달부터 지급월까지(§136 ① 2호). 1년 초과는 12개월, 끝수는 1개월(3호).
+function ymAdd(ym,n){const [y,m]=ym.split('-').map(Number);const d=new Date(y,m-1+n,1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+function regularTaxable(p){return Math.max(num(p.pay)+num(p.recog)+exSum(p),0);}         // 상여 외 과세급여(인정상여는 급여로 봄)
+function regularTax(e,p){const r=rlWithholdRate(p);const t=simpleTax(regularTaxable(p),e.family,e.children,+e.ratio||1);return r?fl(t*(1-r),10):t;}
+function bonusCtx(e,p,ym){
+  const [y,m]=ym.split('-').map(Number);
+  let start=1;
+  if(e.join&&e.join.slice(0,4)===String(y))start=Math.max(1,+e.join.slice(5,7)||1);
+  for(let k=m-1;k>=start;k--){const q=(DB.pays[y+'-'+String(k).padStart(2,'0')]||{})[e.id];if(q&&num(q.bonus)>0){start=k+1;break;}}
+  const autoM=Math.max(1,m-start+1);
+  const months=p.bonusM!=null&&num(p.bonusM)>0?Math.min(12,num(p.bonusM)):autoM;
+  // 지급대상기간의 상여 외 월평균 급여·기납부세액: 대장에 있는 달은 그 값, 없는 달은 이번 달 급여로 봄
+  let sumPay=0,paid=0,filled=0;
+  for(let k=0;k<months;k++){const q=(DB.pays[ymAdd(ym,-k)]||{})[e.id];
+    if(k===0){sumPay+=regularTaxable(p);continue;}
+    if(q){sumPay+=regularTaxable(q);paid+=(q.tax!=null?num(q.tax):regularTax(e,q));filled++;}
+    else{sumPay+=regularTaxable(p);paid+=regularTax(e,p);}}
+  const paidUsed=p.bonusPaid!=null?num(p.bonusPaid):paid;
+  return {months,autoM,start,avg:sumPay/months,paid:paidUsed,paidAuto:paid,filled};
+}
+// 월 원천징수 소득세: 일용은 일 단위(§47②·§129①4·§59③), 일반은 간이세액표(비율·자녀 차감) × (1-감면율), 상여가 있는 달은 §136 ①
+function payTaxDetail(e,p,ym){
   const taxable=payTaxable(p);
-  if(e.type==='일용'){return (p.tax==null)?dayWorkerTax(taxable,num(p.days)):num(p.tax);}
-  if(p.tax!=null)return num(p.tax);
-  const base=simpleTax(taxable,e.family,e.children);const r=rlWithholdRate(p);
-  return r?fl(base*(1-r),10):base;
+  if(e.type==='일용')return {tax:(p.tax==null)?dayWorkerTax(taxable,num(p.days)):num(p.tax),kind:'day'};
+  if(p.tax!=null)return {tax:num(p.tax),kind:'manual'};
+  const ratio=+e.ratio||1,r=rlWithholdRate(p);
+  if(num(p.bonus)>0&&window.HB_SIMPLE_TAX){
+    if(p.bonusKind==='surplus'){                 // 잉여금처분 상여: 상여에 기본세율(§136 ②·령 §195 ②) + 급여분은 간이세액
+      const reg=simpleTaxDetail(regularTaxable(p),e.family,e.children,ratio);const sb=fl(incomeTax(num(p.bonus)),10);
+      let t=reg.tax+sb;if(r)t=fl(t*(1-r),10);
+      return {tax:t,kind:'surplus',reg,surplusTax:sb,ratio,relief:r};
+    }
+    const c=bonusCtx(e,p,ym||$('payYM').value);
+    const b=HB_SIMPLE_TAX.bonus({bonus:num(p.bonus),months:c.months,avg:c.avg,family:e.family,children:e.children,ratio,paid:c.paid});
+    let t=b.tax;if(r)t=fl(t*(1-r),10);
+    return {tax:t,kind:'bonus',b,c,ratio,relief:r};
+  }
+  const d=simpleTaxDetail(taxable,e.family,e.children,ratio);
+  let t=d.tax;if(r)t=fl(t*(1-r),10);
+  return {tax:t,kind:'monthly',d,ratio,relief:r};
+}
+function payTax(e,p,ym){return payTaxDetail(e,p,ym).tax;}
+function payTaxTitle(x){
+  const w=n=>Math.round(n).toLocaleString('ko-KR');
+  if(x.kind==='manual')return '직접 입력한 세액';
+  if(x.kind==='day')return '일용: (일급 − 150,000) × 6% × 45%, 일 1천원 미만 소액부징수';
+  const rel=x.relief?` × (1 − 감면 ${Math.round(x.relief*100)}%)`:'';
+  if(x.kind==='monthly'){const d=x.d;return `간이세액표 해당란 ${w(d.table)}`+(d.childCut?` − 자녀 차감 ${w(d.childCut)}`:'')+(x.ratio!==1?` × ${Math.round(x.ratio*100)}%`:'')+rel+(d.smallExempt?' → 1천원 미만 소액부징수 0':'')+(d.approx?' (모듈 없음: 근사식)':'');}
+  if(x.kind==='surplus')return `급여분 간이세액 ${w(x.reg.tax)} + 잉여금처분 상여 기본세율 ${w(x.surplusTax)}`+rel;
+  const b=x.b,c=x.c;return `상여 §136①: 지급대상기간 ${b.months}개월(${c.start}월~) · (상여÷${b.months} + 월평균 ${w(c.avg)}) = ${w(b.perMonth)} → 간이세액 ${w(b.perMonthTax)} × ${b.months} = ${w(b.totalForPeriod)} − 기납부 ${w(b.paid)}`+rel+(c.filled<b.months-1?` (대장에 없는 달은 이번 달 급여로 봄)`:'');
 }
 
 // ── 소득항목·비과세·감면 명세 모달 (draft 편집 → 저장 시에만 반영, 닫기는 취소) ──
@@ -960,16 +1018,17 @@ function renderPay(){
     const s=ntSum(p),nontax=s.all,ex=exSum(p),rl=rlSum(p),taxable=payTaxable(p),gross=payGross(p);
     const day=e.type==='일용';
     const ins=day?{np:0,hi:0,ltc:0,ei:0}:calcInsurance(taxable);   // 일용: 4대보험 월 대장 미적용(일용 취득 요건은 별도 관리)
-    const tax=payTax(e,p);
+    const tx=payTaxDetail(e,p,ym),tax=tx.tax,taxTitle=payTaxTitle(tx);
     const local=fl(tax*0.1,10);
     const net=gross-ins.np-ins.hi-ins.ltc-ins.ei-tax-local;
+    const bonusCtl=(!day&&num(p.bonus)>0)?`<div class="nt-split" title="지급대상기간 월수(§136①). 비우면 자동: ${tx.c?tx.c.autoM:''}개월">기간 <input value="${p.bonusM!=null?num(p.bonusM):''}" placeholder="${tx.c?tx.c.autoM:''}" onchange="updPay('${ym}','${e.id}','bonusM',this.value)" style="width:30px;text-align:center;padding:1px 2px">개월 <select onchange="updPay('${ym}','${e.id}','bonusKind',this.value)" style="font-size:11px;padding:1px"><option value=""${p.bonusKind!=='surplus'?' selected':''}>§136①</option><option value="surplus"${p.bonusKind==='surplus'?' selected':''}>잉여금처분</option></select></div>`:'';
     T.pay+=num(p.pay);T.bonus+=num(p.bonus);T.recog+=num(p.recog);T.ex+=ex;T.gross+=gross;T.nontax+=nontax;T.ntRep+=s.rep;T.ntNon+=s.non;T.rl+=rl;T.taxable+=taxable;T.np+=ins.np;T.hi+=ins.hi;T.ltc+=ins.ltc;T.ei+=ins.ei;T.tax+=tax;T.local+=local;T.net+=net;
     const split=(s.rep||s.non)?`<div class="nt-split">기재 ${won(s.rep)} · 비기재 ${won(s.non)}</div>`:'';
     const rlTxt=rl?`<div class="nt-split" style="color:var(--green)">감면 ${Object.keys(p.rl).filter(c=>RL_MAP[c]).join('·')} ${won(rl)}</div>`:'';
     const col2=day
       ?`<td><input value="${num(p.days)}" title="근무일수" onchange="updPay('${ym}','${e.id}','days',this.value)" style="text-align:center"><div class="nt-split">근무일수</div></td>
         <td><input value="${num(p.lastDay)}" title="최종근무일(일)" onchange="updPay('${ym}','${e.id}','lastDay',this.value)" style="text-align:center"><div class="nt-split">최종근무일</div></td>`
-      :`<td><input value="${won(num(p.bonus))}" onchange="updPay('${ym}','${e.id}','bonus',this.value)"></td>
+      :`<td><input value="${won(num(p.bonus))}" onchange="updPay('${ym}','${e.id}','bonus',this.value)">${bonusCtl}</td>
         <td><input value="${won(num(p.recog))}" onchange="updPay('${ym}','${e.id}','recog',this.value)"></td>`;
     return `<tr>
       <td class="l">${e.name||'(이름없음)'}</td>
@@ -981,7 +1040,7 @@ function renderPay(){
       <td>${won(gross)}</td>
       <td>${won(taxable)}</td>
       <td>${won(ins.np)}</td><td>${won(ins.hi)}</td><td>${won(ins.ltc)}</td><td>${won(ins.ei)}</td>
-      <td><input value="${won(tax)}" onchange="updPay('${ym}','${e.id}','tax',this.value)" style="color:var(--rose)"></td>
+      <td><input value="${won(tax)}" title="${taxTitle.replace(/"/g,'&quot;')}" onchange="updPay('${ym}','${e.id}','tax',this.value)" style="color:var(--rose)">${tx.kind==='bonus'?'<div class="nt-split">상여 §136①</div>':tx.kind==='surplus'?'<div class="nt-split">잉여금처분</div>':(tx.d&&tx.d.childCut?'<div class="nt-split">자녀 −'+won(tx.d.childCut)+'</div>':'')}${tx.ratio&&tx.ratio!==1?'<div class="nt-split">'+Math.round(tx.ratio*100)+'%</div>':''}</td>
       <td>${won(local)}</td>
       <td><b>${won(net)}</b></td>
     </tr>`;
@@ -1015,7 +1074,7 @@ function aggregate(ym){
     const p=(DB.pays[ym]||{})[e.id];if(!p)return;
     const pp=getPay(ym,e.id);const gross=payGross(pp);
     if(gross<=0&&pp.tax==null)return;
-    let code='A01';const tax=payTax(e,pp);                       // 일용: 일 단위 · 일반: 간이세액(감면율 적용)
+    let code='A01';const tax=payTax(e,pp,ym);                       // 일용: 일 단위 · 일반: 간이세액(감면율 적용)
     if(e.type==='일용')code='A03';else if(e.type==='중도퇴사')code='A02';
     acc[code].n+=1;acc[code].pay+=gross;acc[code].tax+=tax;
   });
@@ -1175,7 +1234,7 @@ function payAnnual(id,year){
     EX_ITEMS.forEach(it=>{const v=num((p.ex||{})[it.key]);if(v>0)a.ex[it.key]=(a.ex[it.key]||0)+v;});
     Object.keys(p.nt||{}).forEach(c=>{const it=NT_MAP[c];if(!it)return;const amt=ntClamp(c,num(p.nt[c]));if(amt<=0)return;a.nt[c]=(a.nt[c]||0)+amt;if(it.rep){a.rep[c]=(a.rep[c]||0)+amt;a.repT+=amt;}else{a.non[c]=(a.non[c]||0)+amt;a.nonT+=amt;}});
     Object.keys(p.rl||{}).forEach(c=>{if(!RL_MAP[c])return;const v=num(p.rl[c]);if(v>0){a.rl[c]=(a.rl[c]||0)+v;a.rlT+=v;}});
-    a.taxable+=tx;a.gross+=payGross(p);a.tax+=payTax(e,p);
+    a.taxable+=tx;a.gross+=payGross(p);a.tax+=payTax(e,p,ym);
     if(e.type!=='일용'){const i=calcInsurance(tx);a.np+=i.np;a.hi+=i.hi;a.ltc+=i.ltc;a.ei+=i.ei;}
   });
   // 연 한도 항목(O01 240만·R11 700만 등)은 연 집계에서 한 번 더 한도 적용
@@ -1629,7 +1688,7 @@ function psmWorkRows(year,half){
 // 급여대장 → 일용 소득자별 월 행
 function psmDayRows(ym){
   return DB.emps.filter(e=>e.type==='일용').map(e=>{const p=empPay(e.id,ym);if(!p)return null;const tx=payTaxable(p),nt=ntSum(p).all;if(tx<=0&&nt<=0)return null;
-    const tax=payTax(e,p);return {e,p,taxable:tx,nontax:nt,days:num(p.days),lastDay:num(p.lastDay),workYM:p.workYM||ym,tax,local:fl(tax*0.1,10)};}).filter(Boolean);
+    const tax=payTax(e,p,ym);return {e,p,taxable:tx,nontax:nt,days:num(p.days),lastDay:num(p.lastDay),workYM:p.workYM||ym,tax,local:fl(tax*0.1,10)};}).filter(Boolean);
 }
 function psmGet(){const t=psmType();const ym=psmYM();DB.psm[t]=DB.psm[t]||{};DB.psm[t][ym]=DB.psm[t][ym]||[];return DB.psm[t][ym];}
 function psmAddRow(){if(PSM_TYPES[psmType()].from){alert('근로·일용은 ② 직원관리·③ 급여대장에서 관리합니다. 직원을 등록하고 급여를 입력하십시오.');return;}psmGet().push({name:'',rrn:'',gross:0,nontax:0,tax:0});DB.save();renderPSM();}
