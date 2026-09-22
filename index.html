@@ -125,16 +125,22 @@ html[data-theme="dark"] .navlinks button:hover{color:#fff}
 }
 .iconbtn:hover{border-color:var(--blue);color:var(--blue)}
 .iconbtn:disabled{opacity:.5;cursor:default}
-/* 캐시 비우고 새로고침 — 금색 라벨 버튼으로 눈에 띄게 */
+/* 캐시 비우고 새로고침 — 새 버전이 있을 때만 금색으로 진하게, 없을 때는 연하게 (2026-09-22) */
 .iconbtn.refresh{
   gap:7px;padding:0 16px;border-radius:12px;font-size:14px;font-weight:800;
-  background:var(--gold);color:#241704;border:1px solid rgba(0,0,0,.08);
-  box-shadow:0 2px 8px rgba(27,58,92,.18);
+  background:var(--card);color:var(--txt-2);border:1px solid var(--border);opacity:.55;
+  transition:opacity .2s,background .2s,color .2s,box-shadow .2s;
 }
-.iconbtn.refresh:hover{background:#D9A64A;color:#241704;border-color:rgba(0,0,0,.12)}
+.iconbtn.refresh:hover{opacity:.9;border-color:var(--blue);color:var(--blue)}
 .iconbtn.refresh .ico{font-size:17px;line-height:1}
-.iconbtn.refresh:disabled{opacity:.75}
-html[data-theme="dark"] .iconbtn.refresh{box-shadow:0 2px 10px rgba(0,0,0,.45)}
+.iconbtn.refresh:disabled{opacity:.5}
+.iconbtn.refresh.hasnew{
+  opacity:1;background:var(--gold);color:#241704;border:1px solid rgba(0,0,0,.08);
+  box-shadow:0 2px 8px rgba(27,58,92,.18);animation:hbRefreshPulse 1.6s ease-in-out 3;
+}
+.iconbtn.refresh.hasnew:hover{background:#D9A64A;color:#241704;border-color:rgba(0,0,0,.12)}
+html[data-theme="dark"] .iconbtn.refresh.hasnew{box-shadow:0 2px 10px rgba(0,0,0,.45)}
+@keyframes hbRefreshPulse{0%,100%{box-shadow:0 0 0 0 rgba(200,150,62,.6)}50%{box-shadow:0 0 0 8px rgba(200,150,62,0)}}
 @media(max-width:520px){ .iconbtn.refresh{padding:0 12px;font-size:13px} }
 .iconbtn:focus-visible,.chip:focus-visible,.card:focus-visible,.star:focus-visible,
 .linkbtn:focus-visible,.toast button:focus-visible,.iconx:focus-visible,.navlinks button:focus-visible,.hcard:focus-visible{
@@ -1058,6 +1064,13 @@ async function hardRefresh(){
   const u = new URL(location.href); u.searchParams.set('r', Date.now()); location.replace(u.toString());
 }
 refreshBtn.addEventListener('click', hardRefresh);
+/* 새 버전이 감지되면 단추를 진하게(금색) 켠다. 평소에는 연하게 둔다. */
+function markNew(){
+  if(refreshBtn.classList.contains('hasnew')) return;
+  refreshBtn.classList.add('hasnew');
+  refreshBtn.title = '새 버전이 있습니다 — 눌러서 최신 화면으로 새로고침';
+  refreshBtn.setAttribute('aria-label', '새 버전이 있습니다. 새로고침');
+}
 /* 새로고침 뒤 주소에 남은 r= 를 지운다 */
 if(new URL(location.href).searchParams.has('r')){ const u = new URL(location.href); u.searchParams.delete('r'); history.replaceState(null, '', u.pathname + (u.search || '') + u.hash); }
 
@@ -1080,12 +1093,17 @@ if(!swOK){
   });
 
   window.addEventListener('load', () => {
+    const hadController = !!navigator.serviceWorker.controller;
+    /* 이 화면을 연 뒤에 새 워커가 제어권을 가져가면 = 새 버전이 있다 */
+    if(hadController) navigator.serviceWorker.addEventListener('controllerchange', markNew);
     navigator.serviceWorker.register('sw.js').then(reg => {
+      if(reg.waiting && hadController) markNew();
       reg.addEventListener('updatefound', () => {
         const nw = reg.installing;
         if(!nw) return;
         nw.addEventListener('statechange', () => {
           if(nw.state === 'installed' && navigator.serviceWorker.controller){
+            markNew();
             showToast('새 버전이 준비되었습니다.', {
               action:'새로고침',
               onAction: () => { nw.postMessage({type:'SKIP_WAITING'}); location.reload(); }
