@@ -6,7 +6,7 @@
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>세무법인 한백택스 — 소개 · 서비스 · 상담</title>
-<meta name="description" content="세무법인 한백택스(대표세무사 차재영). 기장·신고 대행, 급여 아웃소싱, 양도·상속·증여 재산 제세, 기업 경영컨설팅. 서울 중구 동호로 315 신안빌딩 2층 · 02-2277-3101">
+<meta name="description" content="세무법인 한백택스(차재영 대표세무사 · 박교원 · 이해별 · 신시현 세무사). 기장·신고 대행, 급여 아웃소싱, 양도·상속·증여 재산 제세, 기업 경영컨설팅. 서울 중구 동호로 315 신안빌딩 2층 · 02-2277-3101">
 <meta property="og:title" content="세무법인 한백택스 — 소개 · 서비스 · 상담">
 <meta property="og:image" content="https://kaliff90-stack.github.io/hanbaektax-portal/og-image.png">
 <!--
@@ -33,6 +33,9 @@ a{color:var(--blue)}
 .gnb nav a:hover{background:#F1F4F8}
 .hero{background:linear-gradient(135deg,#1B3A5C 0%,#24507d 100%);color:#fff;padding:54px 0 48px}
 .hero .eyebrow{color:#F3D9A4;font-weight:800;font-size:13px;letter-spacing:.5px}
+.hero .team{font-size:22px;font-weight:800;color:#fff;margin-top:8px;line-height:1.45;letter-spacing:-.2px}
+.hero .team b{font-size:26px;color:#F3D9A4}
+.hero .team span{white-space:nowrap}
 .hero h1{font-size:32px;line-height:1.35;margin:8px 0 12px}
 .hero h1 em{font-style:normal;color:#F3D9A4}
 .hero p{max-width:720px;color:#E6EDF5;margin:0 0 20px}
@@ -61,6 +64,8 @@ h2{font-size:24px;color:var(--navy);margin:4px 0 18px;line-height:1.4}
 ul.ck{list-style:none;padding:0;margin:8px 0 0}
 ul.ck li{padding:5px 0 5px 24px;position:relative;font-size:14.5px}
 ul.ck li:before{content:"✓";position:absolute;left:2px;color:var(--gold);font-weight:800}
+ul.ck.staff li{font-size:19px;font-weight:800;padding:7px 0 7px 26px;color:var(--navy)}
+ul.ck.staff li b{font-size:22px}
 .tbls{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-top:10px}
 table{border-collapse:collapse;width:100%;font-size:13.5px;background:#fff}
 caption{caption-side:top;text-align:left;font-weight:800;color:var(--navy);padding:0 0 6px}
@@ -85,6 +90,7 @@ footer{background:#14283f;color:#c9d5e3;font-size:13px;padding:26px 0}
 footer b{color:#fff}
 @media(max-width:760px){
   .hero{padding:36px 0}.hero h1{font-size:24px}h2{font-size:20px}section{padding:32px 0}
+  .hero .team{font-size:18px}.hero .team b{font-size:21px}ul.ck.staff li{font-size:17px}ul.ck.staff li b{font-size:19px}
   .two{grid-template-columns:1fr}.gnb img{display:none}.gnb nav{margin-left:0}
   .gnb{top:40px}
 }
@@ -146,7 +152,8 @@ footer b{color:#fff}
 </div></div>
 
 <header class="hero"><div class="in">
-  <div class="eyebrow">검증된 세무법인 한백택스 · 차재영 대표세무사 · 박교원 세무사 · 이해별 세무사 · 신시현 세무사</div>
+  <div class="eyebrow">검증된 세무법인 한백택스</div>
+  <div class="team"><span><b>차재영</b> 대표세무사</span> · <span><b>박교원</b> 세무사</span> · <span><b>이해별</b> 세무사</span> · <span><b>신시현</b> 세무사</span></div>
   <h1>세금, <em>계산 전에 판단</em>부터.<br>상황에 맞는 절세 솔루션을 드립니다</h1>
   <p>한백택스는 30년, 5,000여 업체의 세무서비스를 담당해 왔습니다. 다양한 업종을 맡아 온 전문 세무사들이 기업과 개인의 상황을 먼저 파악하고 그에 맞는 해법을 제시합니다.</p>
   <div class="cta"><a class="btn g" href="#contact">무료 상담 신청</a><a class="btn w" href="한백택스_의사결정_진단.html">🧭 부동산 의사결정 진단</a><a class="btn o" href="index.html">세무 계산기 · 도구 보기</a><a class="btn o" href="tel:0222773101">☎ 02-2277-3101</a></div>
@@ -237,7 +244,7 @@ footer b{color:#fff}
     <div class="lab">INTRODUCE</div><h2>대표 세무사 차재영</h2>
     <ul class="ck"><li>세무법인 한백택스 대표세무사</li><li>서울벤처정보대학원 경영학 박사</li><li>한국생산성본부 재무·세법 분야 강사</li><li>씨에프오아카데미 강사</li><li>서울지방세무사회 교육연수위원</li><li>대한상공회의소 CEO IT 경영자문위원</li><li>CFO 아카데미 연말정산 센터장</li></ul>
     <div class="lab" style="margin-top:18px">TAX ACCOUNTANTS</div><h2 style="font-size:19px">소속 세무사</h2>
-    <ul class="ck"><li>차재영 대표세무사</li><li>박교원 세무사</li><li>이해별 세무사</li><li>신시현 세무사</li></ul>
+    <ul class="ck staff"><li><b>차재영</b> 대표세무사</li><li><b>박교원</b> 세무사</li><li><b>이해별</b> 세무사</li><li><b>신시현</b> 세무사</li></ul>
     <dl>
       <dt>오시는 길</dt><dd>서울특별시 중구 동호로 315, 신안빌딩 2층 (장충동2가 173-1)<br>동대문역사문화공원역 5·6번 출구에서 300m · 충무로역에서도 가깝습니다. <a href="https://map.naver.com/p/search/%EC%84%9C%EC%9A%B8%20%EC%A4%91%EA%B5%AC%20%EB%8F%99%ED%98%B8%EB%A1%9C%20315" target="_blank" rel="noopener">지도 보기 ↗</a></dd>
       <dt>이용 시간</dt><dd>평일 9:00 ~ 18:00 (공휴일 휴무)</dd>
@@ -247,7 +254,7 @@ footer b{color:#fff}
   </div>
 </div></section>
 
-<footer><div class="in"><b>세무법인 한백택스</b> · 대표 차재영 · 사업자등록번호 522-85-00152<br>서울특별시 중구 동호로 315, 신안빌딩 2층 · 전화 02-2277-3101 · 팩스 02-2277-3161 · hb090@hanbaektax.kr · hb3101@nate.com<br>© 세무법인 한백택스</div></footer>
+<footer><div class="in"><b>세무법인 한백택스</b> · 차재영 대표세무사 · 박교원 · 이해별 · 신시현 세무사 · 사업자등록번호 522-85-00152<br>서울특별시 중구 동호로 315, 신안빌딩 2층 · 전화 02-2277-3101 · 팩스 02-2277-3161 · hb090@hanbaektax.kr · hb3101@nate.com<br>© 세무법인 한백택스</div></footer>
 
 <script>
 'use strict';

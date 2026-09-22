@@ -7,7 +7,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="세무법인 한백택스">
 <meta property="og:title" content="세무법인 한백택스 | 세무 도구 모음">
-<meta property="og:description" content="대표세무사 차재영 · 양도·증여·상속·종합소득세·연말정산·4대보험 계산기와 간편 세무 포털. 최신 법령을 법제처 원문으로 확인해 반영합니다.">
+<meta property="og:description" content="차재영 대표세무사 · 박교원 · 이해별 · 신시현 세무사 · 양도·증여·상속·종합소득세·연말정산·4대보험 계산기와 간편 세무 포털. 최신 법령을 법제처 원문으로 확인해 반영합니다.">
 <meta property="og:url" content="https://kaliff90-stack.github.io/hanbaektax-portal/">
 <meta property="og:image" content="https://kaliff90-stack.github.io/hanbaektax-portal/og-image.png">
 <meta property="og:image:width" content="1200">
@@ -16,7 +16,7 @@
 <meta property="og:locale" content="ko_KR">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="세무법인 한백택스 | 세무 도구 모음">
-<meta name="twitter:description" content="대표세무사 차재영 · 양도·증여·상속·종합소득세·연말정산·4대보험 계산기와 간편 세무 포털. 최신 법령을 법제처 원문으로 확인해 반영합니다.">
+<meta name="twitter:description" content="차재영 대표세무사 · 박교원 · 이해별 · 신시현 세무사 · 양도·증여·상속·종합소득세·연말정산·4대보험 계산기와 간편 세무 포털. 최신 법령을 법제처 원문으로 확인해 반영합니다.">
 <meta name="twitter:image" content="https://kaliff90-stack.github.io/hanbaektax-portal/og-image.png">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png" type="image/png">
@@ -174,6 +174,15 @@ html[data-theme="dark"] .hero{background:
 .eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;color:var(--navy);
   background:var(--brand-soft);border-radius:999px;padding:4px 11px;letter-spacing:.2px;max-width:100%}
 html[data-theme="dark"] .eyebrow{color:#DCE7F3}
+/* 히어로 세무사 명단 — 이름은 크게, 주소는 그 옆에 */
+.team{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;max-width:100%}
+.team .names{font-size:clamp(18px,.9vw + 14px,23px);font-weight:800;color:var(--navy);letter-spacing:-.3px;line-height:1.4}
+.team .names b{font-size:1.12em;color:var(--blue)}
+.team .names span,.foot .names span{white-space:nowrap}
+.team .addr{font-size:14px;font-weight:700;color:var(--txt-2)}
+.team .addr a{color:inherit;text-decoration:none}
+html[data-theme="dark"] .team .names{color:#DCE7F3}
+html[data-theme="dark"] .team .names b{color:#F3D9A4}
 .hero h1{font-size:clamp(23px,1.2vw + 16px,34px);font-weight:800;letter-spacing:-.6px;line-height:1.25;margin-top:12px}
 .hero h1 em{font-style:normal;color:var(--blue)}
 .hero p{font-size:clamp(13px,.3vw + 11px,15px);color:var(--txt-2);margin-top:8px;max-width:640px;line-height:1.7}
@@ -320,6 +329,9 @@ html[data-theme="dark"] .tip .t{color:#DCE7F3}
   display:grid;grid-template-columns:1.2fr 1fr;gap:16px;
 }
 .foot b{color:var(--navy);font-size:14px}
+.foot .names{font-size:15.5px;font-weight:700;color:var(--txt);line-height:1.6}
+.foot .names b{font-size:17px;color:var(--navy)}
+html[data-theme="dark"] .foot .names b{color:#DCE7F3}
 html[data-theme="dark"] .foot b{color:#DCE7F3}
 .foot a{font-weight:700;text-decoration:none}
 .foot .note{font-size:12px;border-left:1px solid var(--border);padding-left:16px}
@@ -389,6 +401,9 @@ body.is-offline .offbar{display:block}
   .hero h1{font-size:22px}
   .hero p{font-size:13px}
   .eyebrow{font-size:11px;padding:4px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;width:fit-content;max-width:100%}
+  .team{gap:4px 12px}
+  .team .names{font-size:17px}
+  .team .addr{font-size:12.5px}
   .hero-stats{display:none}
   .brand .logo{height:28px}
   .brand .n2{display:none}
@@ -447,7 +462,10 @@ body.is-offline .offbar{display:block}
 
 <section class="hero">
   <div class="hero-in">
-    <span class="eyebrow">📍 대표세무사 차재영 · 서울 중구 동호로 315 신안빌딩 2층</span>
+    <div class="team" aria-label="소속 세무사와 주소">
+      <span class="names"><span><b>차재영</b> 대표세무사</span> · <span><b>박교원</b> 세무사</span> · <span><b>이해별</b> 세무사</span> · <span><b>신시현</b> 세무사</span></span>
+      <span class="addr">📍 서울 중구 동호로 315 신안빌딩 2층 · ☎ <a href="tel:+82222773101">02-2277-3101</a></span>
+    </div>
     <h1>세금, 계산 전에 <em>판단</em>부터</h1>
     <p>팔지, 증여할지, 그대로 둘지 — 세무사가 상담에서 먼저 묻는 순서대로 상황을 정리하고 선택지를 나란히 비교합니다. 양도·증여·상속·종부세·연말정산·급여·비상장주식 계산기는 아래에 그대로 있습니다. 모든 세율·공제는 법제처 원문으로 확인해 반영합니다.</p>
     <div class="sitwrap" aria-label="무엇이 고민이신가요">
@@ -504,7 +522,7 @@ body.is-offline .offbar{display:block}
   <footer class="foot">
     <div>
       <b>세무법인 한백택스</b><br>
-      대표세무사 차재영<br>
+      <span class="names"><span><b>차재영</b> 대표세무사</span> · <span><b>박교원</b> 세무사</span> · <span><b>이해별</b> 세무사</span> · <span><b>신시현</b> 세무사</span></span><br>
       서울특별시 중구 동호로 315, 신안빌딩 2층 (장충동2가 173-1)<br>
       Tel <a href="tel:+82222773101">02-2277-3101</a> · Fax 02-2277-3161<br>
       <a href="mailto:hb090@hanbaektax.kr">hb090@hanbaektax.kr</a> · <a href="mailto:hb3101@nate.com">hb3101@nate.com</a>
