@@ -194,7 +194,7 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
 <div class="top">
   <div>
     <h1>계약서 작성기</h1>
-    <div class="sub">근로계약서 · 금전소비대차계약서 · 프리랜서(3.3%) 업무위탁계약서 · 임원퇴직금 지급규정(정관) — 입력하면 오른쪽에 바로 만들어지고, 법정 기재사항과 한도를 점검합니다. 내용은 이 브라우저에만 저장됩니다.</div>
+    <div class="sub">근로계약서 · 금전소비대차계약서 · 프리랜서(3.3%) 업무위탁계약서 · 임원퇴직금 지급규정(정관) · 사직서·퇴직 서류(자진퇴사·권고사직·의원면직·정년·계약만료·해고) — 입력하면 오른쪽에 바로 만들어지고, 법정 기재사항과 한도를 점검합니다. 내용은 이 브라우저에만 저장됩니다.</div>
   </div>
   <div class="doctabs" id="docTabs">
     <button type="button" data-doc="tax" class="on">세무대리 약정서</button>
@@ -202,6 +202,7 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
     <button type="button" data-doc="loan">금전소비대차계약서</button>
     <button type="button" data-doc="free">프리랜서(3.3%) 계약서</button>
     <button type="button" data-doc="exec">임원퇴직금 규정(정관)</button>
+    <button type="button" data-doc="resign">사직서 · 퇴직 서류</button>
   </div>
 </div>
 
@@ -513,6 +514,110 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
     <ul class="checks" id="execChecks"></ul>
   </div>
 
+  <!-- ══════════════ 사직서 · 퇴직 서류 입력 ══════════════ -->
+  <div id="form-resign" style="display:none">
+    <h2>① 퇴직 유형 <span class="hint">— 유형이 고용보험 상실사유 코드와 실업급여 가능 여부를 정합니다</span></h2>
+    <div class="row c1">
+      <label class="fld">유형<select data-k="kind">
+        <option value="self">자진퇴사 — 개인 사정 (사직서) · 상실코드 11 · 실업급여 원칙 불가</option>
+        <option value="just">자진퇴사 — 정당한 사유 (임금체불·근로조건 저하·통근 곤란·질병 등 · 사직서) · 코드 12 · 실업급여 가능</option>
+        <option value="dismiss">의원면직 — 사직원 제출 + 회사의 수리·면직 통지서</option>
+        <option value="advised">권고사직 — 회사 권고에 의한 퇴직 (사직서 + 퇴직 합의서) · 코드 23/26</option>
+        <option value="honor">희망퇴직 · 명예퇴직 — 고용조정 모집에 응한 퇴직 (신청서 + 합의서) · 코드 23</option>
+        <option value="retire">정년퇴직 — 정년퇴직 통지서 + 근로자 확인 · 코드 31 · 실업급여 가능</option>
+        <option value="expire">계약기간 만료 — 계약만료 통지서 + 근로자 확인 · 코드 32 · 실업급여 가능</option>
+        <option value="fire">해고 — 해고 통지서 (경영상 해고 · 징계해고) · 코드 23/26</option>
+      </select></label>
+    </div>
+    <div class="row rk" data-kinds="just dismiss">
+      <label class="fld" style="grid-column:1/-1">정당한 이직 사유 <span class="hint">(고용보험법 시행규칙 별표 2)</span><select data-k="justKind">
+        <option value="0">해당 없음 — 개인 사정 (코드 11)</option>
+        <option value="1b">임금체불 — 이직일 전 1년 이내 2개월 이상 (별표 2 제1호 나목)</option>
+        <option value="1a">채용 시·종전보다 낮아진 근로조건 — 2개월 이상 (제1호 가목)</option>
+        <option value="1c">최저임금 미달 — 2개월 이상 (제1호 다목)</option>
+        <option value="1d">연장근로 제한(근기법 §53) 위반 — 2개월 이상 (제1호 라목)</option>
+        <option value="1e">휴업으로 평균임금 70% 미만 지급 — 2개월 이상 (제1호 마목)</option>
+        <option value="2">종교·성별·장애·노조활동 등 차별대우 (제2호)</option>
+        <option value="3">성희롱·성폭력·직장 내 괴롭힘 (제3호·제3호의2)</option>
+        <option value="4">도산·폐업 확실 또는 대량 감원 예정 (제4호)</option>
+        <option value="6">사업장 이전·전근·거소 이전으로 통근 왕복 3시간 이상 (제6호)</option>
+        <option value="7">부모·동거 친족 30일 이상 간호, 휴가·휴직 불허 (제7호)</option>
+        <option value="9">질병·부상 등으로 업무 수행 곤란, 전환·휴직 불허 — 의사 소견서 (제9호)</option>
+        <option value="10">임신·출산·8세 이하 자녀 육아·병역, 휴가·휴직 불허 (제10호)</option>
+        <option value="13">그 밖에 통상의 근로자도 이직했을 사정 (제13호)</option>
+      </select></label>
+    </div>
+    <div class="row rk" data-kinds="advised">
+      <label class="fld">권고 사유<select data-k="advKind">
+        <option value="mgmt">경영상 사유 — 경영 악화·조직 축소·업종 전환 등 (코드 23 · 실업급여 가능)</option>
+        <option value="fault">근로자 귀책 — 근무태도·업무능력 등 (코드 26 · 중대한 귀책이면 실업급여 불가)</option>
+      </select></label>
+      <label class="fld num">위로금 <span class="hint">(없으면 비움)</span><input data-k="sev" inputmode="numeric" placeholder="3,000,000"></label>
+      <label class="chk"><input type="checkbox" data-k="noClaim" checked>합의서에 「퇴직에 관한 상호 청구 포기」 조항 (미지급 임금·퇴직금은 제외)</label>
+    </div>
+    <div class="row rk" data-kinds="honor">
+      <label class="fld num">희망퇴직 위로금<input data-k="sev" inputmode="numeric" placeholder="10,000,000"></label>
+      <label class="fld">고용조정 사유<input data-k="advDetail" placeholder="예: ○○사업부 축소에 따른 인원 감축"></label>
+      <label class="chk"><input type="checkbox" data-k="noClaim" checked>합의서에 「퇴직에 관한 상호 청구 포기」 조항</label>
+    </div>
+    <div class="row rk" data-kinds="retire">
+      <label class="fld">정년 (만 나이)<input type="number" data-k="retireAge" min="55" max="80" placeholder="60"></label>
+      <label class="fld">취업규칙 정년 조문<input data-k="retireRule" placeholder="예: 제45조"></label>
+      <label class="chk"><input type="checkbox" data-k="rehire">정년 후 촉탁(재고용) 계약 안내 문구 넣기</label>
+    </div>
+    <div class="row rk" data-kinds="expire">
+      <label class="fld">근로계약 종료일<input type="date" data-k="contractEnd"></label>
+      <label class="fld">갱신하지 않는 쪽<select data-k="renewBy"><option value="co">회사가 갱신하지 않음 (코드 32)</option><option value="worker">근로자가 갱신을 원하지 않음 (자발적 이직으로 볼 수 있음)</option></select></label>
+      <label class="fld">근로계약 시작일<input type="date" data-k="contractStart"></label>
+    </div>
+    <div class="row rk" data-kinds="fire">
+      <label class="fld">해고 종류<select data-k="fireKind"><option value="mgmt">경영상 이유에 의한 해고 (근기법 §24 · 코드 23)</option><option value="disc">징계해고 (코드 26)</option></select></label>
+      <label class="fld">해고 예고<select data-k="noticeOK"><option value="y">30일 전에 예고함</option><option value="n">30일 전 예고 없음 → 30일분 통상임금(해고예고수당) 지급</option><option value="exempt">예고 제외 (계속근로 3개월 미만 · 부득이한 사유 · 고의로 막대한 손해)</option></select></label>
+      <label class="fld">통지(예고)일<input type="date" data-k="noticeDate"></label>
+      <label class="fld">근거 규정 <span class="hint">(취업규칙·단체협약 조문)</span><input data-k="fireRule" placeholder="예: 취업규칙 제52조 제3호"></label>
+    </div>
+    <h2>② 회사</h2>
+    <div class="row">
+      <label class="fld">사업체명<input data-k="coName" placeholder="상호 또는 법인명"></label>
+      <label class="fld">대표자<input data-k="coRep"></label>
+      <label class="fld">사업자등록번호<input data-k="coBiz" placeholder="000-00-00000" inputmode="numeric"></label>
+      <label class="fld">전화<input data-k="coTel"></label>
+      <label class="fld" style="grid-column:1/-1">사업장 주소<input data-k="coAddr"></label>
+    </div>
+    <h2>③ 근로자</h2>
+    <div class="row">
+      <label class="fld">성명<input data-k="wName"></label>
+      <label class="fld">생년월일<input type="date" data-k="wBirth"></label>
+      <label class="fld">소속(부서)<input data-k="wDept"></label>
+      <label class="fld">직위<input data-k="wPos"></label>
+      <label class="fld">입사일<input type="date" data-k="hireDate"></label>
+      <label class="fld">연락처<input data-k="wTel"></label>
+      <label class="fld" style="grid-column:1/-1">주소<input data-k="wAddr"></label>
+    </div>
+    <h2>④ 날짜와 사유</h2>
+    <div class="row c3">
+      <label class="fld">퇴직일 <span class="hint">(마지막 근무일)</span><input type="date" data-k="lastDay"></label>
+      <label class="fld rk" data-kinds="self just dismiss advised honor">사직서 제출일<input type="date" data-k="submitDate"></label>
+      <label class="fld rk" data-kinds="dismiss">사직원 수리(면직 발령)일<input type="date" data-k="acceptDate"></label>
+      <label class="fld">문서 작성일<input type="date" data-k="signDate"></label>
+    </div>
+    <div class="row c1">
+      <label class="fld">구체적 사정 <span class="hint" id="reasonHint">— 문서의 「퇴직 사유」에 그대로 들어갑니다. 실제 사실만 적으십시오.</span><textarea data-k="reason" rows="3" placeholder="예: 2026년 6월분·7월분 급여가 지급일로부터 각 30일 이상 지급되지 않음"></textarea></label>
+    </div>
+    <h2>⑤ 넣을 내용</h2>
+    <div class="row">
+      <label class="chk"><input type="checkbox" data-k="handover" checked>인수인계 문구</label>
+      <label class="chk rk" data-kinds="advised honor dismiss"><input type="checkbox" data-k="confid" checked>비밀유지 문구</label>
+      <label class="chk rk" data-kinds="dismiss"><input type="checkbox" data-k="acceptDoc" checked>사직원 수리·의원면직 통지서 (회사 → 근로자) 붙이기</label>
+      <label class="chk"><input type="checkbox" data-k="eiNote" checked>실업급여·이직확인서 안내 문구</label>
+      <label class="chk"><input type="checkbox" data-k="checklist" checked>별지: 퇴직 처리 체크리스트 (사업주용 · 상실사유 코드 포함)</label>
+      <label class="chk"><input type="checkbox" data-k="showTool">문서 하단에 작성 도구 표시</label>
+    </div>
+    <div class="row c1"><label class="fld">특약·추가 문구<textarea data-k="extra" rows="2" placeholder="예: 미사용 연차 5일분은 퇴직일에 정산 지급한다."></textarea></label></div>
+    <div class="calc" id="resignCalc"></div>
+    <ul class="checks" id="resignChecks"></ul>
+  </div>
+
   <!-- ══════════════ 세무대리 약정서 입력 ══════════════ -->
   <div id="form-tax" style="display:none">
     <h2>① 위임인(갑)</h2>
@@ -654,7 +759,7 @@ const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth
 const bizOk=b=>{const d=String(b||'').replace(/\D/g,'');if(d.length!==10)return false;const w=[1,3,7,1,3,7,1,3,5];let s=0;for(let i=0;i<9;i++)s+=+d[i]*w[i];s+=Math.floor(+d[8]*5/10);return (10-s%10)%10===+d[9];};
 const rrnOk=r=>{const d=String(r||'').replace(/\D/g,'');if(d.length!==13)return false;const w=[2,3,4,5,6,7,8,9,2,3,4,5];let s=0;for(let i=0;i<12;i++)s+=+d[i]*w[i];return (11-s%11)%10===+d[12];};
 function hangulMoney(n){n=Math.round(+n||0);if(n===0)return '영원';const dg='영일이삼사오육칠팔구',un=['','십','백','천'],big=['','만','억','조','경'];let out='',i=0;while(n>0){let part=n%10000,s='';for(let j=0;j<4&&part>0;j++){const d=part%10;if(d)s=(d===1&&j>0?'':dg[d])+un[j]+s;part=Math.floor(part/10);}if(s)out=s+big[i]+out;n=Math.floor(n/10000);i++;}return out+'원';}
-const addMonths=(iso,m)=>{const d=new Date(iso+'T00:00:00');const day=d.getDate();d.setMonth(d.getMonth()+m);if(d.getDate()!==day)d.setDate(0);return d.toISOString().slice(0,10);};
+const addMonths=(iso,m)=>{const d=new Date(iso+'T00:00:00');const day=d.getDate();d.setMonth(d.getMonth()+m);if(d.getDate()!==day)d.setDate(0);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};  /* 현지 날짜로 — toISOString 은 UTC 라 하루 빠졌음 */
 const daysBetween=(a,b)=>Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/86400000);
 
 /* ═══════ 상태 ═══════ */
@@ -667,16 +772,18 @@ const DEF={
     rows:[{pos:'대표이사',x:3},{pos:'부사장 · 전무이사',x:2},{pos:'상무이사',x:1.5},{pos:'이사',x:1},{pos:'감사',x:1}],
     midSettle:true,pension:true,limitPay:true,heir:true,retro:false,minutes:true,showTool:false,payDays:'14',effDate:'',
     meetDate:'',meetPlace:'',chair:'',shTotal:'',shAttend:'',shYes:'',exPos:'0',exSal:'',exYears:'',exAnnual:''},
+  resign:{kind:'self',justKind:'0',advKind:'mgmt',advDetail:'',sev:'',noClaim:true,retireAge:60,retireRule:'',rehire:false,contractEnd:'',contractStart:'',renewBy:'co',fireKind:'mgmt',noticeOK:'y',noticeDate:'',fireRule:'',
+    coName:'',coRep:'',coBiz:'',coTel:'',coAddr:'',wName:'',wBirth:'',wDept:'',wPos:'',hireDate:'',wTel:'',wAddr:'',lastDay:'',submitDate:'',acceptDate:'',signDate:'',reason:'',handover:true,confid:true,acceptDoc:true,eiNote:true,checklist:true,showTool:false,extra:''},
   tax:{cName:'',cRep:'',cType:'corp',cBiz:'',cTel:'',cEmail:'',cAddr:'',oName:'세무법인 한백택스',oRep:'차재영',oBiz:'522-85-00152',oTel:'02-2277-3101',oAddr:'서울특별시 중구 동호로 315, 신안빌딩 2층',oStaff:'',wBook:true,wVat:true,wWht:true,wIncome:true,wYear:false,wIns:false,wConsult:true,wSincere:false,wEtc:'',start:'',end:'',renew:'auto',fee:'',feeVat:'in',payDay:'10',payHow:'cms',confid:true,dataResp:true,capLiab:false,handover:true,eDoc:true,showTool:false,court:'',signDate:'',extra:'',confirm:null,agree:false,sigClient:'',sigAt:'',sigFor:''}
 };
 const LSKEY='hbt_contract_v1';
-let S={labor:JSON.parse(JSON.stringify(DEF.labor)),loan:JSON.parse(JSON.stringify(DEF.loan)),free:JSON.parse(JSON.stringify(DEF.free)),tax:JSON.parse(JSON.stringify(DEF.tax)),exec:JSON.parse(JSON.stringify(DEF.exec))};
-try{const r=localStorage.getItem(LSKEY);if(r){const o=JSON.parse(r);['labor','loan','free','tax','exec'].forEach(k=>{if(o[k])S[k]=Object.assign({},JSON.parse(JSON.stringify(DEF[k])),o[k]);});if(o.doc&&DEF[o.doc])doc=o.doc;}}catch(e){}
-function persist(){try{localStorage.setItem(LSKEY,JSON.stringify({doc,labor:S.labor,loan:S.loan,free:S.free,tax:S.tax,exec:S.exec}));}catch(e){}}
-const formOf=el=>el.closest('#form-labor')?'labor':el.closest('#form-loan')?'loan':el.closest('#form-tax')?'tax':el.closest('#form-exec')?'exec':'free';
+let S={labor:JSON.parse(JSON.stringify(DEF.labor)),loan:JSON.parse(JSON.stringify(DEF.loan)),free:JSON.parse(JSON.stringify(DEF.free)),tax:JSON.parse(JSON.stringify(DEF.tax)),exec:JSON.parse(JSON.stringify(DEF.exec)),resign:JSON.parse(JSON.stringify(DEF.resign))};
+try{const r=localStorage.getItem(LSKEY);if(r){const o=JSON.parse(r);['labor','loan','free','tax','exec','resign'].forEach(k=>{if(o[k])S[k]=Object.assign({},JSON.parse(JSON.stringify(DEF[k])),o[k]);});if(o.doc&&DEF[o.doc])doc=o.doc;}}catch(e){}
+function persist(){try{localStorage.setItem(LSKEY,JSON.stringify({doc,labor:S.labor,loan:S.loan,free:S.free,tax:S.tax,exec:S.exec,resign:S.resign}));}catch(e){}}
+const formOf=el=>el.closest('#form-labor')?'labor':el.closest('#form-loan')?'loan':el.closest('#form-tax')?'tax':el.closest('#form-exec')?'exec':el.closest('#form-resign')?'resign':'free';
 
 /* ═══════ 입력 바인딩 ═══════ */
-const MONEY_K=/^(base|amt|fee|exSal|exAnnual|shTotal|shAttend|shYes|annualPay)$/;   /* 천 단위 쉼표로 보이는 칸 */
+const MONEY_K=/^(base|amt|fee|exSal|exAnnual|shTotal|shAttend|shYes|annualPay|sev)$/;   /* 천 단위 쉼표로 보이는 칸 */
 function bind(){
   document.querySelectorAll('[data-k]').forEach(el=>{
     const form=formOf(el);
@@ -712,11 +819,11 @@ function renderAllow(){
 function addAllow(){S.labor.allow.push({name:'',amt:0,ordinary:true});renderAllow();render();}
 
 /* ═══════ 문서 전환 · 도구 ═══════ */
-function showDoc(d){doc=d;document.querySelectorAll('#docTabs button').forEach(b=>b.classList.toggle('on',b.dataset.doc===d));['labor','loan','free','tax','exec'].forEach(k=>{$('form-'+k).style.display=d===k?'':'none';});persist();render();}
+function showDoc(d){doc=d;document.querySelectorAll('#docTabs button').forEach(b=>b.classList.toggle('on',b.dataset.doc===d));['labor','loan','free','tax','exec','resign'].forEach(k=>{$('form-'+k).style.display=d===k?'':'none';});persist();render();}
 document.querySelectorAll('#docTabs button').forEach(b=>b.addEventListener('click',()=>showDoc(b.dataset.doc)));
 function mobPv(on){document.body.classList.toggle('showpv',on);document.querySelectorAll('.mobtab button').forEach((b,i)=>b.classList.toggle('on',(i%2===1)===on));}
 function copyText(){const t=$('sheet').innerText;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>alert('본문을 복사했습니다.'),()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();alert('본문을 복사했습니다.');});}
-function saveJson(){const name=(doc==='labor'?'근로계약서_'+(S.labor.wName||'미정'):doc==='loan'?'금전소비대차계약서_'+(S.loan.bName||'미정'):doc==='tax'?'세무대리약정서_'+(S.tax.cName||'미정'):doc==='exec'?'임원퇴직금지급규정_'+(S.exec.coName||'미정'):'프리랜서계약서_'+(S.free.fName||'미정'))+'_'+today()+'.json';const blob=new Blob([JSON.stringify({doc,data:S[doc]},null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
+function saveJson(){const name=(doc==='labor'?'근로계약서_'+(S.labor.wName||'미정'):doc==='loan'?'금전소비대차계약서_'+(S.loan.bName||'미정'):doc==='tax'?'세무대리약정서_'+(S.tax.cName||'미정'):doc==='exec'?'임원퇴직금지급규정_'+(S.exec.coName||'미정'):doc==='resign'?'사직서_'+(S.resign.wName||'미정'):'프리랜서계약서_'+(S.free.fName||'미정'))+'_'+today()+'.json';const blob=new Blob([JSON.stringify({doc,data:S[doc]},null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
 function loadJson(inp){const f=inp.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const o=JSON.parse(rd.result);const d=DEF[o.doc]?o.doc:'labor';S[d]=Object.assign({},DEF[d],o.data||{});if(d==='labor'){S[d].dayHours=Object.assign({},DEF.labor.dayHours,S[d].dayHours||{});S[d].allow=S[d].allow||[];}if(d==='exec'&&!Array.isArray(S[d].rows))S[d].rows=JSON.parse(JSON.stringify(DEF.exec.rows));showDoc(d);refill();render();}catch(e){alert('읽을 수 없는 파일입니다.');}inp.value='';};rd.readAsText(f);}
 function resetDoc(){if(!confirm('현재 문서의 입력을 모두 지웁니다.'))return;S[doc]=JSON.parse(JSON.stringify(DEF[doc]));persist();refill();render();}
 /* 근로계약 유형별 예시 — 「예시 채우기」가 지금 고른 유형에 맞춰 채운다 */
@@ -732,6 +839,7 @@ function fillSample(){
   if(doc==='labor'){const k0=S.labor.kind;S.labor=Object.assign({},DEF.labor,{kind:'perm',start:today(),coName:'주식회사 예시상사',coRep:'홍길동',coBiz:'123-45-67891',coTel:'02-000-0000',coAddr:'서울특별시 중구 ○○로 00, 0층',wName:'김예시',wBirth:'1995-03-15',wTel:'010-0000-0000',wAddr:'서울특별시 성동구 ○○로 00',place:'본사 사무실(서울 중구)',job:'경리·회계 사무 및 부수 업무',base:2400000,allow:[{name:'식대',amt:200000,ordinary:true},{name:'자가운전보조금',amt:200000,ordinary:false}],probation:'3',probPay:'100',signDate:today(),dayHours:{월:8,화:8,수:8,목:8,금:8,토:'',일:''}});LABOR_SAMPLE[k0]&&Object.assign(S.labor,{kind:k0},LABOR_SAMPLE[k0]);}
   else if(doc==='free'){S.free=Object.assign({},DEF.free,{coName:'주식회사 예시상사',coRep:'홍길동',coBiz:'123-45-67891',coTel:'02-000-0000',coAddr:'서울특별시 중구 ○○로 00, 0층',fName:'이예시',fTel:'010-0000-0000',fAddr:'경기도 성남시 분당구 ○○로 00',fAcct:'○○은행 000-000-000000 이예시',job:'온라인 마케팅 콘텐츠(카드뉴스·블로그) 기획 및 제작',deliver:'매월 카드뉴스 8건·블로그 4건 납품(시안 수정 2회 포함), 매월 말일 검수',start:today(),end:addMonths(today(),12),fee:3000000,court:'서울중앙지방법원',signDate:today()});}
   else if(doc==='exec'){S.exec=Object.assign(JSON.parse(JSON.stringify(DEF.exec)),{coName:'주식회사 예시상사',coRep:'홍길동',coBiz:'123-45-67891',coAddr:'서울특별시 중구 ○○로 00, 0층',artNo:'37',effDate:today(),meetDate:today(),meetPlace:'본점 회의실',chair:'대표이사 홍길동',shTotal:20000,shAttend:18000,shYes:18000,exPos:'0',exSal:12000000,exYears:15,exAnnual:150000000});}
+  else if(doc==='resign'){const k0=S.resign.kind;S.resign=Object.assign({},DEF.resign,{kind:k0,coName:'주식회사 예시상사',coRep:'홍길동',coBiz:'123-45-67891',coTel:'02-000-0000',coAddr:'서울특별시 중구 ○○로 00, 0층',wName:'김예시',wBirth:'1990-03-15',wDept:'경영지원팀',wPos:'대리',hireDate:'2021-03-02',wTel:'010-0000-0000',wAddr:'서울특별시 성동구 ○○로 00',lastDay:addMonths(today(),1),submitDate:today(),acceptDate:today(),signDate:today(),contractStart:addMonths(today(),-12),contractEnd:addMonths(today(),1),noticeDate:today(),retireAge:60,retireRule:'제45조',fireRule:'취업규칙 제52조 제3호',advDetail:'○○사업부 축소에 따른 인원 감축'},RESIGN_SAMPLE[k0]||{});}
   else if(doc==='tax'){S.tax=Object.assign({},DEF.tax,{cName:'주식회사 예시상사',cRep:'홍길동',cType:'corp',cBiz:'123-45-67891',cTel:'02-000-0000',cEmail:'admin@example.com',cAddr:'서울특별시 중구 ○○로 00, 0층',start:today(),fee:330000,feeVat:'in',court:'서울중앙지방법원',signDate:today()});}
   else{S.loan=Object.assign({},DEF.loan,{lName:'주식회사 예시상사',lType:'corp',lId:'123-45-67891',lTel:'02-000-0000',lAddr:'서울특별시 중구 ○○로 00',bName:'홍길동',bType:'ind',bId:'1975-05-05',bTel:'010-0000-0000',bAddr:'서울특별시 강남구 ○○로 00',rel:'corp-rep',amt:60000000,loanDate:today(),dueDate:addMonths(today(),24),acct:'○○은행 000-000-000000 홍길동',rate:4.6,intHow:'monthly',repay:'bullet',lateRate:12,court:'서울중앙지방법원',signDate:today()});}
   persist();refill();render();
@@ -741,7 +849,7 @@ function fromBoard(){
   if(!cl.length){alert('이 브라우저의 「거래처 업무판」에 등록된 거래처가 없습니다. 업무판에서 거래처를 먼저 등록하면 여기서 바로 불러옵니다.');return;}
   const pick=prompt('불러올 거래처 번호를 입력하십시오.\n\n'+cl.map((c,i)=>(i+1)+'. '+c.name+(c.rep?' ('+c.rep+')':'')).join('\n'));
   const c=cl[(+pick||0)-1];if(!c)return;
-  if(doc==='labor'||doc==='free'||doc==='exec'){Object.assign(S[doc],{coName:c.name,coRep:c.rep||'',coBiz:c.biz||'',coTel:c.tel||'',coAddr:c.addr||S[doc].coAddr});}
+  if(doc==='labor'||doc==='free'||doc==='exec'||doc==='resign'){Object.assign(S[doc],{coName:c.name,coRep:c.rep||'',coBiz:c.biz||'',coTel:c.tel||'',coAddr:c.addr||S[doc].coAddr});}
   else if(doc==='tax'){Object.assign(S.tax,{cName:c.name,cRep:c.rep||'',cBiz:c.biz||'',cTel:c.tel||'',cAddr:c.addr||S.tax.cAddr,cType:(c.type||'').indexOf('법인')>=0?'corp':'biz'});}
   else{const isCorp=(c.type||'').indexOf('법인')>=0;Object.assign(S.loan,{lName:c.name,lType:isCorp?'corp':'biz',lId:c.biz||'',lTel:c.tel||'',lAddr:c.addr||S.loan.lAddr});}
   persist();refill();render();
@@ -1607,7 +1715,173 @@ function execHtml(d,c){
   return teikan+rule+mins+(d.showTool?'<div class="foot">세무법인 한백택스 계약서 작성기 · 02-2277-3101 · hb090@hanbaektax.kr</div>':'');
 }
 
-function render(){if(doc==='labor')renderLabor();else if(doc==='loan')renderLoan();else if(doc==='tax')renderTax();else if(doc==='exec')renderExec();else renderFree();}
+/* ═══════ 사직서 · 퇴직 서류 ═══════
+ * 근거(2026-09-23 K-Law MCP 확인): 고용보험법 §10·§15·§40·§42·§58, 고용보험법 시행령 §7, 시행규칙 §101·별표 2,
+ *   근로기준법 §23·§24·§26·§27·§36, 민법 §660, 고령자고용법 §19, 근로자퇴직급여 보장법 §9.
+ * 상실사유 코드(11·12·22·23·26·31·32)는 고용노동부 「고용보험 상실사유 분류표」(웹 1차 확인) 기준. */
+const RESIGN_SAMPLE={
+  self:{reason:'개인 사정(진로 변경)'},
+  just:{justKind:'1b',reason:'2026년 6월분·7월분 급여가 지급일로부터 각 30일 이상 지급되지 않음'},
+  dismiss:{justKind:'0',reason:'개인 사정(건강상 이유)'},
+  advised:{advKind:'mgmt',reason:'경영 악화에 따른 ○○팀 축소',sev:3000000},
+  honor:{sev:10000000,reason:'○○사업부 축소에 따른 희망퇴직 모집(2026-09-01 공고)'},
+  retire:{wBirth:addMonths(today(),-60*12-1).slice(0,8)+'01',reason:''},
+  expire:{reason:'근로계약기간 만료'},
+  fire:{fireKind:'mgmt',noticeOK:'y',noticeDate:today(),reason:'주문 급감으로 ○○라인 가동 중단, 해고 회피 노력(전환배치·희망퇴직 모집) 후 대상자 선정'}
+};
+const RESIGN_JUST={
+  '1a':['채용 시 제시되거나 종전에 적용받던 근로조건보다 실제 근로조건이 낮아진 상태가 2개월 이상 계속되어','제1호 가목','채용공고·근로계약서·급여명세서(변경 전후)'],
+  '1b':['임금이 체불되어','제1호 나목','임금대장·급여 입금 통장·임금체불 확인서(노동청)'],
+  '1c':['지급받은 임금이 최저임금에 미달하여','제1호 다목','근로계약서·급여명세서·근무시간 기록'],
+  '1d':['연장근로 제한(근로기준법 제53조)을 위반한 근로가 계속되어','제1호 라목','출퇴근 기록·연장근로 내역'],
+  '1e':['사업장 휴업으로 평균임금의 70% 미만을 지급받는 상태가 계속되어','제1호 마목','휴업 통지·급여명세서'],
+  '2':['종교·성별·신체장애·노조활동 등을 이유로 불합리한 차별대우를 받아','제2호','차별 사실을 확인할 자료·진정 기록'],
+  '3':['성희롱·성폭력 또는 직장 내 괴롭힘을 당하여','제3호·제3호의2','신고·조사 기록, 진술서, 진단서'],
+  '4':['사업장의 도산·폐업이 확실하거나 대량 감원이 예정되어','제4호','폐업 예정 통지·구조조정 공고'],
+  '6':['사업장 이전·전근·거소 이전으로 통근 왕복 3시간 이상이 되어','제6호','사업장 이전 통지·전근 발령·주민등록등본·교통 소요시간 자료'],
+  '7':['부모·동거 친족의 질병·부상으로 30일 이상 본인이 간호해야 하나 휴가·휴직이 허용되지 않아','제7호','진단서·가족관계증명서·휴직 신청 및 불허 자료'],
+  '9':['질병·부상 등으로 주어진 업무 수행이 곤란하고 업무 전환·휴직이 허용되지 않아','제9호','의사 소견서·사업주 의견서·업무 전환 요청 기록'],
+  '10':['임신·출산·8세 이하 자녀 육아 또는 병역 의무복무로 업무를 계속하기 어려우나 휴가·휴직이 허용되지 않아','제10호','임신·출산 확인서, 자녀 가족관계증명서, 휴직 신청·불허 자료'],
+  '13':['그 밖에 통상의 다른 근로자도 이직했을 것으로 객관적으로 인정되는 사정으로','제13호','사정을 객관적으로 보여 주는 자료']
+};
+function resignCode(d){
+  const K=d.kind;
+  if(K==='self')return{code:'11',name:'개인사정으로 인한 자진퇴사',ei:'no',why:'자기 사정 이직은 수급자격이 없습니다(고용보험법 §58 2호 다목).'};
+  if(K==='just'||(K==='dismiss'&&d.justKind!=='0')){const j=RESIGN_JUST[d.justKind]||RESIGN_JUST['13'];return{code:'12',name:'사업장 이전·근로조건 변동·임금체불 등으로 자진퇴사',ei:'yes',why:'고용보험법 시행규칙 별표 2 '+j[1]+'의 정당한 사유에 해당하면 수급자격이 제한되지 않습니다(§58 2호 다목 반대해석). 증빙: '+j[2]+'.'};}
+  if(K==='dismiss')return{code:'11',name:'개인사정으로 인한 자진퇴사',ei:'no',why:'사직원의 사유가 개인 사정이면 의원면직이라도 자기 사정 이직입니다(§58 2호).'};
+  if(K==='advised')return d.advKind==='fault'?{code:'26',name:'근로자의 귀책사유에 의한 징계해고·권고사직',ei:'cond',why:'형법 위반 금고 이상 형, 막대한 손해, 장기 무단결근 같은 중대한 귀책이면 권고사직이라도 수급자격이 없습니다(§58 2호 나목). 경미한 귀책은 가능합니다.'}:{code:'23',name:'경영상 필요 및 회사불황으로 인원감축 등에 의한 퇴사(권고사직 포함)',ei:'yes',why:'사업주의 퇴직 권고에 의한 이직은 정당한 사유입니다(시행규칙 별표 2 제5호).'};
+  if(K==='honor')return{code:'23',name:'경영상 필요 및 회사불황으로 인원감축 등에 의한 퇴사(명예퇴직 포함)',ei:'yes',why:'고용조정계획에 따른 퇴직 희망자 모집에 응한 이직은 정당한 사유입니다(별표 2 제5호).'};
+  if(K==='retire')return{code:'31',name:'정년',ei:'yes',why:'정년 도래로 계속 다닐 수 없게 된 경우는 정당한 사유입니다(별표 2 제12호). 65세 이후 새로 고용된 사람은 구직급여 적용 제외입니다(고용보험법 §10 ②).'};
+  if(K==='expire')return d.renewBy==='worker'?{code:'12/11',name:'근로자가 갱신을 원하지 않은 계약 종료',ei:'no',why:'회사가 갱신을 제안했는데 근로자가 거절하면 자발적 이직으로 취급될 수 있습니다. 코드 32는 회사가 갱신하지 않을 때 씁니다.'}:{code:'32',name:'계약기간 만료·공사 종료',ei:'yes',why:'계약기간 만료로 계속 다닐 수 없게 된 경우는 정당한 사유입니다(별표 2 제12호).'};
+  if(K==='fire')return d.fireKind==='disc'?{code:'26',name:'근로자의 귀책사유에 의한 징계해고',ei:'cond',why:'형법 위반 금고 이상 형, 막대한 지장·재산상 손해(시행규칙 별표 1의2), 장기 무단결근으로 해고되면 수급자격이 없습니다(§58 1호). 그 밖의 징계해고는 가능합니다.'}:{code:'23',name:'경영상 필요에 의한 해고(정리해고)',ei:'yes',why:'경영상 이유에 의한 해고는 비자발적 이직입니다.'};
+  return{code:'',name:'',ei:'',why:''};
+}
+function resignRetireDate(d){if(!d.wBirth||!(+d.retireAge>0))return '';const b=new Date(d.wBirth+'T00:00:00');b.setFullYear(b.getFullYear()+(+d.retireAge));return b.toISOString().slice(0,10);}
+function resignChecks(d,c){
+  const L=[];const add=(lv,t)=>L.push({lv,t});const K=d.kind;
+  const need=[['coName','사업체명'],['wName','근로자 성명'],['lastDay','퇴직일']];
+  if(['self','just','dismiss','advised','honor'].includes(K))need.push(['submitDate','사직서 제출일']);
+  if(K==='dismiss')need.push(['acceptDate','사직원 수리일']);if(K==='retire')need.push(['wBirth','생년월일']);
+  if(K==='expire')need.push(['contractEnd','근로계약 종료일']);if(K==='fire')need.push(['noticeDate','통지일'],['reason','해고 사유']);
+  const miss=need.filter(([k])=>!d[k]).map(([,n])=>n);if(miss.length)add('err','<b>필수 누락</b>: '+miss.join(', '));
+  if(d.coBiz&&!bizOk(d.coBiz))add('warn','사업자등록번호 형식(10자리 검증)이 맞지 않습니다: '+esc(d.coBiz));
+  add(c.ei==='yes'?'ok':c.ei==='no'?'warn':'info','<b>상실사유 코드 '+c.code+'</b> '+esc(c.name)+' → 실업급여(구직급여) '+(c.ei==='yes'?'<b>가능</b>':c.ei==='no'?'<b>원칙적으로 불가</b>':'<b>사유에 따라 다름</b>')+'. '+c.why+' 그 밖의 요건: 이직 전 18개월 중 피보험단위기간 180일 이상, 근로 의사·능력, 적극적 구직활동(고용보험법 §40 ①).');
+  if(K==='self')add('warn','「일신상의 사유」로 쓰면 코드 11로 신고되어 실업급여를 받지 못합니다. 실제 사유가 임금체불·근로조건 저하·회사 권고라면 <b>그 사유대로</b> 쓰고 유형을 바꾸십시오. 사실과 다른 사유로 신고하면 부정수급·과태료 문제가 생깁니다.');
+  if(K==='just'||(K==='dismiss'&&d.justKind!=='0')){const j=RESIGN_JUST[d.justKind];if(j)add('info','<b>증빙</b>: '+j[2]+'. 실업급여 신청 때 고용센터가 사유를 확인하므로 사직서의 사유와 증빙이 맞아야 합니다. 임금체불·근로조건 저하·최저임금 미달·연장근로 위반·휴업은 이직일 전 1년 안에 <b>2개월 이상</b> 있어야 합니다(별표 2 제1호).');if(!d.reason)add('warn','「구체적 사정」에 언제·무엇이 있었는지 적으십시오(예: 몇 월분 임금이 며칠 체불).');}
+  if(['self','just','dismiss'].includes(K)&&d.submitDate&&d.lastDay){const n=daysBetween(d.submitDate,d.lastDay);if(n<0)add('err','퇴직일이 사직서 제출일보다 앞섭니다.');else if(n<30)add('info','제출일부터 퇴직일까지 '+n+'일입니다. 회사가 사직서를 수리하면 그날 퇴직 효력이 생기고, 수리하지 않으면 통고 후 <b>1개월</b>(월급제는 통고받은 당기 후 1기 경과)이 지나야 효력이 생깁니다(민법 §660 ②·③). 그 사이 무단결근하면 퇴직금 산정·징계 문제가 생길 수 있습니다.');}
+  if(K==='dismiss')add('info','<b>의원면직</b>은 근로자의 사직 의사표시를 회사가 수리해 종료하는 형식입니다. 코드는 사직원에 적힌 <b>실제 사유</b>에 따라 11 또는 12입니다. 수리 통지서에 사유를 사직원과 다르게 쓰지 마십시오.');
+  if(K==='advised'){add('warn','<b>권고사직은 근로자가 자유롭게 수락해야</b> 합니다. 사직서 제출을 강요하거나 사실상 해고이면 부당해고로 다툴 수 있습니다(근로기준법 §23 ①). 합의서에 권고 사유·퇴직일·금품을 적고 양쪽이 서명하십시오.');add('info','코드 23·26으로 신고하면 고용유지·고용창출 장려금 등 정부 지원금 요건에 영향이 있을 수 있습니다(지원금별 요건은 고용노동부 안내 확인). 해고예고(30일)는 권고사직에는 적용되지 않지만 위로금으로 보전하는 경우가 많습니다.');if(d.advKind==='fault')add('warn','근로자 귀책 권고사직(26)은 실업급여 심사에서 귀책의 정도를 봅니다. 징계 사유·경위를 문서에 사실대로 적고, 취업규칙 징계 절차를 지켰는지 확인하십시오.');}
+  if(K==='honor')add('info','희망퇴직은 <b>고용조정계획에 따른 퇴직 희망자 모집</b>이어야 코드 23·별표 2 제5호에 해당합니다. 모집 공고·대상·조건·기간을 문서에 남기십시오. 위로금은 퇴직소득으로 원천징수합니다.');
+  if(K==='retire'){if(+d.retireAge<60)add('err','정년은 60세 이상으로 정해야 하며 60세 미만으로 정한 경우 60세로 봅니다(고령자고용법 §19).');const r=c.retireDate;if(r&&d.lastDay){if(d.lastDay<r)add('err','퇴직일('+kd(d.lastDay)+')이 정년 도달일('+kd(r)+')보다 앞섭니다. 정년 전 퇴직을 정년퇴직(31)으로 신고하면 사실과 다릅니다.');else add('ok','정년 도달일 '+kd(r)+' (만 '+d.retireAge+'세) — 퇴직일과 맞습니다.'+(daysBetween(r,d.lastDay)>60?' 정년 도달 후 '+daysBetween(r,d.lastDay)+'일 뒤 퇴직이면 취업규칙의 정년 퇴직일 기준(도달일·해당 월말·연말 등)을 확인하십시오.':''));}if(d.rehire)add('info','촉탁(재고용) 계약은 새 기간제 근로계약입니다. 정년퇴직 시 퇴직금을 정산하고 새 계약서를 씁니다.');}
+  if(K==='expire'){if(d.contractEnd&&d.lastDay&&d.contractEnd!==d.lastDay)add('warn','퇴직일과 근로계약 종료일이 다릅니다. 계약기간 만료(32)는 계약 종료일에 퇴직하는 경우입니다.');if(d.contractStart&&d.contractEnd&&daysBetween(d.contractStart,d.contractEnd)+1>730)add('warn','계약 기간이 2년을 넘습니다. 2년 초과 사용 시 기간의 정함이 없는 근로자로 보므로(기간제법 §4 ②) 「계약 만료」로 종료할 수 없고 해고 문제가 됩니다.');add('info','여러 번 갱신해 왔거나 갱신을 기대할 만한 사정이 있으면 갱신 거절이 해고로 평가될 수 있습니다(갱신기대권 법리). 갱신하지 않는 이유를 문서에 적어 두십시오.');if(d.renewBy==='worker')add('warn','회사가 갱신을 제안했는데 근로자가 거절한 경우는 자발적 이직으로 보아 코드 32를 쓰지 않는 것이 원칙입니다. 이직확인서에 사실대로 적으십시오.');}
+  if(K==='fire'){add('info','해고는 <b>사유와 시기를 서면으로 통지</b>해야 효력이 있습니다(근로기준법 §27 ①·②). 이 통지서가 그 서면입니다. 문자·구두 통보만으로는 무효입니다.');if(d.noticeOK==='y'){if(d.noticeDate&&d.lastDay&&daysBetween(d.noticeDate,d.lastDay)<30)add('err','통지일부터 해고일까지 '+daysBetween(d.noticeDate,d.lastDay)+'일입니다. 30일 전 예고가 아니므로 해고예고수당(30일분 이상 통상임금)을 지급하거나 해고일을 늦추십시오(§26).');else add('ok','30일 전 해고예고 요건을 갖췄습니다(§26). 예고 서면에 사유·시기를 적었으므로 §27 통지를 한 것으로 봅니다(§27 ③).');}else if(d.noticeOK==='n')add('warn','30일 전 예고를 하지 않으면 <b>30일분 이상의 통상임금</b>을 해고예고수당으로 지급해야 합니다(§26). 통지서에 지급 문구가 들어갑니다.');else add('info','예고 제외 사유(계속근로 3개월 미만, 천재·사변 등 부득이한 사유, 고의로 막대한 지장·손해 — 시행규칙 별표)에 해당하는지 확인하십시오(§26 단서).');if(d.fireKind==='mgmt')add('warn','<b>경영상 해고 요건</b>(근로기준법 §24): 긴박한 경영상 필요, 해고 회피 노력, 합리적·공정한 기준(성별 차별 금지), 근로자대표에게 <b>50일 전</b> 통보·성실 협의. 하나라도 빠지면 부당해고입니다. 일정 규모 이상 해고는 고용노동부 신고 대상(§24 ④).');else add('warn','징계해고는 취업규칙·단체협약의 징계 사유와 절차(소명 기회·징계위원회 등)를 지켜야 정당성이 인정됩니다(§23 ①). 근거 규정을 통지서에 적으십시오.');add('warn','업무상 부상·질병 요양 휴업기간과 그 후 30일, 산전·산후 휴업기간과 그 후 30일에는 해고할 수 없습니다(§23 ②).');}
+  add('info','<b>퇴직 후 사업주가 할 일</b>: 임금·금품 청산 14일 이내(근로기준법 §36), 퇴직금 14일 이내·IRP 계좌 이전(퇴직급여법 §9), 4대보험 상실신고는 퇴직일이 속한 달의 다음 달 15일까지(고용보험법 §15, 시행령 §7), 이직확인서는 근로자가 요청하면 발급(§42 ③). 별지 체크리스트에 정리돼 있습니다.');
+  if(d.eiNote)add('info','근로자는 이직 후 지체 없이 고용센터에 실업을 신고해야 구직급여를 받을 수 있습니다(고용보험법 §42 ①). 문서에 안내 문구가 들어갑니다.');
+  add('info','상실사유 코드 체계(11·12·22·23·26·31·32)는 고용노동부 「고용보험 상실사유 분류표」 기준입니다(웹 1차 확인 2026-09-23). 최종 코드는 이직확인서·상실신고 화면의 분류표를 따르십시오.');
+  return L;
+}
+function renderResign(){
+  const d=S.resign,c=resignCode(d);c.retireDate=resignRetireDate(d);
+  document.querySelectorAll('#form-resign .rk').forEach(el=>{el.style.display=el.dataset.kinds.split(' ').includes(d.kind)?'':'none';});
+  const hint={self:'— 「개인 사정」 외의 사실이 있으면 유형을 바꾸십시오.',just:'— 언제·무엇이 있었는지 구체적으로(예: 몇 월분 임금이 며칠 체불).',dismiss:'— 사직원의 사유. 회사 수리 통지서에도 같은 사유가 들어갑니다.',advised:'— 회사가 권고한 사유(경영 악화·조직 축소 등).',honor:'— 희망퇴직 모집 공고 내용.',retire:'— 비워 두면 정년 도달 문구만 들어갑니다.',expire:'— 갱신하지 않는 이유.',fire:'— 해고 사유는 구체적 사실로. 서면 통지의 핵심입니다(§27).'}[d.kind]||'';
+  const h=$('reasonHint');if(h)h.textContent=hint;
+  $('resignCalc').innerHTML='<b>상실사유 코드 '+esc(c.code)+'</b> '+esc(c.name)+' · 실업급여 '+(c.ei==='yes'?'<span style="color:var(--green)">가능</span>':c.ei==='no'?'<span style="color:var(--red)">원칙 불가</span>':'<span style="color:var(--amber)">사유에 따라 판단</span>')+(d.kind==='retire'&&c.retireDate?' · 정년 도달일 '+kd(c.retireDate):'')+(d.kind==='fire'&&d.noticeDate&&d.lastDay?' · 예고기간 '+daysBetween(d.noticeDate,d.lastDay)+'일':'');
+  $('resignChecks').innerHTML=resignChecks(d,c).map(x=>'<li class="'+x.lv+'">'+x.t+'</li>').join('');
+  $('sheet').innerHTML=resignHtml(d,c);
+}
+function resignHtml(d,c){
+  const co=esc(d.coName||'________'),rep=esc(d.coRep||'________'),wn=esc(d.wName||'________');const K=d.kind;
+  const who='<table class="party"><tr><td>소속 · 직위</td><td>'+esc(d.wDept||'')+(d.wPos?' · '+esc(d.wPos):'')+'</td></tr><tr><td>성명</td><td>'+wn+(d.wBirth?' ('+kd(d.wBirth)+'생)':'')+'</td></tr><tr><td>입사일</td><td>'+kd(d.hireDate)+'</td></tr><tr><td>퇴직일</td><td>'+kd(d.lastDay)+'</td></tr></table>';
+  const reasonLine=(()=>{const r=d.reason?esc(d.reason):'';
+    if(K==='self')return '일신상의 사유'+(r?'('+r+')':'')+'로';
+    if(K==='just'||(K==='dismiss'&&d.justKind!=='0')){const j=RESIGN_JUST[d.justKind]||RESIGN_JUST['13'];return (r?r+' 등 ':'')+j[0]+' 근로를 계속할 수 없게 되어';}
+    if(K==='dismiss')return '일신상의 사유'+(r?'('+r+')':'')+'로';
+    if(K==='advised')return (d.advKind==='mgmt'?'회사의 경영상 사유':'회사가 제시한 사유')+(r?'('+r+')':'')+'에 따른 회사의 퇴직 권고를 받아들여';
+    if(K==='honor')return '회사의 고용조정 계획에 따른 희망퇴직자 모집'+(r?'('+r+')':'')+'에 응하여';
+    return r;})();
+  const ei=d.eiNote?'<div class="note">실업급여 안내: 구직급여는 이직 전 18개월 중 고용보험 가입기간 180일 이상, 근로 의사·능력, 적극적 구직활동, 이직사유가 수급자격 제한 사유에 해당하지 않을 것을 요건으로 하며(고용보험법 제40조), 이직 후 지체 없이 거주지 관할 고용센터에 실업을 신고해야 합니다(제42조). 근로자가 요청하면 회사는 이직확인서를 발급합니다(제42조 제3항). 이 문서의 퇴직 사유는 고용보험 상실사유 코드 <b>'+esc(c.code)+'</b>('+esc(c.name)+')에 해당합니다.</div>':'';
+  const handover=d.handover?'<p>본인은 퇴직일까지 담당 업무와 자료를 후임자 또는 회사가 지정한 사람에게 성실히 인계하겠습니다.</p>':'';
+  const confid=d.confid?'<p>본인은 재직 중 알게 된 회사의 영업상·기술상 비밀을 퇴직 후에도 누설하지 않겠습니다.</p>':'';
+  const extra=d.extra?'<p>'+esc(d.extra).replace(/\n/g,'<br>')+'</p>':'';
+  const sign1=(label,date,name,addr)=>'<div class="sign"><p style="text-align:center;margin:12pt 0 8pt">'+kd(date)+'</p><table class="party"><tr><td>'+label+'</td><td>'+name+' <span class="stamp">(서명 또는 인)</span>'+(addr?'<br><span style="font-size:9.5pt">'+esc(addr)+'</span>':'')+'</td></tr></table></div>';
+  let out='';
+  /* 사직서 · 사직원 · 희망퇴직 신청서 */
+  if(['self','just','dismiss','advised','honor'].includes(K)){
+    out+='<h1>'+(K==='dismiss'?'사 직 원':K==='honor'?'희망퇴직 신청서':'사 직 서')+'</h1>'+who+
+      '<p>본인은 '+reasonLine+' '+kd(d.lastDay)+'자로 '+(K==='honor'?'희망퇴직을 신청하오니 승인하여 주시기 바랍니다.':'사직하고자 하오니 수리하여 주시기 바랍니다.')+'</p>'+
+      ((K==='just'||(K==='dismiss'&&d.justKind!=='0'))?'<p>위 사유는 「고용보험법 시행규칙」 별표 2 '+esc((RESIGN_JUST[d.justKind]||RESIGN_JUST['13'])[1])+'의 수급자격이 제한되지 아니하는 정당한 이직 사유에 해당합니다.</p>':'')+
+      ((K==='advised')?'<p>본인의 퇴직은 회사의 권고에 의한 것으로서 개인 사정에 의한 자진퇴사가 아니며, 회사는 고용보험 피보험자격 상실사유를 「'+esc(c.name)+'(코드 '+esc(c.code)+')」로 신고합니다.</p>':'')+
+      handover+confid+extra+ei+
+      sign1('제출인',d.submitDate,wn,d.wAddr)+'<p style="margin-top:8pt">'+co+' 대표 '+rep+' 귀하</p>';
+  }
+  /* 퇴직 합의서 (권고사직·희망퇴직) */
+  if(K==='advised'||K==='honor'){
+    let n=0;const A=t=>'<h2>제'+(++n)+'조 ('+t+')</h2>';
+    out+='<div class="pb"></div><h1>퇴 직 합 의 서</h1><p>'+co+'(이하 "회사"라 한다)와 '+wn+'(이하 "근로자"라 한다)은 근로자의 퇴직에 관하여 다음과 같이 합의한다.</p>'+
+      A('퇴직일과 사유')+'<p>① 근로자는 '+kd(d.lastDay)+'자로 퇴직한다.</p><p>② 이 퇴직은 '+(K==='honor'?'회사의 고용조정 계획에 따른 희망퇴직자 모집에 근로자가 응한 것':(d.advKind==='mgmt'?'회사의 경영상 사유'+(d.reason?'('+esc(d.reason)+')':'')+'에 따른 회사의 권고를 근로자가 자유로운 의사로 받아들인 것':'회사가 제시한 사유'+(d.reason?'('+esc(d.reason)+')':'')+'에 따른 회사의 권고를 근로자가 자유로운 의사로 받아들인 것'))+'으로서, 회사는 고용보험 피보험자격 상실사유를 「'+esc(c.name)+'(코드 '+esc(c.code)+')」로 신고하고, 근로자가 요청하면 이직확인서를 지체 없이 발급한다.</p>'+
+      A('금품의 정산')+'<p>① 회사는 퇴직일까지의 임금, 미사용 연차유급휴가수당, 퇴직금 등 근로관계에서 발생한 모든 금품을 퇴직일부터 14일 이내에 지급한다(근로기준법 제36조, 근로자퇴직급여 보장법 제9조). 퇴직금은 근로자가 지정한 개인형퇴직연금(IRP) 계정으로 이전한다.</p>'+((+d.sev||0)>0?'<p>② 회사는 위 금품 외에 퇴직위로금 금 '+fmt(d.sev)+'원(금 '+hangulMoney(+d.sev)+')을 퇴직일부터 14일 이내에 근로자가 지정한 계좌로 지급하며, 관계 법령에 따른 세액을 원천징수한다.</p>':'')+
+      (d.handover?A('인수인계')+'<p>근로자는 퇴직일까지 담당 업무와 자료·비품을 회사가 지정한 사람에게 인계하고, 회사의 자료를 반출하지 않는다.</p>':'')+
+      (d.confid?A('비밀유지')+'<p>근로자는 재직 중 알게 된 회사의 영업상·기술상 비밀과 개인정보를 퇴직 후에도 제3자에게 누설하거나 이용하지 않는다.</p>':'')+
+      (d.noClaim?A('상호 청구의 포기')+'<p>① 근로자는 이 합의에 따른 퇴직이 본인의 자유로운 의사에 의한 것임을 확인하고, 이 퇴직에 관하여 부당해고 구제신청이나 소송 등 이의를 제기하지 않는다.</p><p>② 회사는 이 합의에서 정한 것 외에 근로자에게 퇴직과 관련한 손해배상 등을 청구하지 않는다.</p><p>③ 제1항은 미지급 임금·퇴직금 등 법령상 청구권과 산업재해에 관한 권리에는 적용하지 않는다.</p>':'')+
+      A('기타')+'<p>이 합의서에 정하지 아니한 사항은 관계 법령과 취업규칙에 따른다. 이 합의서는 2부를 작성하여 회사와 근로자가 각 1부씩 보관한다.</p>'+extra+
+      '<div class="sign"><p style="text-align:center;margin:12pt 0 8pt">'+kd(d.signDate)+'</p><table class="party"><tr><td>회사</td><td>'+co+' 대표 '+rep+' <span class="stamp">(인)</span>'+(d.coAddr?'<br><span style="font-size:9.5pt">'+esc(d.coAddr)+'</span>':'')+'</td></tr><tr><td>근로자</td><td>'+wn+' <span class="stamp">(서명 또는 인)</span>'+(d.wAddr?'<br><span style="font-size:9.5pt">'+esc(d.wAddr)+'</span>':'')+'</td></tr></table></div>';
+  }
+  /* 의원면직 통지서 */
+  if(K==='dismiss'&&d.acceptDoc){
+    out+='<div class="pb"></div><h1>사직원 수리 · 의원면직 통지서</h1>'+who+
+      '<p>귀하가 '+kd(d.submitDate)+' 제출한 사직원을 '+kd(d.acceptDate)+' 수리하여 '+kd(d.lastDay)+'자로 의원면직함을 통지합니다.</p>'+
+      '<p>퇴직 사유: '+reasonLine.replace(/로$|어$|여$/,'')+' (고용보험 상실사유 코드 '+esc(c.code)+' '+esc(c.name)+')</p>'+
+      '<p>회사는 퇴직일까지의 임금과 퇴직금 등 금품을 퇴직일부터 14일 이내에 지급하고(근로기준법 제36조, 근로자퇴직급여 보장법 제9조), 고용보험 등 피보험자격 상실신고를 기한 내에 하며, 요청 시 이직확인서와 근로소득·퇴직소득 원천징수영수증을 발급합니다.</p>'+extra+
+      '<div class="sign"><p style="text-align:center;margin:12pt 0 8pt">'+kd(d.acceptDate)+'</p><table class="party"><tr><td>회사</td><td>'+co+' 대표 '+rep+' <span class="stamp">(인)</span></td></tr><tr><td>수령 확인</td><td>'+wn+' <span class="stamp">(서명)</span> &nbsp; 수령일 ________</td></tr></table></div>';
+  }
+  /* 정년퇴직 통지서 */
+  if(K==='retire'){
+    out+='<h1>정년퇴직 통지서</h1>'+who+
+      '<p>귀하는 '+(d.retireRule?'취업규칙 '+esc(d.retireRule)+'에서 정한 ':'회사가 정한 ')+'정년(만 '+esc(d.retireAge||60)+'세)에 '+(c.retireDate?kd(c.retireDate)+' ':'')+'도달하므로 '+kd(d.lastDay)+'자로 정년퇴직됨을 통지합니다.'+(d.reason?' '+esc(d.reason):'')+'</p>'+
+      '<p>회사는 퇴직일까지의 임금, 미사용 연차유급휴가수당, 퇴직금 등 모든 금품을 퇴직일부터 14일 이내에 지급하고(근로기준법 제36조, 근로자퇴직급여 보장법 제9조), 고용보험 피보험자격 상실사유를 「정년(코드 31)」으로 신고하며, 요청 시 이직확인서를 발급합니다.</p>'+
+      (d.rehire?'<p>회사는 귀하와 협의하여 정년퇴직 후 촉탁(기간제) 근로계약을 체결할 수 있으며, 이 경우 근로조건은 별도의 근로계약서에 따릅니다.</p>':'')+
+      (d.handover?'<p>퇴직일까지 담당 업무와 자료를 후임자에게 인계하여 주시기 바랍니다.</p>':'')+extra+ei+
+      '<div class="sign"><p style="text-align:center;margin:12pt 0 8pt">'+kd(d.signDate)+'</p><table class="party"><tr><td>회사</td><td>'+co+' 대표 '+rep+' <span class="stamp">(인)</span></td></tr><tr><td>수령 확인</td><td>위 통지를 받았음을 확인합니다. &nbsp; '+wn+' <span class="stamp">(서명)</span> &nbsp; 수령일 ________</td></tr></table></div>';
+  }
+  /* 계약기간 만료 통지서 */
+  if(K==='expire'){
+    out+='<h1>근로계약기간 만료 통지서</h1>'+who+
+      '<p>귀하와 회사가 체결한 근로계약(계약기간 '+kd(d.contractStart)+' ~ '+kd(d.contractEnd)+')은 '+kd(d.contractEnd)+' 기간 만료로 종료되며, '+(d.renewBy==='co'?'회사는 이를 갱신하지 않음을 통지합니다.':'귀하가 계약 갱신을 원하지 않음을 확인하여 계약이 종료됨을 통지합니다.')+(d.reason?' (사유: '+esc(d.reason)+')':'')+'</p>'+
+      '<p>회사는 계약 종료일까지의 임금, 미사용 연차유급휴가수당, 퇴직금(계속근로 1년 이상) 등 모든 금품을 종료일부터 14일 이내에 지급하고(근로기준법 제36조, 근로자퇴직급여 보장법 제9조), 고용보험 피보험자격 상실사유를 「'+esc(c.name)+'(코드 '+esc(c.code)+')」로 신고하며, 요청 시 이직확인서를 발급합니다.</p>'+
+      (d.handover?'<p>종료일까지 담당 업무와 자료를 인계하여 주시기 바랍니다.</p>':'')+extra+ei+
+      '<div class="sign"><p style="text-align:center;margin:12pt 0 8pt">'+kd(d.signDate)+'</p><table class="party"><tr><td>회사</td><td>'+co+' 대표 '+rep+' <span class="stamp">(인)</span></td></tr><tr><td>수령 확인</td><td>위 통지를 받았음을 확인합니다. &nbsp; '+wn+' <span class="stamp">(서명)</span> &nbsp; 수령일 ________</td></tr></table></div>';
+  }
+  /* 해고 통지서 */
+  if(K==='fire'){
+    const n=d.noticeDate&&d.lastDay?daysBetween(d.noticeDate,d.lastDay):null;
+    out+='<h1>'+(d.noticeOK==='y'?'해고 예고 통지서':'해고 통지서')+'</h1>'+who+
+      '<p>회사는 「근로기준법」 제27조에 따라 귀하에게 다음과 같이 해고 사유와 해고 시기를 서면으로 통지합니다.</p>'+
+      '<table class="party"><tr><td>해고일</td><td>'+kd(d.lastDay)+' (해고일의 다음 날부터 근로관계 종료)</td></tr><tr><td>해고 종류</td><td>'+(d.fireKind==='mgmt'?'경영상 이유에 의한 해고(근로기준법 제24조)':'징계해고')+'</td></tr><tr><td>해고 사유</td><td>'+(d.reason?esc(d.reason).replace(/\n/g,'<br>'):'<span class="blank">&nbsp;</span>')+'</td></tr>'+(d.fireRule?'<tr><td>근거 규정</td><td>'+esc(d.fireRule)+'</td></tr>':'')+'</table>'+
+      (d.noticeOK==='y'?'<p>이 통지는 해고일 '+(n!=null?n+'일 ':'')+'전에 하는 해고의 예고(근로기준법 제26조)를 겸합니다.</p>':d.noticeOK==='n'?'<p>회사는 30일 전 예고에 갈음하여 30일분 이상의 통상임금을 해고예고수당으로 해고일부터 14일 이내에 지급합니다(근로기준법 제26조).</p>':'<p>이 해고는 근로기준법 제26조 단서(계속근로 3개월 미만, 부득이한 사유로 사업 계속 불가능, 고의로 막대한 지장·재산상 손해)에 해당하여 해고 예고를 적용하지 않습니다.</p>')+
+      (d.fireKind==='mgmt'?'<p>회사는 긴박한 경영상의 필요에 따라 해고를 피하기 위한 노력을 다하고 합리적이고 공정한 기준으로 대상자를 선정하였으며, 근로자대표에게 해고일 50일 전에 통보하고 성실히 협의하였습니다(근로기준법 제24조).</p>':'<p>회사는 취업규칙 등이 정한 징계 절차에 따라 귀하에게 소명 기회를 부여한 뒤 위와 같이 결정하였습니다.</p>')+
+      '<p>회사는 해고일까지의 임금, 미사용 연차유급휴가수당, 퇴직금 등 모든 금품을 해고일부터 14일 이내에 지급하고(근로기준법 제36조, 근로자퇴직급여 보장법 제9조), 고용보험 피보험자격 상실사유를 「'+esc(c.name)+'(코드 '+esc(c.code)+')」로 신고하며, 요청 시 이직확인서를 발급합니다. 이 해고에 이의가 있으면 해고일부터 3개월 이내에 관할 지방노동위원회에 구제를 신청할 수 있습니다(근로기준법 제28조).</p>'+extra+ei+
+      '<div class="sign"><p style="text-align:center;margin:12pt 0 8pt">'+kd(d.noticeDate||d.signDate)+'</p><table class="party"><tr><td>회사</td><td>'+co+' 대표 '+rep+' <span class="stamp">(인)</span>'+(d.coAddr?'<br><span style="font-size:9.5pt">'+esc(d.coAddr)+'</span>':'')+'</td></tr><tr><td>수령 확인</td><td>위 통지서를 받았음을 확인합니다. &nbsp; '+wn+' <span class="stamp">(서명)</span> &nbsp; 수령일 ________</td></tr></table></div>';
+  }
+  /* 별지: 퇴직 처리 체크리스트 */
+  if(d.checklist){
+    const rows=[
+      ['임금·금품 청산 (임금, 미사용 연차수당, 상여 정산 등)','퇴직일부터 14일 이내 (합의로 연장 가능)','근로기준법 §36'],
+      ['퇴직금 지급 — 근로자 지정 IRP 계정으로 이전 (55세 이후 퇴직 등 예외)','퇴직일부터 14일 이내','근로자퇴직급여 보장법 §9'],
+      ['고용보험·산재보험 피보험자격 상실신고 — 상실사유 코드 <b>'+esc(c.code)+'</b> '+esc(c.name),'퇴직일이 속한 달의 다음 달 15일까지 (근로자가 요구하면 지체 없이)','고용보험법 §15, 시행령 §7'],
+      ['국민연금·건강보험 자격상실 신고','각 법령의 기한 (통상 4대보험 통합신고)','국민연금법·국민건강보험법(확인)'],
+      ['이직확인서 발급 (피보험단위기간·이직 전 소정근로시간·이직 사유)','근로자가 요청하면 발급 — 이직 사유를 사실대로','고용보험법 §42 ③, 시행규칙'],
+      ['근로소득·퇴직소득 원천징수영수증 발급 및 지급명세서 제출','소득세법의 제출 기한 (확인)','소득세법 §164 등'],
+      [K==='fire'?'해고 사유·시기 서면 통지 및 30일 전 예고(또는 예고수당)':'사직서·합의서·통지서 원본 보관 (근로자에게 1부 교부)',K==='fire'?'해고 전':'퇴직일',K==='fire'?'근로기준법 §26·§27':'근로기준법 §42(계약 서류 3년 보존)'],
+      ['실업급여 안내 — 이직 후 지체 없이 고용센터 실업 신고, 피보험단위기간 180일','근로자','고용보험법 §40·§42']
+    ];
+    out+='<div class="pb"></div><h1>퇴직 처리 체크리스트</h1><p style="text-align:center;margin:-6pt 0 8pt">'+co+' · '+wn+' · 퇴직일 '+kd(d.lastDay)+' (사업주용 별지)</p>'+
+      '<table><tr><th style="width:6%">□</th><th>항목</th><th style="width:30%">기한</th><th style="width:22%">근거</th></tr>'+rows.map(r=>'<tr><td class="c">□</td><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')+'</table>'+
+      '<div class="note">고용보험 상실사유 코드(고용노동부 분류표): 11 개인사정 자진퇴사 · 12 사업장 이전·근로조건 변동·임금체불 등 자진퇴사 · 22 폐업·도산 · 23 경영상 필요·회사불황 인원감축(해고·권고사직·명예퇴직 포함) · 26 근로자 귀책 징계해고·권고사직 · 31 정년 · 32 계약기간 만료·공사 종료. 실업급여 가능 여부는 고용센터가 이직 사유와 증빙으로 최종 판단합니다(고용보험법 §58, 시행규칙 별표 2).</div>';
+  }
+  return out+(d.showTool?'<div class="foot">세무법인 한백택스 계약서 작성기 · 02-2277-3101 · hb090@hanbaektax.kr</div>':'');
+}
+
+function render(){if(doc==='labor')renderLabor();else if(doc==='loan')renderLoan();else if(doc==='tax')renderTax();else if(doc==='exec')renderExec();else if(doc==='resign')renderResign();else renderFree();}
 bind();renderDays();renderAllow();renderExecRows();
 initStaff();
 PADS.client=sigPad('padClient','tax','sigClient','client');
