@@ -93,100 +93,145 @@
   else build();
 })();
 </script>
-
 <meta charset="UTF-8">
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>비상장주식 평가조서 v2 | 한백택스</title>
-<meta name="description" content="상증법 §63·시행령 §54~56·59·시행규칙 §17~19 보충적 평가 정밀조서 — 순손익·순자산·영업권·증자감자 환산·최대주주 할증·평가심의 범위">
+<title>비상장주식 평가 — 쉬운 입력 · 정밀 평가조서 | 한백택스</title>
+<meta name="description" content="비상장주식 보충적 평가(상증법 §63·시행령 §54~56·§59). 재무제표 몇 칸만 넣는 쉬운 입력으로 1주당 평가액과 증여·상속 시산을 보고, 직원이 이어받아 법정 가감·영업권·증자감자 환산·할증까지 정밀 평가조서로 완성합니다.">
 <meta name="theme-color" content="#1B3A5C">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="비상장주식평가">
+<!--
+  세무법인 한백택스 비상장주식 평가 v3 (2026-09-23) — deep interview 재설계
+  결정: 한 파일 두 모드(쉬운 입력 / 정밀 조서), 같은 상태 S 공유 → 일반인 입력을 직원이 이어받아 조서 완성. 상담 요청에 입력 JSON 동봉.
+        쉬운 입력은 재무제표 위치 안내 손입력. 결과는 1주당·지분 평가액 + 증여·상속 시산 + 상담. 정밀 조서는 사무소 표준 조서 + 홈택스 「재산 및 평가명세서」 기재값.
+  구조: 계산은 script#hbEngine 순수 함수(evaluate(S)). scripts/tests/test_unlisted.js 가 이 블록만 꺼내 손계산 Golden Case 와 대조한다.
+  근거(2026-09-23 K-Law MCP 확인): 상증법 §63 ①·③, 시행령 §53 ④~⑧·§54·§55·§56·§59, 시행규칙 §17·§17의2·§17의3·§19. 증여·상속 시산은 상증법 §26·§53·§57·§58·§69(의사결정 진단 엔진과 같은 산식).
+  한계: 자산의 상증법 평가(시가·기준시가·감정)는 사용자가 확인한 값을 쓴다. 추정이익 평가(§56 ②), 평가심의위원회 심의(§54 ⑥), 10% 이하 출자주식 취득가액 특례(§54 ③)는 안내만 한다.
+  이전 버전(v2): 01-산출물/웹앱_계산기/세무계산/기존산출물폴더/
+-->
 <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{--navy:#1B3A5C;--blue:#2E6DA4;--gold:#C8963E;--surface:#F5F8FC;--ink:#0F2440;--ink-soft:#4A5D75;--gray:#7A8899;--border:#DCE5F0;--light:#EAF1F9;--soft-2:#F3F7FB;--input-bg:#FFFCF3;--auto-bg:#FBF6EC;--green:#2F855A;--red:#C53030;--r:16px;--r-s:10px;--sh:0 1px 2px rgba(15,36,64,.04),0 6px 20px rgba(15,36,64,.06);--ff:'Nanum Gothic','Malgun Gothic','Apple SD Gothic Neo',system-ui,sans-serif}
-body{background:var(--surface);color:var(--ink);font-family:var(--ff);font-size:14.5px;line-height:1.55;min-height:100vh;padding-bottom:40px}
-button,input,select{font:inherit;color:inherit}
-[hidden]{display:none!important}
-.top{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
-.top-in{max-width:1080px;margin:0 auto;padding:11px 20px;display:flex;align-items:center;gap:12px}
-.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;min-width:0}
-.mark{width:40px;height:40px;border-radius:10px;flex:0 0 auto;object-fit:contain;background:#fff;border:1px solid var(--border);padding:3px}
-.brand b{display:block;font-size:16px;font-weight:800;line-height:1.2}.brand span{display:block;font-size:11.5px;color:var(--ink-soft)}
-.top-acts{margin-left:auto;display:flex;gap:6px}
-.pill{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:7px 13px;border-radius:999px;border:1px solid var(--border);background:#fff;color:var(--ink-soft);font-size:13px;font-weight:700;text-decoration:none;cursor:pointer;white-space:nowrap}
-.pill:hover{border-color:var(--blue);color:var(--blue)}.pill.solid{background:var(--navy);border-color:var(--navy);color:#fff}
-.hero{background:radial-gradient(circle at 8% 20%,rgba(27,58,92,.10),transparent 42%),radial-gradient(circle at 90% 10%,rgba(200,150,62,.16),transparent 38%),linear-gradient(#fff 0%,var(--surface) 100%);padding:26px 20px 14px}
-.hero-in{max-width:1080px;margin:0 auto}
-.hero h1{font-size:24px;font-weight:800;letter-spacing:-.5px}
-.hero p{color:var(--ink-soft);font-size:13.5px;margin-top:6px;max-width:760px}
-.badge{display:inline-block;font-size:11px;font-weight:800;padding:2px 7px;border-radius:999px;background:var(--gold);color:#fff;vertical-align:middle;margin-left:4px}
-.wrap{max-width:1080px;margin:0 auto;padding:6px 20px 0}
-.calc-body{background:#fff;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);margin-bottom:22px}
-.section-hdr{background:var(--navy);color:#fff;padding:12px 20px;font-size:15px;font-weight:800;display:flex;align-items:center;gap:9px}
-.section-hdr .step{background:var(--gold);width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
-.section-hdr.green{background:#2F855A}.section-hdr.navy{background:#24507C}.section-hdr.brown{background:#8B5E3C}
-.subhdr{background:var(--light);color:var(--navy);font-weight:800;font-size:13px;padding:8px 20px;border-bottom:1px solid var(--border)}
-.section-body{padding:14px 20px 16px}
-.row{display:flex;align-items:center;margin-bottom:7px;flex-wrap:wrap}
-.lbl{width:250px;flex-shrink:0;background:var(--soft-2);padding:10px 13px;font-size:13px;font-weight:700;border:1px solid var(--border);border-right:none;border-radius:var(--r-s) 0 0 var(--r-s);color:var(--ink-soft)}
-.lbl .c{color:var(--navy);font-weight:800;margin-right:4px}
-.lbl.plus{background:#F0FDF4}.lbl.minus{background:#FFF7ED}
-.input-cell{flex:1;min-width:120px}
-.input-cell input,.input-cell select{width:100%;padding:10px 13px;font-size:15px;color:var(--navy);font-weight:700;background:var(--input-bg);border:1px solid var(--border);border-radius:0 var(--r-s) var(--r-s) 0;outline:none;text-align:right}
-.input-cell input[type=text],.input-cell input[type=date],.input-cell select{text-align:left}
-.input-cell input:focus,.input-cell select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(46,109,164,.18);background:#fff}
-.auto-cell{flex:1;background:var(--auto-bg);border:1px solid var(--border);border-radius:0 var(--r-s) var(--r-s) 0;padding:10px 13px;font-size:14px;font-weight:800;color:var(--gold);min-width:100px;text-align:right;font-variant-numeric:tabular-nums}
-.note{font-size:12px;color:var(--gray);padding-left:9px}
-.sub-tot .lbl{background:var(--navy);color:#fff;font-weight:800;border-color:var(--navy)}.sub-tot .auto-cell{background:var(--navy);color:var(--gold);font-weight:800;font-size:15px;border-color:var(--navy)}
-.mid-tot .lbl{background:#33597f;color:#fff;font-weight:800;border-color:#33597f}.mid-tot .auto-cell{background:#33597f;color:#fff;font-weight:800;border-color:#33597f}
-table.fm{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}
-table.fm th{background:var(--navy);color:#fff;padding:8px 6px;border:1px solid #2a4a6a;font-weight:800;font-size:12px}
-table.fm td{border:1px solid var(--border);padding:0}
-table.fm td.l{padding:7px 8px;background:#fafbfc;font-weight:700;font-size:12px;white-space:nowrap}
-table.fm td.l .c{color:var(--navy);font-weight:800;margin-right:3px}
-table.fm td.l.plus{background:#F0FDF4}table.fm td.l.minus{background:#FFF7ED}
-table.fm input{width:100%;border:none;padding:8px 6px;text-align:right;font-weight:700;color:var(--blue);background:var(--input-bg);outline:none;font-family:inherit;font-size:12.5px}
-table.fm input:focus{background:#FFF9C4;box-shadow:inset 0 0 0 2px var(--gold)}
-table.fm tr.sum td{background:#eef2f7;font-weight:800}table.fm tr.sum .v{padding:8px 6px;text-align:right;color:var(--navy);font-weight:800}
-table.fm tr.net td{background:var(--navy)}table.fm tr.net td.l{background:var(--navy);color:#fff}table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weight:800;font-size:13px}
-.btn{background:var(--blue);color:#fff;border:none;padding:9px 16px;border-radius:var(--r-s);font-weight:800;cursor:pointer;font-family:inherit;font-size:13px;min-height:38px}
-.btn.gray{background:#94A3B8}.btn.gold{background:var(--gold)}.btn.line{background:#fff;color:var(--blue);border:1.5px solid var(--blue)}
-.result-box{background:var(--auto-bg);padding:22px;text-align:center;border-top:3px double var(--gold)}
-.result-box .label{font-size:17px;font-weight:700;color:var(--navy)}
-.result-box .value{font-size:34px;font-weight:800;color:var(--gold);margin-top:6px;font-variant-numeric:tabular-nums}
-.result-box .detail{font-size:13px;color:var(--ink-soft);margin-top:8px;line-height:1.7}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:0}
-.two .rb{padding:16px;text-align:center;border-right:1px solid var(--border)}.two .rb:last-child{border-right:none}
-.two .rb .k{font-size:13px;color:var(--gray);font-weight:700}.two .rb .v{font-size:20px;font-weight:800;color:var(--navy);margin-top:4px}
-.three{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 20px;border-top:1px dashed var(--border);background:#fff}
-.three .rb{padding:12px;text-align:center;border:1px solid var(--border);border-radius:var(--r-s);background:var(--soft-2)}
-.three .rb .k{font-size:12px;color:var(--ink-soft);font-weight:800}.three .rb .v{font-size:18px;font-weight:800;color:var(--navy);margin-top:3px;font-variant-numeric:tabular-nums}
-.disclaimer{font-size:12px;color:var(--gray);padding:16px 20px;line-height:1.7;background:#f8fafc;border-top:1px dashed var(--border)}.disclaimer b{color:var(--navy)}
-.tools{padding:14px 20px;display:flex;gap:8px;flex-wrap:wrap}
-.hdr-info{display:flex;gap:10px;flex-wrap:wrap;padding:14px 20px;background:#fbfcfd;border-bottom:1px solid var(--border)}
-.hdr-info .f{flex:1;min-width:160px}.hdr-info label{font-size:12px;font-weight:700;color:var(--gray);display:block;margin-bottom:3px}
-.hdr-info input{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-weight:700;color:var(--navy)}
-.helper{margin:12px 0 4px;border:1px solid var(--border);border-radius:var(--r-s);background:var(--soft-2);padding:12px 14px}
-.helper h5{font-size:13px;color:var(--navy);margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.helper h5 small{font-weight:400;color:var(--gray);font-size:11.5px}
-.helper .row .lbl{width:230px;background:#fff}
-.alert{display:none;background:#FEF3C7;border:1px solid #F6D58A;color:#7A4B00;padding:9px 13px;border-radius:var(--r-s);font-size:12.5px;margin:6px 0 8px;line-height:1.6}
-.alert.show{display:block}
-.verify-box{margin:0;padding:14px 20px;border-top:1px solid var(--border);background:var(--soft-2)}
-.verify-box h4{color:var(--navy);font-size:14px;margin-bottom:8px}
-.vr{display:flex;gap:8px;padding:5px 0;font-size:12.5px;border-bottom:1px dotted var(--border)}
-.vr .l{flex:1;color:var(--ink-soft)}.vr .e{min-width:120px;text-align:right;color:var(--blue);font-weight:700}.vr .a{min-width:120px;text-align:right;color:var(--gold);font-weight:700}.vr .i{width:20px;text-align:center}
-.vok{color:var(--green);font-weight:800;font-size:13.5px;margin-top:8px}.vfail{color:var(--red);font-weight:800;font-size:13.5px;margin-top:8px}
-.hide{display:none}
-.foot{max-width:1080px;margin:10px auto 0;padding:14px 20px;font-size:12.5px;color:var(--gray);line-height:1.8;border-top:1px solid var(--border)}.foot b{color:var(--navy)}
-@media(max-width:760px){.wrap{padding:6px 8px}.hero h1{font-size:20px}.lbl{width:100%;border-right:1px solid var(--border);border-radius:var(--r-s) var(--r-s) 0 0}.input-cell input,.input-cell select,.auto-cell{border-radius:0 0 var(--r-s) var(--r-s)}.note{display:none}.result-box .value{font-size:25px}table.fm{font-size:11px}table.fm input{font-size:11px;padding:6px 3px}.two,.three{grid-template-columns:1fr}.helper .row .lbl{width:100%}.top-acts .pill span{display:none}}
-@media print{.top,.tools,.btn,.hero p,.pill{display:none!important}.calc-body{border:none;box-shadow:none}body{background:#fff}}
+:root{--navy:#1B3A5C;--gold:#C8963E;--blue:#2F5D8A;--bg:#F4F6F9;--line:#DCE3EC;--gray:#6B7A8C;--red:#B91C1C;--amber:#92400E;--green:#166534}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:15px;line-height:1.6}
+.top{background:#fff;border-bottom:2px solid var(--gold);padding:14px 20px}
+.top .in{max-width:1120px;margin:0 auto;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end;justify-content:space-between}
+.top h1{margin:0;font-size:21px;color:var(--navy)}
+.top .motto{display:inline-block;background:var(--navy);color:#fff;font-weight:800;border-radius:999px;padding:3px 12px;font-size:12px;margin-bottom:6px;letter-spacing:.5px}
+.top .sub{color:var(--gray);font-size:13px;margin-top:4px;max-width:720px}
+.modes{display:flex;gap:6px}
+.modes button{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:9px 16px;font:inherit;font-weight:800;color:var(--gray);cursor:pointer}
+.modes button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.wrap{max-width:1120px;margin:0 auto;padding:16px 20px 90px}
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+.steps button{flex:1;min-width:110px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 6px;font:inherit;font-size:13px;font-weight:800;color:var(--gray);cursor:pointer}
+.steps button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.steps button.done{color:var(--navy);border-color:var(--gold)}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:14px}
+.card h2{margin:0 0 4px;font-size:17px;color:var(--navy)}
+.card h3{margin:14px 0 6px;font-size:15px;color:var(--navy);border-left:4px solid var(--gold);padding-left:8px}
+.card .lead{color:var(--gray);font-size:13.5px;margin:0 0 14px}
+.q{padding:12px 0;border-top:1px dashed var(--line)}
+.q:first-of-type{border-top:none;padding-top:0}
+.q .t{display:block;font-weight:800;color:#111;margin-bottom:3px;font-size:15px}
+.q .why{font-size:12.5px;color:var(--blue);background:#F1F6FB;border-left:3px solid var(--blue);padding:5px 9px;border-radius:0 6px 6px 0;margin:4px 0 8px}
+.q .where{font-size:12.5px;color:#5b4a1f;background:#FFF8E8;border-left:3px solid var(--gold);padding:5px 9px;border-radius:0 6px 6px 0;margin:4px 0 8px}
+input[type=number],input[type=text],input[type=date],select,textarea{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:9px;width:100%;max-width:300px;background:#fff}
+input.money{text-align:right;font-weight:700}
+.unit{font-size:12.5px;color:var(--gray);margin-left:6px}
+.calc{display:inline-block;font-size:12.5px;color:var(--navy);background:#F1F4F8;border-radius:7px;padding:3px 9px;margin-left:6px;font-weight:700}
+.opts{display:flex;gap:6px;flex-wrap:wrap}
+.opts label{border:1px solid var(--line);border-radius:999px;padding:7px 13px;cursor:pointer;font-size:13.5px;background:#fff}
+.opts label.on{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:800}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.navbtn{display:flex;gap:8px;justify-content:space-between;margin-top:14px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 18px;font:inherit;font-weight:800;cursor:pointer;color:var(--navy)}
+.btn.p{background:var(--gold);color:#fff;border-color:var(--gold)}
+.btn.n{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn.sm{padding:6px 11px;font-size:12.5px}
+.result{background:linear-gradient(135deg,#1B3A5C,#24507d);color:#fff;border-radius:14px;padding:18px 20px;margin-bottom:14px}
+.result .lab{font-size:13px;opacity:.85}
+.result .amt{font-size:34px;font-weight:800;letter-spacing:-.5px;margin:2px 0}
+.result .due{font-size:14px;margin-top:6px}
+.result .due b{color:#F3D9A4}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:10px}
+.kpi div{background:rgba(255,255,255,.1);border-radius:10px;padding:9px 12px}
+.kpi small{display:block;opacity:.8;font-size:12px}
+.kpi b{font-size:17px}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th,.tbl td{border:1px solid var(--line);padding:7px 9px;vertical-align:top;text-align:left}
+.tbl thead th{background:var(--navy);color:#fff;text-align:center}
+.tbl td.num,.tbl th.num{text-align:right;font-weight:800;white-space:nowrap}
+.tbl td.c{text-align:center}
+.tbl tr.sum td{background:#FFF8E8;font-weight:800}
+.tbl tr.dim td{color:var(--gray)}
+.tbl input{max-width:none;text-align:right;padding:5px 7px;font-weight:700}
+.scroll{overflow-x:auto}
+.flag{display:flex;gap:9px;align-items:flex-start;border:1px solid #fca5a5;background:#fef2f2;color:#7f1d1d;border-radius:10px;padding:9px 12px;margin-bottom:7px;font-size:13.5px}
+.flag.warn{border-color:#fcd34d;background:#fffbeb;color:#78350f}
+.flag.ok{border-color:#86efac;background:#f0fdf4;color:#14532d}
+.flag.info{border-color:#93c5fd;background:#eff6ff;color:#1e3a8a}
+.flag b{white-space:nowrap}
+.basis{font-size:12.5px;color:var(--gray);line-height:1.8}
+.consult .row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.consult input,.consult textarea{max-width:none}
+.consult textarea{min-height:70px;margin-top:8px}
+.consult label.c{display:flex;gap:7px;align-items:flex-start;font-size:13px;margin:8px 0}
+.consult label.c input{width:auto;flex:0 0 auto;margin-top:4px}
+.links{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.links a{font-size:12.5px;font-weight:700;color:var(--blue);border:1px solid var(--line);border-radius:999px;padding:5px 11px;text-decoration:none;background:#fff}
+.judge{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fafbfd;margin-top:8px;font-size:14px}
+.judge b{color:var(--navy)}
+.toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.pro{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.pro .form{min-width:0}
+.pro .sheetwrap{position:sticky;top:12px;min-width:0;overflow-x:auto}
+.sec{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:12px}
+.sec h2{margin:0 0 8px;font-size:15.5px;color:var(--navy);display:flex;align-items:center;gap:8px}
+.sec h2 .n{display:inline-flex;width:24px;height:24px;border-radius:50%;background:var(--gold);color:#fff;align-items:center;justify-content:center;font-size:13px}
+.fr{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px dashed var(--line);font-size:13.5px}
+.fr:first-of-type{border-top:none}
+.fr .l{flex:1 1 55%;min-width:0}
+.fr .l small{display:block;color:var(--gray);font-size:11.5px}
+.fr input,.fr select{flex:0 0 42%;max-width:none}
+.fr .v{flex:0 0 42%;text-align:right;font-weight:800;color:var(--navy)}
+.fr.tot{background:#FFF8E8;border-radius:6px;padding:6px 8px}
+.chk{display:flex;gap:7px;align-items:center;font-size:13.5px;margin:4px 0}
+.chk input{width:18px;height:18px}
+.sheet{background:#fff;border:1px solid var(--line);border-radius:8px;padding:16mm 14mm;min-width:0;overflow-x:auto;font-size:10.5pt;line-height:1.55;color:#000;box-shadow:0 4px 18px rgba(15,36,64,.08)}
+.sheet h1{text-align:center;font-size:18pt;letter-spacing:6px;margin:0 0 4pt}
+.sheet .st{text-align:center;color:#444;font-size:9.5pt;margin:0 0 12pt}
+.sheet h2{font-size:11.5pt;margin:12pt 0 4pt;border-bottom:1.5px solid #000;padding-bottom:2pt}
+.sheet table{border-collapse:collapse;width:100%;margin:4pt 0 8pt;font-size:9.8pt}
+.sheet th,.sheet td{border:1px solid #000;padding:3pt 5pt;vertical-align:top;word-break:keep-all;overflow-wrap:anywhere}
+.sheet th{background:#f3f4f6;text-align:center;white-space:nowrap}
+.sheet td.r{text-align:right;white-space:nowrap}
+.sheet td.c{text-align:center}
+.sheet tr.tot td{background:#FFF8E8;font-weight:800}
+.sheet .party td:first-child{width:24%;background:#f3f4f6;font-weight:700}
+.sheet .note{font-size:9pt;color:#333;background:#f8fafc;border:1px solid #cbd5e1;padding:5pt 7pt;margin:6pt 0}
+.sheet .big{font-size:14pt;font-weight:800;text-align:center;border:2px solid #000;padding:8pt;margin:8pt 0}
+.sheet .foot{margin-top:12pt;font-size:8.5pt;color:#444;border-top:1px solid #999;padding-top:4pt}
+.sheet .sign td{border:none;padding:3pt}
+.hidden{display:none!important}
+@media(max-width:900px){.pro{grid-template-columns:1fr}.pro .sheetwrap{position:static}}
+@media(max-width:700px){
+  .wrap{padding:12px 12px 90px}.top{padding:12px}.top h1{font-size:18px}
+  .card{padding:14px}.consult .row,.row2,.row3{grid-template-columns:1fr}
+  .steps button{min-width:0;font-size:12px;padding:8px 3px}
+  .result .amt{font-size:28px}.tbl{font-size:12.5px}.sheet{padding:10mm 8mm}
+  .fr{flex-wrap:wrap}.fr input,.fr select,.fr .v{flex:1 1 100%}
+}
+@media print{
+  .top,.steps,.navbtn,.consult,.nopr,.toolbar,.modes,.pro .form,#hbCalcBar,.hb-consult-host{display:none!important}
+  html,body{background:#fff}.card,.sec{border:none;padding:0 0 10px;box-shadow:none}.wrap{padding:0;max-width:none}
+  .pro{display:block}.sheet{border:none;box-shadow:none;padding:0}.result{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 </style>
-<link rel="stylesheet" href="hb-light.css">
 </head>
 <body>
 <!-- HB-HOME v1 -->
@@ -235,397 +280,501 @@ table.fm tr.net td{background:var(--navy)}table.fm tr.net td.l{background:var(--
 })();
 </script>
 <!-- /HB-HOME -->
-
-<header class="top"><div class="top-in">
-  <a class="brand" href="index.html"><img class="mark" src="logo-mark.png" alt="" width="256" height="256"><span><b>세무법인 한백택스</b><span>대표세무사 차재영 · 02-2277-3101</span></span></a>
-  <div class="top-acts"><button class="pill solid" type="button" onclick="window.print()">🖨 <span>인쇄/PDF</span></button></div>
+<header class="top"><div class="in">
+  <div>
+    <span class="motto">세금, 계산 전에 판단부터</span>
+    <h1>📈 비상장주식 평가</h1>
+    <div class="sub">회사 주식이 세법상 얼마인지 — 재무제표 몇 칸만 넣으면 1주당 평가액과 증여·상속 시 세금 규모를 보여 드립니다. 직원은 「정밀 조서」로 이어받아 법정 가감·영업권·할증까지 마무리합니다. · 세무법인 한백택스</div>
+  </div>
+  <div class="modes" id="modes"><button type="button" data-m="easy">🧭 쉬운 입력</button><button type="button" data-m="pro">📋 정밀 조서 (직원)</button></div>
 </div></header>
-<section class="hero"><div class="hero-in">
-  <h1>📊 비상장주식 평가조서 <span class="badge">v2</span></h1>
-  <p>상속세 및 증여세법 §63·시행령 §54~56·§59·시행규칙 §17~19의 보충적 평가. 순손익가치·순자산가치(법정 가감)·영업권·가중평균·80% 하한·최대주주 할증에 더해 <b>증자·감자 환산주식수, 유상증자 가산액 도우미, 3년 연속 결손 판정, 평가심의위원회 신청 범위</b>를 반영합니다.</p>
-</div></section>
 
 <div class="wrap">
-  <div class="calc-body">
-    <div class="hdr-info">
-      <div class="f"><label>법인명</label><input type="text" id="h_name" placeholder="(주)○○"></div>
-      <div class="f"><label>평가기준일</label><input type="date" id="h_date"></div>
-      <div class="f"><label>대표자</label><input type="text" id="h_ceo" placeholder=""></div>
+<!-- ═══════════ 쉬운 입력 ═══════════ -->
+<div id="easy" data-nogate>
+<div class="steps" id="steps"></div>
+
+<section class="card" id="s0">
+  <h2>① 어떤 회사의 주식인가요</h2>
+  <p class="lead">상장되지 않은 회사의 주식은 시세가 없어 세법이 정한 방법(순손익가치와 순자산가치의 가중평균)으로 값을 매깁니다. 먼저 회사의 기본 사항을 묻습니다.</p>
+  <div class="q"><div class="row3">
+    <div><span class="t">법인명</span><input type="text" data-k="name" placeholder="주식회사 ○○"></div>
+    <div><span class="t">평가기준일 <span class="unit">증여일·상속개시일·양도일</span></span><input type="date" data-k="date"></div>
+    <div><span class="t">설립일(사업 개시일)</span><input type="date" data-k="founded"></div>
+  </div>
+    <div class="why">평가기준일 이전 3개 사업연도의 손익을 씁니다. 사업 개시 후 3년이 안 됐거나 휴·폐업·청산 중이면 순손익가치 없이 <b>순자산가치만</b>으로 평가합니다(상증법 시행령 §54 ④ 2호).</div>
+  </div>
+  <div class="q"><div class="row3">
+    <div><span class="t">발행주식 총수</span><input type="number" class="money" data-k="shares" placeholder="10000"><span class="unit">주</span></div>
+    <div><span class="t">평가할 주식 수 <span class="unit">(넘기려는 지분)</span></span><input type="number" class="money" data-k="holdShares" placeholder="6000"><span class="unit">주</span><span class="calc" id="holdPct"></span></div>
+    <div><span class="t">회사 상태</span><select data-k="status"><option value="normal">정상 영업 중</option><option value="closing">휴업·폐업 중 또는 사업 개시 전</option><option value="liquid">청산 진행 중 · 사업 계속 곤란</option><option value="term3">정관상 존속기한이 3년 이내로 남음</option></select></div>
+  </div>
+    <div class="where">발행주식 총수는 등기부등본 「발행주식의 총수」 또는 주주명부. 평가기준일 현재 수량입니다(§54 ⑤).</div>
+  </div>
+  <div class="q"><span class="t">중소기업 또는 중견기업(직전 3년 평균 매출 5천억 미만)인가요?</span>
+    <div class="opts" id="smallBox"><label data-v="y">예 — 중소·중견기업</label><label data-v="n">아니요 — 대기업 또는 모름</label></div>
+    <div class="why">최대주주 지분은 원래 20%를 더해 평가하지만(상증법 §63 ③), 중소기업·중견기업 주식은 할증하지 않습니다(시행령 §53 ⑧ 9호). 3년 연속 결손 법인도 할증 제외.</div>
+  </div>
+  <div class="q"><span class="t">회사 자산 중 부동산(토지·건물·부동산 권리) 비중은 어느 정도인가요?</span>
+    <div class="opts" id="reBox"><label data-v="lt50">절반 미만</label><label data-v="50-80">절반 이상 80% 미만</label><label data-v="ge80">80% 이상 (부동산 회사)</label><label data-v="stk80">자산의 80% 이상이 다른 회사 주식 (지주회사)</label><label data-v="unknown">모름 — 다음 단계에서 금액으로 판정</label></div>
+    <div class="why">부동산이 절반 이상이면 순손익 2 : 순자산 3으로(§54 ①), 80% 이상이면 순자산가치와 비교해 큰 쪽(§54 ④ 3호), 주식 80% 이상도 같은 방식(5호)입니다. 다음 단계에서 부동산 금액을 넣으면 자동으로 판정합니다.</div>
+  </div>
+  <div class="navbtn"><span></span><button class="btn n" onclick="go(1)">다음 — 3년 손익 →</button></div>
+</section>
+
+<section class="card hidden" id="s1">
+  <h2>② 최근 3년 손익 — 「각 사업연도 소득」</h2>
+  <p class="lead">회계상 당기순이익이 아니라 <b>법인세 신고서의 「각 사업연도 소득금액」</b>을 씁니다. 여기서 법인세 등을 빼면 세법상 순손익입니다.</p>
+  <div class="where">어디서 찾나요 — 세무사가 보낸 법인세 신고서 묶음 중 「법인세 과세표준 및 세액조정계산서」 첫 장의 <b>「각 사업연도 소득금액」</b> 줄과 <b>「총부담세액」</b>(법인세 산출세액 − 공제감면 + 가산세 + 농특세) 줄. 지방소득세는 「법인지방소득세 신고서」의 납부세액. 홈택스 → 신고/납부 → 법인세 → 신고내역 조회에서도 볼 수 있습니다. 결손이면 음수(−)로 적습니다.</div>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th>구분</th><th class="num">직전 1년 (×3)</th><th class="num">직전 2년 (×2)</th><th class="num">직전 3년 (×1)</th></tr></thead>
+    <tbody>
+      <tr><td>사업연도 (예: 2025)</td><td><input type="text" data-k="y1label" placeholder="2025"></td><td><input type="text" data-k="y2label" placeholder="2024"></td><td><input type="text" data-k="y3label" placeholder="2023"></td></tr>
+      <tr><td>각 사업연도 소득금액 (결손은 −)</td><td><input type="number" data-k="y1inc" placeholder="0"></td><td><input type="number" data-k="y2inc" placeholder="0"></td><td><input type="number" data-k="y3inc" placeholder="0"></td></tr>
+      <tr><td>법인세·농특세·지방소득세 합계</td><td><input type="number" data-k="y1s1" placeholder="0"></td><td><input type="number" data-k="y2s1" placeholder="0"></td><td><input type="number" data-k="y3s1" placeholder="0"></td></tr>
+      <tr><td>그 해 말 발행주식 수 <small style="color:var(--gray)">(지금과 같으면 비움)</small></td><td><input type="number" data-k="y1sh" placeholder="같음"></td><td><input type="number" data-k="y2sh" placeholder="같음"></td><td><input type="number" data-k="y3sh" placeholder="같음"></td></tr>
+      <tr class="sum"><td>순손익액 (소득 − 세금)</td><td class="num" id="e_n1">0</td><td class="num" id="e_n2">0</td><td class="num" id="e_n3">0</td></tr>
+    </tbody></table></div>
+  <div class="q"><span class="t">최근 3년 안에 유상증자나 유상감자가 있었나요?</span>
+    <div class="opts" id="capBox"><label data-v="n">없음</label><label data-v="y">있음 — 정밀 조서에서 환산 (직원 확인)</label></div>
+    <div class="why">증자·감자가 있으면 그 전 사업연도의 주식 수를 환산하고 납입금액의 10%를 가감합니다(시행령 §56 ⑤, 시행규칙 §17의3 ⑤). 계산이 복잡해 직원이 정밀 조서에서 처리합니다.</div>
+  </div>
+  <div class="judge" id="judge1"></div>
+  <div class="navbtn"><button class="btn" onclick="go(0)">← 이전</button><button class="btn n" onclick="go(2)">다음 — 재무상태 →</button></div>
+</section>
+
+<section class="card hidden" id="s2">
+  <h2>③ 평가기준일 현재 재산과 빚 — 재무상태표</h2>
+  <p class="lead">가장 가까운 결산일(또는 평가기준일 가결산)의 재무상태표에서 옮깁니다.</p>
+  <div class="where">어디서 찾나요 — 재무상태표(대차대조표) 맨 아래 <b>「자산총계」</b>와 <b>「부채총계」</b>. 토지·건물은 「유형자산」 항목의 장부금액, 공시가격(개별공시지가 × 면적, 건물 기준시가)은 부동산공시가격알리미·홈택스 기준시가 조회.</div>
+  <div class="q"><div class="row2">
+    <div><span class="t">자산총계 (장부)</span><input type="number" class="money" data-k="asset" placeholder="0"><span class="unit">원</span></div>
+    <div><span class="t">부채총계 (장부)</span><input type="number" class="money" data-k="liab" placeholder="0"><span class="unit">원</span></div>
+  </div></div>
+  <div class="q"><span class="t">토지·건물이 있다면</span>
+    <div class="row2">
+      <div>장부금액 <input type="number" class="money" data-k="reBook" placeholder="0"><span class="unit">원</span></div>
+      <div>공시가격·기준시가 또는 시가(감정가) 합계 <input type="number" class="money" data-k="reMarket" placeholder="0"><span class="unit">원</span><span class="calc" id="reDiffCalc"></span></div>
     </div>
-
-    <!-- STEP 0 -->
-    <div class="section-hdr"><div class="step">0</div>기본 정보 · 평가방법</div>
-    <div class="section-body">
-      <div class="row"><div class="lbl">발행주식 총수 (평가기준일)</div><div class="input-cell"><input type="number" id="shares" value="10000" oninput="calc()"></div><div class="note">주 (§54⑤)</div></div>
-      <div class="row"><div class="lbl">평가대상 주식수 (증여·상속·양도분)</div><div class="input-cell"><input type="number" id="hold_shares" value="" placeholder="비우면 전체" oninput="calc()"></div><div class="note">주</div></div>
-      <div class="row"><div class="lbl">평가방법 결정</div><div class="input-cell"><select id="methodMode" onchange="calc()"><option value="manual">직접 선택</option><option value="auto">부동산비율 자동판정</option></select></div></div>
-      <div class="row"><div class="lbl">평가방법 구분</div><div class="input-cell"><select id="ftype" onchange="calc()">
-        <option value="normal">일반법인 (순손익3 : 순자산2, 80%하한)</option>
-        <option value="estate">부동산과다 50~80% (2 : 3, 80%하한)</option>
-        <option value="re80">부동산 80%↑ (§54④3호, max(가중평균2:3, 순자산))</option>
-        <option value="stk80">주식 80%↑ (§54④5호, max(가중평균3:2, 순자산))</option>
-        <option value="netonly">순자산가치만 (청산·휴폐업·개시3년미만·존속3년)</option>
-      </select></div><div class="note" id="ftypeNote"></div></div>
-      <div class="row" id="reRow" style="display:none"><div class="lbl">부동산등 가액 (자동판정용)</div><div class="input-cell"><input type="number" id="re_value" value="0" oninput="calc()"></div><div class="note">토지·건물·부동산권리 등</div></div>
-      <div class="row" id="stkRow" style="display:none"><div class="lbl">주식등 가액 (자동판정용)</div><div class="input-cell"><input type="number" id="stk_value" value="0" oninput="calc()"></div><div class="note">타법인 출자주식 등 (§54④5호)</div></div>
-      <div class="row" id="reRatioRow" style="display:none"><div class="lbl">부동산·주식 비율 → 적용 방법</div><div class="auto-cell" id="re_ratio">0%</div></div>
-      <div class="row"><div class="lbl">순손익가치 환원율</div><div class="input-cell"><input type="number" id="rate" value="10" step="0.1" oninput="calc()"></div><div class="note">% (규칙 §17 · 현행 10)</div></div>
-      <div class="row"><div class="lbl">최대주주 할증 (§63③)</div><div class="input-cell"><select id="prem" onchange="calc()"><option value="0">미적용 (중소·중견기업·3년 결손법인 등)</option><option value="20">적용 +20%</option></select></div></div>
-      <div class="alert" id="loss_warn"></div>
+    <div class="why">세법은 부동산을 시가(없으면 공시가격·기준시가)로 평가합니다. 장부보다 크면 그 차액만큼 자산이 늘고, 장부보다 작으면 장부금액을 씁니다(§55 ① 후단). 이 값으로 부동산 비율도 자동 판정합니다(§54 ①·④).</div>
+  </div>
+  <div class="q"><span class="t">직원 전원이 지금 퇴직한다면 줘야 할 퇴직금 합계 <span class="unit">(선택)</span></span>
+    <input type="number" class="money" data-k="lRetire" placeholder="0"><span class="unit">원</span>
+    <div class="why">퇴직급여추계액은 부채에 더합니다(시행규칙 §17의2 3호 다목). 장부에 퇴직급여충당부채가 이미 있으면 그 금액을 빼고 차액만 넣거나, 직원에게 맡기십시오.</div>
+  </div>
+  <div class="q"><span class="t">확정됐지만 아직 안 낸 것 <span class="unit">(선택)</span></span>
+    <div class="row2">
+      <div>미지급 법인세·지방소득세 <input type="number" class="money" data-k="lTax" placeholder="0"></div>
+      <div>결의된 배당금·상여금 <input type="number" class="money" data-k="lDiv" placeholder="0"></div>
     </div>
+    <div class="why">평가기준일까지의 소득에 대한 법인세와 확정 배당·상여는 부채에 더합니다(시행규칙 §17의2 3호 가·나목).</div>
+  </div>
+  <div class="judge" id="judge2"></div>
+  <div class="navbtn"><button class="btn" onclick="go(1)">← 이전</button><button class="btn p" onclick="go(3)">결과 보기 →</button></div>
+</section>
 
-    <!-- STEP 1 순손익가치 -->
-    <div class="section-hdr"><div class="step">1</div>1주당 순손익가치 (시행령 §56④)</div>
-    <div class="section-body" style="overflow-x:auto">
-      <table class="fm">
-        <thead><tr><th style="text-align:left;min-width:240px">구 분 (법정 항목)</th><th>직전 1년<br>(×3)</th><th>직전 2년<br>(×2)</th><th>직전 3년<br>(×1)</th></tr></thead>
-        <tbody>
-          <tr><td class="l">각 사업연도 소득 <span style="font-weight:400;color:var(--gray)">(법§14)</span></td><td><input type="number" id="i_1_inc" oninput="calc()"></td><td><input type="number" id="i_2_inc" oninput="calc()"></td><td><input type="number" id="i_3_inc" oninput="calc()"></td></tr>
-          <tr><td class="l plus"><span class="c">＋가①</span>국세·지방세 과오납 환급금이자</td><td><input type="number" id="i_1_a1" oninput="calc()"></td><td><input type="number" id="i_2_a1" oninput="calc()"></td><td><input type="number" id="i_3_a1" oninput="calc()"></td></tr>
-          <tr><td class="l plus"><span class="c">＋가②</span>수입배당금 익금불산입액</td><td><input type="number" id="i_1_a2" oninput="calc()"></td><td><input type="number" id="i_2_a2" oninput="calc()"></td><td><input type="number" id="i_3_a2" oninput="calc()"></td></tr>
-          <tr><td class="l plus"><span class="c">＋가③</span>기부금 이월손금산입액 등</td><td><input type="number" id="i_1_a3" oninput="calc()"></td><td><input type="number" id="i_2_a3" oninput="calc()"></td><td><input type="number" id="i_3_a3" oninput="calc()"></td></tr>
-          <tr><td class="l plus"><span class="c">＋가④</span>화폐성외화자산 평가이익</td><td><input type="number" id="i_1_a4" oninput="calc()"></td><td><input type="number" id="i_2_a4" oninput="calc()"></td><td><input type="number" id="i_3_a4" oninput="calc()"></td></tr>
-          <tr><td class="l plus"><span class="c">＋가⑤</span>그 밖의 가산금액</td><td><input type="number" id="i_1_a5" oninput="calc()"></td><td><input type="number" id="i_2_a5" oninput="calc()"></td><td><input type="number" id="i_3_a5" oninput="calc()"></td></tr>
-          <tr><td class="l plus"><span class="c">＋가⑥</span>유상증자 가산 (§56⑤1호)</td><td><input type="number" id="i_1_a6" oninput="calc()"></td><td><input type="number" id="i_2_a6" oninput="calc()"></td><td><input type="number" id="i_3_a6" oninput="calc()"></td></tr>
-          <tr class="sum"><td class="l">가산 소계</td><td><div class="v" id="o_1_add">0</div></td><td><div class="v" id="o_2_add">0</div></td><td><div class="v" id="o_3_add">0</div></td></tr>
-          <tr><td class="l minus"><span class="c">−차①</span>법인세 총결정세액(법인세+농특+지방)</td><td><input type="number" id="i_1_s1" oninput="calc()"></td><td><input type="number" id="i_2_s1" oninput="calc()"></td><td><input type="number" id="i_3_s1" oninput="calc()"></td></tr>
-          <tr><td class="l minus"><span class="c">−차②</span>벌과금·강제징수비·징수불이행세액</td><td><input type="number" id="i_1_s2" oninput="calc()"></td><td><input type="number" id="i_2_s2" oninput="calc()"></td><td><input type="number" id="i_3_s2" oninput="calc()"></td></tr>
-          <tr><td class="l minus"><span class="c">−차③</span>기부금·기업업무추진비 한도초과·지급이자손금불산입 등</td><td><input type="number" id="i_1_s3" oninput="calc()"></td><td><input type="number" id="i_2_s3" oninput="calc()"></td><td><input type="number" id="i_3_s3" oninput="calc()"></td></tr>
-          <tr><td class="l minus"><span class="c">−차④</span>시인부족액−상각부인 추인액</td><td><input type="number" id="i_1_s4" oninput="calc()"></td><td><input type="number" id="i_2_s4" oninput="calc()"></td><td><input type="number" id="i_3_s4" oninput="calc()"></td></tr>
-          <tr><td class="l minus"><span class="c">−차⑤</span>화폐성외화자산 평가손실</td><td><input type="number" id="i_1_s5" oninput="calc()"></td><td><input type="number" id="i_2_s5" oninput="calc()"></td><td><input type="number" id="i_3_s5" oninput="calc()"></td></tr>
-          <tr><td class="l minus"><span class="c">−차⑥</span>유상감자 차감 (§56⑤2호)</td><td><input type="number" id="i_1_s6" oninput="calc()"></td><td><input type="number" id="i_2_s6" oninput="calc()"></td><td><input type="number" id="i_3_s6" oninput="calc()"></td></tr>
-          <tr class="sum"><td class="l">차감 소계</td><td><div class="v" id="o_1_sub">0</div></td><td><div class="v" id="o_2_sub">0</div></td><td><div class="v" id="o_3_sub">0</div></td></tr>
-          <tr class="net"><td class="l">＝ 순손익액</td><td><div class="v" id="o_1_net">0</div></td><td><div class="v" id="o_2_net">0</div></td><td><div class="v" id="o_3_net">0</div></td></tr>
-          <tr><td class="l">사업연도말 발행주식수 <span style="font-weight:400;color:var(--gray)">(§56③)</span></td><td><input type="number" id="i_1_sh" oninput="calc()" placeholder="기본=총수"></td><td><input type="number" id="i_2_sh" oninput="calc()" placeholder="기본=총수"></td><td><input type="number" id="i_3_sh" oninput="calc()" placeholder="기본=총수"></td></tr>
-          <tr class="sum"><td class="l">＝ 1주당 순손익액</td><td><div class="v" id="o_1_ps">0</div></td><td><div class="v" id="o_2_ps">0</div></td><td><div class="v" id="o_3_ps">0</div></td></tr>
-        </tbody>
-      </table>
-
-      <div class="helper">
-        <h5>🧮 증자·감자 환산 도우미 <small>규칙 §17의3⑤ 환산주식수 · 영 §56⑤ 가산·차감액 (1주당 금액 × 주식수 × 10%, 해당 연도는 월할)</small></h5>
-        <div class="row"><div class="lbl">증자·감자 구분</div><div class="input-cell"><select id="cap_kind" onchange="calcCap()"><option value="up">유상증자</option><option value="down">유상감자</option></select></div></div>
-        <div class="row"><div class="lbl">증자·감자가 속한 사업연도</div><div class="input-cell"><select id="cap_year" onchange="calcCap()"><option value="0">평가기준일이 속한 사업연도 (3개년 이후)</option><option value="1">직전 1년 사업연도</option><option value="2">직전 2년 사업연도</option><option value="3">직전 3년 사업연도</option></select></div></div>
-        <div class="row"><div class="lbl">직전 사업연도말 주식수 (증자·감자 전)</div><div class="input-cell"><input type="number" id="cap_before" value="" oninput="calcCap()"></div><div class="note">주</div></div>
-        <div class="row"><div class="lbl">증가·감소 주식수</div><div class="input-cell"><input type="number" id="cap_delta" value="" oninput="calcCap()"></div><div class="note">주</div></div>
-        <div class="row"><div class="lbl">1주당 납입·지급금액</div><div class="input-cell"><input type="number" id="cap_paid" value="" oninput="calcCap()"></div><div class="note">원</div></div>
-        <div class="row"><div class="lbl">사업연도 개시일 ~ 증자·감자일 월수</div><div class="input-cell"><input type="number" id="cap_month" value="12" min="1" max="12" oninput="calcCap()"></div><div class="note">개월 (1개월 미만은 1개월)</div></div>
-        <div class="row"><div class="lbl">환산배율 · 적용 대상</div><div class="auto-cell" id="cap_ratio" style="text-align:left">—</div></div>
-        <div class="row"><div class="lbl">환산주식수 (1년 / 2년 / 3년)</div><div class="auto-cell" id="cap_sh">—</div></div>
-        <div class="row"><div class="lbl">가산·차감액 (1년 / 2년 / 3년)</div><div class="auto-cell" id="cap_adj">—</div></div>
-        <div class="tools" style="padding:6px 0 0"><button class="btn line" type="button" onclick="applyCap()">↓ 위 표에 적용</button><span class="note" style="align-self:center">적용 시 「사업연도말 발행주식수」와 「유상증자 가산」·「유상감자 차감」 행이 채워집니다.</span></div>
+<section class="hidden" id="s3">
+  <div class="result">
+    <div class="lab">세법상 1주당 평가액 (보충적 평가)</div>
+    <div class="amt" id="rAmt">0원</div>
+    <div class="due" id="rDue"></div>
+    <div class="kpi"><div><small>평가할 주식 가액</small><b id="kHold">0원</b></div><div><small>회사 전체 주식 가액</small><b id="kTotal">0원</b></div><div><small>순손익가치 / 순자산가치</small><b id="kBoth">0 / 0</b></div><div><small>평가심의 신청 가능 범위 (70~130%)</small><b id="kRange">—</b></div></div>
+  </div>
+  <section class="card">
+    <h2>계산은 이렇게 되었습니다</h2>
+    <div class="scroll"><table class="tbl" id="easyTbl"></table></div>
+    <div id="easyFlags" style="margin-top:12px"></div>
+  </section>
+  <section class="card">
+    <h2>이 주식을 넘기면 세금은 얼마나 될까요 — 시산</h2>
+    <p class="lead">위 평가액으로 증여·상속 세금을 어림합니다. 다른 재산·사전증여·공제 요건에 따라 달라지므로 방향을 잡는 용도입니다.</p>
+    <div class="q"><span class="t">증여로 넘긴다면</span>
+      <div class="row3">
+        <div>받는 사람 <select data-k="giftRel"><option value="child">자녀 (성년)</option><option value="minor">자녀 (미성년)</option><option value="grandchild">손자녀</option><option value="spouse">배우자</option><option value="relative">그 밖의 친족</option><option value="other">타인</option></select></div>
+        <div>10년 안에 같은 사람에게 준 재산 <input type="number" class="money" data-k="giftPrior" placeholder="0"></div>
+        <div>증여 주식 수 <input type="number" class="money" data-k="giftShares" placeholder="평가할 주식 수와 같음"></div>
       </div>
+      <div class="judge" id="giftSim"></div>
+    </div>
+    <div class="q"><span class="t">상속으로 넘어간다면</span>
+      <div class="opts" id="spouseBox"><label data-v="y">배우자 있음</label><label data-v="n">배우자 없음</label></div>
+      <div class="judge" id="inhSim"></div>
+    </div>
+    <div class="links">
+      <a href="한백택스_의사결정_진단.html">🧭 부동산 의사결정 진단</a>
+      <a href="한백택스_증여세_계산기.html">증여세 계산기 →</a>
+      <a href="한백택스_가업상속_시뮬레이터.html">가업상속 시뮬레이터 →</a>
+      <a href="한백택스_상속세_계산기.html">상속세 계산기 →</a>
+    </div>
+  </section>
+  <section class="card consult">
+    <h2>세무사에게 확인받기</h2>
+    <p class="lead">입력한 내용이 사무소로 전송되고, 직원이 「정밀 조서」로 이어받아 법정 가감·영업권·부동산 평가를 검토한 뒤 연락드립니다.</p>
+    <div class="row"><input id="cName" placeholder="성함 / 회사"><input id="cPhone" placeholder="연락처" inputmode="tel"><input id="cEmail" placeholder="이메일(선택)" inputmode="email"></div>
+    <textarea id="cMemo" placeholder="계획(증여·상속·양도 시기 등)이나 궁금한 점 (선택)"></textarea>
+    <label class="c"><input type="checkbox" id="cAgree"> 위 입력 내용과 연락처를 세무법인 한백택스에 전송하는 데 동의합니다. (상담 목적 외 사용 안 함)</label>
+    <button type="button" class="btn p" id="cBtn" onclick="sendConsult()">📨 입력 내용 보내고 상담 요청</button>
+    <div id="cStatus" style="font-size:13px;margin-top:8px"></div>
+  </section>
+  <section class="card">
+    <h2>근거와 한계</h2>
+    <div class="basis" id="easyBasis"></div>
+    <div class="navbtn nopr"><button class="btn" onclick="go(2)">← 이전</button><span><button class="btn" onclick="window.print()">🖨 인쇄</button> <button class="btn" onclick="setMode('pro')">📋 정밀 조서로 이어서</button> <button class="btn" onclick="resetAll()">처음부터</button></span></div>
+  </section>
+</section>
+</div>
 
-      <div class="row" style="margin-top:10px"><div class="lbl">가중평균 1주당 순손익액</div><div class="auto-cell" id="wavg_ps">0</div><div class="note">(1년×3+2년×2+3년×1)÷6, 음수면 0 (§56①)</div></div>
-      <div class="row sub-tot"><div class="lbl">① 1주당 순손익가치</div><div class="auto-cell" id="incval">0</div><div class="note">가중평균 ÷ 환원율 (§54①)</div></div>
-    </div>
-
-    <!-- STEP 2 순자산가치 -->
-    <div class="section-hdr green"><div class="step">2</div>1주당 순자산가치 (시행령 §55·시행규칙 §17의2)</div>
-    <div class="subhdr">【 자산 】 법 §60~66 평가 + 법정 가감</div>
-    <div class="section-body" style="padding-bottom:8px">
-      <div class="row"><div class="lbl">자산총계 (상증법 평가액)</div><div class="input-cell"><input type="number" id="asset" value="0" oninput="calc()"></div><div class="note">토지·건물 기준시가 등. 장부가액보다 적으면 장부가액 (§55①)</div></div>
-      <div class="row"><div class="lbl plus"><span class="c">＋</span>지급받을 권리 확정액 (①)</div><div class="input-cell"><input type="number" id="a_recv" value="0" oninput="calc()"></div></div>
-      <div class="row"><div class="lbl minus"><span class="c">−</span>선급비용·이연무형자산 (②)</div><div class="input-cell"><input type="number" id="a_prepaid" value="0" oninput="calc()"></div></div>
-      <div class="row mid-tot"><div class="lbl">자산 계 (영업권 전)</div><div class="auto-cell" id="asset_side">0</div></div>
-    </div>
-    <div class="subhdr">【 부채 】 장부 부채 + 법정 가감 (③·④)</div>
-    <div class="section-body" style="padding-bottom:8px">
-      <div class="row"><div class="lbl">부채총계 (장부)</div><div class="input-cell"><input type="number" id="liab" value="0" oninput="calc()"></div></div>
-      <div class="row"><div class="lbl plus"><span class="c">＋</span>미지급 법인세·농특·지방소득세 (③가)</div><div class="input-cell"><input type="number" id="l_tax" value="0" oninput="calc()"></div></div>
-      <div class="row"><div class="lbl plus"><span class="c">＋</span>확정 배당금·상여금 등 (③나)</div><div class="input-cell"><input type="number" id="l_div" value="0" oninput="calc()"></div></div>
-      <div class="row"><div class="lbl plus"><span class="c">＋</span>퇴직급여추계액 (③다)</div><div class="input-cell"><input type="number" id="l_retire" value="0" oninput="calc()"></div><div class="note">전원 퇴직 가정</div></div>
-      <div class="row"><div class="lbl minus"><span class="c">−</span>제충당금·제준비금 (④)</div><div class="input-cell"><input type="number" id="l_reserve" value="0" oninput="calc()"></div><div class="note">비용확정분 제외</div></div>
-      <div class="row mid-tot"><div class="lbl">부채 계</div><div class="auto-cell" id="liab_side">0</div></div>
-      <div class="row sub-tot"><div class="lbl">자기자본 (영업권 전) = 자산계 − 부채계</div><div class="auto-cell" id="self_cap">0</div></div>
-    </div>
-    <div class="subhdr">【 영업권 】 시행령 §59② (자산에 가산, §55③)</div>
-    <div class="section-body" style="padding-bottom:8px">
-      <div class="row"><div class="lbl">영업권 반영</div><div class="input-cell"><select id="gw_mode" onchange="calc()"><option value="auto">자동계산 (§59②)</option><option value="manual">직접입력</option><option value="none">미반영</option></select></div><div class="note" id="gw_note"></div></div>
-      <div id="gwAuto">
-        <div class="row"><div class="lbl">초과이익률</div><div class="input-cell"><input type="number" id="gw_excess" value="50" oninput="calc()"></div><div class="note">% (순손익 가중평균 대비)</div></div>
-        <div class="row"><div class="lbl">자기자본 이자율</div><div class="input-cell"><input type="number" id="gw_int" value="10" oninput="calc()"></div><div class="note">% (규칙 §19①)</div></div>
-        <div class="row"><div class="lbl">영업권 지속연수 현가계수</div><div class="input-cell"><input type="number" id="gw_pv" value="3.7908" step="0.0001" oninput="calc()"></div><div class="note">5년·10% 연금현가 Σ1/1.1ⁿ</div></div>
-        <div class="row"><div class="lbl">초과이익금액</div><div class="auto-cell" id="gw_excess_amt">0</div><div class="note">순손익가중평균×률 − 자기자본×이자율</div></div>
-      </div>
-      <div id="gwManual" class="hide">
-        <div class="row"><div class="lbl">영업권 평가액 (직접)</div><div class="input-cell"><input type="number" id="gw_manual" value="0" oninput="calc()"></div></div>
-      </div>
-      <div class="row sub-tot"><div class="lbl">영업권 평가액 (＋자산)</div><div class="auto-cell" id="goodwill_val">0</div></div>
-    </div>
-    <div class="section-body" style="padding-top:6px">
-      <div class="row sub-tot"><div class="lbl">순자산가액 (0 이하면 0)</div><div class="auto-cell" id="networth">0</div></div>
-      <div class="row sub-tot"><div class="lbl">② 1주당 순자산가치</div><div class="auto-cell" id="assetval">0</div></div>
-    </div>
-
-    <!-- STEP 3 -->
-    <div class="section-hdr navy"><div class="step">3</div>가중평균 · 하한 · 할증 → 최종 평가액 (시행령 §54)</div>
-    <div class="two" style="border-bottom:1px solid var(--border)">
-      <div class="rb"><div class="k">① 순손익가치</div><div class="v" id="r_inc">0</div></div>
-      <div class="rb"><div class="k">② 순자산가치</div><div class="v" id="r_asset">0</div></div>
-    </div>
-    <div class="section-body">
-      <div class="row"><div class="lbl">가중평균 평가액</div><div class="auto-cell" id="weighted">0</div><div class="note" id="wformula"></div></div>
-      <div class="row"><div class="lbl" id="floorLbl">순자산가치 80% 하한</div><div class="auto-cell" id="floor">0</div></div>
-      <div class="row"><div class="lbl">평가액 (하한·단서 적용 후)</div><div class="auto-cell" id="beforeprem">0</div></div>
-      <div class="row"><div class="lbl">최대주주 할증 가산</div><div class="auto-cell" id="premamt">0</div></div>
-    </div>
-    <div class="result-box"><div class="label">최종 1주당 평가액</div><div class="value" id="final">0 원</div><div class="detail" id="detail"></div></div>
-    <div class="three">
-      <div class="rb"><div class="k">총 평가액 (발행주식 전체)</div><div class="v" id="total">0 원</div></div>
-      <div class="rb"><div class="k">평가대상 주식 평가액</div><div class="v" id="hold_val">0 원</div></div>
-      <div class="rb"><div class="k">평가심의위 신청 가능범위 (§54⑥ 70~130%)</div><div class="v" id="rng" style="font-size:14px">0 ~ 0 원</div></div>
-    </div>
-
-    <div class="verify-box"><h4>✅ 오류검증 (독립 재계산)</h4><div id="vf_rows"></div><div id="vf_result"></div></div>
-
-    <div class="tools"><button class="btn gold" onclick="window.print()">🖨 평가조서 인쇄/PDF</button><button class="btn" onclick="exportCSV()">📥 CSV 내보내기</button><button class="btn" onclick="saveCase()">💾 사례 저장</button><button class="btn gray" onclick="resetAll()">↺ 초기화</button></div>
-    <div class="tools" style="padding-top:0;align-items:center"><span style="font-size:13px;font-weight:700;color:var(--gray)">저장된 사례:</span><select id="caseSel" style="flex:1;min-width:140px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-weight:700;color:var(--navy);background:#fff"></select><button class="btn gray" onclick="loadCase()">📂 불러오기</button><button class="btn gray" onclick="deleteCase()">🗑 삭제</button></div>
-    <div class="disclaimer">
-      ※ 상속세 및 증여세법 <b>§63</b>·시행령 <b>§54~56·§59</b>·시행규칙 <b>§17·§17의2·§17의3·§19</b>의 보충적 평가입니다(법제처 K-Law 원문 확인 2026.9.9.).<br>
-      • <b>순손익액</b>(§56④) = 각 사업연도소득 + 가산①~⑥ − 차감①~⑥. 3년 가중평균(음수면 0) ÷ 환원율 10%(규칙 §17) = 순손익가치. 사업연도가 1년 미만이면 1년으로 환산합니다(규칙 §17의3②).<br>
-      • <b>증자·감자</b>(§56③⑤·규칙 §17의3⑤⑥) — 증자 전 사업연도의 주식수는 「증자 전 주식수 × (증자 직전 사업연도말 주식수 + 증자주식수) ÷ 증자 직전 사업연도말 주식수」로 환산하고, 증자한 사업연도와 그 이전 사업연도의 순손익액에 「1주당 납입금액 × 증가주식수 × 10%」를 더합니다(증자 연도는 개시일~증자일 월할). 감자는 반대로 뺍니다.<br>
-      • <b>순자산가액</b>(§55·규칙 §17의2) = [자산평가액 + 지급받을권리 − 선급비용·무형자산] − [부채 + 미지급 법인세·확정배당상여·퇴직급여추계액 − 충당금·준비금] + <b>영업권</b>. 0 이하면 0.<br>
-      • <b>영업권</b>(§59②·규칙 §19①) = {순손익 가중평균액 × 50% − 자기자본 × 10%} × 5년 현가계수, 음수면 0. <b>청산·휴폐업·개시 3년 미만·부동산 80%↑·3년 연속 결손 법인은 합산하지 않으며(§55③) 이 조서는 해당 시 자동으로 제외</b>합니다.<br>
-      • <b>가중평균</b>(§54①) = 일반 3:2 / 부동산과다 2:3, 순자산가치 80% 하한. 부동산 80%↑·주식 80%↑(§54④3·5호 단서)는 가중평균이 순자산가치보다 낮을 때만 순자산가치. 청산·휴폐업·개시 3년 미만·존속 3년 이내(§54④1·2·6호)는 순자산가치만. 10% 이하 출자 타법인 비상장주식은 취득가액 평가 가능(§54③).<br>
-      • <b>최대주주 할증 +20%</b>(§63③, 단일) — 중소·중견기업, 평가기준일 전 3년 연속 결손법인 등 제외. <b>평가심의위원회</b>(§54⑥) 신청 시 보충적 평가액의 70~130% 범위에서 다른 평가방법(유사상장·DCF·배당할인) 가액을 인정받을 수 있습니다. 실제 평가는 담당 세무사가 검증합니다.
-    </div>
+<!-- ═══════════ 정밀 조서 ═══════════ -->
+<div id="pro" class="hidden">
+<div class="toolbar nopr">
+  <button class="btn p" type="button" onclick="window.print()">🖨 조서 인쇄 · PDF</button>
+  <button class="btn" type="button" onclick="saveJson()">💾 JSON 저장</button>
+  <button class="btn" type="button" onclick="document.getElementById('jsonFile').click()">📂 JSON 불러오기</button>
+  <input type="file" id="jsonFile" accept=".json,application/json" style="display:none" onchange="loadJsonFile(this)">
+  <button class="btn" type="button" onclick="pasteJson()">📋 상담 메일의 JSON 붙여넣기</button>
+  <button class="btn" type="button" onclick="exportCSV()">📥 CSV</button>
+  <button class="btn" type="button" onclick="saveCase()">🗂 사례 저장</button>
+  <select id="caseSel" style="max-width:220px"></select><button class="btn sm" type="button" onclick="loadCase()">불러오기</button><button class="btn sm" type="button" onclick="deleteCase()">삭제</button>
+  <button class="btn" type="button" onclick="fillSample()">예시 채우기</button>
+  <button class="btn" type="button" onclick="resetAll()">초기화</button>
+</div>
+<div class="pro">
+<div class="form">
+  <div class="sec"><h2><span class="n">0</span>기본 정보 · 평가방법</h2>
+    <div class="fr"><div class="l">법인명</div><input type="text" data-k="name"></div>
+    <div class="fr"><div class="l">대표자</div><input type="text" data-k="ceo"></div>
+    <div class="fr"><div class="l">사업자등록번호</div><input type="text" data-k="biz" placeholder="000-00-00000"></div>
+    <div class="fr"><div class="l">평가기준일</div><input type="date" data-k="date"></div>
+    <div class="fr"><div class="l">설립일(사업 개시일)</div><input type="date" data-k="founded"></div>
+    <div class="fr"><div class="l">발행주식 총수 (평가기준일) <small>§54 ⑤</small></div><input type="number" data-k="shares"></div>
+    <div class="fr"><div class="l">평가대상 주식수</div><input type="number" data-k="holdShares"></div>
+    <div class="fr"><div class="l">평가방법 결정</div><select data-k="methodMode"><option value="auto">자동판정 (부동산·주식 비율, 회사 상태)</option><option value="manual">직접 선택</option></select></div>
+    <div class="fr"><div class="l">회사 상태 <small>§54 ④ 1·2·6호 → 순자산가치만</small></div><select data-k="status"><option value="normal">정상 영업</option><option value="closing">휴·폐업 중 · 사업 개시 전 · 개시 3년 미만</option><option value="liquid">청산 진행 · 사업 계속 곤란</option><option value="term3">잔여 존속기한 3년 이내</option></select></div>
+    <div class="fr"><div class="l">평가방법 (직접 선택 시)</div><select data-k="ftype"><option value="normal">일반법인 (순손익 3 : 순자산 2, 80% 하한)</option><option value="estate">부동산과다 50~80% (2 : 3, 80% 하한)</option><option value="re80">부동산 80%↑ — max(2:3 가중평균, 순자산) §54④3호</option><option value="stk80">주식 80%↑ — max(3:2 가중평균, 순자산) §54④5호</option><option value="netonly">순자산가치만</option></select></div>
+    <div class="fr"><div class="l">부동산등 가액 (자동판정용) <small>비우면 아래 부동산 평가액 사용</small></div><input type="number" data-k="reValue"></div>
+    <div class="fr"><div class="l">주식등 가액 (자동판정용) <small>타법인 출자주식 등</small></div><input type="number" data-k="stkValue"></div>
+    <div class="fr"><div class="l">순손익가치 환원율 <small>규칙 §17 · 연 10%</small></div><input type="number" data-k="rate" step="0.1"></div>
+    <div class="fr"><div class="l">최대주주 할증 <small>§63 ③ · 령 §53 ⑧</small></div><select data-k="prem"><option value="0">미적용 (중소·중견기업 · 3년 결손 등)</option><option value="20">적용 +20%</option></select></div>
+    <div class="fr"><div class="l">작성자</div><input type="text" data-k="author" placeholder="담당 직원"></div>
+  </div>
+  <div class="sec"><h2><span class="n">1</span>1주당 순손익가치 <small style="font-weight:400;color:var(--gray)">시행령 §56 ④ · 규칙 §17의3</small></h2>
+    <div class="scroll"><table class="tbl" id="proInc"></table></div>
+    <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:800;color:var(--navy)">🧮 증자·감자 환산 도우미 <small style="font-weight:400;color:var(--gray)">규칙 §17의3 ⑤ 환산주식수 · 령 §56 ⑤ 가산·차감(1주당 금액 × 주식수 × 10%)</small></summary>
+      <div class="fr"><div class="l">구분</div><select data-k="capKind"><option value="up">유상증자</option><option value="down">유상감자</option></select></div>
+      <div class="fr"><div class="l">증자·감자가 속한 사업연도</div><select data-k="capYear"><option value="0">평가기준일이 속한 사업연도 (3개년 이후)</option><option value="1">직전 1년</option><option value="2">직전 2년</option><option value="3">직전 3년</option></select></div>
+      <div class="fr"><div class="l">직전 사업연도말 주식수 (증자·감자 전)</div><input type="number" data-k="capBefore"></div>
+      <div class="fr"><div class="l">증가·감소 주식수</div><input type="number" data-k="capDelta"></div>
+      <div class="fr"><div class="l">1주당 납입·지급금액</div><input type="number" data-k="capPaid"></div>
+      <div class="fr"><div class="l">사업연도 개시일~증자·감자일 월수 <small>1개월 미만은 1개월</small></div><input type="number" data-k="capMonth" min="1" max="12"></div>
+      <div class="fr"><div class="l">환산 결과</div><div class="v" id="capOut" style="font-size:12px;text-align:left">—</div></div>
+      <button class="btn sm" type="button" onclick="applyCap()">↓ 위 표에 적용 (사업연도말 주식수 · 가⑥/차⑥)</button>
+    </details>
+    <div class="fr tot"><div class="l">가중평균 1주당 순손익액 <small>(1년×3 + 2년×2 + 3년×1) ÷ 6, 음수면 0 — §56 ①</small></div><div class="v" id="p_wavg">0</div></div>
+    <div class="fr tot"><div class="l">① 1주당 순손익가치 <small>가중평균 ÷ 환원율 — §54 ①</small></div><div class="v" id="p_inc">0</div></div>
+  </div>
+  <div class="sec"><h2><span class="n">2</span>1주당 순자산가치 <small style="font-weight:400;color:var(--gray)">시행령 §55 · 규칙 §17의2</small></h2>
+    <div class="fr"><div class="l">자산총계 (장부)</div><input type="number" data-k="asset"></div>
+    <div class="fr"><div class="l">부동산 장부금액</div><input type="number" data-k="reBook"></div>
+    <div class="fr"><div class="l">부동산 상증법 평가액 <small>시가 → 없으면 기준시가·공시가격 (§60~§66)</small></div><input type="number" data-k="reMarket"></div>
+    <div class="fr"><div class="l">그 밖의 자산 평가차액 <small>상증법 평가액 − 장부 (유가증권·채권 등, 음수 가능하나 장부 미만은 정당한 사유 필요)</small></div><input type="number" data-k="evalDiff"></div>
+    <div class="fr"><div class="l">＋ 지급받을 권리 확정액 <small>규칙 §17의2 1호</small></div><input type="number" data-k="aRecv"></div>
+    <div class="fr"><div class="l">− 선급비용(비용 확정분)·개발비 등 무형자산 <small>2호</small></div><input type="number" data-k="aPrepaid"></div>
+    <div class="fr tot"><div class="l">자산 계 (영업권 전)</div><div class="v" id="p_assetSide">0</div></div>
+    <div class="fr"><div class="l">부채총계 (장부)</div><input type="number" data-k="liab"></div>
+    <div class="fr"><div class="l">＋ 평가기준일까지 소득의 법인세·농특세·지방소득세 <small>3호 가</small></div><input type="number" data-k="lTax"></div>
+    <div class="fr"><div class="l">＋ 확정 배당금·상여금 등 <small>3호 나</small></div><input type="number" data-k="lDiv"></div>
+    <div class="fr"><div class="l">＋ 퇴직급여추계액 <small>3호 다 · 전원 퇴직 가정</small></div><input type="number" data-k="lRetire"></div>
+    <div class="fr"><div class="l">− 제충당금·제준비금 <small>4호 · 비용 확정분 제외</small></div><input type="number" data-k="lReserve"></div>
+    <div class="fr tot"><div class="l">부채 계</div><div class="v" id="p_liabSide">0</div></div>
+    <div class="fr tot"><div class="l">자기자본 (영업권 전)</div><div class="v" id="p_selfCap">0</div></div>
+    <div class="fr"><div class="l">영업권 <small>령 §59 ② · §55 ③</small></div><select data-k="gwMode"><option value="auto">자동계산</option><option value="manual">직접 입력</option><option value="none">미반영</option></select></div>
+    <div class="fr"><div class="l">초과이익률 <small>순손익 가중평균 × 50%</small></div><input type="number" data-k="gwExcess" step="0.1"></div>
+    <div class="fr"><div class="l">자기자본 이자율 <small>규칙 §19 ① · 10%</small></div><input type="number" data-k="gwInt" step="0.1"></div>
+    <div class="fr"><div class="l">지속연수 현가계수 <small>5년 · 10% 연금현가 3.7908</small></div><input type="number" data-k="gwPv" step="0.0001"></div>
+    <div class="fr"><div class="l">영업권 평가액 (직접)</div><input type="number" data-k="gwManual"></div>
+    <div class="fr tot"><div class="l">영업권 평가액 <small id="p_gwNote"></small></div><div class="v" id="p_gw">0</div></div>
+    <div class="fr tot"><div class="l">순자산가액 (0 이하면 0)</div><div class="v" id="p_networth">0</div></div>
+    <div class="fr tot"><div class="l">② 1주당 순자산가치</div><div class="v" id="p_assetPer">0</div></div>
+  </div>
+  <div class="sec"><h2><span class="n">3</span>최종 평가 · 점검</h2>
+    <div class="fr"><div class="l">적용 방법</div><div class="v" id="p_method" style="text-align:left;font-size:12.5px"></div></div>
+    <div class="fr"><div class="l">가중평균 평가액</div><div class="v" id="p_weighted">0</div></div>
+    <div class="fr"><div class="l" id="p_floorLbl">순자산가치 80% 하한</div><div class="v" id="p_floor">0</div></div>
+    <div class="fr"><div class="l">할증 전 평가액</div><div class="v" id="p_before">0</div></div>
+    <div class="fr"><div class="l">최대주주 할증</div><div class="v" id="p_prem">0</div></div>
+    <div class="fr tot"><div class="l">최종 1주당 평가액</div><div class="v" id="p_final">0</div></div>
+    <div id="proFlags" style="margin-top:10px"></div>
+    <div class="chk"><input type="checkbox" data-k="attachList" checked><span>조서에 첨부 서류 목록·검토 확인란 넣기</span></div>
+    <div class="chk"><input type="checkbox" data-k="showHometax" checked><span>홈택스 「재산 및 평가명세서」 기재값 표 넣기</span></div>
   </div>
 </div>
-<footer class="foot"><b>세무법인 한백택스</b> · 대표세무사 차재영 · 서울특별시 중구 동호로 315, 신안빌딩 2층 (장충동2가 173-1) · Tel 02-2277-3101 · Fax 02-2277-3161 · hb090@hanbaektax.kr · hb3101@nate.com</footer>
+<div class="sheetwrap"><div class="sheet" id="sheet"></div></div>
+</div>
+</div>
+</div>
 
-<script>
-const fmt=n=>{if(n==null||isNaN(n))return'0';const neg=n<0;const a=Math.abs(Math.round(n)).toLocaleString('ko-KR');return neg?'-'+a:a;};
-const v=id=>{const el=document.getElementById(id);return el?parseFloat(String(el.value).replace(/,/g,''))||0:0;};
-const setT=(id,t)=>{const el=document.getElementById(id);if(el)el.textContent=t;};
-function yrAdd(y){return v('i_'+y+'_a1')+v('i_'+y+'_a2')+v('i_'+y+'_a3')+v('i_'+y+'_a4')+v('i_'+y+'_a5')+v('i_'+y+'_a6');}
-function yrSub(y){return v('i_'+y+'_s1')+v('i_'+y+'_s2')+v('i_'+y+'_s3')+v('i_'+y+'_s4')+v('i_'+y+'_s5')+v('i_'+y+'_s6');}
-function yrShares(y){const s=v('i_'+y+'_sh');return s>0?s:v('shares');}
-
-/* ── 증자·감자 환산 도우미 (규칙 §17의3⑤ · 영 §56⑤ · 규칙 §17 10%) ── */
-function capCalc(){
-  const kind=document.getElementById('cap_kind').value,y0=+document.getElementById('cap_year').value;
-  const before=v('cap_before'),delta=v('cap_delta'),paid=v('cap_paid');
-  let month=Math.min(12,Math.max(1,Math.round(v('cap_month'))||12));
-  const sign=kind==='up'?1:-1;
-  const ratio=before>0?(before+sign*delta)/before:0;
-  const sh={},adj={};
-  [1,2,3].forEach(y=>{
-    const base=yrShares(y);
-    sh[y]=(y>y0&&ratio>0)?base*ratio:base;                      /* 증자·감자 전 사업연도만 환산 */
-    const full=paid*delta*0.10;
-    adj[y]=y===y0?full*month/12:(y>y0?full:0);                   /* 해당 연도 월할, 그 이전 연도 전액 */
-  });
-  return {kind,y0,ratio,sh,adj,valid:before>0&&delta>0};
+<script id="hbEngine">
+/* ═══════ 계산 엔진 — 화면과 분리. evaluate(S) 는 같은 입력에 같은 결과 ═══════ */
+const fl=Math.floor;
+const mul=(a,b)=>fl(Math.round(a*b*1e6)/1e6);
+const N=x=>{const v=parseFloat(String(x==null?'':x).replace(/,/g,''));return isNaN(v)?0:v;};
+/* 사업연도별 순손익액 — 령 §56 ④ (각 사업연도소득 + 가산 − 차감), 규칙 §17의3 ② (1년 미만 사업연도는 1년으로 환산) */
+function yearNet(S,y){
+  const g=k=>N(S['y'+y+k]);
+  const add=g('a1')+g('a2')+g('a3')+g('a4')+g('a5')+g('a6'),sub=g('s1')+g('s2')+g('s3')+g('s4')+g('s5')+g('s6');
+  let net=g('inc')+add-sub;const m=N(S['y'+y+'m'])||12;if(m>0&&m<12)net=fl(net*12/m);
+  const shares=g('sh')>0?g('sh'):N(S.shares);
+  return{inc:g('inc'),add,sub,net,shares,ps:shares>0?net/shares:0,entered:S['y'+y+'inc']!==''&&S['y'+y+'inc']!=null};
 }
-function calcCap(){
-  const c=capCalc();
-  if(!c.valid){setT('cap_ratio','—');setT('cap_sh','—');setT('cap_adj','—');return c;}
-  const tgt=[1,2,3].filter(y=>y>c.y0).map(y=>'직전'+y+'년').join('·')||'없음';
-  setT('cap_ratio','× '+c.ratio.toFixed(4)+' · 환산 대상: '+tgt+(c.y0>0?' · 월할 대상: 직전'+c.y0+'년':''));
-  setT('cap_sh',[1,2,3].map(y=>fmt(c.sh[y])).join(' / '));
-  setT('cap_adj',[1,2,3].map(y=>fmt(c.adj[y])).join(' / ')+(c.kind==='up'?' (가산)':' (차감)'));
-  return c;
+/* 증자·감자 환산 — 규칙 §17의3 ⑤, 령 §56 ⑤ (율 10% — 규칙 §17의3 ⑥) */
+function capAdjust(S){
+  const kind=S.capKind||'up',y0=+S.capYear||0,before=N(S.capBefore),delta=N(S.capDelta),paid=N(S.capPaid);
+  const month=Math.min(12,Math.max(1,Math.round(N(S.capMonth))||12));const sign=kind==='up'?1:-1;
+  const ratio=before>0?(before+sign*delta)/before:0;const sh={},adj={};
+  [1,2,3].forEach(y=>{const base=yearNet(S,y).shares;sh[y]=(y>y0&&ratio>0)?Math.round(base*ratio):base;
+    const full=fl(paid*delta*0.10);adj[y]=y===y0?fl(full*month/12):(y>y0?full:0);});
+  return{kind,y0,ratio,sh,adj,valid:before>0&&delta>0};
 }
-function applyCap(){
-  const c=calcCap();if(!c.valid){alert('직전 사업연도말 주식수와 증가·감소 주식수를 입력하세요.');return;}
-  [1,2,3].forEach(y=>{
-    document.getElementById('i_'+y+'_sh').value=Math.round(c.sh[y]);
-    document.getElementById('i_'+y+(c.kind==='up'?'_a6':'_s6')).value=Math.round(c.adj[y]);
-  });
-  calc();
+function incomeValue(S){
+  const Y={1:yearNet(S,1),2:yearNet(S,2),3:yearNet(S,3)};
+  const wavgPS=Math.max(0,(Y[1].ps*3+Y[2].ps*2+Y[3].ps)/6);
+  const wavgNet=Math.max(0,fl((Y[1].net*3+Y[2].net*2+Y[3].net)/6));
+  const rate=N(S.rate)/100;const incPer=rate>0?fl(wavgPS/rate):0;
+  const loss3=[1,2,3].every(y=>Y[y].entered&&Y[y].inc<0);         /* 3년 연속 결손 — §63 ③, 령 §53 ⑧ 1호·§55 ③ 3호 */
+  return{Y,wavgPS:fl(wavgPS),wavgNet,incPer,loss3};
 }
-
-function calc(){
-  const shares=v('shares')||1;
-  // 순손익 (연도별)
-  let nets={},ps={};
-  [1,2,3].forEach(y=>{
-    const add=yrAdd(y),sub=yrSub(y),net=v('i_'+y+'_inc')+add-sub;
-    nets[y]=net;
-    setT('o_'+y+'_add',fmt(add));
-    setT('o_'+y+'_sub',fmt(sub));
-    setT('o_'+y+'_net',fmt(net));
-    ps[y]=net/(yrShares(y)||1);
-    setT('o_'+y+'_ps',fmt(ps[y]));
-  });
-  let wavgPS=(ps[1]*3+ps[2]*2+ps[3]*1)/6; if(wavgPS<0)wavgPS=0;
-  let wavgTot=(nets[1]*3+nets[2]*2+nets[3]*1)/6; if(wavgTot<0)wavgTot=0;
-  setT('wavg_ps',fmt(wavgPS));
-  const rate=v('rate')/100;
-  const incPer=rate>0?wavgPS/rate:0;
-  setT('incval',fmt(incPer));
-
-  // 3년 연속 결손 판정 (§63③ 할증 제외 · §55③3호 영업권 미합산)
-  const loss3=[1,2,3].every(y=>document.getElementById('i_'+y+'_inc').value!==''&&v('i_'+y+'_inc')<0);
-  const lw=document.getElementById('loss_warn');
-  if(loss3){lw.textContent='평가기준일 전 3년 연속 결손 법인으로 판정 — 최대주주 할증을 적용하지 않고(§63③) 영업권을 합산하지 않습니다(§55③3호). 할증이 「적용」으로 선택되어 있으면 자동으로 제외합니다.';lw.classList.add('show');}
-  else lw.classList.remove('show');
-
-  // 순자산: 자산계 / 부채계
-  const assetSide=v('asset')+v('a_recv')-v('a_prepaid');
-  const liabSide=v('liab')+v('l_tax')+v('l_div')+v('l_retire')-v('l_reserve');
+/* 평가방법 — 령 §54 ①·④ */
+function decideMethod(S,assetEval){
+  if(S.methodMode==='manual')return{ft:S.ftype||'normal',why:'직접 선택'};
+  if(S.status==='closing'||S.status==='liquid'||S.status==='term3')return{ft:'netonly',why:{closing:'휴·폐업·사업 개시 전·개시 3년 미만 (§54 ④ 2호)',liquid:'청산 중·사업 계속 곤란 (§54 ④ 1호)',term3:'잔여 존속기한 3년 이내 (§54 ④ 6호)'}[S.status]};
+  if(S.founded&&S.date){const f=new Date(S.founded+'T00:00:00'),d=new Date(S.date+'T00:00:00');const yrs=(d-f)/31557600000;if(yrs<3)return{ft:'netonly',why:'사업 개시 후 3년 미만 (§54 ④ 2호)'};}
+  const re=N(S.reValue)>0?N(S.reValue):(N(S.reMarket)>0?N(S.reMarket):N(S.reBook));const stk=N(S.stkValue);
+  if(assetEval>0&&(re>0||stk>0)){const rr=re/assetEval,sr=stk/assetEval;
+    if(rr>=0.8)return{ft:'re80',why:'부동산 '+(rr*100).toFixed(1)+'% ≥ 80% (§54 ④ 3호 단서)',rr,sr};
+    if(sr>=0.8)return{ft:'stk80',why:'주식 '+(sr*100).toFixed(1)+'% ≥ 80% (§54 ④ 5호 단서)',rr,sr};
+    if(rr>=0.5)return{ft:'estate',why:'부동산 '+(rr*100).toFixed(1)+'% ≥ 50% → 2 : 3 (§54 ①)',rr,sr};
+    return{ft:'normal',why:'부동산 '+(rr*100).toFixed(1)+'% · 주식 '+(sr*100).toFixed(1)+'% → 3 : 2',rr,sr};}
+  const cat=S.reCat||'lt50';
+  return{ft:{lt50:'normal','50-80':'estate',ge80:'re80',stk80:'stk80',unknown:'normal'}[cat]||'normal',why:cat==='unknown'?'부동산 금액 미입력 → 일반 3 : 2 로 가정':'답변에 따른 판정'};
+}
+function assetValue(S,inc,ft){
+  const reDiff=N(S.reMarket)>0?Math.max(0,N(S.reMarket)-N(S.reBook)):0;       /* §55 ① 후단: 평가액이 장부보다 적으면 장부 */
+  const assetEval=N(S.asset)+reDiff+N(S.evalDiff);
+  const assetSide=assetEval+N(S.aRecv)-N(S.aPrepaid);
+  const liabSide=N(S.liab)+N(S.lTax)+N(S.lDiv)+N(S.lRetire)-N(S.lReserve);
   const selfCap=assetSide-liabSide;
-  setT('asset_side',fmt(assetSide));
-  setT('liab_side',fmt(liabSide));
-  setT('self_cap',fmt(selfCap));
-
-  // 평가방법 자동판정 (§54④)
-  const auto=document.getElementById('methodMode').value==='auto';
-  document.getElementById('reRow').style.display=auto?'flex':'none';
-  document.getElementById('stkRow').style.display=auto?'flex':'none';
-  document.getElementById('reRatioRow').style.display=auto?'flex':'none';
-  const ftypeSel=document.getElementById('ftype');
-  if(auto){
-    const reRatio=v('asset')>0?v('re_value')/v('asset'):0;
-    const stkRatio=v('asset')>0?v('stk_value')/v('asset'):0;
-    let m;
-    if(reRatio>=0.8)m='re80';
-    else if(stkRatio>=0.8)m='stk80';
-    else if(reRatio>=0.5)m='estate';
-    else m='normal';
-    ftypeSel.value=m;ftypeSel.disabled=true;ftypeSel.style.opacity=.6;
-    setT('ftypeNote','자동판정 적용');
-    const mlabel=m==='re80'?'부동산80%↑(§54④3호)':m==='stk80'?'주식80%↑(§54④5호)':m==='estate'?'부동산과다 2:3':'일반 3:2';
-    setT('re_ratio','부동산 '+(reRatio*100).toFixed(1)+'% / 주식 '+(stkRatio*100).toFixed(1)+'% → '+mlabel);
-  }else{ftypeSel.disabled=false;ftypeSel.style.opacity=1;setT('ftypeNote','');}
-  const ft=ftypeSel.value;
-
-  // 영업권 (§55③ 합산 제외 사유 자동 반영)
-  const gwSel=document.getElementById('gw_mode');
-  const gwMode=gwSel.value;
-  const gwExcluded=ft==='netonly'||ft==='re80'||loss3;
-  document.getElementById('gwAuto').classList.toggle('hide',gwMode!=='auto');
-  document.getElementById('gwManual').classList.toggle('hide',gwMode!=='manual');
-  let goodwill=0;
-  const excessAmt=wavgTot*(v('gw_excess')/100)-selfCap*(v('gw_int')/100);
-  setT('gw_excess_amt',fmt(excessAmt));
-  if(gwMode==='auto')goodwill=Math.max(0,excessAmt*v('gw_pv'));
-  else if(gwMode==='manual')goodwill=v('gw_manual');
-  if(gwExcluded&&gwMode!=='none'){goodwill=0;setT('gw_note',(loss3?'3년 연속 결손':ft==='re80'?'부동산 80%↑ 법인':'순자산가치만 평가하는 법인')+' → §55③ 영업권 합산 제외 (자동 0)');}
-  else setT('gw_note','');
-  setT('goodwill_val',fmt(goodwill));
-  let networth=selfCap+goodwill; if(networth<0)networth=0;
-  setT('networth',fmt(networth));
-  const assetPer=networth/shares;
-  setT('assetval',fmt(assetPer));
-
-  // 최종
-  setT('r_inc',fmt(incPer));
-  setT('r_asset',fmt(assetPer));
-  let weighted,beforePrem,formula,floorVal,floorLbl;
-  if(ft==='netonly'){
-    weighted=assetPer;beforePrem=assetPer;floorVal=assetPer;floorLbl='순자산가치 (100%)';formula='순자산가치만 적용 (§54④)';
-  }else if(ft==='re80'){
-    weighted=(incPer*2+assetPer*3)/5;floorVal=assetPer;floorLbl='순자산가치 (비교, §54④3호 단서)';
-    beforePrem=Math.max(weighted,assetPer);formula='부동산80%↑: max(가중평균2:3, 순자산)';
-  }else if(ft==='stk80'){
-    weighted=(incPer*3+assetPer*2)/5;floorVal=assetPer;floorLbl='순자산가치 (비교, §54④5호 단서)';
-    beforePrem=Math.max(weighted,assetPer);formula='주식80%↑: max(가중평균3:2, 순자산)';
-  }else if(ft==='estate'){
-    weighted=(incPer*2+assetPer*3)/5;floorVal=assetPer*0.8;floorLbl='순자산가치 80% 하한';
-    beforePrem=Math.max(weighted,floorVal);formula='(순손익2 + 순자산3) ÷ 5, 80%하한';
-  }else{
-    weighted=(incPer*3+assetPer*2)/5;floorVal=assetPer*0.8;floorLbl='순자산가치 80% 하한';
-    beforePrem=Math.max(weighted,floorVal);formula='(순손익3 + 순자산2) ÷ 5, 80%하한';
-  }
-  setT('weighted',fmt(weighted));
-  setT('wformula',formula);
-  setT('floorLbl',floorLbl);
-  setT('floor',fmt(floorVal));
-  setT('beforeprem',fmt(beforePrem));
-  let premRate=parseFloat(document.getElementById('prem').value)/100;
-  if(loss3)premRate=0;
-  const premAmt=beforePrem*premRate;
-  setT('premamt',fmt(premAmt));
-  const final=beforePrem+premAmt;
-  setT('final',fmt(final)+' 원');
-  setT('detail',
-    (ft==='netonly'?'순자산가치 적용'
-      :(ft==='re80'||ft==='stk80')?(weighted<assetPer?'가중평균<순자산 → 순자산가치 적용':'가중평균 적용(≥순자산)')
-      :(weighted<floorVal?'가중평균 < 80%하한 → 하한 적용':'가중평균 평가액 적용'))
-    +(premRate?'  +  최대주주 할증 '+premRate*100+'%':(loss3&&document.getElementById('prem').value==='20'?'  (3년 결손 → 할증 제외)':'')));
-  setT('total',fmt(final*shares)+' 원');
-  const hold=v('hold_shares')>0?v('hold_shares'):shares;
-  setT('hold_val',fmt(final*hold)+' 원 ('+fmt(hold)+'주)');
-  setT('rng',fmt(final*0.7)+' ~ '+fmt(final*1.3)+' 원');
-
-  // 오류검증 — 독립 재계산
-  const num=s=>parseFloat(String(s).replace(/[^0-9.\-]/g,''))||0;
-  const vRow=(l,e,a)=>{const ok=Math.abs(Math.round(e)-Math.round(a))<2;return `<div class="vr"><span class="l">${l}</span><span class="e">계산: ${fmt(e)}</span><span class="a">표시: ${fmt(a)}</span><span class="i" style="color:${ok?'#2F855A':'#C53030'}">${ok?'✔':'✘'}</span></div>`;};
-  const wAlt=Math.max(0,(nets[1]*3/(yrShares(1)||1)+nets[2]*2/(yrShares(2)||1)+nets[3]/(yrShares(3)||1))/6);
-  const netAlt=Math.max(0,(v('asset')+v('a_recv')-v('a_prepaid'))-(v('liab')+v('l_tax')+v('l_div')+v('l_retire')-v('l_reserve'))+goodwill);
-  const wts=ft==='estate'||ft==='re80'?[2,3]:[3,2];
-  const wAltFinal=ft==='netonly'?assetPer:(wAlt/(rate||1)*wts[0]+netAlt/shares*wts[1])/5;
-  let h='';
-  h+=vRow('가중평균 1주당 순손익액 (연도별 재계산)',wAlt,num(document.getElementById('wavg_ps').textContent));
-  h+=vRow('순자산가액 (자산−부채+영업권)',netAlt,num(document.getElementById('networth').textContent));
-  h+=vRow('가중평균 평가액 ('+wts[0]+':'+wts[1]+')',wAltFinal,num(document.getElementById('weighted').textContent));
-  h+=vRow('최종 1주당 = 평가액 × (1 + 할증률 '+(premRate*100)+'%)',beforePrem*(1+premRate),num(document.getElementById('final').textContent));
-  h+=vRow('총 평가액 = 1주당 × 발행주식수',final*shares,num(document.getElementById('total').textContent));
-  document.getElementById('vf_rows').innerHTML=h;
-  const ok=Math.abs(wAlt-wavgPS)<2&&Math.abs(netAlt-networth)<2&&Math.abs(wAltFinal-weighted)<2;
-  document.getElementById('vf_result').innerHTML=ok?'<div class="vok">✔ 모든 산출항목 검증 통과</div>':'<div class="vfail">✘ 검증 불일치 항목이 있습니다</div>';
-  try{localStorage.setItem(LS_AUTO,JSON.stringify(collectState()));}catch(e){}
+  const gwExcluded=ft==='netonly'||ft==='re80'||inc.loss3;                      /* §55 ③ */
+  const excess=fl(inc.wavgNet*N(S.gwExcess)/100-selfCap*N(S.gwInt)/100);
+  let gw=0,gwNote='';
+  if(S.gwMode==='auto')gw=Math.max(0,fl(excess*N(S.gwPv)));else if(S.gwMode==='manual')gw=N(S.gwManual);
+  if(gwExcluded&&S.gwMode!=='none'){gw=0;gwNote=(inc.loss3?'3년 연속 결손':ft==='re80'?'부동산 80%↑ 법인':'순자산가치만 평가하는 법인')+' → §55 ③ 합산 제외';}
+  const networth=Math.max(0,selfCap+gw);const shares=N(S.shares)||1;
+  return{reDiff,assetEval,assetSide,liabSide,selfCap,excess,gw,gwNote,gwExcluded,networth,assetPer:fl(networth/shares)};
 }
-function resetAll(){if(!confirm('모든 입력값을 지울까요?'))return;document.querySelectorAll('input[type=number]').forEach(i=>{if(i.id==='shares')i.value=10000;else if(i.id==='rate')i.value=10;else if(i.id==='gw_excess')i.value=50;else if(i.id==='gw_int')i.value=10;else if(i.id==='gw_pv')i.value=3.7908;else if(i.id==='cap_month')i.value=12;else i.value='';});document.getElementById('ftype').value='normal';document.getElementById('prem').value='0';document.getElementById('methodMode').value='manual';document.getElementById('gw_mode').value='auto';calcCap();calc();}
-// ── 사례 저장/불러오기 (localStorage) ──
-const LS_AUTO='hbtax_unlisted_auto', LS_CASES='hbtax_unlisted_cases';
-function collectState(){const s={};document.querySelectorAll('.calc-body input,.calc-body select').forEach(el=>{if(el.id)s[el.id]=el.value;});return s;}
-function applyState(s,run){Object.keys(s).forEach(id=>{const el=document.getElementById(id);if(el)el.value=s[id];});if(run!==false){calcCap();calc();}}
+function finalValue(ft,incPer,assetPer,premRate){
+  let weighted,before,floorVal,floorLbl,formula;
+  if(ft==='netonly'){weighted=assetPer;before=assetPer;floorVal=assetPer;floorLbl='순자산가치 (100%)';formula='순자산가치만 (§54 ④)';}
+  else if(ft==='re80'){weighted=fl((incPer*2+assetPer*3)/5);floorVal=assetPer;floorLbl='순자산가치 (비교)';before=Math.max(weighted,assetPer);formula='max(2:3 가중평균, 순자산가치) — §54 ④ 3호 단서';}
+  else if(ft==='stk80'){weighted=fl((incPer*3+assetPer*2)/5);floorVal=assetPer;floorLbl='순자산가치 (비교)';before=Math.max(weighted,assetPer);formula='max(3:2 가중평균, 순자산가치) — §54 ④ 5호 단서';}
+  else if(ft==='estate'){weighted=fl((incPer*2+assetPer*3)/5);floorVal=fl(assetPer*0.8);floorLbl='순자산가치 80% 하한';before=Math.max(weighted,floorVal);formula='(순손익 2 + 순자산 3) ÷ 5, 80% 하한 — §54 ①';}
+  else{weighted=fl((incPer*3+assetPer*2)/5);floorVal=fl(assetPer*0.8);floorLbl='순자산가치 80% 하한';before=Math.max(weighted,floorVal);formula='(순손익 3 + 순자산 2) ÷ 5, 80% 하한 — §54 ①';}
+  const prem=fl(before*premRate);return{weighted,before,floorVal,floorLbl,formula,prem,final:before+prem};
+}
+function evaluate(S){
+  const inc=incomeValue(S);
+  const pre=assetValue(S,inc,'normal');                     /* 방법 판정용 자산총액 */
+  const m=decideMethod(S,pre.assetEval);
+  const as=assetValue(S,inc,m.ft);
+  let premRate=N(S.prem)/100;let premWhy='';
+  if(S.small==='y'){premRate=0;premWhy='중소·중견기업 — 할증 제외 (령 §53 ⑧ 9호)';}
+  if(inc.loss3){premRate=0;premWhy='3년 연속 결손 — 할증 제외 (령 §53 ⑧ 1호)';}
+  const f=finalValue(m.ft,inc.incPer,as.assetPer,premRate);
+  const shares=N(S.shares)||0,hold=N(S.holdShares)>0?N(S.holdShares):shares;
+  return{inc,method:m,as,premRate,premWhy,...f,shares,hold,total:f.final*shares,holdVal:f.final*hold,lo:fl(f.final*0.7),hi:fl(f.final*1.3)};
+}
+/* ── 증여·상속 시산 (의사결정 진단 엔진과 같은 산식) ── */
+const GIFT=[[1e8,.10,0,0],[5e8,.20,1e7,1e8],[10e8,.30,9e7,5e8],[30e8,.40,24e7,10e8],[Infinity,.50,104e7,30e8]];   /* §26 */
+function giftRaw(b){b=Math.max(0,fl(b));for(const [lim,r,acc,base] of GIFT){if(b<=lim)return fl(acc+(b-base)*r);}return 0;}
+function giftSim({value,rel,prior}){
+  const minor=rel==='minor';const cap=rel==='spouse'?6e8:(rel==='child'||rel==='minor'||rel==='grandchild')?(minor?2e7:5e7):rel==='relative'?1e7:0;  /* §53 */
+  let p=N(prior);if(p<1e7)p=0;                                             /* §47 ② */
+  const baseAll=Math.max(0,p+value-cap),basePrior=Math.max(0,p-cap);
+  const calc=Math.max(0,giftRaw(baseAll)-giftRaw(basePrior));             /* §58 */
+  const surcharge=rel==='grandchild'?fl(calc*((minor&&value>20e8)?.4:.3)):0;  /* §57 */
+  const computed=calc+surcharge,credit=fl(computed*.03);                    /* §69 ② */
+  return{cap,base:baseAll-basePrior,calc,surcharge,computed,credit,pay:computed-credit};
+}
+function inheritSim({estate,spouse}){const ded=5e8+(spouse?5e8:0);const base=Math.max(0,estate-ded);const calc=giftRaw(base),credit=fl(calc*.03);return{ded,base,calc,credit,pay:calc-credit};}
+if(typeof module!=='undefined')module.exports={N,yearNet,capAdjust,incomeValue,decideMethod,assetValue,finalValue,evaluate,giftRaw,giftSim,inheritSim};
+</script>
+<script>
+/* ═══════ 상태 ═══════ */
+const $=id=>document.getElementById(id);
+const won=n=>(n<0?'−':'')+Math.abs(fl(+n||0)).toLocaleString('ko-KR')+'원';
+const fmt=n=>(n<0?'−':'')+Math.abs(fl(+n||0)).toLocaleString('ko-KR');
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const kd=s=>{if(!s)return '________';const d=new Date(s+'T00:00:00');if(isNaN(d))return esc(s);return d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일';};
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const LS='hbt_unlisted_v3',LS_CASES='hbt_unlisted_cases_v3';
+const DEF={name:'',ceo:'',biz:'',date:'',founded:'',shares:'',holdShares:'',status:'normal',small:'',reCat:'',methodMode:'auto',ftype:'normal',reValue:'',stkValue:'',rate:10,prem:'20',author:'',
+  y1label:'',y2label:'',y3label:'',y1inc:'',y2inc:'',y3inc:'',y1m:'',y2m:'',y3m:'',y1sh:'',y2sh:'',y3sh:'',cap:'n',capKind:'up',capYear:'1',capBefore:'',capDelta:'',capPaid:'',capMonth:12,
+  asset:'',reBook:'',reMarket:'',evalDiff:'',aRecv:'',aPrepaid:'',liab:'',lTax:'',lDiv:'',lRetire:'',lReserve:'',gwMode:'auto',gwExcess:50,gwInt:10,gwPv:3.7908,gwManual:'',
+  giftRel:'child',giftPrior:'',giftShares:'',spouse:'y',attachList:true,showHometax:true};
+[1,2,3].forEach(y=>['a1','a2','a3','a4','a5','a6','s1','s2','s3','s4','s5','s6'].forEach(k=>DEF['y'+y+k]=''));
+let S=JSON.parse(JSON.stringify(DEF)),mode='easy',step=0;
+const INC_ROWS=[['inc','각 사업연도 소득 (법인세법 §14)','','in'],
+  ['a1','＋가① 국세·지방세 과오납 환급금이자','법 §18 4호','in'],['a2','＋가② 수입배당금 익금불산입액','법 §18의2·§18의4','in'],['a3','＋가③ 기부금 이월손금산입 등','§24 ⑤·§27의2','in'],['a4','＋가④ 화폐성외화자산 평가이익','령 §76','in'],['a5','＋가⑤ 그 밖의 가산','규칙','in'],['a6','＋가⑥ 유상증자 가산','령 §56 ⑤ 1호','in'],
+  ['add','가산 소계','','out'],
+  ['s1','−차① 법인세·농특세·지방소득세','§56 ④ 2호 가','in'],['s2','−차② 벌과금·강제징수비·징수불이행세액','2호 나','in'],['s3','−차③ 기부금·기업업무추진비 한도초과·지급이자 손금불산입 등','2호 다','in'],['s4','−차④ 시인부족액 − 상각부인 추인액','2호 라','in'],['s5','−차⑤ 화폐성외화자산 평가손실','2호 마','in'],['s6','−차⑥ 유상감자 차감','§56 ⑤ 2호','in'],
+  ['sub','차감 소계','','out'],['m','사업연도 월수 (1년 미만이면)','규칙 §17의3 ②','in'],['net','＝ 순손익액','','out'],['sh','사업연도말 발행주식수 (비우면 평가기준일 주식수)','§56 ③','in'],['ps','＝ 1주당 순손익액','','out']];
+function buildProInc(){
+  const t=$('proInc');let h='<thead><tr><th>구분 (법정 항목)</th><th class="num">직전 1년 ×3</th><th class="num">직전 2년 ×2</th><th class="num">직전 3년 ×1</th></tr></thead><tbody>';
+  h+='<tr><td>사업연도</td>'+[1,2,3].map(y=>'<td><input type="text" data-k="y'+y+'label" placeholder="'+(2026-y)+'"></td>').join('')+'</tr>';
+  INC_ROWS.forEach(r=>{h+='<tr class="'+(r[3]==='out'?'sum':'')+'"><td>'+r[1]+(r[2]?' <small style="color:var(--gray)">'+r[2]+'</small>':'')+'</td>'+[1,2,3].map(y=>r[3]==='in'?'<td><input type="number" data-k="y'+y+r[0]+'"'+(r[0]==='m'?' placeholder="12"':'')+'></td>':'<td class="num" id="pi_'+y+r[0]+'">0</td>').join('')+'</tr>';});
+  t.innerHTML=h+'</tbody>';
+}
+function bind(){
+  document.querySelectorAll('[data-k]').forEach(el=>{const k=el.dataset.k;
+    const set=()=>{const v=S[k];if(el.type==='checkbox')el.checked=!!v;else el.value=(v==null?'':v);};set();
+    el.addEventListener('input',()=>{S[k]=el.type==='checkbox'?el.checked:el.value;persist();render();});
+    el.addEventListener('change',()=>{S[k]=el.type==='checkbox'?el.checked:el.value;persist();render();});});
+  document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+  [['smallBox','small'],['reBox','reCat'],['capBox','cap'],['spouseBox','spouse']].forEach(([b,k])=>document.querySelectorAll('#'+b+' label').forEach(l=>l.onclick=()=>{S[k]=l.dataset.v;persist();render();}));
+}
+function refill(){document.querySelectorAll('[data-k]').forEach(el=>{const v=S[el.dataset.k];if(el.type==='checkbox')el.checked=!!v;else el.value=(v==null?'':v);});}
+function persist(){try{localStorage.setItem(LS,JSON.stringify({S,mode,step}));}catch(e){}}
+function load(){try{const o=JSON.parse(localStorage.getItem(LS)||'null');if(o&&o.S){S=Object.assign({},DEF,o.S);mode=o.mode||'easy';step=o.step||0;}}catch(e){}}
+function setMode(m){mode=m;refill();document.querySelectorAll('#modes button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));$('easy').classList.toggle('hidden',m!=='easy');$('pro').classList.toggle('hidden',m!=='pro');persist();render();window.scrollTo({top:0});}
+function go(n){if(n>=1&&!(N(S.shares)>0)){alert('발행주식 총수를 넣어 주십시오.');return;}step=n;for(let k=0;k<4;k++)$('s'+k).classList.toggle('hidden',k!==n);
+  const sb=$('steps');sb.innerHTML='';['① 회사','② 3년 손익','③ 재무상태','④ 결과'].forEach((t,k)=>{const b=document.createElement('button');b.textContent=t;b.className=k===n?'on':(k<n?'done':'');b.onclick=()=>go(k);sb.appendChild(b);});
+  persist();render();window.scrollTo({top:0,behavior:'smooth'});}
+function ftName(ft){return{normal:'일반법인 3 : 2',estate:'부동산과다 2 : 3',re80:'부동산 80%↑ (순자산 비교)',stk80:'주식 80%↑ (순자산 비교)',netonly:'순자산가치만'}[ft]||ft;}
+
+/* ═══════ 화면 ═══════ */
+function render(){const R=evaluate(S);window.__lastResult={S:JSON.parse(JSON.stringify(S)),R};if(mode==='easy')renderEasy(R);else renderPro(R);}
+function renderEasy(R){
+  [['smallBox','small'],['reBox','reCat'],['capBox','cap'],['spouseBox','spouse']].forEach(([b,k])=>document.querySelectorAll('#'+b+' label').forEach(l=>l.classList.toggle('on',l.dataset.v===S[k])));
+  const sh=N(S.shares),hd=N(S.holdShares);$('holdPct').textContent=sh&&hd?'지분 '+(hd/sh*100).toFixed(2)+'%':'';
+  [1,2,3].forEach(y=>$('e_n'+y).textContent=fmt(R.inc.Y[y].net));
+  const rd=R.as.reDiff;$('reDiffCalc').textContent=N(S.reMarket)?(rd>0?'자산에 +'+won(rd):'장부금액 유지 (§55 ① 후단)'):'';
+  $('judge1').innerHTML=(R.inc.loss3?'<b>3년 연속 결손</b> — 순손익가치 0, 할증 없음, 영업권 미합산. ':'')+'가중평균 1주당 순손익액 <b>'+won(R.inc.wavgPS)+'</b> → 10%로 나눈 순손익가치 <b>'+won(R.inc.incPer)+'</b>'+(S.cap==='y'?'<br><span style="color:var(--red)">증자·감자가 있어 직원이 정밀 조서에서 환산합니다. 아래 결과는 환산 전 값입니다.</span>':'');
+  $('judge2').innerHTML='자산 '+won(R.as.assetSide)+' − 부채 '+won(R.as.liabSide)+(R.as.gw?' + 영업권 '+won(R.as.gw):'')+' = 순자산 <b>'+won(R.as.networth)+'</b> → 1주당 <b>'+won(R.as.assetPer)+'</b>'+(R.as.gw?'<br>영업권(초과이익의 5년 현가)이 자동으로 더해졌습니다. 정밀 조서에서 확인합니다.':'');
+  if(step!==3)return;
+  $('rAmt').textContent=won(R.final);
+  $('rDue').innerHTML='적용 방법 <b>'+ftName(R.method.ft)+'</b> — '+esc(R.method.why)+(R.premRate?' · 최대주주 할증 20%':(R.premWhy?' · '+esc(R.premWhy):' · 할증 미적용'));
+  $('kHold').textContent=won(R.holdVal)+' ('+fmt(R.hold)+'주)';$('kTotal').textContent=won(R.total);$('kBoth').textContent=fmt(R.inc.incPer)+' / '+fmt(R.as.assetPer);$('kRange').textContent=fmt(R.lo)+' ~ '+fmt(R.hi)+'원';
+  const rows=[];const A=(a,b,c,cls)=>rows.push('<tr class="'+(cls||'')+'"><td>'+a+'</td><td>'+(b||'')+'</td><td class="num">'+c+'</td></tr>');
+  A('① 1주당 순손익가치','3년 순손익 가중평균 '+won(R.inc.wavgPS)+' ÷ 10%',won(R.inc.incPer));
+  A('② 1주당 순자산가치','순자산 '+won(R.as.networth)+' ÷ '+fmt(R.shares)+'주',won(R.as.assetPer));
+  A('가중평균',R.formula,won(R.weighted));A(R.floorLbl,'',won(R.floorVal));
+  A('할증 전 평가액',R.before>R.weighted?'하한(또는 순자산가치)이 더 커서 그 값 적용':'가중평균 적용',won(R.before),'sum');
+  if(R.premRate)A('최대주주 할증','× 20% (상증법 §63 ③)','+ '+won(R.prem));
+  A('최종 1주당 평가액','',won(R.final),'sum');A('평가할 주식 '+fmt(R.hold)+'주','1주당 × 주식수',won(R.holdVal),'sum');
+  $('easyTbl').innerHTML='<thead><tr><th>항목</th><th>계산</th><th>금액</th></tr></thead><tbody>'+rows.join('')+'</tbody>';
+  const F=[];
+  if(!N(S.asset))F.push(['warn','자산','자산총계가 비어 있어 순자산가치가 0입니다. 재무상태표 자산총계를 넣으십시오.']);
+  if(![1,2,3].some(y=>R.inc.Y[y].entered)&&R.method.ft!=='netonly')F.push(['warn','손익','3년 손익이 비어 있어 순손익가치가 0으로 계산됐습니다.']);
+  if(R.method.ft==='netonly')F.push(['info','순자산가치만','회사 상태(또는 개시 3년 미만) 때문에 손익과 관계없이 순자산가치로 평가했습니다(§54 ④).']);
+  if(R.before>R.weighted&&R.method.ft!=='netonly')F.push(['info','하한 적용','가중평균이 순자산가치의 80%(또는 순자산가치)보다 낮아 그 값이 적용됐습니다. 이익이 적어도 자산이 많으면 평가액이 높게 나오는 이유입니다.']);
+  if(S.reCat==='unknown'&&!N(S.reMarket)&&!N(S.reBook))F.push(['warn','부동산 비율','부동산 비중을 모르고 금액도 없어 일반법인(3:2)으로 가정했습니다. 부동산이 절반 이상이면 평가액이 달라집니다.']);
+  if(N(S.reMarket)&&N(S.reMarket)<N(S.reBook))F.push(['warn','부동산 평가','공시가격이 장부보다 낮아 장부금액을 썼습니다(§55 ① 후단). 정당한 사유가 있으면 낮은 값을 쓸 수 있으니 직원과 상의하십시오.']);
+  if(!S.small)F.push(['warn','할증','중소·중견기업 여부를 고르지 않아 할증 20%를 적용했습니다. 대부분의 회사는 중소기업이라 할증이 없습니다.']);
+  F.push(['info','평가심의','회사의 실제 가치가 이 값과 크게 다르면 70~130% 범위에서 평가심의위원회에 다른 평가방법(유사상장법인 비교·현금흐름할인 등)을 신청할 수 있습니다(§54 ⑥).']);
+  F.push(['','참고','이 결과는 입력값으로 계산한 추정치입니다. 자산의 상증법 평가(시가·감정), 법정 가감 항목, 영업권, 증자·감자 환산은 정밀 조서에서 직원이 확인합니다. 10% 이하 출자주식(§54 ③), 추정이익(§56 ②) 등 특례는 반영하지 않았습니다.']);
+  $('easyFlags').innerHTML=F.map(f=>'<div class="flag '+f[0]+'"><b>'+f[1]+'</b><span>'+f[2]+'</span></div>').join('');
+  /* 시산 */
+  const gs=N(S.giftShares)>0?N(S.giftShares):R.hold;const gv=R.final*gs;const g=giftSim({value:gv,rel:S.giftRel,prior:S.giftPrior});
+  $('giftSim').innerHTML='증여재산 '+fmt(gs)+'주 × '+won(R.final)+' = <b>'+won(gv)+'</b> → 증여재산공제 '+won(g.cap)+' → 과세표준 '+won(g.base)+' → 산출세액 '+won(g.calc)+(g.surcharge?' + 세대생략 할증 '+won(g.surcharge):'')+' − 신고세액공제 3% = <b>납부할 증여세 약 '+won(g.pay)+'</b>'+(S.small==='y'?'<br><span style="color:var(--gray)">가업승계 주식은 특례(조특법 §30의6: 저율 과세)를 검토할 수 있습니다 → 세무사 상담.</span>':'');
+  const ih=inheritSim({estate:gv,spouse:S.spouse==='y'});
+  $('inhSim').innerHTML='이 주식만 상속된다고 가정 — 재산가액 '+won(gv)+' − 기본 공제 '+won(ih.ded)+'(일괄 5억'+(S.spouse==='y'?' + 배우자 5억':'')+') = 과세표준 '+won(ih.base)+' → 산출세액 '+won(ih.calc)+' − 신고세액공제 3% = <b>약 '+won(ih.pay)+'</b><br><span style="color:var(--gray)">다른 상속재산·채무·사전증여를 합쳐야 하고, 가업상속공제(최대 600억)·배우자공제(최대 30억)로 크게 줄 수 있습니다. 가업상속 시뮬레이터로 확인하십시오.</span>';
+  $('easyBasis').innerHTML=['상속세 및 증여세법 §63 ①·③(비상장주식 평가·최대주주 할증), 시행령 §53 ⑧(할증 제외)·§54(가중평균 3:2·2:3, 80% 하한, 순자산가치만 평가 사유, 평가심의 70~130%)·§55(순자산가액, 영업권 합산·제외)·§56(3년 순손익 가중평균·가감 항목·증자감자)·§59 ②(영업권), 시행규칙 §17(환원율 10%)·§17의2(자산·부채 가감)·§17의3(1년 미만 환산·환산주식수)·§19 ①(자기자본 이자율 10%) — 2026-09-23 법제처 원문 확인',
+    '증여·상속 시산: 상증법 §26(세율)·§53(증여재산공제)·§57(세대생략 할증)·§58(기납부세액)·§69 ②(신고세액공제 3%), 상속 일괄공제 5억·배우자 최소 5억(§21·§19). 기타 재산·채무·공제는 반영하지 않은 어림값.',
+    '금액은 원 미만 절사. 결과는 참고용이며 실제 신고는 세무사 검토를 기준으로 합니다.'].map(x=>'· '+x).join('<br>');
+}
+function renderPro(R){
+  [1,2,3].forEach(y=>{const Y=R.inc.Y[y];$('pi_'+y+'add').textContent=fmt(Y.add);$('pi_'+y+'sub').textContent=fmt(Y.sub);$('pi_'+y+'net').textContent=fmt(Y.net);$('pi_'+y+'ps').textContent=fmt(Y.ps);});
+  const c=capAdjust(S);$('capOut').innerHTML=c.valid?'배율 × '+c.ratio.toFixed(4)+' · 환산주식수 '+[1,2,3].map(y=>fmt(c.sh[y])).join(' / ')+' · '+(c.kind==='up'?'가산':'차감')+' '+[1,2,3].map(y=>fmt(c.adj[y])).join(' / '):'—';
+  $('p_wavg').textContent=fmt(R.inc.wavgPS);$('p_inc').textContent=fmt(R.inc.incPer);
+  $('p_assetSide').textContent=fmt(R.as.assetSide);$('p_liabSide').textContent=fmt(R.as.liabSide);$('p_selfCap').textContent=fmt(R.as.selfCap);
+  $('p_gw').textContent=fmt(R.as.gw);$('p_gwNote').textContent=R.as.gwNote||(S.gwMode==='auto'?'초과이익 '+fmt(R.as.excess)+' × 현가계수':'');
+  $('p_networth').textContent=fmt(R.as.networth);$('p_assetPer').textContent=fmt(R.as.assetPer);
+  $('p_method').textContent=ftName(R.method.ft)+' — '+R.method.why;$('p_weighted').textContent=fmt(R.weighted);$('p_floorLbl').textContent=R.floorLbl;$('p_floor').textContent=fmt(R.floorVal);
+  $('p_before').textContent=fmt(R.before);$('p_prem').textContent=fmt(R.prem)+(R.premWhy?' ('+R.premWhy+')':'');$('p_final').textContent=fmt(R.final);
+  const F=[];
+  if(!S.name||!S.date)F.push(['warn','기본 정보','법인명·평가기준일을 넣어야 조서 머리가 채워집니다.']);
+  if(R.inc.loss3)F.push(['info','3년 결손','평가기준일 전 3년 연속 결손 — 할증 제외(령 §53 ⑧ 1호), 영업권 미합산(§55 ③ 3호).']);
+  if(S.cap==='y'&&!c.valid)F.push(['warn','증자·감자','쉬운 입력에서 「증자·감자 있음」으로 표시됐습니다. 환산 도우미에 주식수·납입금액을 넣고 표에 적용하십시오.']);
+  if(N(S.reMarket)>0&&N(S.reMarket)<N(S.reBook))F.push(['warn','부동산 평가','상증법 평가액이 장부보다 낮아 장부금액을 적용했습니다(§55 ① 후단). 낮은 평가액을 쓰려면 정당한 사유를 조서에 적으십시오.']);
+  if(S.methodMode==='auto'&&!(N(S.reValue)||N(S.reMarket)||N(S.reBook)||N(S.stkValue))&&R.method.ft!=='netonly')F.push(['warn','방법 판정','부동산·주식 가액이 없어 비율 판정을 못 했습니다. 부동산등 가액을 넣거나 방법을 직접 고르십시오(§54 ①·④).']);
+  if(S.prem==='20'&&S.small==='y')F.push(['info','할증','쉬운 입력에서 중소·중견기업으로 답해 할증을 제외했습니다. 대기업이면 「중소·중견」 답변을 바꾸십시오.']);
+  if(R.hold>R.shares)F.push(['err','주식수','평가대상 주식수가 발행주식 총수보다 큽니다.']);
+  F.push(['info','평가심의','납세자가 유사상장법인 비교·현금흐름할인·배당할인 등으로 평가한 가액이 보충적 평가액의 70~130%면 평가심의위원회 심의를 신청할 수 있습니다(§54 ⑥): '+fmt(R.lo)+' ~ '+fmt(R.hi)+'원.']);
+  F.push(['info','특례','10% 이하 출자 비상장주식은 취득가액 평가 가능(§54 ③, 시가 우선). 일시적·우발적 손익 등 규칙 §17의3 ① 사유면 신용평가기관 등 둘 이상의 추정이익 평균가액으로 대체 가능(§56 ②).']);
+  $('proFlags').innerHTML=F.map(f=>'<div class="flag '+f[0]+'"><b>'+f[1]+'</b><span>'+f[2]+'</span></div>').join('');
+  $('sheet').innerHTML=sheetHtml(R);
+}
+function sheetHtml(R){
+  const y=k=>[1,2,3].map(i=>'<td class="r">'+fmt(R.inc.Y[i][k])+'</td>').join('');
+  const g=(k)=>[1,2,3].map(i=>'<td class="r">'+fmt(N(S['y'+i+k]))+'</td>').join('');
+  const lab=[1,2,3].map(i=>'<th>'+esc(S['y'+i+'label']||('직전 '+i+'년'))+'<br><small>× '+(4-i)+'</small></th>').join('');
+  let h='<h1>비상장주식 평가조서</h1><div class="st">상속세 및 증여세법 제63조 제1항 제1호 나목 · 시행령 제54조~제56조·제59조에 따른 보충적 평가</div>';
+  h+='<table class="party"><tr><td>평가대상 법인</td><td>'+esc(S.name||'')+(S.biz?' ('+esc(S.biz)+')':'')+'</td><td>대표자</td><td>'+esc(S.ceo||'')+'</td></tr><tr><td>평가기준일</td><td>'+kd(S.date)+'</td><td>사업 개시일</td><td>'+kd(S.founded)+'</td></tr><tr><td>발행주식 총수</td><td class="r">'+fmt(R.shares)+'주</td><td>평가대상 주식수</td><td class="r">'+fmt(R.hold)+'주 ('+(R.shares?(R.hold/R.shares*100).toFixed(2):'0')+'%)</td></tr><tr><td>평가방법</td><td colspan="3">'+ftName(R.method.ft)+' — '+esc(R.method.why)+'</td></tr></table>';
+  h+='<div class="big">1주당 평가액 '+won(R.final)+' &nbsp;·&nbsp; 평가대상 주식 '+won(R.holdVal)+'</div>';
+  h+='<h2>Ⅰ. 1주당 순손익가치 (시행령 제56조)</h2><table><tr><th>구분</th>'+lab+'</tr>';
+  h+='<tr><td>각 사업연도 소득</td>'+y('inc')+'</tr><tr><td>가산액 계 (가①~⑥)</td>'+y('add')+'</tr><tr><td>차감액 계 (차①~⑥)</td>'+y('sub')+'</tr><tr class="tot"><td>순손익액</td>'+y('net')+'</tr><tr><td>사업연도말 발행주식수</td>'+y('shares')+'</tr><tr class="tot"><td>1주당 순손익액</td>'+[1,2,3].map(i=>'<td class="r">'+fmt(R.inc.Y[i].ps)+'</td>').join('')+'</tr></table>';
+  h+='<table><tr><td>가중평균 1주당 순손익액 = (1년×3 + 2년×2 + 3년×1) ÷ 6 (음수면 0)</td><td class="r">'+fmt(R.inc.wavgPS)+'</td></tr><tr class="tot"><td>① 1주당 순손익가치 = 가중평균 ÷ 환원율 '+N(S.rate)+'% (규칙 제17조)</td><td class="r">'+fmt(R.inc.incPer)+'</td></tr></table>';
+  const capC=capAdjust(S);if(capC.valid)h+='<div class="note">증자·감자 환산(규칙 제17조의3 제5항·영 제56조 제5항): '+(capC.kind==='up'?'유상증자':'유상감자')+' 직전 사업연도말 '+fmt(N(S.capBefore))+'주, '+(capC.kind==='up'?'증가':'감소')+' '+fmt(N(S.capDelta))+'주, 1주당 '+fmt(N(S.capPaid))+'원 → 환산배율 '+capC.ratio.toFixed(4)+', 가감액(10%) '+[1,2,3].map(i=>fmt(capC.adj[i])).join(' / ')+'</div>';
+  h+='<h2>Ⅱ. 1주당 순자산가치 (시행령 제55조·규칙 제17조의2)</h2><table>';
+  const r=(a,b,cls)=>'<tr class="'+(cls||'')+'"><td>'+a+'</td><td class="r">'+fmt(b)+'</td></tr>';
+  h+=r('자산총계 (장부)',N(S.asset))+(R.as.reDiff?r('＋ 부동산 평가차액 (상증법 평가액 '+fmt(N(S.reMarket))+' − 장부 '+fmt(N(S.reBook))+')',R.as.reDiff):'')+(N(S.evalDiff)?r('± 그 밖의 자산 평가차액',N(S.evalDiff)):'')+(N(S.aRecv)?r('＋ 지급받을 권리 확정액 (규칙 §17의2 1호)',N(S.aRecv)):'')+(N(S.aPrepaid)?r('− 선급비용·무형자산 (2호)',N(S.aPrepaid)):'')+r('자산 계',R.as.assetSide,'tot');
+  h+=r('부채총계 (장부)',N(S.liab))+(N(S.lTax)?r('＋ 미지급 법인세 등 (3호 가)',N(S.lTax)):'')+(N(S.lDiv)?r('＋ 확정 배당·상여 (3호 나)',N(S.lDiv)):'')+(N(S.lRetire)?r('＋ 퇴직급여추계액 (3호 다)',N(S.lRetire)):'')+(N(S.lReserve)?r('− 제충당금·제준비금 (4호)',N(S.lReserve)):'')+r('부채 계',R.as.liabSide,'tot');
+  h+=r('자기자본 (자산 계 − 부채 계)',R.as.selfCap,'tot');
+  h+=r('영업권 (영 §59 ②: [순손익 가중평균 '+fmt(R.inc.wavgNet)+' × '+N(S.gwExcess)+'% − 자기자본 × '+N(S.gwInt)+'%] × '+N(S.gwPv)+')'+(R.as.gwNote?' — '+esc(R.as.gwNote):''),R.as.gw);
+  h+=r('순자산가액 (0 이하면 0)',R.as.networth,'tot')+r('② 1주당 순자산가치 = 순자산가액 ÷ '+fmt(R.shares)+'주',R.as.assetPer,'tot')+'</table>';
+  h+='<h2>Ⅲ. 최종 평가 (시행령 제54조, 법 제63조 제3항)</h2><table>'+r('가중평균 — '+esc(R.formula),R.weighted)+r(R.floorLbl,R.floorVal)+r('할증 전 1주당 평가액',R.before,'tot')+r('최대주주 할증 '+(R.premRate*100)+'%'+(R.premWhy?' — '+esc(R.premWhy):''),R.prem)+r('최종 1주당 평가액',R.final,'tot')+r('회사 전체 ('+fmt(R.shares)+'주)',R.total)+r('평가대상 주식 ('+fmt(R.hold)+'주)',R.holdVal,'tot')+'</table>';
+  h+='<div class="note">평가심의위원회 신청 가능 범위(§54 ⑥ · 70~130%): '+fmt(R.lo)+' ~ '+fmt(R.hi)+'원 / 1주</div>';
+  if(S.showHometax)h+='<h2>Ⅳ. 홈택스 「상속(증여)재산 및 평가명세서」 기재값</h2><table><tr><th>재산 종류</th><th>소재지·발행법인</th><th>수량</th><th>단가</th><th>평가가액</th><th>평가방법</th></tr><tr><td class="c">비상장주식</td><td>'+esc(S.name||'')+'</td><td class="r">'+fmt(R.hold)+'주</td><td class="r">'+fmt(R.final)+'</td><td class="r">'+fmt(R.holdVal)+'</td><td class="c">보충적 평가 (법 §63 ① 1호 나목)</td></tr></table>';
+  if(S.attachList)h+='<h2>Ⅴ. 첨부 서류 · 검토</h2><table><tr><th style="width:8%">□</th><th>서류</th><th style="width:30%">확인 사항</th></tr>'+[['법인등기부등본·주주명부','발행주식 총수·평가대상 주식수·최대주주 여부'],['최근 3개 사업연도 법인세 신고서 (과세표준 및 세액조정계산서·소득금액조정합계표)','각 사업연도 소득·법인세·가감 항목'],['평가기준일(또는 직전 결산일) 재무상태표·손익계산서·계정별 명세','자산·부채 장부가액, 충당금·준비금'],['부동산 등기부·공시가격·기준시가·감정평가서','상증법 평가액(§60~§66), 부동산 비율'],['퇴직급여추계액 산정표','전원 퇴직 가정'],['증자·감자 내역 (등기·주금납입 자료)','환산주식수·가감액'],['중소기업 확인서 또는 매출액 자료','할증 제외 요건']].map(x=>'<tr><td class="c">□</td><td>'+x[0]+'</td><td>'+x[1]+'</td></tr>').join('')+'</table>';
+  h+='<table class="sign"><tr><td>작성일 '+kd(today())+'</td><td>작성 '+esc(S.author||'')+'</td><td>검토 세무사 차재영 (인)</td></tr></table>';
+  h+='<div class="foot">세무법인 한백택스 · 서울특별시 중구 동호로 315, 신안빌딩 2층 · 02-2277-3101 · hb090@hanbaektax.kr — 근거: 상증법 §63, 시행령 §53·§54·§55·§56·§59, 시행규칙 §17·§17의2·§17의3·§19 (2026-09-23 확인)</div>';
+  return h;
+}
+function applyCap(){const c=capAdjust(S);if(!c.valid){alert('직전 사업연도말 주식수와 증가·감소 주식수를 넣으십시오.');return;}[1,2,3].forEach(y=>{S['y'+y+'sh']=c.sh[y];S['y'+y+(c.kind==='up'?'a6':'s6')]=c.adj[y];});S.cap='y';persist();refill();render();}
+/* ═══════ 저장·불러오기 ═══════ */
+function saveJson(){const blob=new Blob([JSON.stringify({app:'hb_unlisted_v3',data:S},null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='비상장주식평가_'+(S.name||'미정')+'_'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
+function applyJson(o){const d=o&&o.data?o.data:o;if(!d||typeof d!=='object')throw new Error('bad');S=Object.assign({},DEF,d);persist();refill();render();}
+function loadJsonFile(inp){const f=inp.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{applyJson(JSON.parse(rd.result));}catch(e){alert('읽을 수 없는 파일입니다.');}inp.value='';};rd.readAsText(f);}
+function pasteJson(){const t=prompt('상담 메일 본문의 [입력 JSON] 부분을 붙여 넣으십시오.');if(!t)return;try{const m=t.match(/\{[\s\S]*\}/);applyJson(JSON.parse(m?m[0]:t));alert('불러왔습니다.');}catch(e){alert('JSON 형식이 아닙니다.');}}
 function getCases(){try{return JSON.parse(localStorage.getItem(LS_CASES)||'{}');}catch(e){return{};}}
-function refreshCaseList(){const sel=document.getElementById('caseSel');if(!sel)return;const c=getCases();const names=Object.keys(c).sort();sel.innerHTML=names.length?names.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">${n}</option>`).join(''):'<option value="">— 저장된 사례 없음 —</option>';}
-function saveCase(){const name=prompt('저장할 사례 이름:',document.getElementById('h_name').value||'사례');if(!name)return;const c=getCases();c[name]=collectState();try{localStorage.setItem(LS_CASES,JSON.stringify(c));}catch(e){alert('저장 공간이 부족합니다.');return;}refreshCaseList();document.getElementById('caseSel').value=name;alert('저장되었습니다: '+name);}
-function loadCase(){const name=document.getElementById('caseSel').value;if(!name)return alert('불러올 사례를 선택하세요.');const c=getCases();if(c[name])applyState(c[name]);}
-function deleteCase(){const name=document.getElementById('caseSel').value;if(!name)return;if(!confirm('「'+name+'」 사례를 삭제할까요?'))return;const c=getCases();delete c[name];localStorage.setItem(LS_CASES,JSON.stringify(c));refreshCaseList();}
-// ── CSV 내보내기 ──
-function exportCSV(){
-  const t=id=>{const el=document.getElementById(id);return el?(el.textContent||el.value||''):'';};
-  const iv=id=>{const el=document.getElementById(id);return el?el.value:'';};
-  const ftSel=document.getElementById('ftype');
-  const rows=[
-    ['구분','항목','값'],
-    ['기본정보','법인명',iv('h_name')],
-    ['기본정보','평가기준일',iv('h_date')],
-    ['기본정보','대표자',iv('h_ceo')],
-    ['기본정보','발행주식 총수',iv('shares')],
-    ['기본정보','평가대상 주식수',iv('hold_shares')],
-    ['기본정보','평가방법',ftSel.options[ftSel.selectedIndex].text],
-    ['기본정보','순손익 환원율(%)',iv('rate')],
-    ['기본정보','최대주주 할증',document.getElementById('prem').value==='20'?'적용 +20%':'미적용'],
-  ];
-  [1,2,3].forEach(y=>{rows.push(['순손익액','직전'+y+'년 순손익액',t('o_'+y+'_net')]);rows.push(['순손익액','직전'+y+'년 주식수',yrShares(y)]);rows.push(['순손익액','직전'+y+'년 1주당 순손익액',t('o_'+y+'_ps')]);});
-  rows.push(
-    ['순손익가치','가중평균 1주당 순손익액',t('wavg_ps')],
-    ['순손익가치','① 1주당 순손익가치',t('incval')],
-    ['순자산가치','자산 계(영업권 전)',t('asset_side')],
-    ['순자산가치','부채 계',t('liab_side')],
-    ['순자산가치','자기자본(영업권 전)',t('self_cap')],
-    ['순자산가치','영업권 평가액',t('goodwill_val')],
-    ['순자산가치','순자산가액',t('networth')],
-    ['순자산가치','② 1주당 순자산가치',t('assetval')],
-    ['최종','가중평균 평가액',t('weighted')],
-    ['최종',t('floorLbl'),t('floor')],
-    ['최종','평가액(하한·단서 후)',t('beforeprem')],
-    ['최종','최대주주 할증 가산',t('premamt')],
-    ['최종','최종 1주당 평가액',t('final')],
-    ['최종','총 평가액(전체 주식)',t('total')],
-    ['최종','평가대상 주식 평가액',t('hold_val')],
-    ['최종','평가심의위 신청 범위(70~130%)',t('rng')]
-  );
-  const csv='﻿'+rows.map(r=>r.map(c=>`"${(c+'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;a.download=`비상장주식평가_${iv('h_name')||'평가조서'}_${new Date().toISOString().slice(0,10)}.csv`;
-  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
-}
-// ── 초기화: 마지막 입력 자동복원 ──
-(function init(){
-  try{const a=localStorage.getItem(LS_AUTO);if(a)applyState(JSON.parse(a),false);}catch(e){}
-  if(!document.getElementById('h_date').value)document.getElementById('h_date').value=new Date().toISOString().slice(0,10);
-  refreshCaseList();
-  calcCap();calc();
-})();
+function refreshCases(){const sel=$('caseSel');const c=getCases();const n=Object.keys(c).sort();sel.innerHTML=n.length?n.map(x=>'<option>'+esc(x)+'</option>').join(''):'<option value="">— 저장된 사례 없음 —</option>';}
+function saveCase(){const name=prompt('저장할 사례 이름:',S.name||'사례');if(!name)return;const c=getCases();c[name]=JSON.parse(JSON.stringify(S));try{localStorage.setItem(LS_CASES,JSON.stringify(c));}catch(e){alert('저장 공간이 부족합니다.');return;}refreshCases();$('caseSel').value=name;}
+function loadCase(){const n=$('caseSel').value;const c=getCases();if(c[n])applyJson(c[n]);}
+function deleteCase(){const n=$('caseSel').value;if(!n||!confirm('「'+n+'」 사례를 삭제할까요?'))return;const c=getCases();delete c[n];localStorage.setItem(LS_CASES,JSON.stringify(c));refreshCases();}
+function exportCSV(){const R=evaluate(S);const rows=[['구분','항목','값'],['기본','법인명',S.name],['기본','평가기준일',S.date],['기본','발행주식총수',R.shares],['기본','평가대상 주식수',R.hold],['기본','평가방법',ftName(R.method.ft)]];
+  [1,2,3].forEach(y=>{const Y=R.inc.Y[y];rows.push(['순손익','직전'+y+'년 순손익액',Y.net],['순손익','직전'+y+'년 주식수',Y.shares],['순손익','직전'+y+'년 1주당',fl(Y.ps)]);});
+  rows.push(['순손익','가중평균 1주당',R.inc.wavgPS],['순손익','① 1주당 순손익가치',R.inc.incPer],['순자산','자산 계',R.as.assetSide],['순자산','부채 계',R.as.liabSide],['순자산','영업권',R.as.gw],['순자산','순자산가액',R.as.networth],['순자산','② 1주당 순자산가치',R.as.assetPer],['최종','가중평균',R.weighted],['최종',R.floorLbl,R.floorVal],['최종','할증 전',R.before],['최종','할증',R.prem],['최종','1주당 평가액',R.final],['최종','전체',R.total],['최종','평가대상',R.holdVal],['최종','심의 범위',R.lo+'~'+R.hi]);
+  const csv='﻿'+rows.map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download='비상장주식평가_'+(S.name||'조서')+'_'+today()+'.csv';a.click();}
+function fillSample(){S=Object.assign({},DEF,{name:'주식회사 예시상사',ceo:'홍길동',biz:'123-45-67891',date:today(),founded:'2015-03-02',shares:10000,holdShares:6000,status:'normal',small:'y',reCat:'lt50',
+  y1label:'2025',y2label:'2024',y3label:'2023',y1inc:300000000,y2inc:240000000,y3inc:180000000,y1s1:57000000,y2s1:44000000,y3s1:31000000,
+  asset:2500000000,liab:1200000000,reBook:800000000,reMarket:1000000000,lRetire:150000000,lTax:20000000,giftRel:'child',spouse:'y'});persist();refill();render();}
+function resetAll(){if(!confirm('입력을 모두 지우고 처음부터 시작할까요?'))return;localStorage.removeItem(LS);S=JSON.parse(JSON.stringify(DEF));step=0;persist();refill();go(0);}
+/* ═══════ 상담 요청 — 자료전송 메일중계(포털 공통) ═══════ */
+const RELAY={url:'https://script.google.com/macros/s/AKfycbxtBSiGZjkoJEl87cttAm1HUrR4A1D2zyz03S65NOkC6ezSUsHW_8BW5Pq5fkIyBZAK7A/exec',token:'hbtax-relay'};
+function consultText(memo){const R=evaluate(S);const A=['[비상장주식 평가 상담 요청] '+(S.name||'(법인명 미입력)')+' · 평가기준일 '+(S.date||'-')+' · 발행 '+fmt(R.shares)+'주 · 대상 '+fmt(R.hold)+'주',
+  '적용 방법 '+ftName(R.method.ft)+' ('+R.method.why+') · 할증 '+(R.premRate*100)+'%'+(R.premWhy?' ('+R.premWhy+')':''),
+  '순손익가치 '+won(R.inc.incPer)+' · 순자산가치 '+won(R.as.assetPer)+' · 가중평균 '+won(R.weighted)+' · 최종 1주당 '+won(R.final)+' · 대상 주식 '+won(R.holdVal),
+  '3년 소득: '+[1,2,3].map(y=>fmt(R.inc.Y[y].inc)).join(' / ')+' · 자산 '+fmt(N(S.asset))+' · 부채 '+fmt(N(S.liab))+' · 부동산 장부 '+fmt(N(S.reBook))+' 평가 '+fmt(N(S.reMarket))+(S.cap==='y'?' · 증자·감자 있음(환산 필요)':'')];
+  if(memo)A.push('','[남긴 말]',memo);A.push('','[입력 JSON] 정밀 조서 「상담 메일의 JSON 붙여넣기」로 불러올 수 있습니다.',JSON.stringify({app:'hb_unlisted_v3',data:S}));A.push('','한백택스 비상장주식 평가 v3 · '+today());return A.join('\n');}
+async function sendConsult(){const name=$('cName').value.trim(),phone=$('cPhone').value.trim(),email=$('cEmail').value.trim();const st=$('cStatus');
+  if(!name||!phone){alert('성함과 연락처를 적어 주십시오.');return;}if(!$('cAgree').checked){alert('전송 동의에 체크해 주십시오.');return;}
+  const btn=$('cBtn');btn.disabled=true;st.textContent='보내는 중…';
+  try{const res=await fetch(RELAY.url,{method:'POST',body:JSON.stringify({token:RELAY.token,type:'consult',subject:'비상장주식 평가 상담 요청',name,phone,email,text:consultText($('cMemo').value.trim()),page:location.href.split('?')[0],ua:navigator.userAgent})});
+    const j=await res.json();if(!j.ok)throw new Error(j.error||'전송 실패');st.textContent='접수되었습니다'+(j.id?' · 접수번호 '+j.id:'')+' — 담당자가 연락드립니다.';st.style.color='#166534';}
+  catch(e){st.textContent='자동 접수 실패('+e.message+'). 전화 02-2277-3101 또는 메일 hb090@hanbaektax.kr 로 연락해 주십시오.';st.style.color='#B91C1C';}
+  finally{btn.disabled=false;}}
+buildProInc();load();if(!S.date)S.date=today();bind();refreshCases();
+const qm=new URLSearchParams(location.search).get('mode');if(qm==='pro'||qm==='easy')mode=qm;
+setMode(mode);go(mode==='easy'?Math.min(step,3):0);
 </script>
 <script>if(window.self!==window.top){var _ifs=document.createElement('style');_ifs.textContent='.top{display:none!important}body{padding-bottom:14px}';document.head.appendChild(_ifs);}</script>
 <!-- HB-CONSULT v1 -->
