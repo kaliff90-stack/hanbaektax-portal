@@ -223,7 +223,7 @@ html[data-theme="dark"] .team .names b{color:#F3D9A4}
 .extlinks .ei{font-size:22px}
 .extlinks b{display:block;font-size:15px;color:var(--txt)}
 .extlinks small{display:block;font-size:12px;color:var(--gray);margin-top:2px}
-@media(max-width:560px){.extlinks a{flex:1 1 100%}}
+@media(max-width:560px){.extlinks{gap:8px}.extlinks a{flex:1 1 calc(50% - 4px);min-width:0;padding:8px;gap:6px}.extlinks .ei{font-size:17px}.extlinks b{font-size:12.5px;word-break:keep-all}.extlinks small{display:none}}
 .hcard{
   display:flex;flex-direction:column;gap:6px;text-decoration:none;color:#fff;
   padding:18px 18px 16px;border-radius:var(--r);min-height:118px;position:relative;overflow:hidden;
@@ -468,6 +468,13 @@ body.is-offline .offbar{display:block}
     </div>
     <h1>세금, 계산 전에 <em>판단</em>부터</h1>
     <p>팔지, 증여할지, 그대로 둘지 — 세무사가 상담에서 먼저 묻는 순서대로 상황을 정리하고 선택지를 나란히 비교합니다. 양도·증여·상속·종부세·연말정산·급여·비상장주식 계산기는 아래에 그대로 있습니다. 모든 세율·공제는 법제처 원문으로 확인해 반영합니다.</p>
+    <div class="extlinks" aria-label="외부 바로가기">
+      <a href="https://www.hometax.go.kr/" target="_blank" rel="noopener" title="국세청 홈택스 — 새 창으로 열림"><span class="ei" aria-hidden="true">🏛️</span><span><b>국세청 홈택스 ↗</b><small>hometax.go.kr · 신고·납부·증명 발급</small></span></a>
+      <a href="https://www.4insure.or.kr/" target="_blank" rel="noopener" title="4대사회보험 정보연계센터 — 새 창으로 열림"><span class="ei" aria-hidden="true">🛡️</span><span><b>4대사회보험 정보연계센터 ↗</b><small>4insure.or.kr · 취득·상실·보수총액 신고</small></span></a>
+      <a href="https://www.law.go.kr/" target="_blank" rel="noopener" title="국가법령정보센터 — 새 창으로 열림"><span class="ei" aria-hidden="true">⚖️</span><span><b>국가법령정보센터 ↗</b><small>law.go.kr · 법령·시행령·판례 원문</small></span></a>
+      <a href="https://taxlaw.nts.go.kr/" target="_blank" rel="noopener" title="국세법령정보시스템 — 새 창으로 열림"><span class="ei" aria-hidden="true">📚</span><span><b>국세법령정보시스템 ↗</b><small>taxlaw.nts.go.kr · 예규·판례·질의회신</small></span></a>
+      <a href="https://www.kacta.or.kr/" target="_blank" rel="noopener" title="한국세무사회 — 새 창으로 열림"><span class="ei" aria-hidden="true">🤝</span><span><b>한국세무사회 ↗</b><small>kacta.or.kr · 세무사 찾기·회원 안내</small></span></a>
+    </div>
     <div class="sitwrap" aria-label="무엇이 고민이신가요">
       <div class="st">무엇이 고민이신가요 <small>상황을 고르면 질문 → 비교 → 실무 체크 → 상담으로 이어집니다</small></div>
       <div class="sitrow">
@@ -489,12 +496,6 @@ body.is-offline .offbar{display:block}
       <button class="iconx" id="clearQ" type="button" aria-label="검색어 지우기" hidden>✕</button>
     </div>
     <div class="hero-stats"><span>수록 도구 <b id="statCount">0</b>종</span><span>오프라인 사용 <b>가능</b></span><span>검색 단축키 <b>/</b></span><span>⭐ 별표로 즐겨찾기 고정</span></div>
-    <div class="extlinks" aria-label="외부 바로가기">
-      <a href="https://www.hometax.go.kr/" target="_blank" rel="noopener" title="국세청 홈택스 — 새 창으로 열림"><span class="ei" aria-hidden="true">🏛️</span><span><b>국세청 홈택스 ↗</b><small>hometax.go.kr · 신고·납부·증명 발급</small></span></a>
-      <a href="https://www.4insure.or.kr/" target="_blank" rel="noopener" title="4대사회보험 정보연계센터 — 새 창으로 열림"><span class="ei" aria-hidden="true">🛡️</span><span><b>4대사회보험 정보연계센터 ↗</b><small>4insure.or.kr · 취득·상실·보수총액 신고</small></span></a>
-      <a href="https://www.law.go.kr/" target="_blank" rel="noopener" title="국가법령정보센터 — 새 창으로 열림"><span class="ei" aria-hidden="true">⚖️</span><span><b>국가법령정보센터 ↗</b><small>law.go.kr · 법령·시행령·판례 원문</small></span></a>
-      <a href="https://taxlaw.nts.go.kr/" target="_blank" rel="noopener" title="국세법령정보시스템 — 새 창으로 열림"><span class="ei" aria-hidden="true">📚</span><span><b>국세법령정보시스템 ↗</b><small>taxlaw.nts.go.kr · 예규·판례·질의회신</small></span></a>
-    </div>
     <div class="hcards" id="hcards"></div>
   </div>
 </section>
