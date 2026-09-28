@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="author" content="차재영세무사">
+<title>신용평가 시뮬레이터 — 세무법인 한백택스(내부용)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<!--
+  신용평가 시뮬레이터 (시험 공개 — 포털에는 한백택스_시험공개.js 키를 받은 사람에게만 보인다)
+  재무제표(엑셀 · 표준재무제표증명 PDF · 스캔 PDF)를 읽어 3개년 계정을 채우고,
+  ① 조달·입찰용 기업신용평가 기관별 공개 방법(결합비중 · 필터링 · 등급체계)과
+  ② 회사채 신용평가 3사 공개 방법론(재무지표 격자)으로 추정 등급을 내고 평가서를 출력한다.
+  기관의 실제 채점 모형(비율별 가중치·구간)은 공개되지 않는다. 그 부분은 「한백 기준값(가정)」으로
+  화면에서 고칠 수 있게 두고, 평가서마다 추정임을 표시한다.
+  계산 엔진은 script#hbEngine 에만 둔다(시험: scripts/tests/test_credit_rating.js 가 이 블록만 꺼내 Node 에서 돌린다).
+-->
+<style>
+:root{--navy:#1B3A5C;--gold:#C8963E;--ink:#1f2933;--sub:#5b6770;--line:#d9dee3;--bg:#f5f6f8;--card:#fff;--ok:#1e7b4f;--warn:#b7791f;--bad:#b3261e;--soft:#eef2f6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Nanum Gothic","맑은 고딕",sans-serif;font-size:15px;line-height:1.55}
+header.top{background:var(--navy);color:#fff;padding:14px 18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+header.top h1{font-size:19px;margin:0;font-weight:800}
+header.top .tag{background:var(--gold);color:#fff;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:700}
+header.top .sp{flex:1}
+header.top button{background:transparent;border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:8px;padding:6px 10px;font:inherit;font-size:13px;cursor:pointer}
+main{max-width:1180px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.card h2{font-size:17px;margin:0 0 10px;color:var(--navy)}
+.card h3{font-size:15px;margin:14px 0 8px;color:var(--navy)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 14px}
+label.f{display:flex;flex-direction:column;font-size:13px;color:var(--sub);gap:3px}
+label.f input,label.f select{font:inherit;font-size:14px;color:var(--ink);padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.chk{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px}
+.chk label{display:flex;gap:6px;align-items:center}
+.btn{font:inherit;font-size:14px;padding:8px 14px;border-radius:8px;border:1px solid var(--navy);background:#fff;color:var(--navy);cursor:pointer;font-weight:700}
+.btn.pri{background:var(--navy);color:#fff}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:#fff}
+.btn.sm{padding:4px 9px;font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.note{font-size:13px;color:var(--sub)}
+.warnbox{background:#fff7e6;border:1px solid #f0d9a8;border-radius:10px;padding:10px 12px;font-size:13.5px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tabs button{font:inherit;font-size:14px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:700;color:var(--sub)}
+.tabs button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.tblwrap{overflow-x:auto}
+table.t{border-collapse:collapse;width:100%;font-size:13.5px}
+table.t th,table.t td{border:1px solid var(--line);padding:5px 7px;vertical-align:middle}
+table.t th{background:var(--soft);text-align:center;font-weight:700;color:var(--navy)}
+table.t td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+table.t td.c{text-align:center}
+table.t tr.sec td{background:#f9f4ea;font-weight:700;color:var(--navy)}
+table.t input.amt{width:100%;min-width:120px;text-align:right;font:inherit;font-size:13.5px;border:1px solid transparent;padding:3px 4px;border-radius:5px;background:transparent}
+table.t input.amt:focus{border-color:var(--gold);background:#fffdf7;outline:none}
+table.t input.amt.auto{background:#eef7f0}
+table.t input.num{width:80px;text-align:right;font:inherit;font-size:13px;border:1px solid var(--line);border-radius:5px;padding:2px 4px}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:18px;text-align:center;color:var(--sub);background:#fbfcfd}
+.drop.over{border-color:var(--gold);background:#fffaf0}
+.log{font-family:Consolas,monospace;font-size:12px;background:#0f1a26;color:#cfe3f5;border-radius:8px;padding:8px 10px;max-height:160px;overflow:auto;white-space:pre-wrap;display:none}
+.pill{display:inline-block;border-radius:999px;padding:1px 9px;font-size:12px;font-weight:700}
+.pill.ok{background:#e3f4ea;color:var(--ok)}.pill.warn{background:#fdf1dc;color:var(--warn)}.pill.bad{background:#fbe4e2;color:var(--bad)}.pill.pub{background:#e6eef7;color:var(--navy)}.pill.asm{background:#f4ecdc;color:#8a5a12}
+.gradebig{font-size:30px;font-weight:800;color:var(--navy)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.ag{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}
+.ag h4{margin:0 0 4px;font-size:15px;color:var(--navy)}
+.ag .meta{font-size:12.5px;color:var(--sub)}
+.ag .row{margin-top:8px}
+#sheetWrap{display:none}
+/* 평가서 */
+.sheet{background:#fff;width:210mm;margin:12px auto;padding:12mm 14mm;box-shadow:0 2px 12px rgba(0,0,0,.12);font-size:11pt;line-height:1.5;color:#111}
+.sheet table.pg{width:100%;border-collapse:collapse}
+.sheet table.pg>thead>tr>td,.sheet table.pg>tfoot>tr>td,.sheet table.pg>tbody>tr>td{border:none;padding:0;vertical-align:top}
+.sheet tr,.sheet .gbox,.sheet .disc{break-inside:avoid;page-break-inside:avoid}
+.sheet h2{break-after:avoid;page-break-after:avoid}
+.sheet .hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--navy);padding-bottom:4px;margin-bottom:10px;font-size:11pt}
+.sheet .hd b{color:var(--navy);font-size:12pt}
+.sheet h1{font-size:17pt;text-align:center;margin:6px 0 2px;color:var(--navy)}
+.sheet .subt{text-align:center;font-size:11pt;color:#444;margin-bottom:8px}
+.sheet .disc{border:1px solid var(--gold);background:#fffaf0;padding:6px 9px;font-size:11pt;margin:6px 0 10px}
+.sheet h2{font-size:12.5pt;color:var(--navy);border-left:4px solid var(--gold);padding-left:6px;margin:12px 0 6px}
+.sheet table{border-collapse:collapse;width:100%;font-size:11pt}
+.sheet th,.sheet td{border:1px solid #9aa5b1;padding:3px 6px;word-break:keep-all}
+.sheet th{background:#eef2f6;text-align:center}
+.sheet td.n{text-align:right;white-space:nowrap}
+.sheet td.c{text-align:center}
+.sheet .gbox{display:flex;gap:14px;align-items:center;border:2px solid var(--navy);border-radius:6px;padding:8px 12px;margin:6px 0}
+.sheet .gbox .g{font-size:24pt;font-weight:800;color:var(--navy);min-width:90px;text-align:center}
+.sheet .ft{margin-top:8px;border-top:1px solid #9aa5b1;padding-top:3px;font-size:11pt;color:#444;text-align:center}
+.sheet ul{margin:4px 0 4px 18px;padding:0}
+@media (max-width:640px){main{padding:10px}.card{padding:12px}.sheet{width:100%;padding:14px}}
+@media print{
+  @page{size:A4;margin:10mm 14mm}
+  .sheet{width:auto;padding:0}
+  body{background:#fff}
+  header.top,main>*:not(#sheetWrap),.noprint{display:none!important}
+  main{padding:0;max-width:none}
+  #sheetWrap{display:block!important}
+  .sheet{box-shadow:none;margin:0;page-break-after:always;break-after:page}
+  .sheet:last-child{page-break-after:auto;break-after:auto}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>신용평가 시뮬레이터</h1><span class="tag">내부용</span>
+  <span class="note" style="color:#dbe4ee">재무제표 → 기관별 추정 등급 · 평가서</span>
+  <span class="sp"></span>
+  <button type="button" id="bSample">예시(가상값)</button>
+  <button type="button" id="bSave">저장(JSON)</button>
+  <button type="button" id="bLoad">불러오기</button>
+  <button type="button" id="bReset">초기화</button>
+  <input type="file" id="fLoad" accept=".json" hidden>
+</header>
+<main>
+  <div class="card warnbox">
+    이 도구의 등급은 <b>각 기관이 공개한 방법(등급체계·결합비중·필터링·지표 격자)</b>에 따른 <b>추정치</b>입니다.
+    기관의 비율별 가중치·구간은 공개되지 않아 <span class="pill asm">가정</span> 표시된 한백 기준값으로 채웠습니다.
+    실제 발급 등급과 다를 수 있으며, 평가서는 사무소 내부 검토·거래처 상담용입니다. 기관 명의 문서로 제출하거나 전달하지 않습니다.
+  </div>
+
+  <section class="card" id="secCo">
+    <h2>1. 기업 정보</h2>
+    <div class="grid">
+      <label class="f">상호(법인명)<input data-k="name"></label>
+      <label class="f">대표자<input data-k="rep"></label>
+      <label class="f">사업자등록번호<input data-k="biz" placeholder="000-00-00000"></label>
+      <label class="f">기업 형태<select data-k="form"><option value="corp">법인</option><option value="ind">개인사업자</option></select></label>
+      <label class="f">외부감사 대상<select data-k="audited"><option value="auto">자동(자산·매출 기준)</option><option value="y">예</option><option value="n">아니오</option></select></label>
+      <label class="f">상장 여부<select data-k="listed"><option value="n">비상장</option><option value="y">상장</option></select></label>
+      <label class="f">업종 구분<select data-k="ind"><option value="mfg">제조</option><option value="con">건설</option><option value="trd">도소매</option><option value="svc">서비스</option></select></label>
+      <label class="f">설립일(개업일)<input type="date" data-k="est"></label>
+      <label class="f">최근 결산연도<input type="number" data-k="fy" min="2000" max="2100"></label>
+      <label class="f">결산월<select data-k="fm"></select></label>
+      <label class="f">종업원 수(명)<input type="number" data-k="emp" min="0"></label>
+      <label class="f">평가 기준일<input type="date" data-k="evalDate"></label>
+    </div>
+    <h3>비재무 정보 <span class="note">(기관 비재무·계량비재무 평가와 필터링에 씁니다)</span></h3>
+    <div class="grid">
+      <label class="f">대표자 개인신용<select data-k="repCb"><option value="1">1~2등급(900점 이상)</option><option value="3">3~4등급</option><option value="5" selected>5~6등급</option><option value="7">7등급</option><option value="8">8등급</option><option value="9">9~10등급</option></select></label>
+      <label class="f">대표자 동종업계 경력<select data-k="repExp"><option value="5">20년 이상</option><option value="4">10~20년</option><option value="3" selected>5~10년</option><option value="2">3~5년</option><option value="1">3년 미만</option></select></label>
+      <label class="f">주요 거래처 신용도<select data-k="custQ"><option value="5">공공기관·대기업 위주</option><option value="4">중견기업 위주</option><option value="3" selected>중소기업 위주</option><option value="2">소규모·개인 위주</option><option value="1">불량 거래처 다수</option></select></label>
+      <label class="f">매출처 집중도(상위 1곳 비중)<select data-k="custConc"><option value="5">20% 미만</option><option value="4">20~40%</option><option value="3" selected>40~60%</option><option value="2">60~80%</option><option value="1">80% 이상</option></select></label>
+      <label class="f">자금조달 여력(담보·보증 여유)<select data-k="fundQ"><option value="5">충분</option><option value="4">양호</option><option value="3" selected>보통</option><option value="2">부족</option><option value="1">매우 부족</option></select></label>
+      <label class="f">산업 위험(경기·경쟁 강도)<select data-k="indRisk"><option value="5">매우 낮음</option><option value="4">낮음</option><option value="3" selected>보통</option><option value="2">높음</option><option value="1">매우 높음</option></select></label>
+      <label class="f">재무 전망(향후 1~2년)<select data-k="outlook"><option value="5">크게 개선</option><option value="4">개선</option><option value="3" selected>유지</option><option value="2">악화</option><option value="1">크게 악화</option></select></label>
+      <label class="f">감사의견<select data-k="opinion"><option value="none">해당 없음(비외감)</option><option value="clean">적정</option><option value="qual">한정</option><option value="adv">부적정·의견거절</option></select></label>
+    </div>
+    <h3>불량·연체 정보</h3>
+    <div class="chk">
+      <label><input type="checkbox" data-k="bad_default">채무불이행 등록(연체 90일 이상)</label>
+      <label><input type="checkbox" data-k="bad_trade">상거래 연체</label>
+      <label><input type="checkbox" data-k="bad_tax">국세·지방세 체납</label>
+      <label><input type="checkbox" data-k="bad_taxDefer">체납처분 유예</label>
+      <label><input type="checkbox" data-k="bad_recovery">신용회복지원·회생</label>
+      <label><input type="checkbox" data-k="bad_repLate">대표자 연체</label>
+      <label><input type="checkbox" data-k="bad_bankrupt">부도·폐업</label>
+    </div>
+  </section>
+
+  <section class="card" id="secFs">
+    <h2>2. 재무제표 (3개년)</h2>
+    <div class="drop" id="drop">
+      <b>엑셀(.xlsx·.xls·.csv) 또는 PDF</b>를 여기에 끌어 놓거나 <button type="button" class="btn sm" id="bPick">파일 선택</button>
+      <input type="file" id="fPick" accept=".xlsx,.xls,.csv,.pdf" multiple hidden>
+      <div class="row" style="justify-content:center;margin-top:8px">
+        <label class="note">첫 금액 열 →
+          <select id="colStart"><option value="0">당기(최근 결산연도)</option><option value="1">전기</option><option value="2">전전기</option></select></label>
+        <label class="note">금액 단위
+          <select id="unit"><option value="1">원</option><option value="1000">천원</option><option value="1000000">백만원</option></select></label>
+        <label class="note"><input type="checkbox" id="ocrOn" checked> 글자층 없는 스캔 PDF는 OCR</label>
+      </div>
+      <div class="note" style="margin-top:6px">표준재무제표증명(홈택스)은 한 해씩 발급되므로 연도마다 「첫 금액 열」을 맞춰 올리십시오. 감사보고서·세무사랑 출력물은 당기·전기 두 열을 함께 읽습니다. 자동으로 채운 칸은 연두색입니다.</div>
+    </div>
+    <div class="log" id="log"></div>
+    <div class="tblwrap" style="margin-top:10px">
+      <table class="t" id="fsTbl"></table>
+    </div>
+    <div class="row" style="margin-top:8px"><span class="note" id="fsCheck"></span></div>
+  </section>
+
+  <section class="card" id="secRatio">
+    <h2>3. 재무비율</h2>
+    <div class="tblwrap"><table class="t" id="ratioTbl"></table></div>
+  </section>
+
+  <section class="card" id="secEval">
+    <h2>4. 기관별 추정 평가</h2>
+    <div class="tabs" id="evalTabs">
+      <button type="button" data-t="proc" class="on">조달·입찰용 기업신용평가</button>
+      <button type="button" data-t="bond">회사채 신용평가 3사</button>
+      <button type="button" data-t="bench">한백 기준값(가정) 편집</button>
+    </div>
+    <div id="pane-proc"></div>
+    <div id="pane-bond" style="display:none"></div>
+    <div id="pane-bench" style="display:none"></div>
+  </section>
+
+  <section class="card" id="secBid">
+    <h2>5. 발주처 경영상태(신용평가) 점수 환산</h2>
+    <div class="grid">
+      <label class="f">발주처·계약 유형<select id="bidTable"></select></label>
+      <label class="f">적용 등급 출처<select id="bidSrc"></select></label>
+    </div>
+    <div id="bidOut" style="margin-top:10px"></div>
+  </section>
+
+  <div class="card noprint">
+    <div class="row">
+      <button type="button" class="btn gold" id="bPrintAll">선택 기관 평가서 출력</button>
+      <span class="note">기관 카드의 「평가서」 버튼은 그 기관 한 장만, 이 버튼은 체크한 기관을 모두 인쇄(또는 PDF 저장)합니다.</span>
+    </div>
+  </div>
+  <div id="sheetWrap"></div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+<!-- ═══════════════ 계산 엔진 (화면 코드와 분리 · Node 시험 대상) ═══════════════ -->
+<script id="hbEngine">
+(function(root){
+'use strict';
+const E={};
+
+/* ── 계정 사전: key, 표시명, 구분, 동의어(띄어쓰기 없이). total=합계 계정(첫 값), sum=여러 줄 합산 ── */
+E.ACCOUNTS=[
+ {k:'cash', l:'현금및현금성자산', s:'BS', syn:['현금및현금성자산','현금및현금등가물','현금및예금','현금과예금']},
+ {k:'stfin',l:'단기금융상품', s:'BS', syn:['단기금융상품','단기투자자산','단기금융자산','단기매매증권','당기손익-공정가치측정금융자산']},
+ {k:'ar',   l:'매출채권', s:'BS', syn:['매출채권','매출채권및기타채권'], part:['외상매출금','받을어음']},
+ {k:'inv',  l:'재고자산', s:'BS', syn:['재고자산']},
+ {k:'ca',   l:'유동자산', s:'BS', syn:['유동자산'], total:1},
+ {k:'ppe',  l:'유형자산', s:'BS', syn:['유형자산']},
+ {k:'intan',l:'무형자산', s:'BS', syn:['무형자산']},
+ {k:'nca',  l:'비유동자산', s:'BS', syn:['비유동자산','고정자산'], total:1},
+ {k:'ta',   l:'자산총계', s:'BS', syn:['자산총계','자산합계','자산총액'], total:1},
+ {k:'ap',   l:'매입채무', s:'BS', syn:['매입채무','매입채무및기타채무'], part:['외상매입금','지급어음']},
+ {k:'std',  l:'단기차입금', s:'BS', syn:['단기차입금']},
+ {k:'cltd', l:'유동성장기부채', s:'BS', syn:['유동성장기부채','유동성장기차입금','유동성사채']},
+ {k:'cl',   l:'유동부채', s:'BS', syn:['유동부채'], total:1},
+ {k:'bond', l:'사채', s:'BS', syn:['사채']},
+ {k:'ltd',  l:'장기차입금', s:'BS', syn:['장기차입금']},
+ {k:'lease',l:'리스부채', s:'BS', syn:['리스부채','유동리스부채','비유동리스부채','금융리스부채'], sum:1},
+ {k:'ncl',  l:'비유동부채', s:'BS', syn:['비유동부채','고정부채'], total:1},
+ {k:'tl',   l:'부채총계', s:'BS', syn:['부채총계','부채합계'], total:1},
+ {k:'capst',l:'자본금', s:'BS', syn:['자본금','출자금']},
+ {k:'re',   l:'이익잉여금(결손금)', s:'BS', syn:['이익잉여금','미처분이익잉여금','이익잉여금(결손금)','결손금','미처리결손금'], neg:['결손금','미처리결손금']},
+ {k:'te',   l:'자본총계', s:'BS', syn:['자본총계','자본합계'], total:1},
+ {k:'rev',  l:'매출액', s:'IS', syn:['매출액','수익(매출액)','영업수익','매출']},
+ {k:'cogs', l:'매출원가', s:'IS', syn:['매출원가']},
+ {k:'gp',   l:'매출총이익', s:'IS', syn:['매출총이익','매출총손익','매출총손실'], neg:['매출총손실']},
+ {k:'sga',  l:'판매비와관리비', s:'IS', syn:['판매비와관리비','판매비와일반관리비','판매비및관리비']},
+ {k:'dep',  l:'감가상각비', s:'IS', syn:['감가상각비'], sum:1},
+ {k:'amort',l:'무형자산상각비', s:'IS', syn:['무형자산상각비'], sum:1},
+ {k:'op',   l:'영업이익(손실)', s:'IS', syn:['영업이익','영업손익','영업손실'], neg:['영업손실']},
+ {k:'baddebt',l:'대손상각비', s:'IS', syn:['대손상각비'], sum:1},
+ {k:'retire',l:'퇴직급여', s:'IS', syn:['퇴직급여','퇴직급여충당금전입액'], sum:1},
+ {k:'intinc',l:'이자수익', s:'IS', syn:['이자수익']},
+ {k:'intexp',l:'이자비용', s:'IS', syn:['이자비용','이자비용(금융원가)']},
+ {k:'arloss',l:'매출채권처분손실', s:'IS', syn:['매출채권처분손실']},
+ {k:'ebt',  l:'법인세차감전순이익', s:'IS', syn:['법인세비용차감전순이익','법인세차감전순이익','법인세비용차감전계속사업이익','법인세비용차감전순손익','법인세비용차감전순손실','소득세차감전순이익','소득세비용차감전순이익'], neg:['법인세비용차감전순손실']},
+ {k:'tax',  l:'법인세비용', s:'IS', syn:['법인세비용','법인세등','소득세등','법인세비용(수익)']},
+ {k:'ni',   l:'당기순이익(손실)', s:'IS', syn:['당기순이익','당기순손익','당기순손실'], neg:['당기순손실']},
+ {k:'cfo',  l:'영업활동현금흐름', s:'CF', syn:['영업활동으로인한현금흐름','영업활동현금흐름','영업활동으로인한순현금흐름']},
+ {k:'capex',l:'유형자산 취득(CAPEX)', s:'CF', syn:['유형자산의취득','유형자산취득']},
+ {k:'divp', l:'배당금 지급', s:'CF', syn:['배당금의지급','배당금지급']}
+];
+E.ACC=Object.fromEntries(E.ACCOUNTS.map(a=>[a.k,a]));
+
+/* ── 과목명 정규화: 번호·주석·괄호 설명·공백 제거 ── */
+E.normLabel=function(s){
+  let t=String(s||'').replace(/\s+/g,'');
+  t=t.replace(/^[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩⅪⅫ]+[.)．]?/,'').replace(/^\(?\d{1,2}[.)．]/,'').replace(/^[가-하][.)．]/,'').replace(/^[①-⑳]/,'');
+  t=t.replace(/\(주석[^)]*\)|\(주\d*[^)]*\)|\[주[^\]]*\]/g,'');
+  return t;
+};
+/* 사전 조회: 정확히 같은 동의어 → 괄호를 뗀 형태 → 부분 계정(part) */
+E.matchLabel=function(raw){
+  const t=E.normLabel(raw); if(!t)return null;
+  const bare=t.replace(/\([^)]*\)/g,'');
+  for(const a of E.ACCOUNTS){ if(a.syn.includes(t))return {k:a.k,neg:!!(a.neg&&a.neg.includes(t))}; }
+  for(const a of E.ACCOUNTS){ if(a.syn.includes(bare))return {k:a.k,neg:!!(a.neg&&a.neg.includes(bare))}; }
+  for(const a of E.ACCOUNTS){ if(a.part&&(a.part.includes(t)||a.part.includes(bare)))return {k:a.k,part:true}; }
+  return null;
+};
+
+/* ── 금액 토큰: 1,234 / (1,234) / △1,234 / -1,234 ── */
+E.NUMRE=/[(（]?\s*[-△▲▽]?\s*\d{1,3}(?:,\d{3})+(?:\.\d+)?\s*[)）]?|[(（]?\s*[-△▲▽]?\s*\d+(?:\.\d+)?\s*[)）]?/g;
+E.parseNum=function(tok){
+  if(tok==null)return null; if(typeof tok==='number')return isFinite(tok)?tok:null;
+  let s=String(tok).trim(); if(!s)return null;
+  const neg=/^[(（]|[-△▲▽]/.test(s)&&!/^\+/.test(s);
+  s=s.replace(/[^\d.]/g,''); if(!s)return null;
+  const v=parseFloat(s); if(!isFinite(v))return null;
+  return neg?-v:v;
+};
+/* 한 줄(문자열) → {label, nums[]} . 과목 코드(쉼표 없는 3자리 이하 숫자)가 금액 앞에 있으면 버린다 */
+E.splitLine=function(line){
+  const s=String(line||'').replace(/ /g,' ').trim(); if(!s)return null;
+  const m=s.match(/^(.*?[가-힣A-Za-z)\]])\s*((?:[(（]?\s*[-△▲▽]?\s*[\d,]+(?:\.\d+)?\s*[)）]?\s*)+)$/);
+  if(!m)return null;
+  const label=m[1].trim(); const toks=m[2].match(E.NUMRE)||[];
+  let nums=toks.map(x=>x.trim());
+  if(nums.length>1&&/^\d{1,3}$/.test(nums[0]))nums=nums.slice(1);
+  return {label,nums:nums.map(E.parseNum).filter(v=>v!=null)};
+};
+
+/* ── 줄 목록(문자열 또는 {label,nums}) → 계정값. colStart: 첫 금액 열이 몇 번째 해인지(0=당기) ── */
+E.extract=function(lines,opt){
+  opt=opt||{}; const unit=opt.unit||1, colStart=opt.colStart||0;
+  const out={}, hit=[], parts={};
+  for(const ln of lines){
+    const r=typeof ln==='string'?E.splitLine(ln):ln; if(!r||!r.nums||!r.nums.length)continue;
+    const m=E.matchLabel(r.label); if(!m)continue;
+    const a=E.ACC[m.k];
+    r.nums.forEach((v,ci)=>{
+      const y=colStart+ci; if(y>2)return;
+      let val=v*unit; if(m.neg&&val>0)val=-val;
+      if(m.part){ parts[m.k]=parts[m.k]||{}; parts[m.k][y]=(parts[m.k][y]||0)+val; return; }
+      out[m.k]=out[m.k]||{};
+      if(a.sum){ out[m.k][y]=(out[m.k][y]||0)+val; }
+      else if(out[m.k][y]==null){ out[m.k][y]=val; }
+    });
+    hit.push({label:r.label,k:m.k,nums:r.nums});
+  }
+  for(const k in parts){ for(const y in parts[k]){ out[k]=out[k]||{}; if(out[k][y]==null)out[k][y]=parts[k][y]; } }
+  return {values:out,hit};
+};
+
+/* ── 재무비율 ── */
+const dv=(a,b)=>(a==null||b==null||!isFinite(a)||!isFinite(b)||b===0)?null:a/b;
+const g=(fs,k,y)=>{const v=fs&&fs[k]&&fs[k][y];return (v==null||v==='')?null:+v;};
+const nz=v=>v==null?0:v;
+const avg=(a,b)=>a==null?null:(b==null?a:(a+b)/2);
+E.debt=(fs,y)=>{const ks=['std','cltd','bond','ltd','lease'];if(ks.every(k=>g(fs,k,y)==null))return null;return ks.reduce((s,k)=>s+nz(g(fs,k,y)),0);};
+E.RATIOS=[
+ {k:'curR',   l:'유동비율', u:'%', grp:'유동성', f:(fs,y)=>dv(g(fs,'ca',y),g(fs,'cl',y))},
+ {k:'quickR', l:'당좌비율', u:'%', grp:'유동성', f:(fs,y)=>dv(g(fs,'ca',y)==null?null:g(fs,'ca',y)-nz(g(fs,'inv',y)),g(fs,'cl',y))},
+ {k:'cashR',  l:'현금비율', u:'%', grp:'유동성', f:(fs,y)=>dv(g(fs,'cash',y)==null?null:g(fs,'cash',y)+nz(g(fs,'stfin',y)),g(fs,'cl',y))},
+ {k:'eqR',    l:'자기자본비율', u:'%', grp:'안정성', f:(fs,y)=>dv(g(fs,'te',y),g(fs,'ta',y))},
+ {k:'debtR',  l:'부채비율', u:'%', grp:'안정성', f:(fs,y)=>{const te=g(fs,'te',y);return te!=null&&te<=0?null:dv(g(fs,'tl',y),te);}},
+ {k:'borrDep',l:'차입금의존도', u:'%', grp:'안정성', f:(fs,y)=>dv(E.debt(fs,y),g(fs,'ta',y))},
+ {k:'reToTl', l:'이익잉여금/부채총계', u:'%', grp:'안정성', f:(fs,y)=>dv(g(fs,'re',y),g(fs,'tl',y))},
+ {k:'opM',    l:'매출액영업이익률', u:'%', grp:'수익성', f:(fs,y)=>dv(g(fs,'op',y),g(fs,'rev',y))},
+ {k:'ebtM',   l:'매출액세전이익률', u:'%', grp:'수익성', f:(fs,y)=>dv(g(fs,'ebt',y),g(fs,'rev',y))},
+ {k:'niM',    l:'매출액순이익률', u:'%', grp:'수익성', f:(fs,y)=>dv(g(fs,'ni',y),g(fs,'rev',y))},
+ {k:'cogsR',  l:'매출원가율', u:'%', grp:'수익성', f:(fs,y)=>dv(g(fs,'cogs',y),g(fs,'rev',y))},
+ {k:'ebitdaM',l:'EBITDA/매출액', u:'%', grp:'수익성', f:(fs,y)=>dv(E.ebitda(fs,y),g(fs,'rev',y))},
+ {k:'roa',    l:'총자산순이익률(ROA)', u:'%', grp:'수익성', f:(fs,y)=>dv(g(fs,'ni',y),avg(g(fs,'ta',y),g(fs,'ta',y+1)))},
+ {k:'icr',    l:'이자보상배율(영업이익/이자비용)', u:'배', grp:'부채상환능력', f:(fs,y)=>{const i=g(fs,'intexp',y);if(i===0||i==null)return g(fs,'op',y)==null?null:(g(fs,'op',y)>=0?99:-99);return dv(g(fs,'op',y),i);}},
+ {k:'ebitdaIcr',l:'EBITDA/이자비용', u:'배', grp:'부채상환능력', f:(fs,y)=>{const i=g(fs,'intexp',y),e=E.ebitda(fs,y);if(e==null)return null;if(!i)return e>=0?99:-99;return e/i;}},
+ {k:'debtEbitda',l:'차입금/EBITDA', u:'배', grp:'부채상환능력', f:(fs,y)=>{const d=E.debt(fs,y),e=E.ebitda(fs,y);if(d==null||e==null)return null;if(e<=0)return d>0?99:0;return d/e;}},
+ {k:'netDebtEbitda',l:'순차입금/EBITDA', u:'배', grp:'부채상환능력', f:(fs,y)=>{const d=E.debt(fs,y),e=E.ebitda(fs,y);if(d==null||e==null)return null;const nd=d-nz(g(fs,'cash',y))-nz(g(fs,'stfin',y));if(e<=0)return nd>0?99:0;return nd/e;}},
+ {k:'finCost',l:'금융비용/매출액', u:'%', grp:'부채상환능력', f:(fs,y)=>dv(g(fs,'intexp',y),g(fs,'rev',y))},
+ {k:'cfoDebt',l:'영업현금흐름/차입금', u:'%', grp:'현금흐름', f:(fs,y)=>{const d=E.debt(fs,y),c=g(fs,'cfo',y);if(c==null||d==null)return null;if(d===0)return c>=0?9.99:-9.99;return c/d;}},
+ {k:'cfoM',   l:'영업현금흐름/매출액', u:'%', grp:'현금흐름', f:(fs,y)=>dv(g(fs,'cfo',y),g(fs,'rev',y))},
+ {k:'atr',    l:'총자산회전율', u:'회', grp:'활동성', f:(fs,y)=>dv(g(fs,'rev',y),avg(g(fs,'ta',y),g(fs,'ta',y+1)))},
+ {k:'arTurn', l:'매출채권회전율', u:'회', grp:'활동성', f:(fs,y)=>dv(g(fs,'rev',y),avg(g(fs,'ar',y),g(fs,'ar',y+1)))},
+ {k:'invDays',l:'재고자산회전기간', u:'일', grp:'활동성', f:(fs,y)=>{const c=g(fs,'cogs',y)!=null?g(fs,'cogs',y):g(fs,'rev',y);const r=dv(avg(g(fs,'inv',y),g(fs,'inv',y+1)),c);return r==null?null:r*365;}},
+ {k:'apTurn', l:'매입채무회전율', u:'회', grp:'활동성', f:(fs,y)=>dv(g(fs,'cogs',y)!=null?g(fs,'cogs',y):g(fs,'rev',y),avg(g(fs,'ap',y),g(fs,'ap',y+1)))},
+ {k:'revG',   l:'매출액증가율', u:'%', grp:'성장성', f:(fs,y)=>E.growth(g(fs,'rev',y),g(fs,'rev',y+1))},
+ {k:'taG',    l:'총자산증가율', u:'%', grp:'성장성', f:(fs,y)=>E.growth(g(fs,'ta',y),g(fs,'ta',y+1))},
+ {k:'niG',    l:'순이익증가율', u:'%', grp:'성장성', f:(fs,y)=>E.growth(g(fs,'ni',y),g(fs,'ni',y+1))},
+ {k:'ppeG',   l:'유형자산증가율', u:'%', grp:'성장성', f:(fs,y)=>E.growth(g(fs,'ppe',y),g(fs,'ppe',y+1))},
+ {k:'revSize',l:'매출액 규모(억원)', u:'억', grp:'규모', f:(fs,y)=>g(fs,'rev',y)==null?null:g(fs,'rev',y)/1e8},
+ {k:'taSize', l:'자산총계 규모(억원)', u:'억', grp:'규모', f:(fs,y)=>g(fs,'ta',y)==null?null:g(fs,'ta',y)/1e8}
+];
+E.R=Object.fromEntries(E.RATIOS.map(r=>[r.k,r]));
+E.ebitda=(fs,y)=>{const o=g(fs,'op',y);if(o==null)return null;return o+nz(g(fs,'dep',y))+nz(g(fs,'amort',y));};
+E.growth=(a,b)=>{if(a==null||b==null||b===0)return null;return (a-b)/Math.abs(b);};
+E.ratio=(fs,k,y)=>{const r=E.R[k];if(!r)return null;const v=r.f(fs,y);return (v==null||!isFinite(v))?null:v;};
+
+/* ── 한백 기준값(가정): 지표별 나쁨·좋음 경계. 그 사이는 직선 보간으로 0~100점. hi=높을수록 좋음 ── */
+E.BENCH={
+ curR:{bad:0.7,good:2.0,hi:1}, quickR:{bad:0.5,good:1.5,hi:1}, cashR:{bad:0.05,good:0.5,hi:1},
+ eqR:{bad:0.10,good:0.50,hi:1}, debtR:{bad:4.0,good:0.8,hi:0}, borrDep:{bad:0.60,good:0.10,hi:0}, reToTl:{bad:-0.2,good:0.6,hi:1},
+ opM:{bad:-0.02,good:0.10,hi:1}, ebtM:{bad:-0.03,good:0.08,hi:1}, niM:{bad:-0.03,good:0.07,hi:1}, cogsR:{bad:0.95,good:0.60,hi:0},
+ ebitdaM:{bad:0,good:0.15,hi:1}, roa:{bad:-0.03,good:0.08,hi:1},
+ icr:{bad:0.5,good:6,hi:1}, ebitdaIcr:{bad:1,good:10,hi:1}, debtEbitda:{bad:8,good:1,hi:0}, netDebtEbitda:{bad:7,good:0.5,hi:0}, finCost:{bad:0.06,good:0.005,hi:0},
+ cfoDebt:{bad:-0.05,good:0.5,hi:1}, cfoM:{bad:-0.05,good:0.10,hi:1},
+ atr:{bad:0.4,good:2.0,hi:1}, arTurn:{bad:3,good:12,hi:1}, invDays:{bad:120,good:15,hi:0}, apTurn:{bad:2,good:12,hi:1},
+ revG:{bad:-0.15,good:0.20,hi:1}, taG:{bad:-0.10,good:0.15,hi:1}, niG:{bad:-0.5,good:0.3,hi:1}, ppeG:{bad:-0.10,good:0.15,hi:1},
+ revSize:{bad:3,good:500,hi:1,log:1}, taSize:{bad:3,good:500,hi:1,log:1}
+};
+E.scoreRatio=function(k,v,bench){
+  const b=(bench||E.BENCH)[k]; if(!b||v==null)return null;
+  let x=v,lo=b.bad,hi=b.good;
+  if(b.log){x=Math.log10(Math.max(v,0.01));lo=Math.log10(b.bad);hi=Math.log10(b.good);}
+  const t=(x-lo)/(hi-lo);
+  return Math.max(0,Math.min(100,t*100));
+};
+
+/* ── 등급 척도 ── */
+E.SCALE=['AAA','AA+','AA0','AA-','A+','A0','A-','BBB+','BBB0','BBB-','BB+','BB0','BB-','B+','B0','B-','CCC+','CCC0','CCC-','CC','C','D'];
+E.gIdx=g=>E.SCALE.indexOf(g);
+E.worse=(a,b)=>E.gIdx(a)>=E.gIdx(b)?a:b;
+/* 종합점수(0~100) → 등급 (가정 경계). C 까지만 — D 는 부도·폐업 사실이 있을 때만 */
+E.SCORE_CUT=[90,86,82,78,74,70,66,62,58,54,50,46,42,38,34,30,26,22,18,12,0];
+E.scoreToGrade=function(s){for(let i=0;i<E.SCORE_CUT.length;i++)if(s>=E.SCORE_CUT[i])return E.SCALE[i];return 'C';};
+E.eGrade=function(gr){const base=gr.replace(/[+0-]$/,'');const m={AAA:'e-1',AA:'e-2',A:'e-3',BBB:'e-4',BB:'e-5',B:'e-6',CCC:'e-7',CC:'e-8',C:'e-9',D:'e-10'};return m[base]||'';};
+E.GRADE_DEF={
+ AAA:'상거래 신용능력이 최우량이며, 환경 변화에도 충분히 대처할 수 있는 수준',
+ AA:'상거래 신용능력이 우량하며, 환경 변화에 대처할 능력이 충분한 수준',
+ A:'상거래 신용능력이 양호하나, 환경 변화에 따라 다소 영향을 받을 수 있는 수준',
+ BBB:'상거래 신용능력은 양호하나, 경제 여건이 나빠지면 거래 안정성이 떨어질 수 있는 수준',
+ BB:'상거래 신용능력이 보통이며, 경제 여건 악화 시 거래 안정성 저하가 우려되는 수준',
+ B:'상거래 신용능력은 있으나, 경제 여건 악화 시 거래 안정성 저하 가능성이 높은 수준',
+ CCC:'상거래 신용능력이 보통 이하이며, 거래 안정성 저하가 예상되어 주의가 필요한 수준',
+ CC:'상거래 신용능력이 매우 낮고, 거래 안정성이 낮은 수준',
+ C:'상거래 신용능력이 최하위이며, 거래 위험 발생 가능성이 매우 높은 수준',
+ D:'현재 신용위험이 실제 발생하였거나 이에 준하는 상태'
+};
+E.gradeBase=gr=>gr.replace(/[+0-]$/,'');
+
+/* ── 기업 규모 구분 ── */
+E.sizeClass=function(co,fs){
+  const ta=g(fs,'ta',0),rev=g(fs,'rev',0);
+  const hasFs=ta!=null&&rev!=null;
+  let audited=co.audited==='y'?true:co.audited==='n'?false:(co.listed==='y'||(ta!=null&&ta>=500e8)||(rev!=null&&rev>=500e8));
+  const ageY=E.ageYears(co);
+  return {hasFs,audited,listed:co.listed==='y',ta,rev,ageY,ind:co.form==='ind',
+    small:ta!=null&&ta<30e8, large:ta!=null&&ta>=600e8};
+};
+E.ageYears=function(co){
+  if(!co.est)return null; const a=new Date(co.est), b=co.evalDate?new Date(co.evalDate):new Date();
+  if(isNaN(a)||isNaN(b))return null; return (b-a)/(365.25*864e5);
+};
+
+/* ── 비재무 항목 점수(0~100). 설문 1~5 → 0/25/50/75/100 ── */
+const q5=v=>{v=+v;return isFinite(v)&&v>0?Math.max(0,Math.min(100,(v-1)*25)):50;};
+E.NONFIN={
+ repCb:{l:'대표자 개인신용', f:co=>({1:100,3:80,5:55,7:30,8:15,9:0})[co.repCb]??55},
+ repExp:{l:'대표자 동종업계 경력', f:co=>q5(co.repExp)},
+ age:{l:'업력(설립 후 경과)', f:co=>{const a=E.ageYears(co);if(a==null)return 50;return a>=20?100:a>=10?80:a>=5?60:a>=3?40:a>=1?20:0;}},
+ custQ:{l:'주요 거래처 신용도', f:co=>q5(co.custQ)},
+ custConc:{l:'매출처 분산도', f:co=>q5(co.custConc)},
+ fundQ:{l:'자금조달 여력', f:co=>q5(co.fundQ)},
+ indRisk:{l:'산업 위험', f:co=>q5(co.indRisk)},
+ outlook:{l:'재무 전망', f:co=>q5(co.outlook)},
+ size:{l:'기업 규모(매출·종업원)', f:(co,fs)=>{const r=g(fs,'rev',0);const s1=r==null?50:E.scoreRatio('revSize',r/1e8);const e=+co.emp;const s2=!isFinite(e)||e<=0?s1:e>=300?100:e>=100?80:e>=50?65:e>=10?45:25;return (s1+s2)/2;}},
+ dataQ:{l:'자료 신뢰도(외감·감사의견)', f:(co,fs)=>{const s=E.sizeClass(co,fs);if(co.opinion==='clean')return 100;if(co.opinion==='qual')return 40;if(co.opinion==='adv')return 0;return s.audited?70:50;}},
+ debtMat:{l:'여신 만기구조(장기 비중)', f:(co,fs)=>{const st=nz(g(fs,'std',0))+nz(g(fs,'cltd',0)),d=E.debt(fs,0);if(!d)return 80;return Math.max(0,Math.min(100,(1-st/d)*100));}},
+ cfTrend:{l:'현금흐름 추이', f:(co,fs)=>{const c=[0,1,2].map(y=>g(fs,'cfo',y)).filter(v=>v!=null);if(!c.length)return 50;const pos=c.filter(v=>v>0).length/c.length;return pos*100;}}
+};
+
+/* ── 조달·입찰용 기관 정의 ──
+   pub: 기관이 공개한 사실(출처 표시), asm: 가정. fin: 재무 영역 → 지표 목록(영역 안은 같은 비중, 영역 간도 같은 비중 = 가정)
+   weights(sc): 규모 구분에 따른 결합비중. filters(ctx): 등급 상한 목록 */
+E.PROC=[
+ {id:'ecr', name:'(주)이크레더블', short:'이크레더블', eg:true,
+  src:'「기업신용평가체계」 공시(2025.3), ecredible.co.kr/files/ecredible_rating.pdf · 유효기간: ECR07020300 안내',
+  valid:'평가일부터 1년(결산기준일부터 1년 6개월을 넘지 못함)',
+  model:sc=>!sc.hasFs?'재무제표 미작성':sc.ind?'개인사업자':sc.audited?'외감':(sc.ta!=null&&sc.ta<30e8)?'소기업':'비외감',
+  weights:(sc,m)=>({'외감':[80,20],'비외감':[70,30],'소기업':[50,50],'개인사업자':[40,60],'재무제표 미작성':[0,100]})[m],
+  fin:{'안정성':['curR','eqR','debtR','borrDep'],'수익성':['opM','ebtM','cogsR','niM'],'활동성':['atr','invDays','arTurn','apTurn'],'성장성':['taG','revG','niG','ppeG']},
+  finNote:'재무 항목은 공시 목록 그대로, 항목·영역 가중치는 비공개 → 같은 비중(가정)',
+  nonfin:['repCb','age','custQ','debtMat','fundQ','outlook','dataQ'],
+  filters:ctx=>{const f=[],fs=ctx.fs,co=ctx.co,sc=ctx.sc;
+    const te=g(fs,'te',0),ta=g(fs,'ta',0),rev=g(fs,'rev',0);
+    const ni3=[0,1,2].map(y=>g(fs,'ni',y));
+    if(te!=null&&te<=0&&!(ni3.every(v=>v!=null&&v>0)))f.push(['자기자본 전액잠식','CCC+','pub']);
+    if(ni3[0]!=null&&ni3[1]!=null&&ni3[0]<0&&ni3[1]<0)f.push(['2개년 연속 순손실','B+','pub']);
+    if(te!=null&&ta&&te/ta<=0.10&&!sc.ind&&!(ta<30e8))f.push(['자기자본비율 10% 이하','CCC+','pub']);
+    if(sc.audited&&co.opinion==='adv')f.push(['감사의견 부적정·거절','CCC+','pub']);
+    if(!sc.hasFs)f.push(['재무제표 없음','B+','pub']);
+    if(rev!=null&&rev<3e8)f.push(['당기 매출 3억원 미만','B+','pub']);
+    else if(rev!=null&&rev<20e8)f.push(['당기 매출 20억원 미만','BB+','pub']);
+    if(co.bad_default)f.push(['채무불이행(N 등급 정보)','CC','pub']);
+    if(co.bad_recovery)f.push(['신용회복지원','CC','pub']);
+    if(co.bad_trade)f.push(['상거래 연체','CCC+','pub']);
+    if(co.bad_taxDefer)f.push(['체납처분 유예','CCC-','pub']);
+    if(co.bad_tax)f.push(['국세·지방세 체납','CC','pub']);
+    if(!sc.audited&&co.repCb==='8')f.push(['대표자 개인신용 8등급','CCC+','pub']);
+    if(!sc.audited&&co.repCb==='9')f.push(['대표자 개인신용 9등급 이하','CC','pub']);
+    return f;}},
+ {id:'nice', name:'NICE평가정보(주)', short:'NICE평가정보',
+  src:'신용등급체계 공시, niceinfo.co.kr/creditrating/bi_score_1_1.nice(1_3·1_4·3)',
+  valid:'공시에서 확인 못함 — 발급 확인서의 유효기간을 따를 것',
+  model:sc=>!sc.hasFs?'R(등급 유보)':sc.audited?'외감':(sc.ta!=null&&sc.ta<30e8)?'소기업':'비외감',
+  weights:(sc,m)=>({'외감':[70,30],'비외감':[60,40],'소기업':[30,70],'R(등급 유보)':[0,100]})[m],
+  fin:{'수익성':['opM','niM','roa'],'안정성':['eqR','debtR','borrDep'],'부채상환능력':['icr','debtEbitda'],'유동성':['curR','cashR'],'활동성':['atr','arTurn'],'성장성':['revG','taG']},
+  finNote:'평가요소 6개는 공시, 요소별 지표·가중치는 비공개 → 대표 지표·같은 비중(가정). 최근 2개년(당기 2/3, 전기 1/3) 반영',
+  years:[2/3,1/3],
+  nonfin:['indRisk','repCb','repExp','age','custQ','custConc','fundQ','dataQ'],
+  filters:ctx=>{const f=[],fs=ctx.fs,co=ctx.co;const te=g(fs,'te',0);
+    if(co.bad_default)f.push(['90일 이상 연체(부도 정의)','CC','asm']);
+    if(te!=null&&te<=0)f.push(['자기자본 전액잠식','CCC+','asm']);
+    if(co.bad_tax)f.push(['국세·지방세 체납','CCC+','asm']);
+    if(co.bad_trade)f.push(['상거래 연체','B-','asm']);
+    return f;}},
+ {id:'dnb', name:'(주)나이스디앤비', short:'나이스디앤비', eg:true,
+  src:'「기업 신용등급체계 공시」, nicednb.com/file/cmp_grd.pdf(2025.4 기준)',
+  valid:'공시에서 확인 못함',
+  model:sc=>!sc.hasFs?'비재무':sc.audited?'외감':'비외감',
+  weights:(sc,m)=>m==='비재무'?[0,100]:m==='외감'?[65,35]:[55,45],
+  weightsAsm:true,
+  fin:{'성장성':['revG'],'수익성':['niM'],'안정성':['finCost'],'활동성':['atr'],'현금흐름':['cfoM']},
+  finNote:'공시 예시 지표 5개(매출액증가율·순이익률·금융비용/매출·총자산회전율·영업현금흐름/매출) 사용, 결합비중·가중치 비공개 → 가정',
+  nonfin:['repExp','repCb','fundQ','age','size','dataQ','cfTrend'],
+  filters:ctx=>{const f=[],co=ctx.co,fs=ctx.fs;const te=g(fs,'te',0);
+    if(co.bad_default)f.push(['3개월 이상 연체(부도 정의)','CC','asm']);
+    if(te!=null&&te<=0)f.push(['자기자본 전액잠식','CCC+','asm']);
+    if(co.bad_tax)f.push(['국세·지방세 체납','CCC+','asm']);
+    return f;}},
+ {id:'kod', name:'한국평가데이터(주)', short:'한국평가데이터',
+  src:'「기업신용등급 산정기준」(2022.3.3.), kodata.co.kr 자료실',
+  valid:'공시에서 확인 못함',
+  model:sc=>{const newCo=sc.ageY!=null&&sc.ageY<1;
+    if(sc.ind){if(newCo)return '개인 신설';if(!sc.hasFs)return '개인 SOHO';return (sc.ta!=null&&sc.ta<30e8)?'개인 소기업':'개인 비외감 이상';}
+    if(newCo)return sc.hasFs?'법인 신설(재무 포함)':'법인 신설(재무 미포함)';
+    if(sc.large||sc.listed)return '법인 대기업';
+    if(sc.audited)return '법인 외감';
+    return (sc.ta!=null&&sc.ta<30e8)?'법인 소기업':'법인 비외감';},
+  weights3:(m)=>({'법인 대기업':[65,35,0],'법인 외감':[60,30,10],'법인 비외감':[45,35,20],'법인 소기업':[30,35,35],'개인 비외감 이상':[40,35,25],'개인 소기업':[30,40,30],'개인 SOHO':[0,45,55],'법인 신설(재무 포함)':[25,40,35],'법인 신설(재무 미포함)':[0,55,40],'개인 신설':[0,50,50]})[m],
+  fin:{'안정성':['debtR','borrDep','reToTl'],'수익성':['ebtM','roa'],'성장성':['taG','revG'],'유동성':['cashR'],'활동성':['arTurn'],'현금흐름':['cfoM'],'금융비용부담':['icr','finCost']},
+  finNote:'산정기준의 재무비율 가운데 표준 재무제표로 계산되는 것만 사용, 비율별 가중치 비공개 → 같은 비중(가정). 결합비중(재무·계량비재무·대표자)은 공시값',
+  nonfin:['age','size','indRisk','custQ','fundQ','dataQ'],
+  rep:['repCb','repExp'],
+  filters:ctx=>{const f=[],co=ctx.co,fs=ctx.fs,sc=ctx.sc;const te=g(fs,'te',0);
+    const ni3=[0,1,2].map(y=>g(fs,'ni',y)),cf3=[0,1,2].map(y=>g(fs,'cfo',y));
+    if(co.bad_default)f.push(['채무불이행 등록','CC','pubA']);
+    if(co.bad_repLate)f.push(['대표자 연체','B-','pubA']);
+    if(co.opinion==='adv')f.push(['감사의견 부적정·거절','CCC+','pubA']);
+    if(co.opinion==='qual')f.push(['감사의견 한정','BB-','pubA']);
+    if(te!=null&&te<=0)f.push(['자기자본 완전잠식','CCC+','pubA']);
+    if(ni3.every(v=>v!=null&&v<0))f.push(['3년 연속 순손실','B0','pubA']);
+    if(cf3.every(v=>v!=null&&v<0))f.push(['3년 연속 현금영업이익 음수','B+','pubA']);
+    return f;}},
+ {id:'sci', name:'서울평가정보(주)(SCI)', short:'서울평가정보',
+  src:'등급체계 공시 원문(SIREN24) 확인 못함 — AHP 방식·업종 6×규모 2 = 12개 모형(2차 자료)',
+  valid:'확인 못함',
+  model:sc=>!sc.hasFs?'비재무':sc.audited?'외감':'비외감',
+  weights:(sc,m)=>m==='비재무'?[0,100]:m==='외감'?[70,30]:[60,40],
+  weightsAsm:true,
+  fin:{'안정성':['eqR','debtR','curR'],'수익성':['opM','niM'],'활동성':['atr'],'성장성':['revG'],'현금흐름':['cfoM']},
+  finNote:'모형 세부가 비공개라 전부 가정(일반적 5영역)',
+  nonfin:['indRisk','repCb','repExp','age','custQ','fundQ','dataQ'],
+  filters:ctx=>{const f=[],co=ctx.co,fs=ctx.fs;const te=g(fs,'te',0);
+    if(co.bad_default)f.push(['채무불이행','CC','asm']);
+    if(te!=null&&te<=0)f.push(['자기자본 전액잠식','CCC+','asm']);
+    if(co.bad_tax)f.push(['국세·지방세 체납','CCC+','asm']);
+    return f;}}
+];
+
+/* 재무 영역 점수: 영역별 지표 점수 평균 → 영역 평균. years: 연도 가중 */
+E.finScore=function(ag,fs,bench){
+  const yw=ag.years||[1];
+  const areas=[];
+  for(const [area,ks] of Object.entries(ag.fin)){
+    const items=ks.map(k=>{
+      let s=0,w=0,vals=[];
+      yw.forEach((wt,y)=>{const v=E.ratio(fs,k,y);vals.push(v);const sc=E.scoreRatio(k,v,bench);if(sc!=null){s+=sc*wt;w+=wt;}});
+      return {k,l:E.R[k].l,u:E.R[k].u,v:vals[0],score:w?s/w:null};
+    });
+    const ok=items.filter(i=>i.score!=null);
+    areas.push({area,items,score:ok.length?ok.reduce((a,i)=>a+i.score,0)/ok.length:null});
+  }
+  const ok=areas.filter(a=>a.score!=null);
+  return {areas,score:ok.length?ok.reduce((a,x)=>a+x.score,0)/ok.length:null};
+};
+E.nfScore=function(keys,co,fs){
+  const items=keys.map(k=>({k,l:E.NONFIN[k].l,score:E.NONFIN[k].f(co,fs)}));
+  return {items,score:items.length?items.reduce((a,i)=>a+i.score,0)/items.length:null};
+};
+
+E.evalProc=function(ag,co,fs,bench){
+  const sc=E.sizeClass(co,fs);
+  const model=ag.model(sc);
+  const fin=E.finScore(ag,fs,bench);
+  const nf=E.nfScore(ag.nonfin,co,fs);
+  let parts=[],total;
+  if(ag.weights3){
+    const w=ag.weights3(model);const rep=E.nfScore(ag.rep,co,fs);
+    parts=[['재무',w[0],fin.score],['계량비재무',w[1],nf.score],['대표자',w[2],rep.score]];
+    const ws=parts.filter(p=>p[1]>0&&p[2]!=null);const tw=ws.reduce((a,p)=>a+p[1],0);
+    total=tw?ws.reduce((a,p)=>a+p[1]*p[2],0)/tw:null;
+    nf.rep=rep;
+  }else{
+    const w=ag.weights(sc,model);
+    parts=[['재무',w[0],fin.score],['비재무',w[1],nf.score]];
+    const ws=parts.filter(p=>p[1]>0&&p[2]!=null);const tw=ws.reduce((a,p)=>a+p[1],0);
+    total=tw?ws.reduce((a,p)=>a+p[1]*p[2],0)/tw:null;
+  }
+  const modelGrade=total==null?null:E.scoreToGrade(total);
+  const filters=ag.filters({co,fs,sc});
+  let grade=modelGrade;
+  for(const f of filters){ if(grade&&E.gIdx(f[1])>E.gIdx(grade))grade=f[1]; }
+  if(co.bad_bankrupt)grade='D';
+  if(!sc.hasFs&&ag.id==='nice')grade=grade;
+  return {ag,sc,model,fin,nf,parts,total,modelGrade,filters,grade,eg:ag.eg&&grade?E.eGrade(grade):''};
+};
+
+/* ── 발주처 등급→점수 환산표 (1차 원문) ──
+   rows: [가장 낮은 포함 등급, 점수] 좋은 등급부터. 목록 끝의 'CCC+이하'는 나머지 전부 */
+E.BID=[
+ {id:'pps_goods', name:'조달청 물품 적격심사(경영상태 30점)', src:'조달청 물품구매적격심사 세부기준(지침 제3373호, 2026.5.21.) [별표1] Ⅰ-3',
+  rows:[['A-',30],['BBB+',29.8],['BBB0',29.6],['BBB-',29.4],['BB0',29.2],['BB-',29.0],['B-',28.8],['*',25.0]],
+  note:'고시금액 미만 입찰의 창업 7년 이내 기업·소기업·소상공인은 만점([주]②). 종합평점 85점 이상 낙찰(제9조)'},
+ {id:'pps_svc20', name:'조달청 일반용역 적격심사(20점)', src:'조달청 일반용역 적격심사 세부기준(공고 제2026-390호, 2026.7.24.) [별표10]',
+  rows:[['A-',20],['BBB+',19.8],['BBB0',19.6],['BBB-',19.4],['BB0',19.2],['BB-',19.0],['B-',18.8],['*',16.0]],
+  note:'국가기관·지자체, 고시금액 미만의 소기업·소상공인·창업기업은 만점'},
+ {id:'pps_svc10', name:'조달청 일반용역 적격심사(10점)', src:'조달청 일반용역 적격심사 세부기준(공고 제2026-390호, 2026.7.24.) [별표10]',
+  rows:[['A-',10],['BBB+',9.8],['BBB0',9.6],['BBB-',9.4],['BB0',9.2],['BB-',9.0],['B-',8.8],['*',7.0]]},
+ {id:'pps_con', name:'조달청 시설공사 적격심사 — 일반공사(35점 기준)', src:'조달청 시설공사 적격심사세부기준(제6481호, 2026.6.26.) [별표10]',
+  rows:[['BB0',35.0],['BB-',34.1],['B-',33.3],['*',30.0]], scale:true,
+  note:'유효 등급 없으면 0점. 공사 규모별 배점 환산: 100억~10억 ×15/35, 10억~3억 ×10/35, 3억~2억 ×5/35, 2억 미만 ×10/35'},
+ {id:'pps_con_g', name:'조달청 시설공사 — 등급제한공사(종합, 35점 기준)', src:'조달청 시설공사 적격심사세부기준(제6481호) [별표10]',
+  rows:[['BB0',35.0],['BB-',34.5],['B-',33.5],['*',30.0]]},
+ {id:'pps_con_s', name:'조달청 시설공사 — 등급제한공사(전문, 35점 기준)', src:'조달청 시설공사 적격심사세부기준(제6481호) [별표10]',
+  rows:[['BB0',35.0],['BB-',34.5],['B-',34.0],['*',30.0]]},
+ {id:'mois_con35', name:'지자체 공사 적격심사(35점표 · 300억~100억)', src:'지방자치단체 입찰시 낙찰자 결정기준(행안부 예규 제373호, 2026.7.1. 시행)',
+  rows:[['BB0',35.0],['BB-',34.5],['B-',34.0],['*',30.0]], note:'종합평가방법: 재무 점수×0.3 + 신용 점수×0.7, 규모 환산 ×15/35'},
+ {id:'mois_con21', name:'지자체 공사 적격심사(21점표 · 100억~50억)', src:'행안부 예규 제373호',
+  rows:[['BB0',21.0],['BB-',20.0],['B-',19.0],['*',16.0]], note:'환산 ×15/21'},
+ {id:'mois_con15', name:'지자체 공사 적격심사(15점표 · 50억~10억)', src:'행안부 예규 제373호',
+  rows:[['BB0',15.0],['BB-',14.0],['B-',13.0],['*',10.0]], note:'50억~30억은 ×10/15, 30억~10억은 그대로'},
+ {id:'mois_con10', name:'지자체 공사 적격심사(10점표 · 10억~2억)', src:'행안부 예규 제373호',
+  rows:[['BB0',10.0],['BB-',9.8],['B-',9.6],['*',6.0]], note:'4억~2억은 ×5/10'},
+ {id:'mois_pq', name:'지자체 PQ(입찰참가자격 사전심사, 35점)', src:'행안부 예규 제373호 PQ [별표3]',
+  rows:[['A+',35.0],['A0',34.7],['A-',34.4],['BBB+',34.0],['BBB0',33.8],['BBB-',33.5],['BB0',32.0],['BB-',31.0],['*',0]],
+  note:'적격요건: BB- 이상 통과, B+ 이하 탈락(점수 0으로 표시)'},
+ {id:'mois_goods30', name:'지자체 물품 적격심사(30점)', src:'행안부 예규 제373호 물품 [별표1]·[별표2]',
+  rows:[['A-',30.0],['BBB+',29.7],['BBB0',29.5],['BBB-',29.3],['BB0',29.0],['BB-',28.5],['B-',28.0],['*',25.0]]},
+ {id:'mois_goods20', name:'지자체 물품 적격심사(고시금액 미만 20점)', src:'행안부 예규 제373호 물품 [별표3]',
+  rows:[['A-',20.0],['BBB+',20.0],['BBB0',20.0],['BBB-',20.0],['BB0',19.7],['BB-',19.3],['B-',19.0],['*',15.0]]},
+ {id:'mois_svc30', name:'지자체 기술용역(PQ 비대상, 30점)', src:'행안부 예규 제373호 용역',
+  rows:[['BBB-',30],['BB0',29],['BB-',28],['B-',27],['*',24]]},
+ {id:'mois_res20', name:'지자체 학술연구용역(20점)', src:'행안부 예규 제373호 용역 [별표4]',
+  rows:[['A-',20.0],['BBB+',19.7],['BBB0',19.5],['BBB-',19.3],['BB0',19.0],['BB-',18.5],['B-',18.0],['*',15.0]]}
+];
+E.bidScore=function(tbl,grade){
+  if(!grade)return null;
+  const gi=E.gIdx(grade);
+  for(const [lim,sc] of tbl.rows){ if(lim==='*')return sc; if(gi<=E.gIdx(lim))return sc; }
+  return null;
+};
+
+/* ── 회사채 신용평가 3사 (공개 방법론 격자) — BOND 는 아래에서 채운다 ── */
+E.BOND_SCALE=['AAA','AA+','AA','AA-','A+','A','A-','BBB+','BBB','BBB-','BB+','BB','BB-','B+','B','B-','CCC','CC','C','D'];
+/* notch 사다리: 기본등급 AAA=0, AA=1 … B=5, CCC=6 위의 좌표 → 가장 가까운 notch (환산 구간 비공개 → 추정 규칙) */
+E.LADDER=[['AAA',0],['AA+',2/3],['AA',1],['AA-',4/3],['A+',5/3],['A',2],['A-',7/3],['BBB+',8/3],['BBB',3],['BBB-',10/3],['BB+',11/3],['BB',4],['BB-',13/3],['B+',14/3],['B',5],['B-',16/3],['CCC',6]];
+E.ladder=function(x,max){max=max==null?6:max;x=Math.max(0,Math.min(max,x));let best=E.LADDER[0];for(const l of E.LADDER){if(l[1]>max+1e-9)break;if(Math.abs(l[1]-x)<Math.abs(best[1]-x)-1e-12)best=l;}return best[0];};
+E.BASE=['AAA','AA','A','BBB','BB','B','CCC'];
+/* 격자: bands 는 좋은 등급부터의 경계값. hi=높을수록 좋음(값 ≥ 경계), 아니면 값 ≤ 경계. 마지막 구간은 나머지 */
+E.band=function(v,bands,hi){if(v==null||!isFinite(v))return null;for(let i=0;i<bands.length;i++){if(hi?v>=bands[i]:v<=bands[i])return i;}return bands.length;};
+const Ys=fs=>[0,1,2].filter(y=>g(fs,'rev',y)!=null||g(fs,'ta',y)!=null);
+const mean=a=>{const b=a.filter(v=>v!=null&&isFinite(v));return b.length?b.reduce((s,v)=>s+v,0)/b.length:null;};
+const sumK=(fs,ys,f)=>{let s=0,n=0;ys.forEach(y=>{const v=f(y);if(v!=null&&isFinite(v)){s+=v;n++;}});return n?s:null;};
+const finCost=(fs,y)=>{const i=g(fs,'intexp',y);if(i==null&&g(fs,'arloss',y)==null)return null;return nz(i)+nz(g(fs,'arloss',y));};
+const cashEq=(fs,y)=>nz(g(fs,'cash',y))+nz(g(fs,'stfin',y));
+const netDebt=(fs,y)=>{const d=E.debt(fs,y);return d==null?null:d-cashEq(fs,y);};
+const ebitdaKis=(fs,y)=>{const e=E.ebitda(fs,y);return e==null?null:e+nz(g(fs,'baddebt',y))+nz(g(fs,'retire',y));};
+const cover=(num,den)=>{if(num==null)return null;if(!den)return num>=0?999:-999;return num/den;};
+const lev=(num,den)=>{if(num==null||den==null)return null;if(den<=0)return num>0?999:0;return num/den;};
+
+E.BOND=[
+ {id:'nice', name:'NICE신용평가', short:'NICE신용평가',
+  doc:'산업별 평가방법론 — 비금융 일반기업(2023.2.1. 적용)',
+  src:'nicerating.com 현행 평가방법론: 비금융 일반기업(2023.2.1.)·총론1(2022.4.22.) 모델 Profile Matrix·신용평가일반론 기초4 재무위험 평가(2021.12.27.)',
+  period:'최근 3개년 단순평균',
+  steps:6, scale:['AAA','AA','A','BBB','BB','B'],
+  factors:[
+   {k:'indRisk',l:'산업위험',grp:'biz',type:'qual',w:null,def:'BBB',hint:'NICE 연간 산업위험평가의 해당 업종 등급'},
+   {k:'rev',l:'매출액(3년 평균)',grp:'biz',type:'ratio',cw:10,u:'억',hi:1,bands:[70000,30000,10000,3000,1000],f:fs=>{const v=mean(Ys(fs).map(y=>g(fs,'rev',y)));return v==null?null:v/1e8;}},
+   {k:'div',l:'사업다각화',grp:'biz',type:'qual',cw:20,def:'BB'},
+   {k:'mkt',l:'시장지위',grp:'biz',type:'qual',cw:20,def:'BB',hint:'AAA: 글로벌 점유율 20% 이상·글로벌 5위 이내·국내 독점'},
+   {k:'base',l:'사업기반 안정성',grp:'biz',type:'qual',cw:20,def:'BB'},
+   {k:'eff',l:'운영효율성',grp:'biz',type:'qual',cw:20,def:'BB'},
+   {k:'ebitM',l:'EBIT/매출액',grp:'biz',type:'ratio',cw:10,u:'%',hi:1,bands:[.12,.06,.04,.02,0],f:fs=>mean(Ys(fs).map(y=>dv(g(fs,'op',y),g(fs,'rev',y))))},
+   {k:'ebitdaFin',l:'EBITDA/금융비용',grp:'fin',type:'ratio',w:20,u:'배',hi:1,bands:[12,7,3,1,.3],f:fs=>mean(Ys(fs).map(y=>cover(E.ebitda(fs,y),finCost(fs,y))))},
+   {k:'fcfDebt',l:'잉여현금흐름/총차입금',grp:'fin',type:'ratio',w:15,u:'%',hi:1,bands:[.30000001,.20000001,.10000001,.00000001,-.1],f:fs=>mean(Ys(fs).map(y=>{const c=g(fs,'cfo',y);if(c==null)return null;const fcf=c+(g(fs,'capex',y)==null?0:-Math.abs(g(fs,'capex',y)));return cover(fcf,E.debt(fs,y));}))},
+   {k:'debtEbitda',l:'총차입금/EBITDA',grp:'fin',type:'ratio',w:10,u:'배',hi:0,bands:[1.5,3,5,8,10],f:fs=>mean(Ys(fs).map(y=>lev(E.debt(fs,y),E.ebitda(fs,y))))},
+   {k:'debtR',l:'부채비율',grp:'fin',type:'ratio',w:20,u:'%',hi:0,bands:[.4,.9,1.5,2.3,4],f:fs=>mean(Ys(fs).map(y=>lev(g(fs,'tl',y),g(fs,'te',y))))},
+   {k:'ndDep',l:'순차입금의존도',grp:'fin',type:'ratio',w:10,u:'%',hi:0,bands:[0,.15,.30,.45,.60],f:fs=>mean(Ys(fs).map(y=>dv(netDebt(fs,y),g(fs,'ta',y))))},
+   {k:'flex',l:'재무적 융통성',grp:'fin',type:'qual',w:25,def:'BB'}
+  ],
+  notes:['사업위험: 산업위험 등급에 따라 산업위험 가중치 AAA·B 25%, AA·BB 10%, A·BBB 5%. 나머지를 경쟁지위 항목(매출 10·다각화 20·시장지위 20·사업기반 20·운영효율 20·EBIT마진 10)에 비례 배분.',
+    '요소등급 점수 AAA=6 … B=1 가중평균 → 가장 가까운 6단계 등급(환산 구간 비공개 → 반올림 추정).',
+    '사업위험 등급 × 재무위험 등급 → 모델 Profile Matrix(총론1 [표1]). 칸 안 선택: 재무위험 BBB 이상이면 사업위험 점수, BB 이하이면 재무위험 점수의 소수부로 고름(추정 규칙).',
+    '잉여현금흐름 = 영업활동현금흐름 − 유형자산 취득(원문: EBITDA − 금융비용 − 법인세 ± 운전자금 − 투자의 근사).',
+    '총차입금에 리스부채 포함, 금융비용 = 이자비용 + 매출채권처분손실(보증수수료·자본화이자는 입력 계정 없음).']},
+ {id:'kis', name:'한국신용평가', short:'한국신용평가',
+  doc:'제조업 평가방법론(2026.1.28.)',
+  src:'kisrating.com 평가방법론: 제조업 평가방법론(2026.1.28., rm20260128-2) Appendix 산식·Point, II-4 신용등급 결정구조(2020)',
+  period:'손익 3개년 평균 · 재무상태 최근 결산',
+  steps:7, scale:['AAA','AA','A','BBB','BB','B','CCC'],
+  factors:[
+   {k:'mktStab',l:'시장의 안정성',type:'qual',w:5,def:'BB'},
+   {k:'demand',l:'제품 수요의 안정성',type:'qual',w:5,def:'BB'},
+   {k:'age',l:'회사의 업력',type:'ratio',w:5,u:'년',hi:1,bands:[50,35,25,15,5],f:(fs,co)=>E.ageYears(co||{}),noCCC:1},
+   {k:'port',l:'사업포트폴리오',type:'qual',w:5,def:'BB',hint:'경쟁력 있는 제품·지역·사업부문 수: 4개 이상 AAA/AA, 3개 A, 2개 BBB, 1개 BB, 0개 B'},
+   {k:'dom',l:'시장지배력',type:'qual',w:10,def:'BB'},
+   {k:'chain',l:'전후방산업과의 관계',type:'qual',w:10,def:'BB'},
+   {k:'rev',l:'매출액(3년 평균)',type:'ratio',w:10,u:'억',hi:1,bands:[70000,30000,10000,3000,1000,200],f:fs=>{const v=mean(Ys(fs).map(y=>g(fs,'rev',y)));return v==null?null:v/1e8;}},
+   {k:'stab',l:'이익의 안정성',type:'calc',w:10,f:fs=>{const ys=Ys(fs);const m=ys.map(y=>dv(g(fs,'op',y),g(fs,'rev',y))).filter(v=>v!=null);if(!m.length)return null;
+     const a=m.reduce((s,v)=>s+v,0)/m.length,loss=m.filter(v=>v<0).length;
+     let i=a>=.15&&loss===0?0:a>=.05&&loss===0?1:a>=.04&&loss<=1?2:a>=.03&&loss<=3?3:(a>=.01&&loss<=3)||(a>=.03&&loss===4)?4:a>=0&&loss<=5?5:6;
+     return {i,txt:'평균 영업이익률 '+(a*100).toFixed(2)+'%, 적자 '+loss+'회('+m.length+'개년)'};}},
+   {k:'ebitdaM',l:'EBITDA/매출액',type:'ratio',w:5,u:'%',hi:1,bands:[.25,.15,.10,.05,.02,0],f:fs=>{const ys=Ys(fs);const e=mean(ys.map(y=>ebitdaKis(fs,y))),r=mean(ys.map(y=>g(fs,'rev',y)));return dv(e,r);}},
+   {k:'ndEbitda',l:'순차입금/EBITDA',type:'ratio',w:10,u:'배',hi:0,bands:[.5,1.5,3,6,9,12],f:fs=>{const e=mean(Ys(fs).map(y=>ebitdaKis(fs,y)));const nd=netDebt(fs,0);if(nd==null||e==null)return null;if(e<=0)return nd>0?999:0;return nd/e;}},
+   {k:'ebitdaInt',l:'EBITDA/이자비용',type:'ratio',w:5,u:'배',hi:1,bands:[15,9,6,3,1.5,1],f:fs=>{const ys=Ys(fs);return cover(mean(ys.map(y=>ebitdaKis(fs,y))),mean(ys.map(y=>g(fs,'intexp',y))));}},
+   {k:'debtR',l:'부채비율',type:'ratio',w:10,u:'%',hi:0,bands:[.4,.8,1.2,2,3,4.5],f:fs=>lev(g(fs,'tl',0),g(fs,'te',0))},
+   {k:'borrDep',l:'차입금의존도',type:'ratio',w:10,u:'%',hi:0,bands:[.1,.2,.3,.45,.6,.8],f:fs=>dv(E.debt(fs,0),g(fs,'ta',0))}
+  ],
+  notes:['Point: AAA=1, AA=3, A=6, BBB=9, BB=12, B=15, CCC=18(notch마다 ±1). 지표 Point 가중평균 → 가장 가까운 notch(치환 구간 비공개 → 반올림 추정).',
+    'EBITDA = 영업이익 + 감가상각비 + 무형자산상각비 + 대손상각비 + 퇴직급여(원문: 퇴직급여충당금전입액).',
+    '순차입금 = 총차입금 − 현금및현금성자산 − 단기금융상품. 분모가 음수(자본잠식·EBITDA 적자)면 CCC.',
+    '이익의 안정성은 원문이 과거 10년 기준이나, 입력된 최대 3개년으로 판정했습니다.',
+    '업력 지표는 CCC 구간이 없습니다(4년 이하 B).']},
+ {id:'kr', name:'한국기업평가', short:'한국기업평가',
+  doc:'Corporate(제조) 신용평가방법론(2024.3.15.)',
+  src:'korearatings.com 일반기업 평가방법론: Corporate(제조)(2024.3.15.) [표2] 가중치·p.11~16 격자, 일반론 III-1 신용등급 결정구조(2026.3.17.)',
+  period:'최근 3개년 금액가중평균(분자 합계 ÷ 분모 합계)',
+  steps:6, scale:['AAA','AA','A','BBB','BB','B'],
+  factors:[
+   {k:'attr',l:'산업매력도',type:'qual',w:5,def:'BBB'},
+   {k:'port',l:'사업포트폴리오',type:'qual',w:10,def:'BB'},
+   {k:'dom',l:'시장지배력',type:'qual',w:10,def:'BB'},
+   {k:'size',l:'기업규모(자산·매출)',type:'ratio',w:15,u:'억',hi:1,bands:[70000,30000,10000,4500,1200],f:fs=>{const ys=Ys(fs);const r=mean(ys.map(y=>g(fs,'rev',y))),a=mean(ys.map(y=>g(fs,'ta',y)));const v=mean([r,a]);return v==null?null:v/1e8;}},
+   {k:'fixc',l:'고정거래처',type:'qual',w:5,def:'BB',hint:'신용도 A 이상 우량 고정거래처 매출비중: AAA 50%, AA 40%, A 30%, BBB 20% 이상, BB 10% 미만, B 부재'},
+   {k:'cost',l:'원가구조',type:'qual',w:5,def:'BB'},
+   {k:'ebitdaM',l:'EBITDA마진',type:'ratio',w:5,u:'%',hi:1,bands:[.20,.12,.08,.06,.04],f:fs=>{const ys=Ys(fs);return dv(sumK(fs,ys,y=>E.ebitda(fs,y)),sumK(fs,ys,y=>g(fs,'rev',y)));}},
+   {k:'ndEbitda',l:'순차입금/EBITDA',type:'ratio',w:15,u:'배',hi:0,bands:[.5,1.5,3.5,7,10],f:fs=>{const ys=Ys(fs);return lev(sumK(fs,ys,y=>netDebt(fs,y)),sumK(fs,ys,y=>E.ebitda(fs,y)));}},
+   {k:'ebitdaFin',l:'EBITDA/총금융비용',type:'ratio',w:5,u:'배',hi:1,bands:[15,8,4.5,2.5,1.5],f:fs=>{const ys=Ys(fs);return cover(sumK(fs,ys,y=>E.ebitda(fs,y)),sumK(fs,ys,y=>finCost(fs,y)));}},
+   {k:'debtR',l:'부채비율',type:'ratio',w:5,u:'%',hi:0,bands:[.5,1,1.5,2,3],f:fs=>{const ys=Ys(fs);return lev(sumK(fs,ys,y=>g(fs,'tl',y)),sumK(fs,ys,y=>g(fs,'te',y)));}},
+   {k:'borrDep',l:'차입금의존도',type:'ratio',w:10,u:'%',hi:0,bands:[.2,.275,.35,.45,.55],f:fs=>{const ys=Ys(fs);return dv(sumK(fs,ys,y=>E.debt(fs,y)),sumK(fs,ys,y=>g(fs,'ta',y)));}},
+   {k:'flex',l:'재무정책과 융통성',type:'qual',w:10,def:'BB'}
+  ],
+  notes:['사업 50 : 재무 50. 모델등급은 B 미만으로 나오지 않습니다.',
+    '등급별 점수·환산 구간 비공개 → AAA=0 … B=5 좌표의 가중평균을 가장 가까운 notch로 반올림(추정 규칙).',
+    '기업규모는 자산과 매출의 3개년 평균을 다시 평균해 판정(원문 「자산/매출」 결합 방식 미확인 → 가정).',
+    '금융비용 = 이자비용 + 매출채권처분손실. 총차입금 구성·리스부채 포함 여부는 원문 미명시 — 이 도구는 리스부채를 포함.']}
+];
+E.NICE_W={AAA:25,AA:10,A:5,BBB:5,BB:10,B:25};
+E.NICE_MATRIX={ /* 재무위험(행) × 사업위험(열 B,BB,BBB,A,AA,AAA), 칸 안은 낮은 등급 → 높은 등급 */
+ AAA:[['BB','BB+','BBB-'],['BBB','BBB+'],['A-','A','A+'],['A+','AA-','AA'],['AA','AA+','AAA'],['AAA']],
+ AA:[['BB','BB+'],['BB+','BBB-','BBB'],['BBB+','A-','A'],['A','A+','AA-'],['AA-','AA','AA+'],['AA+','AAA']],
+ A:[['BB-','BB'],['BB+','BBB-'],['BBB','BBB+','A-'],['A-','A','A+'],['A+','AA-','AA'],['AA','AA+']],
+ BBB:[['BB-','BB'],['BB+','BBB-'],['BBB-','BBB','BBB+'],['BBB+','A-','A'],['A','A+','AA-'],['AA-','AA']],
+ BB:[['B+','BB-'],['BB-','BB','BB+'],['BB','BB+','BBB-'],['BBB-','BBB','BBB+'],['BBB+','A-'],['A-','A','A+']],
+ B:[['B-','B','B+'],['B','B+','BB-'],['B+','BB-','BB'],['BB','BB+','BBB-'],['BB+','BBB-','BBB'],['BBB','BBB+']]
+};
+E.evalBond=function(m,co,fs,inp){
+  inp=inp||{};const items=[];
+  for(const f of m.factors){
+    let gi=null,v=null,txt='';
+    if(f.type==='qual'){gi=E.BASE.indexOf(inp[f.k]||f.def);}
+    else if(f.type==='calc'){const r=f.f(fs,co);if(r){gi=r.i;txt=r.txt;}}
+    else{v=f.f(fs,co);gi=E.band(v,f.bands,f.hi);if(gi!=null&&f.noCCC)gi=Math.min(gi,5);}
+    if(gi!=null)gi=Math.min(gi,m.steps-1);
+    items.push({k:f.k,l:f.l,type:f.type,grp:f.grp,w:f.w,cw:f.cw,u:f.u,v,txt,gi,g:gi==null?null:m.scale[gi]});
+  }
+  if(m.id==='nice'){
+    const ind=items.find(i=>i.k==='indRisk');const iw=E.NICE_W[ind.g]||5;ind.w=iw;
+    const comp=items.filter(i=>i.grp==='biz'&&i.k!=='indRisk');comp.forEach(i=>{i.w=+(i.cw*(100-iw)/100).toFixed(2);});
+    const wavg=grp=>{const xs=items.filter(i=>i.grp===grp&&i.gi!=null);const tw=xs.reduce((s,i)=>s+i.w,0);return tw?xs.reduce((s,i)=>s+i.w*i.gi,0)/tw:null;};
+    const b=wavg('biz'),fz=wavg('fin');
+    if(b==null||fz==null)return {m,items,grade:null,avg:null};
+    const bi=Math.min(5,Math.round(b)),fi=Math.min(5,Math.round(fz));
+    const bizG=m.scale[bi],finG=m.scale[fi];
+    const cell=E.NICE_MATRIX[finG][5-bi];
+    const lead=fi<=3?b:fz; const frac=Math.min(.999,Math.max(0,(Math.round(lead)+.5)-lead));
+    const grade=cell[Math.min(cell.length-1,Math.floor(frac*cell.length))];
+    return {m,items,grade,avg:(b+fz)/2,bizG,finG,bizS:b,finS:fz,cell};
+  }
+  const xs=items.filter(i=>i.gi!=null);const tw=xs.reduce((s,i)=>s+i.w,0);
+  if(!tw)return {m,items,grade:null,avg:null};
+  if(m.id==='kis'){
+    const P=[1,3,6,9,12,15,18];const p=xs.reduce((s,i)=>s+i.w*P[i.gi],0)/tw;
+    const n=Math.round(p);const grade=n>=17?'CCC':E.BOND_SCALE[n-1];
+    return {m,items,grade,avg:p,avgLabel:'Point 가중평균(AAA=1 … CCC=18)'};
+  }
+  const x=xs.reduce((s,i)=>s+i.w*i.gi,0)/tw;
+  return {m,items,grade:E.ladder(x,5),avg:x,avgLabel:'좌표 가중평균(AAA=0 … B=5)'};
+};
+
+/* 사업자등록번호 검증 */
+E.bizOk=function(s){const d=String(s||'').replace(/\D/g,'');if(d.length!==10)return false;const w=[1,3,7,1,3,7,1,3,5];let t=0;for(let i=0;i<9;i++)t+=+d[i]*w[i];t+=Math.floor(+d[8]*5/10);return (10-t%10)%10===+d[9];};
+
+root.HBCR=E;
+})(typeof window!=='undefined'?window:globalThis);
+</script>
+
+<script>
+(function(){
+'use strict';
+const E=window.HBCR, $=id=>document.getElementById(id);
+const LSKEY='hbt_credit_v1';
+const DEF={co:{name:'',rep:'',biz:'',form:'corp',audited:'auto',listed:'n',ind:'mfg',est:'',fy:new Date().getFullYear()-1,fm:'12',emp:'',evalDate:new Date().toISOString().slice(0,10),
+  repCb:'5',repExp:'3',custQ:'3',custConc:'3',fundQ:'3',indRisk:'3',outlook:'3',opinion:'none',
+  bad_default:false,bad_trade:false,bad_tax:false,bad_taxDefer:false,bad_recovery:false,bad_repLate:false,bad_bankrupt:false},
+  fs:{}, auto:{}, bench:null, bond:{}, pick:{}, bidTable:'pps_goods', bidSrc:'ecr', tab:'proc'};
+let S=JSON.parse(JSON.stringify(DEF));
+try{const r=localStorage.getItem(LSKEY);if(r){const o=JSON.parse(r);S=Object.assign(JSON.parse(JSON.stringify(DEF)),o);S.co=Object.assign({},DEF.co,o.co||{});}}catch(e){}
+function persist(){try{localStorage.setItem(LSKEY,JSON.stringify(S));}catch(e){}}
+const bench=()=>{const b=JSON.parse(JSON.stringify(E.BENCH));if(S.bench)for(const k in S.bench)if(b[k])Object.assign(b[k],S.bench[k]);return b;};
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const won=v=>v==null||v===''||!isFinite(v)?'':Math.round(v).toLocaleString('ko-KR');
+const fmtR=(v,u)=>{if(v==null||!isFinite(v))return '—';if(Math.abs(v)>=99&&(u==='배'))return v>0?'무차입·흑자':'적자';
+  if(u==='%')return (v*100).toFixed(2)+'%';if(u==='배'||u==='회')return v.toFixed(2)+u;if(u==='일')return v.toFixed(1)+'일';if(u==='억')return v.toLocaleString('ko-KR',{maximumFractionDigits:2})+'억';return v.toFixed(2);};
+const bval=i=>{if(i.type==='calc')return i.txt||'—';const v=i.v;if(v==null||!isFinite(v))return '—';if(Math.abs(v)>=999)return v>0?'분모 0 이하(최하위)':'적자(최하위)';
+  if(i.u==='%')return (v*100).toFixed(2)+'%';if(i.u==='배')return v.toFixed(2)+'배';if(i.u==='년')return v.toFixed(1)+'년';if(i.u==='억')return Math.round(v).toLocaleString('ko-KR')+'억원';return String(v);};
+const yrs=()=>{const fy=+S.co.fy||new Date().getFullYear()-1;return [fy,fy-1,fy-2];};
+
+/* ── 기업 정보 바인딩 ── */
+const fmSel=document.querySelector('[data-k="fm"]');for(let m=1;m<=12;m++)fmSel.insertAdjacentHTML('beforeend','<option value="'+m+'">'+m+'월</option>');
+function refillCo(){document.querySelectorAll('#secCo [data-k]').forEach(el=>{const v=S.co[el.dataset.k];if(el.type==='checkbox')el.checked=!!v;else el.value=v==null?'':v;});}
+document.querySelectorAll('#secCo [data-k]').forEach(el=>el.addEventListener(el.type==='checkbox'||el.tagName==='SELECT'?'change':'input',()=>{
+  S.co[el.dataset.k]=el.type==='checkbox'?el.checked:el.value;persist();if(el.dataset.k==='fy')renderFs();renderAll();}));
+
+/* ── 재무제표 표 ── */
+function renderFs(){
+  const Y=yrs();let h='<tr><th style="min-width:170px">계정</th>'+Y.map((y,i)=>'<th>'+y+'년 '+['(당기)','(전기)','(전전기)'][i]+'</th>').join('')+'</tr>';
+  let sec='';
+  for(const a of E.ACCOUNTS){
+    if(a.s!==sec){sec=a.s;h+='<tr class="sec"><td colspan="4">'+({BS:'재무상태표',IS:'손익계산서',CF:'현금흐름표(있으면)'})[sec]+'</td></tr>';}
+    h+='<tr><td>'+esc(a.l)+'</td>'+[0,1,2].map(y=>{const v=S.fs[a.k]&&S.fs[a.k][y];const au=S.auto[a.k+'_'+y];
+      return '<td><input class="amt'+(au?' auto':'')+'" data-a="'+a.k+'" data-y="'+y+'" inputmode="numeric" value="'+won(v)+'"></td>';}).join('')+'</tr>';
+  }
+  $('fsTbl').innerHTML=h;
+  $('fsTbl').querySelectorAll('input.amt').forEach(inp=>{
+    inp.addEventListener('change',()=>{const k=inp.dataset.a,y=+inp.dataset.y;const v=E.parseNum(inp.value);S.fs[k]=S.fs[k]||{};
+      if(v==null)delete S.fs[k][y];else S.fs[k][y]=v;delete S.auto[k+'_'+y];inp.classList.remove('auto');inp.value=won(v);persist();renderAll();});
+  });
+}
+function fsCheck(){
+  const msg=[];[0,1,2].forEach(y=>{const ta=S.fs.ta&&S.fs.ta[y],tl=S.fs.tl&&S.fs.tl[y],te=S.fs.te&&S.fs.te[y];
+    if(ta!=null&&tl!=null&&te!=null){const d=ta-tl-te;if(Math.abs(d)>1)msg.push('<span class="pill bad">'+yrs()[y]+'년 대차 불일치 '+won(d)+'원</span>');else msg.push('<span class="pill ok">'+yrs()[y]+'년 자산=부채+자본</span>');}});
+  $('fsCheck').innerHTML=msg.join(' ')||'자산·부채·자본총계를 넣으면 대차 일치를 확인합니다.';
+}
+
+/* ── 파일 읽기 ── */
+const logEl=$('log');function log(s){logEl.style.display='block';logEl.textContent+=s+'\n';logEl.scrollTop=1e9;}
+function applyExtract(res,name){
+  let n=0;for(const k in res.values)for(const y in res.values[k]){S.fs[k]=S.fs[k]||{};S.fs[k][y]=res.values[k][y];S.auto[k+'_'+y]=1;n++;}
+  log('['+name+'] 인식 '+res.hit.length+'줄 → 계정 칸 '+n+'개 채움');
+  const miss=['ta','tl','te','rev','op','ni'].filter(k=>!(res.values[k]));
+  if(miss.length)log('  ※ 못 찾은 주요 계정: '+miss.map(k=>E.ACC[k].l).join(', ')+' — 직접 입력하십시오');
+  persist();renderFs();renderAll();
+}
+async function readFile(f){
+  const opt={colStart:+$('colStart').value,unit:+$('unit').value};
+  const ext=f.name.split('.').pop().toLowerCase();
+  try{
+    if(['xlsx','xls','csv'].includes(ext)){
+      if(!window.XLSX){log('엑셀 모듈을 불러오지 못했습니다(인터넷 연결 확인).');return;}
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});const lines=[];
+      wb.SheetNames.forEach(sn=>{const rows=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:true,defval:null});
+        rows.forEach(r=>{let label=null;const nums=[];
+          r.forEach(c=>{if(c==null||c==='')return;if(typeof c==='number'){if(label!=null)nums.push(c);return;}
+            const s=String(c).trim();const pn=/^[(（]?[-△▲]?[\d,]+(\.\d+)?[)）]?$/.test(s)?E.parseNum(s):null;
+            if(pn!=null){if(label!=null)nums.push(pn);}else if(label==null||!nums.length)label=(label&&!E.matchLabel(label)?label+s:s);});
+          if(label&&nums.length){let ns=nums;if(ns.length>1&&Number.isInteger(ns[0])&&Math.abs(ns[0])<1000&&!/,/.test(String(ns[0])))ns=ns.slice(1);lines.push({label,nums:ns});}});});
+      applyExtract(E.extract(lines,opt),f.name);
+    }else if(ext==='pdf'){
+      if(!window.pdfjsLib){log('PDF 모듈을 불러오지 못했습니다(인터넷 연결 확인).');return;}
+      pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const doc=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;let lines=[],chars=0;
+      for(let p=1;p<=doc.numPages;p++){const page=await doc.getPage(p);const tc=await page.getTextContent();
+        const rows=[];tc.items.forEach(it=>{if(!it.str||!it.str.trim())return;chars+=it.str.length;const x=it.transform[4],y=it.transform[5];
+          let r=rows.find(r=>Math.abs(r.y-y)<3);if(!r){r={y,items:[]};rows.push(r);}r.items.push({x,s:it.str,w:it.width||0});});
+        rows.sort((a,b)=>b.y-a.y).forEach(r=>{r.items.sort((a,b)=>a.x-b.x);let s='',px=null;r.items.forEach(it=>{if(px!=null&&it.x-px>2)s+=' ';s+=it.s;px=it.x+it.w;});lines.push(s);});}
+      if(chars<30){
+        if(!$('ocrOn').checked){log('['+f.name+'] 글자층이 없는 스캔 PDF입니다. OCR을 켜고 다시 올리십시오.');return;}
+        log('['+f.name+'] 스캔 PDF — OCR 시작(페이지당 30~60초)');lines=await ocrPdf(doc);
+      }
+      log('['+f.name+'] '+doc.numPages+'쪽, '+lines.length+'줄 읽음');
+      applyExtract(E.extract(lines,opt),f.name);
+    }else log('지원하지 않는 형식: '+f.name);
+  }catch(e){log('['+f.name+'] 읽기 실패: '+e.message);}
+}
+async function loadTess(){if(window.Tesseract)return;await new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';s.onload=ok;s.onerror=()=>no(new Error('OCR 모듈 로드 실패'));document.head.appendChild(s);});}
+async function ocrPdf(doc){
+  await loadTess();const w=await Tesseract.createWorker('kor+eng');await w.setParameters({tessedit_pageseg_mode:'6',preserve_interword_spaces:'1'});
+  const out=[];
+  for(let p=1;p<=doc.numPages;p++){const page=await doc.getPage(p);const vp=page.getViewport({scale:2.2});const cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;
+    await page.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;const r=await w.recognize(cv);
+    r.data.text.split('\n').forEach(l=>{const t=l.replace(/[|]/g,' ').replace(/(\d)\s*[.,]\s*(\d{3})/g,'$1,$2');if(t.trim())out.push(t);});log('  OCR '+p+'/'+doc.numPages+'쪽');}
+  await w.terminate();return out;
+}
+const drop=$('drop');
+['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over');}));
+drop.addEventListener('drop',e=>{[...e.dataTransfer.files].forEach(readFile);});
+$('bPick').addEventListener('click',()=>$('fPick').click());
+$('fPick').addEventListener('change',e=>{[...e.target.files].forEach(readFile);e.target.value='';});
+
+/* ── 비율 표 ── */
+function renderRatios(){
+  const Y=yrs();let h='<tr><th>구분</th><th>지표</th>'+Y.map(y=>'<th>'+y+'년</th>').join('')+'<th>산식</th></tr>';
+  const F={curR:'유동자산/유동부채',quickR:'(유동자산−재고)/유동부채',cashR:'(현금+단기금융)/유동부채',eqR:'자본/자산',debtR:'부채/자본',borrDep:'차입금/자산',reToTl:'이익잉여금/부채',
+    opM:'영업이익/매출',ebtM:'세전이익/매출',niM:'순이익/매출',cogsR:'매출원가/매출',ebitdaM:'(영업이익+상각비)/매출',roa:'순이익/평균자산',icr:'영업이익/이자비용',ebitdaIcr:'EBITDA/이자비용',
+    debtEbitda:'차입금/EBITDA',netDebtEbitda:'(차입금−현금성)/EBITDA',finCost:'이자비용/매출',cfoDebt:'영업CF/차입금',cfoM:'영업CF/매출',atr:'매출/평균자산',arTurn:'매출/평균매출채권',
+    invDays:'평균재고/매출원가×365',apTurn:'매출원가/평균매입채무',revG:'',taG:'',niG:'',ppeG:'',revSize:'',taSize:''};
+  let grp='';
+  for(const r of E.RATIOS){h+='<tr><td class="c">'+(r.grp!==grp?(grp=r.grp):'')+'</td><td>'+esc(r.l)+'</td>'+[0,1,2].map(y=>'<td class="n">'+fmtR(E.ratio(S.fs,r.k,y),r.u)+'</td>').join('')+'<td class="note">'+esc(F[r.k]||'')+'</td></tr>';}
+  $('ratioTbl').innerHTML=h+'<tr><td colspan="6" class="note">차입금 = 단기차입금+유동성장기부채+사채+장기차입금+리스부채. 회전율·ROA는 전년 말과의 평균. 성장률은 전년 대비.</td></tr>';
+}
+
+/* ── 조달용 평가 ── */
+let lastProc=[];
+function renderProc(){
+  const b=bench();lastProc=E.PROC.map(ag=>E.evalProc(ag,S.co,S.fs,b));
+  let h='<div class="note" style="margin-bottom:8px">결합비중·필터링·등급체계에서 <span class="pill pub">공시</span>는 기관 공개자료, <span class="pill asm">가정</span>은 한백 기준입니다. 체크한 기관은 하단 「선택 기관 평가서 출력」에 들어갑니다.</div><div class="cards">';
+  lastProc.forEach(r=>{const ag=r.ag;const on=S.pick['p_'+ag.id]!==false;
+    h+='<div class="ag"><h4>'+esc(ag.name)+'</h4><div class="meta">모형: '+esc(r.model)+'</div>'+
+      '<div class="row"><span class="gradebig">'+(r.grade||'—')+'</span>'+(r.eg?'<span class="pill pub">'+r.eg+'</span>':'')+
+      (r.modelGrade&&r.grade!==r.modelGrade?'<span class="pill warn">모형 '+r.modelGrade+' → 필터 '+r.grade+'</span>':'')+'</div>'+
+      '<div class="meta">종합점수 '+(r.total==null?'—':r.total.toFixed(1))+' · '+r.parts.filter(p=>p[1]>0).map(p=>p[0]+' '+p[1]+'%'+(p[2]==null?'':'('+p[2].toFixed(1)+')')).join(' · ')+
+      ' <span class="pill '+(ag.weightsAsm?'asm">비중 가정':'pub">비중 공시')+'</span></div>'+
+      (r.filters.length?'<div class="meta" style="margin-top:4px">필터: '+r.filters.map(f=>esc(f[0])+' → '+f[1]).join(', ')+'</div>':'')+
+      '<div class="row"><label class="note"><input type="checkbox" data-pick="p_'+ag.id+'"'+(on?' checked':'')+'> 출력에 포함</label><button type="button" class="btn sm" data-sheet="p_'+ag.id+'">평가서</button></div></div>';});
+  $('pane-proc').innerHTML=h+'</div>';
+}
+
+/* ── 회사채 3사 ── */
+let lastBond=[];
+function renderBond(){
+  if(!E.BOND.length){$('pane-bond').innerHTML='<div class="note">회사채 3사 방법론 격자를 준비 중입니다.</div>';lastBond=[];return;}
+  lastBond=E.BOND.map(m=>E.evalBond(m,S.co,S.fs,S.bond[m.id]||{}));
+  let h='<div class="note" style="margin-bottom:8px">사업위험 요소(산업위험·경쟁지위 등)는 정성 판단이라 아래에서 직접 고르십시오. 재무 요소는 재무제표에서 자동 산출합니다.</div><div class="cards">';
+  lastBond.forEach(r=>{const m=r.m;const on=S.pick['b_'+m.id]!==false;
+    h+='<div class="ag"><h4>'+esc(m.name)+'</h4><div class="meta">'+esc(m.doc)+' · '+esc(m.period)+'</div>';
+    h+='<div class="row"><span class="gradebig">'+(r.grade||'—')+'</span><span class="pill asm">모델등급 추정</span>'+(r.bizG?'<span class="meta">사업 '+r.bizG+' × 재무 '+r.finG+'</span>':'')+'</div>';
+    h+='<table class="t" style="margin-top:6px"><tr><th>요소</th><th>비중</th><th>값·판단</th><th>등급</th></tr>';
+    r.items.forEach(i=>{const f=m.factors.find(x=>x.k===i.k);
+      const cell=i.type==='qual'?'<select data-bq="'+m.id+'|'+i.k+'"'+(f.hint?' title="'+esc(f.hint)+'"':'')+'>'+m.scale.map(g=>'<option'+(g===i.g?' selected':'')+'>'+g+'</option>').join('')+'</select>':esc(bval(i));
+      h+='<tr><td>'+esc(i.l)+'</td><td class="n">'+(i.w==null?'':i.w+'%')+'</td><td class="n">'+cell+'</td><td class="c">'+(i.type==='qual'?'':(i.g||'—'))+'</td></tr>';});
+    h+='</table>'+
+      '<div class="row"><label class="note"><input type="checkbox" data-pick="b_'+m.id+'"'+(on?' checked':'')+'> 출력에 포함</label><button type="button" class="btn sm" data-sheet="b_'+m.id+'">평가서</button></div></div>';});
+  $('pane-bond').innerHTML=h+'</div>';
+  $('pane-bond').querySelectorAll('[data-bq]').forEach(sel=>sel.addEventListener('change',()=>{const [id,k]=sel.dataset.bq.split('|');S.bond[id]=S.bond[id]||{};S.bond[id][k]=sel.value;persist();renderAll();}));
+}
+
+/* ── 기준값 편집 ── */
+function renderBench(){
+  const b=bench();let h='<div class="note" style="margin-bottom:8px">기관이 비율별 채점 구간을 공개하지 않아, 지표마다 「0점 경계(나쁨)」와 「100점 경계(좋음)」를 두고 그 사이를 직선으로 채점합니다. 거래처 업종 평균(한국은행 기업경영분석 등)에 맞춰 고칠 수 있습니다.</div>'+
+    '<div class="tblwrap"><table class="t"><tr><th>지표</th><th>0점 경계</th><th>100점 경계</th><th>방향</th></tr>';
+  for(const r of E.RATIOS){const x=b[r.k];if(!x)continue;const pct=r.u==='%';
+    const show=v=>pct?+(v*100).toFixed(2):v;
+    h+='<tr><td>'+esc(r.l)+(pct?' (%)':' ('+r.u+')')+'</td><td class="c"><input class="num" data-bk="'+r.k+'|bad" value="'+show(x.bad)+'"></td><td class="c"><input class="num" data-bk="'+r.k+'|good" value="'+show(x.good)+'"></td><td class="c">'+(x.hi?'높을수록 좋음':'낮을수록 좋음')+'</td></tr>';}
+  h+='</table></div><div class="row" style="margin-top:8px"><button type="button" class="btn sm" id="bBenchReset">기본값으로</button></div>';
+  $('pane-bench').innerHTML=h;
+  $('pane-bench').querySelectorAll('[data-bk]').forEach(inp=>inp.addEventListener('change',()=>{const [k,f]=inp.dataset.bk.split('|');let v=parseFloat(inp.value);if(!isFinite(v))return;if(E.R[k].u==='%')v/=100;S.bench=S.bench||{};S.bench[k]=S.bench[k]||{};S.bench[k][f]=v;persist();renderAll(true);}));
+  $('bBenchReset').addEventListener('click',()=>{S.bench=null;persist();renderBench();renderAll(true);});
+}
+
+/* ── 발주처 점수 ── */
+function renderBid(){
+  const ts=$('bidTable');if(!ts.options.length)E.BID.forEach(t=>ts.insertAdjacentHTML('beforeend','<option value="'+t.id+'">'+esc(t.name)+'</option>'));
+  ts.value=S.bidTable;const ss=$('bidSrc');ss.innerHTML=lastProc.map(r=>'<option value="'+r.ag.id+'">'+esc(r.ag.short)+' 추정 '+(r.grade||'—')+'</option>').join('')+'<option value="min">가장 낮은 등급(여러 기관 제출 시)</option>';
+  ss.value=S.bidSrc;
+  const t=E.BID.find(x=>x.id===S.bidTable)||E.BID[0];
+  const gs=lastProc.map(r=>r.grade).filter(Boolean);
+  const grade=S.bidSrc==='min'?gs.reduce((a,b)=>E.worse(a,b),gs[0]):(lastProc.find(r=>r.ag.id===S.bidSrc)||{}).grade;
+  const sc=E.bidScore(t,grade);
+  let h='<table class="t"><tr><th>기업신용평가 등급</th><th>점수</th></tr>';
+  let prev='AAA';t.rows.forEach(([lim,v],i)=>{const lab=lim==='*'?(E.SCALE[E.gIdx(t.rows[i-1][0])+1]+' 이하'):(prev===lim?lim:prev+' ~ '+lim);
+    const hit=grade&&(lim==='*'?E.gIdx(grade)>E.gIdx(t.rows[i-1][0]):E.gIdx(grade)<=E.gIdx(lim)&&E.gIdx(grade)>=E.gIdx(prev));
+    h+='<tr'+(hit?' style="background:#fff3d6;font-weight:700"':'')+'><td class="c">'+lab+'</td><td class="n">'+v.toFixed(1)+'</td></tr>';if(lim!=='*')prev=E.SCALE[E.gIdx(lim)+1];});
+  h+='</table><div style="margin-top:8px"><b>적용 등급 '+(grade||'—')+' → '+(sc==null?'—':sc.toFixed(1)+'점')+'</b></div><div class="note">출처: '+esc(t.src)+(t.note?' · '+esc(t.note):'')+'</div>';
+  $('bidOut').innerHTML=h;
+}
+$('bidTable').addEventListener('change',e=>{S.bidTable=e.target.value;persist();renderBid();});
+$('bidSrc').addEventListener('change',e=>{S.bidSrc=e.target.value;persist();renderBid();});
+
+/* ── 평가서 ── */
+const HD='<div class="hd"><b>세무법인 한백택스</b><span>내부 검토용 · 작성 '+new Date().toISOString().slice(0,10)+'</span></div>';
+const FT='<div class="ft">서울특별시 중구 동호로 315, 신안빌딩 2층 · 전화 02-2277-3101 · 팩스 02-2277-3161 · hb090@hanbaektax.kr</div>';
+/* 여러 쪽으로 넘어가도 머리글·바닥글이 쪽마다 반복되게 thead/tfoot 표로 감싼다 */
+const SH0='<div class="sheet"><table class="pg"><thead><tr><td>'+HD+'</td></tr></thead><tfoot><tr><td>'+FT+'</td></tr></tfoot><tbody><tr><td>';
+const SH1='</td></tr></tbody></table></div>';
+function coBlock(){const c=S.co;const sc=E.sizeClass(c,S.fs);const age=E.ageYears(c);
+  return '<h2>기업 개요</h2><table><tr><th>상호</th><td>'+esc(c.name)+'</td><th>대표자</th><td>'+esc(c.rep)+'</td></tr>'+
+  '<tr><th>사업자등록번호</th><td>'+esc(c.biz)+'</td><th>기업 형태</th><td>'+(c.form==='ind'?'개인사업자':'법인')+' · '+(sc.audited?'외감':'비외감')+(c.listed==='y'?' · 상장':'')+'</td></tr>'+
+  '<tr><th>업종</th><td>'+({mfg:'제조',con:'건설',trd:'도소매',svc:'서비스'})[c.ind]+'</td><th>설립일 · 업력</th><td>'+esc(c.est||'—')+(age!=null?' ('+age.toFixed(1)+'년)':'')+'</td></tr>'+
+  '<tr><th>결산 기준</th><td>'+esc(c.fy)+'년 '+esc(c.fm)+'월</td><th>평가 기준일</th><td>'+esc(c.evalDate)+'</td></tr></table>';}
+function fsBlock(){const Y=yrs();const ks=['ta','tl','te','debtX','rev','op','ni','cfo'];
+  const val=(k,y)=>k==='debtX'?E.debt(S.fs,y):(S.fs[k]&&S.fs[k][y]);
+  const lab={debtX:'총차입금'};
+  return '<h2>요약 재무 <span style="font-size:11pt;font-weight:400">(단위: 천원)</span></h2><table><tr><th>계정</th>'+Y.map(y=>'<th>'+y+'</th>').join('')+'</tr>'+
+  ks.map(k=>'<tr><td>'+(lab[k]||E.ACC[k].l)+'</td>'+[0,1,2].map(y=>{const v=val(k,y);return '<td class="n">'+(v==null?'—':Math.round(v/1000).toLocaleString('ko-KR'))+'</td>';}).join('')+'</tr>').join('')+'</table>';}
+function defBlock(gr){const b=E.gradeBase(gr||'');return E.GRADE_DEF[b]?'<div>'+b+' — '+E.GRADE_DEF[b]+'</div>':'';}
+function procSheet(r){const ag=r.ag;
+  let h=SH0+'<h1>'+esc(ag.name)+' 평가방법 기반</h1><div class="subt">추정 기업신용평가서 (조달·입찰용 참고)</div>'+
+  '<div class="disc">이 문서는 '+esc(ag.short)+'이 공개한 등급체계·평가구성에 따라 세무법인 한백택스가 재무제표로 추정한 결과입니다. '+esc(ag.short)+'이 발급한 신용평가등급확인서가 아니며, 입찰에 제출할 수 없습니다.</div>'+coBlock()+
+  '<h2>추정 등급</h2><div class="gbox"><div class="g">'+(r.grade||'—')+'</div><div>'+(r.eg?'공공기관 제출용 표기 '+r.eg+'<br>':'')+'평가모형: '+esc(r.model)+'<br>종합점수: '+(r.total==null?'—':r.total.toFixed(1)+' / 100')+
+  (r.modelGrade&&r.modelGrade!==r.grade?'<br>모형등급 '+r.modelGrade+' → 필터링 후 '+r.grade:'')+'</div></div>'+defBlock(r.grade)+
+  '<h2>결합 구성</h2><table><tr><th>영역</th><th>비중</th><th>점수</th><th>근거</th></tr>'+r.parts.map(p=>'<tr><td>'+p[0]+'</td><td class="n">'+p[1]+'%</td><td class="n">'+(p[2]==null?'—':p[2].toFixed(1))+'</td><td>'+(ag.weightsAsm?'가정':'기관 공시')+'</td></tr>').join('')+'</table>'+
+  fsBlock()+'<h2>재무 항목</h2><table><tr><th>영역</th><th>지표</th><th>당기 값</th><th>점수</th></tr>';
+  r.fin.areas.forEach(a=>a.items.forEach((i,ix)=>{h+='<tr>'+(ix===0?'<td rowspan="'+a.items.length+'">'+a.area+(a.score==null?'':' ('+a.score.toFixed(1)+')')+'</td>':'')+'<td>'+esc(i.l)+'</td><td class="n">'+fmtR(i.v,i.u)+'</td><td class="n">'+(i.score==null?'—':i.score.toFixed(1))+'</td></tr>';}));
+  h+='</table><div style="font-size:11pt">'+esc(ag.finNote)+'</div><h2>비재무 항목</h2><table><tr><th>항목</th><th>점수</th></tr>'+
+  r.nf.items.map(i=>'<tr><td>'+esc(i.l)+'</td><td class="n">'+i.score.toFixed(1)+'</td></tr>').join('')+
+  (r.nf.rep?r.nf.rep.items.map(i=>'<tr><td>[대표자] '+esc(i.l)+'</td><td class="n">'+i.score.toFixed(1)+'</td></tr>').join(''):'')+'</table>'+
+  '<h2>필터링(등급 상한)</h2>'+(r.filters.length?'<table><tr><th>사유</th><th>적용등급</th><th>근거</th></tr>'+r.filters.map(f=>'<tr><td>'+esc(f[0])+'</td><td class="c">'+f[1]+'</td><td>'+(f[2]==='pub'?'기관 공시':f[2]==='pubA'?'항목 공시·폭 가정':'가정')+'</td></tr>').join('')+'</table>':'<div>해당 없음</div>')+
+  '<h2>발주처 점수 환산</h2><table><tr><th>발주처·계약</th><th>점수</th></tr>'+['pps_goods','pps_svc20','pps_con','mois_goods30','mois_con15'].map(id=>{const t=E.BID.find(x=>x.id===id);const s=E.bidScore(t,r.grade);return '<tr><td>'+esc(t.name)+'</td><td class="n">'+(s==null?'—':s.toFixed(1))+'</td></tr>';}).join('')+'</table>'+
+  '<h2>유의사항</h2><ul><li>출처: '+esc(ag.src)+'</li><li>유효기간: '+esc(ag.valid)+'</li><li>비율별 가중치·채점 구간은 기관 비공개로 한백 기준값(가정)을 썼습니다. 실제 등급은 기관의 모형·비재무 실사·등급위원회 조정에 따라 달라집니다.</li><li>불량정보·대표자 신용은 입력값 기준이며 실제 조회 결과로 바꿔 넣어야 합니다.</li><li>필터링의 「적용등급」은 등급 상한으로 해석해 적용했습니다(한백 해석). 「폭 가정」 항목은 사유만 공시되고 하향 폭은 비공개입니다.</li></ul>'+SH1;
+  return h;}
+function bondSheet(r){const m=r.m;
+  let h=SH0+'<h1>'+esc(m.name)+' 평가방법론 기반</h1><div class="subt">추정 신용등급 검토서 (회사채 등급 방식 참고)</div>'+
+  '<div class="disc">이 문서는 '+esc(m.short)+'가 공개한 평가방법론('+esc(m.doc)+')의 재무지표 기준표로 세무법인 한백택스가 추정한 결과입니다. '+esc(m.short)+'의 신용등급이 아닙니다.</div>'+coBlock()+
+  '<h2>추정 모델등급</h2><div class="gbox"><div class="g">'+(r.grade||'—')+'</div><div>'+(r.bizG?'사업위험 '+r.bizG+'('+r.bizS.toFixed(2)+') × 재무위험 '+r.finG+'('+r.finS.toFixed(2)+') → Matrix 칸 '+r.cell.join('/')+'<br>':'')+
+  (r.avgLabel?esc(r.avgLabel)+' '+(r.avg==null?'—':r.avg.toFixed(2))+'<br>':'')+'기간 기준: '+esc(m.period)+'</div></div>'+fsBlock()+
+  '<h2>평가 요소</h2><table><tr><th>요소</th><th>가중치</th><th>값·판단</th><th>요소 등급</th></tr>'+r.items.map(i=>'<tr><td>'+esc(i.l)+(i.grp?' <span style="color:#666">('+(i.grp==='biz'?'사업':'재무')+')</span>':'')+'</td><td class="n">'+(i.w==null?'':i.w+'%')+'</td><td class="n">'+esc(i.type==='qual'?'판단 입력':bval(i))+'</td><td class="c">'+(i.g||'—')+'</td></tr>').join('')+'</table>'+
+  (m.notes?'<h2>방법론 메모</h2><ul>'+m.notes.map(n=>'<li>'+esc(n)+'</li>').join('')+'</ul>':'')+
+  '<h2>유의사항</h2><ul><li>출처: '+esc(m.src)+'</li><li>회사채 등급은 대기업·중견기업을 전제로 한 방법론입니다. 중소기업에 적용하면 규모 요소 때문에 낮게 나오는 것이 정상입니다.</li><li>사업위험 요소는 입력한 판단이며, 실제 등급은 비재무 요소·계열 지원·위원회 조정으로 달라집니다.</li></ul>'+SH1;
+  return h;}
+function printSheets(keys){
+  const html=keys.map(k=>{if(k.startsWith('p_')){const r=lastProc.find(x=>'p_'+x.ag.id===k);return r?procSheet(r):'';}const r=lastBond.find(x=>'b_'+x.m.id===k);return r?bondSheet(r):'';}).join('');
+  if(!html){alert('출력할 평가가 없습니다.');return;}
+  $('sheetWrap').innerHTML=html;$('sheetWrap').style.display='block';
+  setTimeout(()=>{window.print();},200);
+}
+window.addEventListener('afterprint',()=>{$('sheetWrap').style.display='none';});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-sheet]');if(b)printSheets([b.dataset.sheet]);});
+document.addEventListener('change',e=>{const c=e.target.closest('[data-pick]');if(c){S.pick[c.dataset.pick]=c.checked;persist();}});
+$('bPrintAll').addEventListener('click',()=>{const ks=lastProc.map(r=>'p_'+r.ag.id).concat(lastBond.map(r=>'b_'+r.m.id)).filter(k=>S.pick[k]!==false);printSheets(ks);});
+
+/* ── 탭·공통 ── */
+document.querySelectorAll('#evalTabs button').forEach(b=>b.addEventListener('click',()=>{S.tab=b.dataset.t;persist();showTab();}));
+function showTab(){document.querySelectorAll('#evalTabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===S.tab));['proc','bond','bench'].forEach(t=>$('pane-'+t).style.display=t===S.tab?'':'none');if(S.tab==='bench')renderBench();}
+function bizCheck(){const el=document.querySelector('[data-k="biz"]');const v=S.co.biz;el.style.borderColor=!v?'':E.bizOk(v)?'#1e7b4f':'#b3261e';el.title=!v?'':E.bizOk(v)?'검증식 일치':'사업자등록번호 형식 오류(10자리 검증식 불일치)';}
+function renderAll(skipBench){fsCheck();renderRatios();renderProc();renderBond();renderBid();bizCheck();if(!skipBench&&S.tab==='bench')renderBench();}
+
+/* ── 예시·저장·불러오기·초기화 ── */
+$('bSample').addEventListener('click',()=>{
+  const fy=new Date().getFullYear()-1;
+  S=JSON.parse(JSON.stringify(DEF));
+  Object.assign(S.co,{name:'주식회사 한백예시산업',rep:'홍길동',biz:'123-45-67891',form:'corp',audited:'auto',ind:'mfg',est:(fy-11)+'-03-15',fy,fm:'12',emp:'42',opinion:'none'});
+  const m=(a,b,c)=>({0:a*1000,1:b*1000,2:c*1000});
+  S.fs={cash:m(1850000,1420000,1210000),stfin:m(500000,300000,300000),ar:m(3120000,2870000,2610000),inv:m(2240000,2150000,1980000),ca:m(8110000,7050000,6380000),
+    ppe:m(5630000,5480000,5120000),intan:m(120000,90000,80000),nca:m(6240000,6010000,5620000),ta:m(14350000,13060000,12000000),
+    ap:m(2010000,1880000,1760000),std:m(2400000,2600000,2500000),cltd:m(400000,400000,300000),cl:m(5430000,5480000,5120000),ltd:m(1600000,1800000,2000000),
+    ncl:m(2050000,2220000,2390000),tl:m(7480000,7700000,7510000),capst:m(500000,500000,500000),re:m(6370000,4860000,3990000),te:m(6870000,5360000,4490000),
+    rev:m(21800000,19650000,18200000),cogs:m(17010000,15520000,14560000),gp:m(4790000,4130000,3640000),sga:m(2980000,2750000,2600000),dep:m(610000,580000,550000),amort:m(20000,15000,12000),
+    op:m(1810000,1380000,1040000),intexp:m(215000,238000,245000),ebt:m(1690000,1210000,860000),tax:m(180000,130000,90000),ni:m(1510000,1080000,770000),
+    cfo:m(1920000,1350000,980000),capex:m(-750000,-940000,-600000)};
+  S.auto={};persist();refillCo();renderFs();renderAll();
+});
+$('bSave').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='신용평가_'+(S.co.name||'미정').replace(/[\\/:*?"<>|]/g,'')+'_'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);});
+$('bLoad').addEventListener('click',()=>$('fLoad').click());
+$('fLoad').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const o=JSON.parse(rd.result);S=Object.assign(JSON.parse(JSON.stringify(DEF)),o);S.co=Object.assign({},DEF.co,o.co||{});persist();refillCo();renderFs();renderAll();showTab();}catch(err){alert('읽을 수 없는 파일입니다.');}};rd.readAsText(f);e.target.value='';});
+$('bReset').addEventListener('click',()=>{if(!confirm('입력한 기업 정보와 재무제표를 모두 지웁니다.'))return;S=JSON.parse(JSON.stringify(DEF));persist();refillCo();renderFs();renderAll();showTab();});
+
+refillCo();renderFs();renderAll();showTab();
+window.__hb={S:()=>S,readFile,printSheets,lastProc:()=>lastProc,lastBond:()=>lastBond};
+})();
+</script>
+</body>
+</html>

@@ -435,6 +435,8 @@ body.is-offline .offbar{display:block}
   body{background:#fff}
 }
 </style>
+<style>html:not(.hb-trial) [data-trial]{display:none!important}</style>
+<script>/* 시험 공개 스위치 — 한백택스_시험공개.js */(function(){window.HB_TRIAL_Q=location.search;var s=document.createElement('script');s.src='한백택스_시험공개.js?v='+Date.now();document.head.appendChild(s);})();</script>
 </head>
 <body>
 <script>
@@ -595,6 +597,7 @@ body.is-offline .offbar{display:block}
 
 /* ══════════ 도구 목록 ══════════
  * f: 파일명 · i: 아이콘 · t: 이름 · d: 설명 · k: 검색 별칭 · feat: 대표 카드 · nw: 최근 개편
+ * trial: 시험 공개 — 한백택스_시험공개.js 키를 받은 브라우저에만 보인다
  */
 const APPS = [
   {cat:'대표 서비스', acc:'var(--a1)', items:[
@@ -623,6 +626,7 @@ const APPS = [
     {f:'한백택스_부가세_신고도우미.html', i:'🧾', t:'부가세 신고 차근차근 도우미', d:'처음 신고하는 사장님용 — 일반·간이 판별·준비 자료·받은 돈·쓴 돈·공제·예정고지 → 납부세액과 신고서 항목 번호·홈택스 순서', k:'부가세 신고 도우미 처음 초보 셀프 간이과세 일반과세 부가가치세 신고 방법 홈택스 준비서류 매출 매입 카드 현금영수증 예정고지 신용카드 발행세액공제 의제매입 납부면제 4800만원', feat:true, nw:true},
     {f:'한백택스_법인세_계산기_v2.html', i:'🏢', t:'법인세 계산기', d:'법인세 산출', k:'법인 세율 과세표준'},
     {f:'한백택스_법인전환_시뮬레이터.html', i:'🔀', t:'법인전환 시뮬레이터', d:'개인사업자 vs 법인 · 대표 급여·배당 최적 조합 · 이익 규모별 비교', k:'법인전환 법인 전환 개인사업자 법인설립 대표 급여 배당 절세 시뮬레이션 성실신고 이월과세 현물출자', nw:true},
+    {f:'한백택스_신용평가_시뮬레이터.html', i:'🏅', t:'신용평가 시뮬레이터', d:'재무제표(엑셀·표준재무제표증명 PDF)로 조달·입찰용 기업신용등급과 회사채 등급 추정 · 평가서 출력', k:'신용평가 신용등급 기업신용평가 조달청 입찰 적격심사 이크레더블 나이스 한국기업데이터 회사채 등급 재무비율 표준재무제표증명', nw:true, trial:true},
     {f:'한백택스_부가가치세_신고시뮬레이터.html', i:'🧾', t:'부가가치세 시뮬레이터', d:'매출·매입 세액', k:'부가세 매입세액 매출세액 신고'},
     {f:'한백택스_업무용승용차_운행일지.html', i:'🚗', t:'업무용승용차 운행일지', d:'운행기록부·손금한도', k:'차량 운행기록부 손금 감가상각'},
     {f:'한백택스_환차손익_계산기.html', i:'💱', t:'환차손익 계산기', d:'외화 평가손익 · 고시환율 자동 조회', k:'외화 환율 평가손익 달러 매매기준율 환율조회'},
@@ -692,6 +696,8 @@ APPS.forEach(g => g.items.forEach(a => {
   a.cho = choOf(a.t + (a.k || ''));
   ALL.push(a);
 }));
+/* 시험 공개 항목은 키가 확인된 뒤에만 보인다 */
+const vis = a => !a.trial || window.HB_TRIAL === true;
 const byFile = {};
 ALL.forEach(a => { byFile[a.f] = a; });
 
@@ -783,16 +789,16 @@ function render(){
   list.textContent = '';
   let shown = 0;
 
-  const pool = ALL.filter(a => match(a, q) && (activeCat === '전체' || a.cat === activeCat));
+  const pool = ALL.filter(a => vis(a) && match(a, q) && (activeCat === '전체' || a.cat === activeCat));
   const plain = !q && activeCat === '전체';
 
   if(plain){
-    const fv = favs.map(f => byFile[f]).filter(Boolean);
+    const fv = favs.map(f => byFile[f]).filter(Boolean).filter(vis);
     if(fv.length){
       list.appendChild(section('즐겨찾기', fv, '', 'var(--gold)',
         clearBtn('모두 해제', () => { favs = []; LS.set('hbt_fav', favs); render(); })));
     }
-    const rc = recent.map(f => byFile[f]).filter(Boolean)
+    const rc = recent.map(f => byFile[f]).filter(Boolean).filter(vis)
                      .filter(a => favs.indexOf(a.f) < 0).slice(0, 6);
     if(rc.length){
       list.appendChild(section('최근 사용', rc, '', 'var(--a2)',
@@ -816,7 +822,7 @@ function render(){
     if(activeCat !== '전체') bits.push(activeCat);
     cnt.textContent = bits.join(' · ') + ' — ' + shown + '건';
   }else{
-    cnt.textContent = '전체 ' + ALL.length + '종 · ⭐ 별표로 위에 고정할 수 있습니다';
+    cnt.textContent = '전체 ' + ALL.filter(vis).length + '종 · ⭐ 별표로 위에 고정할 수 있습니다';
   }
   syncUrl();
 }
@@ -846,7 +852,7 @@ function pushRecent(f){
     el.addEventListener('click', () => pushRecent(a.f));
     box.appendChild(el);
   });
-  document.getElementById('statCount').textContent = ALL.length;
+  document.getElementById('statCount').textContent = ALL.filter(a => !a.trial).length;
 })();
 
 /* ══════════ 분류 칩 · 상단 링크 ══════════ */
@@ -1001,7 +1007,7 @@ function scFill(){
   if(scPick.options.length) return;
   const opt = (v, t) => { const o = document.createElement('option'); o.value = v; o.textContent = t; scPick.appendChild(o); };
   opt('index.html', '한백택스 세무 도구 모음 (전체 메뉴)');
-  ALL.forEach(a => opt(a.f, a.i + ' ' + a.t));
+  ALL.filter(a => !a.trial).forEach(a => opt(a.f, a.i + ' ' + a.t));
 }
 function scOpen(){
   scFill();
@@ -1055,7 +1061,7 @@ document.getElementById('scInstall').addEventListener('click', e => {
  * 캐시 이름은 sw.js 가 홀로 관리한다 — 이 파일과 어긋날 일이 없다.
  */
 const SHELL_URLS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './logo.png', './logo-white.png', './logo-mark.png', './hb-light.css'];
-const TOOL_URLS  = ALL.map(a => './' + encodeURI(a.f));
+const TOOL_URLS  = ALL.filter(a => !a.trial).map(a => './' + encodeURI(a.f));
 const offlineBtn = document.getElementById('offlineBtn');
 const swOK = ('serviceWorker' in navigator) && location.protocol !== 'file:';
 
@@ -1161,8 +1167,9 @@ if(!swOK){
 /* ══════════ 시작 ══════════ */
 clearQ.hidden = !query;
 document.getElementById('footMeta').textContent =
-  '수록 도구 ' + ALL.length + '종 · 오프라인 사용 가능 · 검색 단축키 “/” · 최근 개편 2026-09-09';
+  '수록 도구 ' + ALL.filter(a => !a.trial).length + '종 · 오프라인 사용 가능 · 검색 단축키 “/” · 최근 개편 2026-09-09';
 render();
+window.addEventListener('hbtrial', render);
 </script>
 <script>
 /* 도구 링크(같은 폴더 .html)는 누를 때마다 주소 끝에 시각을 붙여 연다 — GitHub Pages HTML 캐시(10분) 때문에 배포 직후 예전 화면이 열리는 것을 막는다 */

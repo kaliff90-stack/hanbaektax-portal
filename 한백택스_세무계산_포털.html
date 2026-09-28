@@ -313,6 +313,8 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
 @media(max-width:700px){.verify-box{padding:12px 14px}.verify-row{flex-wrap:wrap;font-size:12.5px}}
 </style>
 <link rel="stylesheet" href="hb-light.css">
+<style>html:not(.hb-trial) [data-trial]{display:none!important}</style>
+<script>/* 시험 공개 스위치 — 한백택스_시험공개.js */(function(){window.HB_TRIAL_Q=location.search;var s=document.createElement('script');s.src='한백택스_시험공개.js?v='+Date.now();document.head.appendChild(s);})();</script>
 </head>
 <body>
 <!-- HB-HOME v1 -->
@@ -387,6 +389,7 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
   <div class="nav-item" data-page="apportion">토지·건물 안분</div>
   <div class="nav-item" data-page="calcset">세무회계 계산기</div>
   <div class="nav-item" data-page="corpconv">법인전환</div>
+  <div class="nav-item" data-trial data-page="credit">신용평가</div>
   <div class="nav-item" data-page="stock">비상장주식</div>
   <div class="nav-item" data-page="corp">법인세</div>
   <div class="nav-item" data-page="ins">4대보험</div>
@@ -480,6 +483,12 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
       <div class="badge">2026·신규</div>
       <h3>법인전환 시뮬레이터</h3>
       <p>개인사업자 vs 법인 세금·4대보험<br>대표 급여·배당 최적 조합</p>
+    </a>
+    <a class="dash-card" data-trial data-go="credit" href="javascript:void(0)" onclick="goPage('credit')">
+      <div class="icon" style="background:#FEF9C3;color:#854D0E">🏅</div>
+      <div class="badge">시험 공개</div>
+      <h3>신용평가 시뮬레이터</h3>
+      <p>재무제표로 조달·입찰용 신용등급<br>회사채 등급 추정·평가서 출력</p>
     </a>
     <a class="dash-card" data-go="stock" href="javascript:void(0)" onclick="goPage('stock')">
       <div class="icon" style="background:#FEF3C7;color:#92400E">📈</div>
@@ -616,6 +625,14 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
   </div>
   <iframe id="calcsetFrame" title="세무회계 계산기 모음" style="width:100%;height:82vh;min-height:560px;border:1px solid var(--border);border-radius:12px;background:#fff;display:block"></iframe>
   <script>(function(){function fill(){var f=document.getElementById('calcsetFrame');if(f&&!f.getAttribute('src'))f.setAttribute('src','한백택스_세무회계_계산기모음.html?v='+Date.now());}function on(e){var t=e.target,el=t&&t.closest?t.closest('[data-page="calcset"],[data-go="calcset"]'):null;if(el)setTimeout(fill,0);}document.addEventListener('click',on,true);document.addEventListener('touchend',on,true);window.addEventListener('load',function(){try{if(new URLSearchParams(location.search).get('page')==='calcset')fill();}catch(e){}});})();</script>
+</div>
+<div class="page" id="page-credit">
+  <div class="calc-title"><h2>신용평가 시뮬레이터</h2><div class="sub">재무제표(엑셀·표준재무제표증명 PDF)를 읽어 조달·입찰용 기업신용평가 기관별 추정 등급과 회사채 신용평가 3사 방법론의 추정 등급을 내고 평가서를 출력합니다. 기관의 실제 채점 모형은 공개되지 않으므로 결과는 추정입니다.</div></div>
+  <div style="margin:0 0 10px;text-align:right">
+    <a href="한백택스_신용평가_시뮬레이터.html" target="_blank" rel="noopener" style="display:inline-block;font-size:13px;font-weight:700;color:var(--blue);border:1.5px solid var(--blue);border-radius:8px;padding:7px 14px;text-decoration:none;cursor:pointer">새 창으로 크게 보기 ↗</a>
+  </div>
+  <iframe id="creditFrame" title="신용평가 시뮬레이터" style="width:100%;height:82vh;min-height:560px;border:1px solid var(--border);border-radius:12px;background:#fff;display:block"></iframe>
+  <script>(function(){function fill(){var f=document.getElementById('creditFrame');if(f&&!f.getAttribute('src'))f.setAttribute('src','한백택스_신용평가_시뮬레이터.html?v='+Date.now());}function on(e){var t=e.target,el=t&&t.closest?t.closest('[data-page="credit"],[data-go="credit"]'):null;if(el)setTimeout(fill,0);}document.addEventListener('click',on,true);document.addEventListener('touchend',on,true);window.addEventListener('load',function(){try{if(new URLSearchParams(location.search).get('page')==='credit')fill();}catch(e){}});})();</script>
 </div>
 <div class="page" id="page-corpconv">
   <div class="calc-title"><h2>법인전환 시뮬레이터</h2><div class="sub">같은 이익을 개인사업자와 법인으로 벌 때 세금·4대보험·대표 손에 남는 돈을 비교하고, 대표 급여와 배당의 최적 조합과 이익 규모별 차이를 보여 줍니다.</div></div>
