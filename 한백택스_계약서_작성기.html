@@ -121,6 +121,12 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
 .sheet .stamp{display:inline-block;margin-left:6pt;color:#555;font-size:10pt}
 .sheet .note{font-size:9.5pt;color:#333;background:#f8fafc;border:1px solid #cbd5e1;padding:6pt 8pt;margin:6pt 0}
 .sheet .pb{page-break-before:always}
+/* 별지 여러 장(세무조사 착수 서류) — 화면에서는 서류마다 종이를 나누고, 인쇄는 서류마다 새 쪽 */
+.sheet.multi{background:none;border:none;box-shadow:none;padding:0;min-height:0;max-width:210mm}
+.sheet.multi .bj{background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 18px rgba(15,36,64,.08);padding:14mm 18mm 20mm;margin:0 0 18px}
+.sheet .bjbar{display:flex;align-items:center;gap:8px;margin:-6mm 0 10pt;padding-bottom:6pt;border-bottom:1px dashed var(--line);font-family:"Nanum Gothic",sans-serif;font-size:12px;color:var(--navy)}
+.sheet .bjbar b{background:var(--navy);color:#fff;border-radius:999px;padding:2px 10px;font-size:11.5px}
+.sheet .bjbar .btn{margin-left:auto}
 .staffbox{border:1px dashed var(--gold);border-radius:10px;padding:8px 12px;margin-top:10px;background:#fffdf7}
 .staffbox summary{cursor:pointer;font-weight:800;color:var(--navy);font-size:13px}
 .sheet .status{text-align:center;font-size:9.5pt;margin:-8pt 0 8pt}
@@ -135,6 +141,8 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
   body.showpv #formPanel{display:none}
   body:not(.showpv) #pvPanel{display:none}
   .sheet{padding:12mm 8mm;min-height:auto;font-size:10.5pt}
+  .sheet.multi{padding:0}
+  .sheet.multi .bj{padding:10mm 8mm 12mm}
   .row,.row.c3{grid-template-columns:1fr 1fr}
   .top h1{font-size:16px}
   .doctabs{margin-left:0;width:100%}
@@ -147,6 +155,9 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
   .wrap{display:block;padding:0;margin:0;max-width:none}
   #pvPanel{display:block!important;border:none;padding:0;background:#fff}
   .sheet{box-shadow:none;border:none;padding:0;margin:0;max-width:none;width:auto;min-height:auto}
+  .sheet.multi .bj{border:none;box-shadow:none;border-radius:0;padding:0;margin:0;page-break-after:always}
+  .sheet.multi .bj:last-of-type{page-break-after:auto}
+  body.print-one .sheet.multi .bj:not(.pick){display:none}
 }
 </style>
 </head>
@@ -2056,11 +2067,11 @@ function auditHtml(d,c){
   const period=kd(d.aStart)+'부터 '+kd(d.aEnd)+'까지';
   const office=d.office?esc(d.office):'(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)지방국세청(세무서)';
   const form=t=>'<p style="font-size:9pt;margin:0 0 6pt">■ '+t+'</p>';
-  const docs=[];
+  const docs=[];docs.push=function(n,h){return Array.prototype.push.call(this,{n,h});};
   /* ① 위임장 (2-1)(2-2) — 별지 제13호 */
   if(d.incPoa){
     const ms=(d.members||[]).slice();while(ms.length<5)ms.push({});
-    docs.push(form('조사사무처리규정 [별지 제13호 서식]')+'<h1>위 임 장</h1><p style="text-align:right;font-size:9.5pt;margin:-10pt 0 6pt">(2-1)</p>'+
+    docs.push('위임장 (2-1 · 2-2 명단)',form('조사사무처리규정 [별지 제13호 서식]')+'<h1>위 임 장</h1><p style="text-align:right;font-size:9.5pt;margin:-10pt 0 6pt">(2-1)</p>'+
       '<table class="party"><tr><td>성명</td><td>'+v(d.agName)+'</td><td style="width:18%;background:#f3f4f6;font-weight:700;text-align:center">전화번호</td><td>'+v(d.agTel)+'</td></tr>'+
       '<tr><td>생년월일</td><td>'+(d.agBirth?kd(d.agBirth):B)+'</td><td style="background:#f3f4f6;font-weight:700;text-align:center">사업자등록번호</td><td>'+v(d.agBiz)+'</td></tr>'+
       '<tr><td>사업장소재지(주소)</td><td colspan="3">'+v(d.agAddr)+(d.agOffice?' ('+esc(d.agOffice)+')':'')+'</td></tr>'+
@@ -2079,7 +2090,7 @@ function auditHtml(d,c){
   /* ② 청렴서약서 — 별지 제3호 */
   if(d.incPledge){
     const ck=x=>(d.msgAgree===x?'☑':'□');
-    docs.push(form('조사사무처리규정 [별지 제3호 서식]')+'<h1>청 렴 서 약 서</h1>'+
+    docs.push('청렴서약서',form('조사사무처리규정 [별지 제3호 서식]')+'<h1>청 렴 서 약 서</h1>'+
       '<p><b>□ 조사받는 납세자 인적사항</b></p>'+
       '<table class="party"><tr><td>대표자성명</td><td>'+(rep||(!corp?tn:'')||B)+'</td><td style="width:18%;background:#f3f4f6;font-weight:700;text-align:center">생년월일</td><td>'+(d.tBirth?kd(d.tBirth):B)+'</td></tr>'+
       '<tr><td>상 호(법 인 명)</td><td>'+v(d.tName)+'</td><td style="background:#f3f4f6;font-weight:700;text-align:center">사업자등록번호</td><td>'+v(d.tBiz)+'</td></tr>'+
@@ -2099,7 +2110,7 @@ function auditHtml(d,c){
   }
   /* ③ 납세자권리헌장 등 수령 및 낭독 확인서 — 별지 제1-1호 */
   if(d.incCharter){
-    docs.push(form('조사사무처리규정 [별지 제1-1호 서식]')+'<h1 style="letter-spacing:2px;font-size:16pt">납세자권리헌장 등 수령 및 낭독 확인서</h1>'+
+    docs.push('납세자권리헌장 등 수령 및 낭독 확인서',form('조사사무처리규정 [별지 제1-1호 서식]')+'<h1 style="letter-spacing:2px;font-size:16pt">납세자권리헌장 등 수령 및 낭독 확인서</h1>'+
       '<p>귀 청(서)에서 '+period+' 실시하는 조사와 관련하여 국세기본법 제81조의2 제2항 및 제81조의7 제1항에 따라 교부한 아래의 서류를 수령하고 조사공무원으로부터 납세자권리헌장을 낭독 받고, 조사사유, 조사기간, 제81조의18 제1항에 따른 납세자보호위원회에 대한 심의 요청사항·절차 및 권리구제 등 납세자 권익보호 절차에 대해 설명 받았음을 확인합니다.</p>'+
       '<p style="margin-left:12pt">1. 세무조사 개시(사전) 통지<br>2. 납세자권리헌장</p>'+
       '<table class="party"><tr><td>교부 장소</td><td>'+v(d.givePlace)+'</td></tr><tr><td>(사유)</td><td>'+(d.giveReason?esc(d.giveReason):'&nbsp;')+'<br><span style="font-size:9pt">※ 교부장소가 조사관서인 경우에만 사유를 기재</span></td></tr></table>'+
@@ -2110,7 +2121,7 @@ function auditHtml(d,c){
   /* ④ 세무조사연기신청서 — 국세기본법 시행규칙 별지 제55호서식 */
   if(d.incDefer){
     const w=AUDIT_DEFER[d.deferWhy]||AUDIT_DEFER.r4;
-    docs.push(form('국세기본법 시행규칙 [별지 제55호서식] &lt;개정 2019. 3. 20.&gt;')+'<h1>세무조사연기신청서</h1>'+
+    docs.push('세무조사연기신청서',form('국세기본법 시행규칙 [별지 제55호서식] &lt;개정 2019. 3. 20.&gt;')+'<h1>세무조사연기신청서</h1>'+
       '<table><tr><th>접수번호</th><td style="width:22%"></td><th>접수일</th><td style="width:22%"></td><th>처리기간</th><td></td></tr></table>'+
       '<p style="margin:0"><b>신청인</b></p><table class="party"><tr><td>① 성명</td><td>'+(rep||tn||B)+'</td><td style="width:20%;background:#f3f4f6;font-weight:700;text-align:center">② 주민등록번호</td><td>'+v(d.tId)+'</td></tr><tr><td>③ 상호</td><td>'+(corp||d.tType==='biz'?v(d.tName):'')+'</td><td style="background:#f3f4f6;font-weight:700;text-align:center">④ 사업자등록번호</td><td>'+v(d.tBiz)+'</td></tr><tr><td>⑤ 주소(거소) 또는 영업소</td><td colspan="3">'+v(d.tAddr)+'</td></tr></table>'+
       '<p style="margin:0"><b>신청내용</b></p><table class="party"><tr><td>⑥ 당초 조사기간</td><td>'+kd(d.aStart)+' ~ '+kd(d.aEnd)+'</td></tr><tr><td>⑦ 연기받으려는 사유</td><td>'+w[0]+'<br>('+w[1]+')'+(d.deferDetail?'<br>구체적 사정: '+esc(d.deferDetail).replace(/\n/g,'<br>'):'')+'</td></tr><tr><td>⑧ 연기를 원하는 기간</td><td>'+kd(d.deferFrom)+' ~ '+kd(d.deferTo)+'</td></tr></table>'+
@@ -2132,17 +2143,25 @@ function auditHtml(d,c){
       ['조사대상 세목·과세기간과 관련 없는 장부 제출 요구, 조사와 관련 없는 사생활 질문은 금지','조사기간 중','규정 §30 ② 2호·6호'],
       ['위법·부당한 조사나 조사공무원의 위법·부당한 행위 → 일시중지·중지 요청(납세자보호위원회 심의)','즉시','국기법 §81의18 ② 4호']
     ];
-    docs.push('<h1 style="letter-spacing:3px">세무조사 착수 체크리스트</h1><p style="text-align:center;margin:-6pt 0 8pt">'+(tn||'________')+' · '+office+' · '+kd(d.aStart)+' ~ '+kd(d.aEnd)+'</p>'+
+    docs.push('세무조사 착수 체크리스트','<h1 style="letter-spacing:3px">세무조사 착수 체크리스트</h1><p style="text-align:center;margin:-6pt 0 8pt">'+(tn||'________')+' · '+office+' · '+kd(d.aStart)+' ~ '+kd(d.aEnd)+'</p>'+
       '<table><tr><th style="width:6%">□</th><th>항목</th><th style="width:26%">시점</th><th style="width:22%">근거</th></tr>'+rows.map(r=>'<tr><td class="c">□</td><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')+'</table>'+
       '<h2>첫날 준비물</h2><table><tr><th style="width:6%">□</th><th>자료</th></tr>'+
       ['세무조사 사전(개시) 통지서 사본','이 세트 — 위임장(자격증 사본 첨부)·청렴서약서·권리헌장 낭독 확인서 — 날인할 도장(법인인감 또는 사용인감)','법인등기사항증명서·정관·주주명부(법인) / 사업자등록증 사본','조사대상 과세기간의 결산서·세무조정계산서·신고서 사본','계정별 원장·증빙 목록 — 원본은 요청받은 범위에서 제출하고 제출 목록을 남김','대표자·실무 담당자 연락처, 자료 요청 창구(세무대리인) 지정']
       .map(t=>'<tr><td class="c">□</td><td>'+t+'</td></tr>').join('')+'</table>'+
       '<div class="note">조사 중 받은 자료 요청·질문과 제출한 자료는 날짜별로 기록해 두십시오. 확인서·진술서에 서명하기 전에 세무대리인과 내용을 확인하십시오. 문의: '+esc(d.agOffice||'세무법인 한백택스')+' '+esc(d.agName||'')+' '+esc(d.agTel||'')+'</div>');
   }
-  return docs.join('<div class="pb"></div>')+(d.showTool?'<div class="foot">세무법인 한백택스 계약서 작성기 · 02-2277-3101 · hb090@hanbaektax.kr</div>':'');
+  return docs.map((x,i)=>'<section class="bj" data-i="'+i+'"><div class="bjbar nopr"><b>별지 '+(i+1)+'</b>'+esc(x.n)+'<button type="button" class="btn sm" onclick="printOne('+i+')">🖨 이 서류만 인쇄</button></div>'+x.h+'</section>').join('')+(d.showTool?'<div class="foot">세무법인 한백택스 계약서 작성기 · 02-2277-3101 · hb090@hanbaektax.kr</div>':'');
 }
 
-function render(){if(doc==='labor')renderLabor();else if(doc==='loan')renderLoan();else if(doc==='tax')renderTax();else if(doc==='exec')renderExec();else if(doc==='resign')renderResign();else if(doc==='audit')renderAudit();else renderFree();}
+/* 별지 한 장만 인쇄 — 인쇄가 끝나면(afterprint) 전체 인쇄로 돌아간다. 다른 인쇄 버튼은 beforeprint 에서 전체로 되돌린다. */
+let printOneOn=false;
+function printOne(i){
+  document.querySelectorAll('#sheet .bj').forEach(b=>b.classList.toggle('pick',+b.dataset.i===i));
+  printOneOn=true;document.body.classList.add('print-one');window.print();
+}
+window.addEventListener('beforeprint',()=>{if(!printOneOn)document.body.classList.remove('print-one');});
+window.addEventListener('afterprint',()=>{printOneOn=false;document.body.classList.remove('print-one');});
+function render(){$('sheet').classList.toggle('multi',doc==='audit');if(doc==='labor')renderLabor();else if(doc==='loan')renderLoan();else if(doc==='tax')renderTax();else if(doc==='exec')renderExec();else if(doc==='resign')renderResign();else if(doc==='audit')renderAudit();else renderFree();}
 bind();renderDays();renderAllow();renderExecRows();renderAuditMembers();
 initStaff();
 PADS.client=sigPad('padClient','tax','sigClient','client');
