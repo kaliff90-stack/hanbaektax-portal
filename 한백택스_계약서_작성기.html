@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<title>한백택스 계약서 작성기 — 세무대리 약정서 · 근로계약서 · 금전소비대차계약서 · 프리랜서 계약서</title>
-<meta name="description" content="계약서 작성기 — 세무대리 약정서, 근로계약서(기간제·단시간·연소·일용·연봉제·감시단속적), 금전소비대차, 프리랜서, 임원퇴직금 지급규정">
+<title>한백택스 계약서 작성기 — 세무대리 약정서 · 근로계약서 · 금전소비대차계약서 · 프리랜서 계약서 · 세무조사 착수 서류</title>
+<meta name="description" content="계약서 작성기 — 세무대리 약정서, 근로계약서(기간제·단시간·연소·일용·연봉제·감시단속적), 금전소비대차, 프리랜서, 임원퇴직금 지급규정, 세무조사 착수 서류(위임장·청렴서약서·납세자권리헌장 낭독 확인서·연기신청서)">
 <!--
   세무법인 한백택스 계약서 작성기 v1 (2026-09-16)
   - 근로계약서(기간의 정함 없음·기간제·단시간) : 근로기준법 제17조·시행령 제8조, 기간제법 제17조의 서면 명시 사항을 모두 담는다.
@@ -35,6 +35,12 @@
     소득세법 제22조 ③(퇴직소득 한도 — 2020년 이후 근무분 2배, 초과분 근로소득),
     대법원 2016.2.18. 선고 2015두50153(특정 임원 자금 분여용 급격 인상 규정은 정관상 규정으로 보지 않음, 퇴직 직전 급여 인상분 제외),
     서울행정법원 2018.5.18. 선고 2017구합5034(지배주주 임원만을 위하여 개정한 지급규정).
+  - 세무조사 착수 서류 (2026-09-28 추가) — 한 세트: 위임장(2-1·2-2 명단) · 청렴서약서 · 납세자권리헌장 등 수령 및 낭독 확인서
+    · 세무조사연기신청서(선택) · 착수 체크리스트(별지). 서식 문안은 법제처 별지 원문(K-Law MCP get_annexes 2026-09-28)을 옮겼다:
+    조사사무처리규정(국세청 훈령 제2734호, 2026.4.20.) 별지 제1-1호(낭독 확인서, 제24조)·제3호(청렴서약서, 제25조 ③④)·
+    제13호(위임장, 제28조 ②③), 국세기본법 시행규칙 별지 제55호서식(세무조사연기신청서, 2019.3.20. 개정).
+    근거 조문(MCP 원문 확인 2026-09-28): 국세기본법 제81조의2 ②③·제81조의5·제81조의7 ①②③(2026.8.11. 개정 반영)·
+    제81조의8 ②③·제81조의10 ②③④·제81조의18 ②, 시행령 제63조의7 ①②, 조사사무처리규정 제22조·제30조 ②·제40조.
   - 데이터는 이 브라우저(localStorage)에만 저장된다. 서버로 보내지 않는다. JSON 저장·불러오기 지원.
   - 인쇄: A4, 나눔고딕 11pt 이상.
 -->
@@ -194,7 +200,7 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
 <div class="top">
   <div>
     <h1>계약서 작성기</h1>
-    <div class="sub">근로계약서 · 금전소비대차계약서 · 프리랜서(3.3%) 업무위탁계약서 · 임원퇴직금 지급규정(정관) · 사직서·퇴직 서류(자진퇴사·권고사직·의원면직·정년·계약만료·해고) — 입력하면 오른쪽에 바로 만들어지고, 법정 기재사항과 한도를 점검합니다. 내용은 이 브라우저에만 저장됩니다.</div>
+    <div class="sub">근로계약서 · 금전소비대차계약서 · 프리랜서(3.3%) 업무위탁계약서 · 임원퇴직금 지급규정(정관) · 사직서·퇴직 서류(자진퇴사·권고사직·의원면직·정년·계약만료·해고) · 세무조사 착수 서류(위임장·청렴서약서·권리헌장 낭독 확인서·연기신청서) — 입력하면 오른쪽에 바로 만들어지고, 법정 기재사항과 한도를 점검합니다. 내용은 이 브라우저에만 저장됩니다.</div>
   </div>
   <div class="doctabs" id="docTabs">
     <button type="button" data-doc="tax" class="on">세무대리 약정서</button>
@@ -203,6 +209,7 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
     <button type="button" data-doc="free">프리랜서(3.3%) 계약서</button>
     <button type="button" data-doc="exec">임원퇴직금 규정(정관)</button>
     <button type="button" data-doc="resign">사직서 · 퇴직 서류</button>
+    <button type="button" data-doc="audit">세무조사 착수 서류</button>
   </div>
 </div>
 
@@ -618,6 +625,89 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
     <ul class="checks" id="resignChecks"></ul>
   </div>
 
+  <!-- ══════════════ 세무조사 착수 서류 입력 ══════════════ -->
+  <div id="form-audit" style="display:none">
+    <h2>① 넣을 서류 <span class="hint">— 세무조사 첫날 조사팀에 내는 서류를 한 세트로 만듭니다</span></h2>
+    <div class="row">
+      <label class="chk"><input type="checkbox" data-k="incPoa" checked>위임장 (조사참여·의견진술 세무대리인 명단 포함)</label>
+      <label class="chk"><input type="checkbox" data-k="incPledge" checked>청렴서약서</label>
+      <label class="chk"><input type="checkbox" data-k="incCharter" checked>납세자권리헌장 등 수령 및 낭독 확인서</label>
+      <label class="chk"><input type="checkbox" data-k="incDefer">세무조사 연기신청서 <span class="hint">(연기할 때만)</span></label>
+      <label class="chk"><input type="checkbox" data-k="incGuide" checked>별지: 세무조사 착수 체크리스트 (납세자 권리 · 준비 자료)</label>
+      <label class="chk"><input type="checkbox" data-k="showTool">문서 하단에 작성 도구 표시</label>
+    </div>
+    <h2>② 조사받는 납세자</h2>
+    <div class="row">
+      <label class="fld">상호(법인명) / 성명<input data-k="tName" placeholder="예: 주식회사 예시상사"></label>
+      <label class="fld">대표자<input data-k="tRep"></label>
+      <label class="fld">구분<select data-k="tType"><option value="corp">법인</option><option value="biz">개인사업자</option><option value="ind">개인(비사업자)</option></select></label>
+      <label class="fld">사업자등록번호<input data-k="tBiz" placeholder="000-00-00000" inputmode="numeric"></label>
+      <label class="fld">대표자 생년월일 <span class="hint">(청렴서약서)</span><input type="date" data-k="tBirth"></label>
+      <label class="fld">주민(법인)등록번호 <span class="hint">(위임장 · 연기신청서)</span><input data-k="tId" placeholder="000000-0000000" inputmode="numeric"></label>
+      <label class="fld">전화<input data-k="tTel"></label>
+      <label class="fld">이메일 <span class="hint">(낭독 확인서)</span><input data-k="tEmail" type="email"></label>
+      <label class="fld" style="grid-column:1/-1">소재지(주소) 또는 영업소<input data-k="tAddr"></label>
+    </div>
+    <h2>③ 세무조사 <span class="hint">— 사전통지서에 적힌 대로 옮겨 적습니다</span></h2>
+    <div class="row">
+      <label class="fld">조사관서<input data-k="office" placeholder="예: 서울지방국세청 / 중부세무서"></label>
+      <label class="fld">조사 부서 · 전화<input data-k="team" placeholder="예: 조사1국 조사2과 3팀 · 02-000-0000"></label>
+      <label class="fld">조사 구분 <span class="hint">(청렴서약서 「( ) 세무조사」)</span><input data-k="aKind" placeholder="예: 법인세 정기"></label>
+      <label class="fld">조사대상 세목<input data-k="aTax" placeholder="예: 법인세 · 부가가치세"></label>
+      <label class="fld" style="grid-column:1/-1">조사대상 과세기간<input data-k="aPeriod" placeholder="예: 2023.1.1. ~ 2024.12.31. 사업연도"></label>
+      <label class="fld">조사 시작일<input type="date" data-k="aStart"></label>
+      <label class="fld">조사 종료일<input type="date" data-k="aEnd"></label>
+      <label class="fld">사전통지 받은 날<input type="date" data-k="noticeDate"></label>
+      <label class="fld">통지 종류<select data-k="noticeKind"><option value="pre">세무조사 사전통지 (20일 전)</option><option value="re">재조사 결정에 따른 사전통지 (7일 전)</option><option value="start">사전통지 없이 개시 통지 (착수일 교부)</option></select></label>
+      <label class="fld">수입금액 규모 <span class="hint">(조사기간 판단)</span><select data-k="aScale"><option value="small">연간 수입금액 100억원 미만</option><option value="large">100억원 이상</option></select></label>
+      <label class="fld">서류 교부 장소 <span class="hint">(낭독 확인서)</span><input data-k="givePlace" placeholder="예: 납세자 사업장"></label>
+      <label class="fld" style="grid-column:1/-1">교부 장소가 조사관서인 사유 <span class="hint">(조사관서에서 받은 경우만)</span><input data-k="giveReason" placeholder="예: 사업장 폐업으로 대표자 요청에 따라 직접 방문 수령"></label>
+    </div>
+    <h2>④ 세무대리인 <span class="hint">(국세기본법 제81조의5 — 조사 참여 · 의견 진술)</span></h2>
+    <div class="row">
+      <label class="fld">성명<input data-k="agName"></label>
+      <label class="fld">자격<select data-k="agQual"><option>세무사</option><option>공인회계사</option><option>변호사</option></select></label>
+      <label class="fld">생년월일<input type="date" data-k="agBirth"></label>
+      <label class="fld">전화<input data-k="agTel"></label>
+      <label class="fld">사무소<input data-k="agOffice"></label>
+      <label class="fld">사업자등록번호<input data-k="agBiz" placeholder="000-00-00000" inputmode="numeric"></label>
+      <label class="fld" style="grid-column:1/-1">사업장 소재지<input data-k="agAddr"></label>
+      <label class="fld" style="grid-column:1/-1">납세자와의 관계 <span class="hint">(기장대행, 세무조정, 고문 등)</span><input data-k="agRel" placeholder="기장대행 · 세무조정"></label>
+    </div>
+    <div class="fld" style="margin-top:8px">조사 참여 · 의견 진술 세무대리인 명단 <span class="hint">(위임장 2-2 — 여기 적힌 사람만 조사에 참여할 수 있습니다)</span></div>
+    <div id="auditMembers"></div>
+    <button type="button" class="btn sm" onclick="addAuditMember()">+ 세무대리인 추가</button>
+    <h2>⑤ 청렴서약서 — 「준법 · 청렴 메시지」 수신 <span class="hint">(조사기간 중 국세청 발송 문자)</span></h2>
+    <div class="row">
+      <label class="fld">수신 동의<select data-k="msgAgree"><option value="">표시하지 않음 (현장에서 체크)</option><option value="y">동의함</option><option value="n">동의하지 않음</option></select></label>
+      <label class="fld">수신인 성명<input data-k="msgName"></label>
+      <label class="fld">직위<input data-k="msgPos" placeholder="예: 대표이사"></label>
+      <label class="fld">수신 번호<input data-k="msgPhone" placeholder="010-0000-0000"></label>
+    </div>
+    <div class="rk-defer">
+      <h2>⑥ 세무조사 연기신청 <span class="hint">(국세기본법 제81조의7 ② · 시행령 제63조의7)</span></h2>
+      <div class="row">
+        <label class="fld" style="grid-column:1/-1">연기 사유<select data-k="deferWhy">
+          <option value="l1">법 제81조의7 ② 1호 — 천재지변으로 생명·신체·재산·공급망 등에 상당한 피해</option>
+          <option value="l2">법 제81조의7 ② 2호 — 사업에 현저한 손실 발생, 부도·도산 우려</option>
+          <option value="r1">시행령 제63조의7 ① 1호 — 화재, 그 밖의 재해로 사업상 심각한 어려움</option>
+          <option value="r2">시행령 제63조의7 ① 2호 — 납세자·납세관리인의 질병, 장기출장 등</option>
+          <option value="r3">시행령 제63조의7 ① 3호 — 권한 있는 기관에 장부·증거서류가 압수·영치됨</option>
+          <option value="r4">시행령 제63조의7 ① 4호 — 1호~3호에 준하는 사유</option>
+        </select></label>
+        <label class="fld">연기 원하는 기간 — 시작<input type="date" data-k="deferFrom"></label>
+        <label class="fld">연기 원하는 기간 — 끝<input type="date" data-k="deferTo"></label>
+        <label class="fld" style="grid-column:1/-1">구체적 사정 <span class="hint">(증빙과 맞게)</span><textarea data-k="deferDetail" rows="2" placeholder="예: 대표이사 수술 후 입원(2026.10.5.~10.30. 예정) — 진단서·입원확인서 첨부"></textarea></label>
+      </div>
+    </div>
+    <h2>⑦ 작성일</h2>
+    <div class="row c3">
+      <label class="fld">서류 작성일 <span class="hint">(보통 조사 시작일)</span><input type="date" data-k="signDate"></label>
+    </div>
+    <div class="calc" id="auditCalc"></div>
+    <ul class="checks" id="auditChecks"></ul>
+  </div>
+
   <!-- ══════════════ 세무대리 약정서 입력 ══════════════ -->
   <div id="form-tax" style="display:none">
     <h2>① 위임인(갑)</h2>
@@ -761,6 +851,7 @@ const rrnOk=r=>{const d=String(r||'').replace(/\D/g,'');if(d.length!==13)return 
 function hangulMoney(n){n=Math.round(+n||0);if(n===0)return '영원';const dg='영일이삼사오육칠팔구',un=['','십','백','천'],big=['','만','억','조','경'];let out='',i=0;while(n>0){let part=n%10000,s='';for(let j=0;j<4&&part>0;j++){const d=part%10;if(d)s=(d===1&&j>0?'':dg[d])+un[j]+s;part=Math.floor(part/10);}if(s)out=s+big[i]+out;n=Math.floor(n/10000);i++;}return out+'원';}
 const addMonths=(iso,m)=>{const d=new Date(iso+'T00:00:00');const day=d.getDate();d.setMonth(d.getMonth()+m);if(d.getDate()!==day)d.setDate(0);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};  /* 현지 날짜로 — toISOString 은 UTC 라 하루 빠졌음 */
 const daysBetween=(a,b)=>Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/86400000);
+const addDays=(iso,n)=>{const d=new Date(iso+'T00:00:00');d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
 
 /* ═══════ 상태 ═══════ */
 let doc='tax';
@@ -774,13 +865,18 @@ const DEF={
     meetDate:'',meetPlace:'',chair:'',shTotal:'',shAttend:'',shYes:'',exPos:'0',exSal:'',exYears:'',exAnnual:''},
   resign:{kind:'self',justKind:'0',advKind:'mgmt',advDetail:'',sev:'',noClaim:true,retireAge:60,retireRule:'',rehire:false,contractEnd:'',contractStart:'',renewBy:'co',fireKind:'mgmt',noticeOK:'y',noticeDate:'',fireRule:'',
     coName:'',coRep:'',coBiz:'',coTel:'',coAddr:'',wName:'',wBirth:'',wDept:'',wPos:'',hireDate:'',wTel:'',wAddr:'',lastDay:'',submitDate:'',acceptDate:'',signDate:'',reason:'',handover:true,confid:true,acceptDoc:true,eiNote:true,checklist:true,showTool:false,extra:''},
+  audit:{incPoa:true,incPledge:true,incCharter:true,incDefer:false,incGuide:true,showTool:false,tName:'',tRep:'',tType:'corp',tBiz:'',tBirth:'',tId:'',tTel:'',tEmail:'',tAddr:'',
+    office:'',team:'',aKind:'',aTax:'',aPeriod:'',aStart:'',aEnd:'',noticeDate:'',noticeKind:'pre',aScale:'small',givePlace:'',giveReason:'',
+    agName:'차재영',agQual:'세무사',agBirth:'',agTel:'02-2277-3101',agOffice:'세무법인 한백택스',agBiz:'522-85-00152',agAddr:'서울특별시 중구 동호로 315, 신안빌딩 2층',agRel:'기장대행 · 세무조정',
+    members:[{org:'세무법인 한백택스',pos:'대표세무사',name:'차재영',birth:'',qual:'세무사'}],
+    msgAgree:'',msgName:'',msgPos:'',msgPhone:'',deferWhy:'r2',deferFrom:'',deferTo:'',deferDetail:'',signDate:''},
   tax:{cName:'',cRep:'',cType:'corp',cBiz:'',cTel:'',cEmail:'',cAddr:'',oName:'세무법인 한백택스',oRep:'차재영',oBiz:'522-85-00152',oTel:'02-2277-3101',oAddr:'서울특별시 중구 동호로 315, 신안빌딩 2층',oStaff:'',wBook:true,wVat:true,wWht:true,wIncome:true,wYear:false,wIns:false,wConsult:true,wSincere:false,wEtc:'',start:'',end:'',renew:'auto',fee:'',feeVat:'in',payDay:'10',payHow:'cms',confid:true,dataResp:true,capLiab:false,handover:true,eDoc:true,showTool:false,court:'',signDate:'',extra:'',confirm:null,agree:false,sigClient:'',sigAt:'',sigFor:''}
 };
 const LSKEY='hbt_contract_v1';
-let S={labor:JSON.parse(JSON.stringify(DEF.labor)),loan:JSON.parse(JSON.stringify(DEF.loan)),free:JSON.parse(JSON.stringify(DEF.free)),tax:JSON.parse(JSON.stringify(DEF.tax)),exec:JSON.parse(JSON.stringify(DEF.exec)),resign:JSON.parse(JSON.stringify(DEF.resign))};
-try{const r=localStorage.getItem(LSKEY);if(r){const o=JSON.parse(r);['labor','loan','free','tax','exec','resign'].forEach(k=>{if(o[k])S[k]=Object.assign({},JSON.parse(JSON.stringify(DEF[k])),o[k]);});if(o.doc&&DEF[o.doc])doc=o.doc;}}catch(e){}
-function persist(){try{localStorage.setItem(LSKEY,JSON.stringify({doc,labor:S.labor,loan:S.loan,free:S.free,tax:S.tax,exec:S.exec,resign:S.resign}));}catch(e){}}
-const formOf=el=>el.closest('#form-labor')?'labor':el.closest('#form-loan')?'loan':el.closest('#form-tax')?'tax':el.closest('#form-exec')?'exec':el.closest('#form-resign')?'resign':'free';
+let S={labor:JSON.parse(JSON.stringify(DEF.labor)),loan:JSON.parse(JSON.stringify(DEF.loan)),free:JSON.parse(JSON.stringify(DEF.free)),tax:JSON.parse(JSON.stringify(DEF.tax)),exec:JSON.parse(JSON.stringify(DEF.exec)),resign:JSON.parse(JSON.stringify(DEF.resign)),audit:JSON.parse(JSON.stringify(DEF.audit))};
+try{const r=localStorage.getItem(LSKEY);if(r){const o=JSON.parse(r);['labor','loan','free','tax','exec','resign','audit'].forEach(k=>{if(o[k])S[k]=Object.assign({},JSON.parse(JSON.stringify(DEF[k])),o[k]);});if(o.doc&&DEF[o.doc])doc=o.doc;}}catch(e){}
+function persist(){try{localStorage.setItem(LSKEY,JSON.stringify({doc,labor:S.labor,loan:S.loan,free:S.free,tax:S.tax,exec:S.exec,resign:S.resign,audit:S.audit}));}catch(e){}}
+const formOf=el=>el.closest('#form-labor')?'labor':el.closest('#form-loan')?'loan':el.closest('#form-tax')?'tax':el.closest('#form-exec')?'exec':el.closest('#form-resign')?'resign':el.closest('#form-audit')?'audit':'free';
 
 /* ═══════ 입력 바인딩 ═══════ */
 const MONEY_K=/^(base|amt|fee|exSal|exAnnual|shTotal|shAttend|shYes|annualPay|sev)$/;   /* 천 단위 쉼표로 보이는 칸 */
@@ -798,7 +894,7 @@ function bind(){
     el.addEventListener('blur',()=>{if(MONEY_K.test(k)&&S[form][k])el.value=fmt(S[form][k]);});
   });
 }
-function refill(){document.querySelectorAll('[data-k]').forEach(el=>{const form=formOf(el);const k=el.dataset.k;const v=S[form][k];if(el.type==='checkbox')el.checked=!!v;else el.value=(v==null?'':v);if(MONEY_K.test(k)&&v)el.value=fmt(v);});renderDays();renderAllow();renderExecRows();}
+function refill(){document.querySelectorAll('[data-k]').forEach(el=>{const form=formOf(el);const k=el.dataset.k;const v=S[form][k];if(el.type==='checkbox')el.checked=!!v;else el.value=(v==null?'':v);if(MONEY_K.test(k)&&v)el.value=fmt(v);});renderDays();renderAllow();renderExecRows();renderAuditMembers();}
 function renderDays(){
   const box=$('dayHours');box.innerHTML='';
   DAYS.forEach(d=>{const l=document.createElement('label');l.innerHTML='<span>'+d+'</span>';const i=document.createElement('input');i.type='number';i.min=0;i.max=24;i.step=0.5;i.value=S.labor.dayHours[d]===''||S.labor.dayHours[d]==null?'':S.labor.dayHours[d];i.addEventListener('input',()=>{S.labor.dayHours[d]=i.value===''?'':+i.value;persist();render();});l.appendChild(i);box.appendChild(l);});
@@ -819,12 +915,12 @@ function renderAllow(){
 function addAllow(){S.labor.allow.push({name:'',amt:0,ordinary:true});renderAllow();render();}
 
 /* ═══════ 문서 전환 · 도구 ═══════ */
-function showDoc(d){doc=d;document.querySelectorAll('#docTabs button').forEach(b=>b.classList.toggle('on',b.dataset.doc===d));['labor','loan','free','tax','exec','resign'].forEach(k=>{$('form-'+k).style.display=d===k?'':'none';});persist();render();}
+function showDoc(d){doc=d;document.querySelectorAll('#docTabs button').forEach(b=>b.classList.toggle('on',b.dataset.doc===d));['labor','loan','free','tax','exec','resign','audit'].forEach(k=>{$('form-'+k).style.display=d===k?'':'none';});persist();render();}
 document.querySelectorAll('#docTabs button').forEach(b=>b.addEventListener('click',()=>showDoc(b.dataset.doc)));
 function mobPv(on){document.body.classList.toggle('showpv',on);document.querySelectorAll('.mobtab button').forEach((b,i)=>b.classList.toggle('on',(i%2===1)===on));}
 function copyText(){const t=$('sheet').innerText;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>alert('본문을 복사했습니다.'),()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();alert('본문을 복사했습니다.');});}
-function saveJson(){const name=(doc==='labor'?'근로계약서_'+(S.labor.wName||'미정'):doc==='loan'?'금전소비대차계약서_'+(S.loan.bName||'미정'):doc==='tax'?'세무대리약정서_'+(S.tax.cName||'미정'):doc==='exec'?'임원퇴직금지급규정_'+(S.exec.coName||'미정'):doc==='resign'?'사직서_'+(S.resign.wName||'미정'):'프리랜서계약서_'+(S.free.fName||'미정'))+'_'+today()+'.json';const blob=new Blob([JSON.stringify({doc,data:S[doc]},null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
-function loadJson(inp){const f=inp.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const o=JSON.parse(rd.result);const d=DEF[o.doc]?o.doc:'labor';S[d]=Object.assign({},DEF[d],o.data||{});if(d==='labor'){S[d].dayHours=Object.assign({},DEF.labor.dayHours,S[d].dayHours||{});S[d].allow=S[d].allow||[];}if(d==='exec'&&!Array.isArray(S[d].rows))S[d].rows=JSON.parse(JSON.stringify(DEF.exec.rows));showDoc(d);refill();render();}catch(e){alert('읽을 수 없는 파일입니다.');}inp.value='';};rd.readAsText(f);}
+function saveJson(){const name=(doc==='labor'?'근로계약서_'+(S.labor.wName||'미정'):doc==='loan'?'금전소비대차계약서_'+(S.loan.bName||'미정'):doc==='tax'?'세무대리약정서_'+(S.tax.cName||'미정'):doc==='exec'?'임원퇴직금지급규정_'+(S.exec.coName||'미정'):doc==='resign'?'사직서_'+(S.resign.wName||'미정'):doc==='audit'?'세무조사착수서류_'+(S.audit.tName||'미정'):'프리랜서계약서_'+(S.free.fName||'미정'))+'_'+today()+'.json';const blob=new Blob([JSON.stringify({doc,data:S[doc]},null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
+function loadJson(inp){const f=inp.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const o=JSON.parse(rd.result);const d=DEF[o.doc]?o.doc:'labor';S[d]=Object.assign({},DEF[d],o.data||{});if(d==='labor'){S[d].dayHours=Object.assign({},DEF.labor.dayHours,S[d].dayHours||{});S[d].allow=S[d].allow||[];}if(d==='exec'&&!Array.isArray(S[d].rows))S[d].rows=JSON.parse(JSON.stringify(DEF.exec.rows));if(d==='audit'&&!Array.isArray(S[d].members))S[d].members=JSON.parse(JSON.stringify(DEF.audit.members));showDoc(d);refill();render();}catch(e){alert('읽을 수 없는 파일입니다.');}inp.value='';};rd.readAsText(f);}
 function resetDoc(){if(!confirm('현재 문서의 입력을 모두 지웁니다.'))return;S[doc]=JSON.parse(JSON.stringify(DEF[doc]));persist();refill();render();}
 /* 근로계약 유형별 예시 — 「예시 채우기」가 지금 고른 유형에 맞춰 채운다 */
 const LABOR_SAMPLE={
@@ -840,6 +936,9 @@ function fillSample(){
   else if(doc==='free'){S.free=Object.assign({},DEF.free,{coName:'주식회사 예시상사',coRep:'홍길동',coBiz:'123-45-67891',coTel:'02-000-0000',coAddr:'서울특별시 중구 ○○로 00, 0층',fName:'이예시',fTel:'010-0000-0000',fAddr:'경기도 성남시 분당구 ○○로 00',fAcct:'○○은행 000-000-000000 이예시',job:'온라인 마케팅 콘텐츠(카드뉴스·블로그) 기획 및 제작',deliver:'매월 카드뉴스 8건·블로그 4건 납품(시안 수정 2회 포함), 매월 말일 검수',start:today(),end:addMonths(today(),12),fee:3000000,court:'서울중앙지방법원',signDate:today()});}
   else if(doc==='exec'){S.exec=Object.assign(JSON.parse(JSON.stringify(DEF.exec)),{coName:'주식회사 예시상사',coRep:'홍길동',coBiz:'123-45-67891',coAddr:'서울특별시 중구 ○○로 00, 0층',artNo:'37',effDate:today(),meetDate:today(),meetPlace:'본점 회의실',chair:'대표이사 홍길동',shTotal:20000,shAttend:18000,shYes:18000,exPos:'0',exSal:12000000,exYears:15,exAnnual:150000000});}
   else if(doc==='resign'){const k0=S.resign.kind;S.resign=Object.assign({},DEF.resign,{kind:k0,coName:'주식회사 예시상사',coRep:'홍길동',coBiz:'123-45-67891',coTel:'02-000-0000',coAddr:'서울특별시 중구 ○○로 00, 0층',wName:'김예시',wBirth:'1990-03-15',wDept:'경영지원팀',wPos:'대리',hireDate:'2021-03-02',wTel:'010-0000-0000',wAddr:'서울특별시 성동구 ○○로 00',lastDay:addMonths(today(),1),submitDate:today(),acceptDate:today(),signDate:today(),contractStart:addMonths(today(),-12),contractEnd:addMonths(today(),1),noticeDate:today(),retireAge:60,retireRule:'제45조',fireRule:'취업규칙 제52조 제3호',advDetail:'○○사업부 축소에 따른 인원 감축'},RESIGN_SAMPLE[k0]||{});}
+  else if(doc==='audit'){S.audit=Object.assign(JSON.parse(JSON.stringify(DEF.audit)),{tName:'주식회사 예시상사',tRep:'홍길동',tType:'corp',tBiz:'123-45-67891',tBirth:'1970-05-05',tTel:'02-000-0000',tEmail:'admin@example.com',tAddr:'서울특별시 중구 ○○로 00, 0층',
+    office:'서울지방국세청',team:'조사○국 조사○과 ○팀 · 02-000-0000',aKind:'법인세 정기',aTax:'법인세',aPeriod:'2023.1.1. ~ 2024.12.31. 사업연도',noticeDate:today(),aStart:addDays(today(),20),aEnd:addDays(today(),39),givePlace:'납세자 사업장',
+    msgName:'홍길동',msgPos:'대표이사',msgPhone:'010-0000-0000',signDate:addDays(today(),20),deferFrom:addDays(today(),20),deferTo:addDays(today(),50),deferDetail:'대표이사 수술 후 입원(약 4주 예정) — 진단서·입원확인서 첨부'});}
   else if(doc==='tax'){S.tax=Object.assign({},DEF.tax,{cName:'주식회사 예시상사',cRep:'홍길동',cType:'corp',cBiz:'123-45-67891',cTel:'02-000-0000',cEmail:'admin@example.com',cAddr:'서울특별시 중구 ○○로 00, 0층',start:today(),fee:330000,feeVat:'in',court:'서울중앙지방법원',signDate:today()});}
   else{S.loan=Object.assign({},DEF.loan,{lName:'주식회사 예시상사',lType:'corp',lId:'123-45-67891',lTel:'02-000-0000',lAddr:'서울특별시 중구 ○○로 00',bName:'홍길동',bType:'ind',bId:'1975-05-05',bTel:'010-0000-0000',bAddr:'서울특별시 강남구 ○○로 00',rel:'corp-rep',amt:60000000,loanDate:today(),dueDate:addMonths(today(),24),acct:'○○은행 000-000-000000 홍길동',rate:4.6,intHow:'monthly',repay:'bullet',lateRate:12,court:'서울중앙지방법원',signDate:today()});}
   persist();refill();render();
@@ -849,7 +948,8 @@ function fromBoard(){
   if(!cl.length){alert('이 브라우저의 「거래처 업무판」에 등록된 거래처가 없습니다. 업무판에서 거래처를 먼저 등록하면 여기서 바로 불러옵니다.');return;}
   const pick=prompt('불러올 거래처 번호를 입력하십시오.\n\n'+cl.map((c,i)=>(i+1)+'. '+c.name+(c.rep?' ('+c.rep+')':'')).join('\n'));
   const c=cl[(+pick||0)-1];if(!c)return;
-  if(doc==='labor'||doc==='free'||doc==='exec'||doc==='resign'){Object.assign(S[doc],{coName:c.name,coRep:c.rep||'',coBiz:c.biz||'',coTel:c.tel||'',coAddr:c.addr||S[doc].coAddr});}
+  if(doc==='audit'){Object.assign(S.audit,{tName:c.name,tRep:c.rep||'',tBiz:c.biz||'',tTel:c.tel||'',tAddr:c.addr||S.audit.tAddr,tType:(c.type||'').indexOf('법인')>=0?'corp':'biz'});}
+  else if(doc==='labor'||doc==='free'||doc==='exec'||doc==='resign'){Object.assign(S[doc],{coName:c.name,coRep:c.rep||'',coBiz:c.biz||'',coTel:c.tel||'',coAddr:c.addr||S[doc].coAddr});}
   else if(doc==='tax'){Object.assign(S.tax,{cName:c.name,cRep:c.rep||'',cBiz:c.biz||'',cTel:c.tel||'',cAddr:c.addr||S.tax.cAddr,cType:(c.type||'').indexOf('법인')>=0?'corp':'biz'});}
   else{const isCorp=(c.type||'').indexOf('법인')>=0;Object.assign(S.loan,{lName:c.name,lType:isCorp?'corp':'biz',lId:c.biz||'',lTel:c.tel||'',lAddr:c.addr||S.loan.lAddr});}
   persist();refill();render();
@@ -1881,8 +1981,169 @@ function resignHtml(d,c){
   return out+(d.showTool?'<div class="foot">세무법인 한백택스 계약서 작성기 · 02-2277-3101 · hb090@hanbaektax.kr</div>':'');
 }
 
-function render(){if(doc==='labor')renderLabor();else if(doc==='loan')renderLoan();else if(doc==='tax')renderTax();else if(doc==='exec')renderExec();else if(doc==='resign')renderResign();else renderFree();}
-bind();renderDays();renderAllow();renderExecRows();
+/* ═══════ 세무조사 착수 서류 ═══════
+ * 서식 문안: 조사사무처리규정(훈령 제2734호) 별지 제1-1호·제3호·제13호, 국세기본법 시행규칙 별지 제55호서식 — 법제처 원문 그대로.
+ * 근거(2026-09-28 K-Law MCP 확인): 국세기본법 §81의2 ②③, §81의5, §81의7 ①②③, §81의8 ②③⑦, §81의10 ②③④, §81의18 ②,
+ *   시행령 §63의7, 조사사무처리규정 §21 ③, §22, §24, §25 ③④, §28 ②③, §30 ②, §40. */
+const AUDIT_DEFER={
+  l1:['「국세기본법」 제81조의7제2항제1호','천재지변으로 납세자의 생명·신체, 재산 또는 공급망 등에 상당한 피해가 발생한 경우'],
+  l2:['「국세기본법」 제81조의7제2항제2호','납세자가 경영하는 사업에 현저한 손실이 발생하거나 부도 또는 도산의 우려가 있는 경우'],
+  r1:['「국세기본법 시행령」 제63조의7제1항제1호','화재, 그 밖의 재해로 사업상 심각한 어려움이 있을 때'],
+  r2:['「국세기본법 시행령」 제63조의7제1항제2호','납세자 또는 납세관리인의 질병, 장기출장 등으로 세무조사가 곤란하다고 판단될 때'],
+  r3:['「국세기본법 시행령」 제63조의7제1항제3호','권한 있는 기관에 장부, 증거서류가 압수되거나 영치되었을 때'],
+  r4:['「국세기본법 시행령」 제63조의7제1항제4호','제1호부터 제3호까지의 규정에 준하는 사유가 있을 때']
+};
+function renderAuditMembers(){
+  const box=$('auditMembers');if(!box)return;box.innerHTML='';
+  if(!Array.isArray(S.audit.members))S.audit.members=[];
+  S.audit.members.forEach((m,idx)=>{
+    const r=document.createElement('div');r.className='row';r.style.cssText='grid-template-columns:1.3fr 1fr .9fr 1fr .9fr auto;gap:6px;margin-bottom:6px;align-items:center';
+    [['org','소속'],['pos','직위/직책'],['name','성명'],['birth','생년월일'],['qual','자격']].forEach(([k,ph])=>{const i=document.createElement('input');i.placeholder=ph;i.value=m[k]||'';if(k==='birth')i.type='date';i.style.cssText='font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;width:100%';i.addEventListener('input',()=>{m[k]=i.value;persist();render();});r.appendChild(i);});
+    const b=document.createElement('button');b.type='button';b.className='btn sm';b.textContent='삭제';b.addEventListener('click',()=>{S.audit.members.splice(idx,1);persist();renderAuditMembers();render();});r.appendChild(b);
+    box.appendChild(r);
+  });
+}
+function addAuditMember(){S.audit.members.push({org:S.audit.agOffice||'',pos:'',name:'',birth:'',qual:'세무사'});persist();renderAuditMembers();render();}
+function auditCalc(d){
+  const need=d.noticeKind==='re'?7:d.noticeKind==='pre'?20:0;
+  const lead=d.noticeDate&&d.aStart?daysBetween(d.noticeDate,d.aStart):null;
+  const len=d.aStart&&d.aEnd?daysBetween(d.aStart,d.aEnd)+1:null;
+  const dlen=d.deferFrom&&d.deferTo?daysBetween(d.deferFrom,d.deferTo)+1:null;
+  const head=d.office?(/장$/.test(d.office.trim())?esc(d.office.trim()):esc(d.office.trim())+'장'):'(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)지방국세청장(세무서장)';
+  return{need,lead,len,dlen,head};
+}
+function auditChecks(d,c){
+  const L=[];const add=(lv,t)=>L.push({lv,t});
+  const miss=[['tName','납세자 상호/성명'],['office','조사관서'],['aStart','조사 시작일'],['aEnd','조사 종료일'],['agName','세무대리인 성명']].filter(([k])=>!d[k]).map(([,n])=>n);
+  if(d.tType!=='ind'&&!d.tRep)miss.push('대표자');
+  if(miss.length)add('err','<b>필수 누락</b>: '+miss.join(', '));
+  if(!d.incPoa&&!d.incPledge&&!d.incCharter&&!d.incDefer&&!d.incGuide)add('err','넣을 서류를 하나 이상 고르십시오.');
+  if(d.tBiz&&!bizOk(d.tBiz))add('warn','납세자 사업자등록번호 형식(10자리 검증)이 맞지 않습니다: '+esc(d.tBiz));
+  if(d.agBiz&&!bizOk(d.agBiz))add('warn','세무대리인 사업자등록번호 형식(10자리 검증)이 맞지 않습니다: '+esc(d.agBiz));
+  if(d.tId){const n=String(d.tId).replace(/\D/g,'');if(n.length!==13)add('warn','주민(법인)등록번호는 13자리입니다: '+esc(d.tId));else if(d.tType==='ind'&&!rrnOk(d.tId))add('warn','주민등록번호 검증식이 맞지 않습니다(2020.10. 이후 발급 번호는 검증식이 없을 수 있음): '+esc(d.tId));}
+  if(c.len!=null){if(c.len<1)add('err','조사 종료일이 시작일보다 앞섭니다.');else if(d.aScale==='small'&&c.len>20)add('warn','조사기간이 '+c.len+'일입니다. 연간 수입금액 100억원 미만 납세자의 세무조사 기간은 <b>20일 이내</b>입니다(국세기본법 제81조의8 ②). 통지서의 기간과 사유를 확인하십시오(같은 조 ③ 단서의 예외 사유 해당 여부).');else add('ok','조사기간 '+c.len+'일'+(d.aScale==='small'?' — 100억원 미만 납세자 20일 이내 요건 충족(제81조의8 ②).':'.'));}
+  if(d.noticeKind!=='start'&&c.lead!=null){if(c.lead<c.need)add('warn','사전통지를 조사 시작 '+c.lead+'일 전에 받았습니다. 법정 기한은 <b>'+c.need+'일 전</b>입니다(국세기본법 제81조의7 ①). 통지일·송달일을 조사관서에 확인하십시오.');else add('ok','사전통지 → 조사 시작 '+c.lead+'일 (법정 '+c.need+'일 전 충족).');}
+  if(d.noticeKind==='start')add('info','사전통지 없이 조사를 시작하면 조사공무원은 사전통지 사항과 <b>사전통지를 하지 않은 사유</b>를 적은 세무조사 통지서를 교부해야 합니다(국세기본법 제81조의7 ⑥ 1호, 조사사무처리규정 제21조 ②).');
+  if(d.incPoa){const ms=(d.members||[]).filter(m=>m.name);if(!ms.length)add('warn','위임장 2-2 명단이 비어 있습니다. <b>명단에 적힌 세무대리인만</b> 조사에 참여하거나 의견을 진술할 수 있습니다.');add('info','위임장을 내지 않은 세무대리인은 조사 참여·의견 진술이 거부됩니다(조사사무처리규정 제28조 ③). 자격증 사본을 첨부하고, 제출 확인이 필요하면 「세무대리인 위임장 접수확인서」(별지 제14호) 교부를 요청하십시오(같은 조 ②).');}
+  if(d.incPledge)add('info','청렴서약서는 조사 시작 때 납세자·세무대리인·조사공무원이 함께 작성합니다. 납세자나 세무대리인이 동의하지 않으면 조사공무원이 성명을 적고 서명란에 「날인거부」라고 표기합니다(조사사무처리규정 제25조 ③·④). 조사공무원 서약란은 조사팀이 채웁니다.');
+  if(d.incCharter)add('info','조사공무원은 조사를 시작할 때 조사원증을 제시하고 납세자권리헌장을 교부·낭독하며, 조사사유·조사기간·납세자보호위원회 심의 요청·권리구제 절차를 설명해야 합니다(국세기본법 제81조의2 ③). 설명을 들은 뒤에 확인서에 날인하십시오.');
+  if(d.incDefer){
+    if(d.noticeKind==='start')add('warn','연기신청은 <b>사전통지를 받은 납세자</b>가 하는 것입니다(국세기본법 제81조의7 ②). 사전통지 없이 이미 시작된 조사는 중지·연장 신청(조사사무처리규정 별지 제8호)을 검토하십시오.');
+    if(!d.deferFrom||!d.deferTo)add('err','연기를 원하는 기간을 적으십시오.');else if(c.dlen<1)add('err','연기 기간의 끝이 시작보다 앞섭니다.');
+    if(d.signDate&&d.aStart&&d.signDate>=d.aStart)add('warn','연기신청은 조사 시작 <b>전에</b> 내야 합니다. 작성일이 조사 시작일 이후입니다. 관서는 조사 개시 전까지 승인 여부를 통지합니다(제81조의7 ③).');
+    if(!d.deferDetail)add('warn','연기 사유의 구체적 사정과 증빙(진단서·재해 확인서·압수 조서 등)을 적으십시오. 서식 첨부서류는 「사유를 증명하는 자료」입니다.');
+    if(d.deferWhy==='l1'||d.deferWhy==='l2')add('info','이 사유는 법 제81조의7 ② 각 호에 있어 서식 ⑦란의 「시행령 제63조의7제1항제○호」 대신 법 조문을 적었습니다. 서식(2019.3.20. 개정)이 2026.8.11. 법 개정을 반영했는지는 별도 확인이 필요합니다.');
+    add('info','연기가 승인돼도 연기 사유가 소멸하거나 조세채권 확보가 긴급하면 연기기간 만료 전에 조사를 시작할 수 있습니다. 사유 소멸로 시작할 때는 5일 전까지 통지합니다(제81조의7 ④·⑤).');
+  }
+  if(d.msgAgree===''&&d.incPledge)add('info','「준법·청렴 메시지」 수신 동의는 비워 두었습니다. 현장에서 체크하십시오.');
+  add('info','서식 문안은 법제처 별지 원문(2026-09-28 조회)입니다. 조사팀이 자체 양식을 주면 그 양식을 우선하십시오.');
+  return L;
+}
+function renderAudit(){
+  const d=S.audit,c=auditCalc(d);
+  document.querySelectorAll('#form-audit .rk-defer').forEach(el=>el.style.display=d.incDefer?'':'none');
+  $('auditCalc').innerHTML='<b>세트 구성</b>: '+[d.incPoa&&'위임장',d.incPledge&&'청렴서약서',d.incCharter&&'권리헌장 낭독 확인서',d.incDefer&&'연기신청서',d.incGuide&&'착수 체크리스트'].filter(Boolean).join(' · ')+
+    (c.len!=null&&c.len>0?' · 조사기간 <b>'+c.len+'일</b>':'')+(d.noticeKind!=='start'&&c.lead!=null?' · 통지→착수 '+c.lead+'일':'')+(d.incDefer&&c.dlen>0?' · 연기 요청 '+c.dlen+'일':'');
+  $('auditChecks').innerHTML=auditChecks(d,c).map(x=>'<li class="'+x.lv+'">'+x.t+'</li>').join('');
+  $('sheet').innerHTML=auditHtml(d,c);
+}
+function auditHtml(d,c){
+  const B='<span class="blank">&nbsp;</span>';
+  const v=x=>x?esc(x):B;
+  const corp=d.tType!=='ind';
+  const tn=esc(d.tName||''),rep=esc(d.tRep||'');
+  const who=corp?(tn||'________')+' 대표 '+(rep||'________'):(rep||tn||'________');
+  const period=kd(d.aStart)+'부터 '+kd(d.aEnd)+'까지';
+  const office=d.office?esc(d.office):'(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)지방국세청(세무서)';
+  const form=t=>'<p style="font-size:9pt;margin:0 0 6pt">■ '+t+'</p>';
+  const docs=[];
+  /* ① 위임장 (2-1)(2-2) — 별지 제13호 */
+  if(d.incPoa){
+    const ms=(d.members||[]).slice();while(ms.length<5)ms.push({});
+    docs.push(form('조사사무처리규정 [별지 제13호 서식]')+'<h1>위 임 장</h1><p style="text-align:right;font-size:9.5pt;margin:-10pt 0 6pt">(2-1)</p>'+
+      '<table class="party"><tr><td>성명</td><td>'+v(d.agName)+'</td><td style="width:18%;background:#f3f4f6;font-weight:700;text-align:center">전화번호</td><td>'+v(d.agTel)+'</td></tr>'+
+      '<tr><td>생년월일</td><td>'+(d.agBirth?kd(d.agBirth):B)+'</td><td style="background:#f3f4f6;font-weight:700;text-align:center">사업자등록번호</td><td>'+v(d.agBiz)+'</td></tr>'+
+      '<tr><td>사업장소재지(주소)</td><td colspan="3">'+v(d.agAddr)+(d.agOffice?' ('+esc(d.agOffice)+')':'')+'</td></tr>'+
+      '<tr><td>자격</td><td>'+v(d.agQual)+'</td><td style="background:#f3f4f6;font-weight:700;text-align:center">관계</td><td>'+v(d.agRel)+'<br><span style="font-size:9pt">(기장대행, 세무조정, 고문, 사외이사 등)</span></td></tr></table>'+
+      '<p>상기 세무대리인에게 '+office+'에서 '+period+' 실시하는 조사와 관련하여 「국세기본법」 제81조의5에 따른 “조사에 참여하거나 의견을 진술할 수 있는 권한”을 위임합니다.</p>'+
+      '<p style="text-align:center;margin:12pt 0 8pt">'+kd(d.signDate)+'</p>'+
+      '<p style="margin:0"><b>위 임 자</b></p><table class="party"><tr><td>사업장소재지(주소)</td><td>'+v(d.tAddr)+'</td></tr><tr><td>법인명(상호)</td><td>'+v(d.tName)+'</td></tr><tr><td>사업자(주민)등록번호</td><td>'+v(d.tBiz||d.tId)+'</td></tr><tr><td>대표자(성명)</td><td>'+(rep||tn||B)+' <span class="stamp">(인)</span></td></tr></table>'+
+      '<p style="margin-top:10pt"><b>'+c.head+' 귀하</b></p><p>첨부 : 자격증 사본 각 1부.</p>'+
+      '<p style="font-size:9.5pt">※ 세무조사에 참여하거나 의견을 진술할 세무대리인은 이 위임장을 조사과'+(d.team?'('+esc(d.team)+')':'(전화: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)')+'로 제출하여 주시기 바랍니다.</p>'+
+      '<div class="pb"></div>'+form('조사사무처리규정 [별지 제13호 서식]')+'<h1 style="letter-spacing:4px">위 임 장</h1><p style="text-align:right;font-size:9.5pt;margin:-10pt 0 6pt">(2-2)</p>'+
+      '<p><b>◦ 조사참여·의견진술 세무대리인 명단</b></p>'+
+      '<table><tr><th style="width:8%">순번</th><th>소 속</th><th>직위/직책</th><th>성 명</th><th>생년월일</th><th>자 격</th></tr>'+
+      ms.map((m,i)=>'<tr><td class="c">'+(i+1)+'</td><td>'+esc(m.org||'')+'</td><td>'+esc(m.pos||'')+'</td><td>'+esc(m.name||'')+'</td><td class="c">'+(m.birth?kd(m.birth):'')+'</td><td class="c">'+esc(m.qual&&m.name?m.qual:'')+'</td></tr>').join('')+'</table>'+
+      '<p style="font-size:9.5pt">※ 상기 명단에 기재된 세무대리인 이외에는 세무조사에 참여하거나 의견을 진술할 수 없습니다.</p>');
+  }
+  /* ② 청렴서약서 — 별지 제3호 */
+  if(d.incPledge){
+    const ck=x=>(d.msgAgree===x?'☑':'□');
+    docs.push(form('조사사무처리규정 [별지 제3호 서식]')+'<h1>청 렴 서 약 서</h1>'+
+      '<p><b>□ 조사받는 납세자 인적사항</b></p>'+
+      '<table class="party"><tr><td>대표자성명</td><td>'+(rep||(!corp?tn:'')||B)+'</td><td style="width:18%;background:#f3f4f6;font-weight:700;text-align:center">생년월일</td><td>'+(d.tBirth?kd(d.tBirth):B)+'</td></tr>'+
+      '<tr><td>상 호(법 인 명)</td><td>'+v(d.tName)+'</td><td style="background:#f3f4f6;font-weight:700;text-align:center">사업자등록번호</td><td>'+v(d.tBiz)+'</td></tr>'+
+      '<tr><td>주소 또는 영업소</td><td colspan="3">'+v(d.tAddr)+'</td></tr></table>'+
+      '<p>위 조사받는 납세자와 그 세무대리인은 '+period+' 실시하는 ( '+(d.aKind?esc(d.aKind):'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')+' ) 세무조사와 관련하여 조사시작에서부터 종결까지는 물론 조사종결 후에도 금품·향응 또는 공무수행 목적 외의 사적편의를 제공·알선하지 않을 것이며, 조사공무원으로부터 부당한 요구가 있을 경우에는 단호히 거절할 것입니다.</p>'+
+      '<p>이를 위반한 경우에는 관계 법령 또는 규정에 따라 형사처벌, 세무조사 실시 및 세정상 각종 혜택배제, 징계 등 어떠한 처벌이나 불이익도 감수할 것임을 서약하고 이를 '+c.head+'에게 제출합니다.</p>'+
+      '<p style="text-align:center;margin:4pt 0">'+kd(d.signDate)+'</p>'+
+      '<table class="party" style="margin:2pt 0 4pt"><tr><td>위 서약자 · 납세자</td><td>성명 &nbsp;'+who+' <span class="stamp">(인)</span></td></tr><tr><td>위 서약자 · 세무대리인</td><td>성명 &nbsp;'+v(d.agName)+' <span class="stamp">(인)</span></td></tr></table>'+
+      '<p style="margin-top:6pt">아래 본인은 조사기간 중 국세청이 발송하는 「준법·청렴 메시지」 수신에 (동의함 '+ck('y')+', 동의하지 않음 '+ck('n')+')</p>'+
+      '<p>(성명) '+v(d.msgName)+' &nbsp; (직위) '+v(d.msgPos)+' &nbsp; (메시지 수신할 번호) '+v(d.msgPhone)+'</p>'+
+      '<hr style="border:none;border-top:1px dashed #000;margin:6pt 0">'+
+      '<p>우리 조사공무원은 위 납세자에 대한 세무조사와 관련하여 청탁이나 부정·불의와 타협하지 않고 금품 및 향응 등 부당한 편의를 제공받지 않을 것이며,</p>'+
+      '<p>이를 위반한 경우에는 관계 법령 또는 규정에 따라 인사처분 및 형사처벌 등 응분의 책임을 감수할 것임을 서약하고, 이를 '+c.head+'에게 제출합니다.</p>'+
+      '<p style="text-align:center;margin:4pt 0">20&nbsp;&nbsp;&nbsp;&nbsp;년 &nbsp;&nbsp;&nbsp;월 &nbsp;&nbsp;&nbsp;일</p>'+
+      '<table class="party" style="margin:2pt 0 4pt"><tr><td>위 서약자 · 조사공무원</td><td>소속 __________ &nbsp; 직급 ________ &nbsp; 성명 ____________ <span class="stamp">(인)</span></td></tr>'+'<tr><td>조사공무원</td><td>직급 ________ &nbsp; 성명 ____________ <span class="stamp">(인)</span></td></tr>'.repeat(4)+'</table>'+
+      '<p style="margin-top:4pt"><b>'+c.head+' 귀하</b></p>');
+  }
+  /* ③ 납세자권리헌장 등 수령 및 낭독 확인서 — 별지 제1-1호 */
+  if(d.incCharter){
+    docs.push(form('조사사무처리규정 [별지 제1-1호 서식]')+'<h1 style="letter-spacing:2px;font-size:16pt">납세자권리헌장 등 수령 및 낭독 확인서</h1>'+
+      '<p>귀 청(서)에서 '+period+' 실시하는 조사와 관련하여 국세기본법 제81조의2 제2항 및 제81조의7 제1항에 따라 교부한 아래의 서류를 수령하고 조사공무원으로부터 납세자권리헌장을 낭독 받고, 조사사유, 조사기간, 제81조의18 제1항에 따른 납세자보호위원회에 대한 심의 요청사항·절차 및 권리구제 등 납세자 권익보호 절차에 대해 설명 받았음을 확인합니다.</p>'+
+      '<p style="margin-left:12pt">1. 세무조사 개시(사전) 통지<br>2. 납세자권리헌장</p>'+
+      '<table class="party"><tr><td>교부 장소</td><td>'+v(d.givePlace)+'</td></tr><tr><td>(사유)</td><td>'+(d.giveReason?esc(d.giveReason):'&nbsp;')+'<br><span style="font-size:9pt">※ 교부장소가 조사관서인 경우에만 사유를 기재</span></td></tr></table>'+
+      '<p style="text-align:center;margin:12pt 0 8pt">'+kd(d.signDate)+'</p>'+
+      '<p style="margin:0"><b>수령인</b></p><table class="party"><tr><td>소재지(주 소)</td><td>'+v(d.tAddr)+'</td></tr><tr><td>법인명(상 호)</td><td>'+v(d.tName)+'</td></tr><tr><td>E-Mail(이메일주소)</td><td>'+v(d.tEmail)+'</td></tr><tr><td>전화번호</td><td>'+v(d.tTel)+'</td></tr><tr><td>대표자(성 명)</td><td>'+(rep||tn||B)+' <span class="stamp">(인)</span></td></tr></table>'+
+      '<p style="margin-top:10pt"><b>'+c.head+' 귀하</b></p><p>(조사팀 : '+(d.team?esc(d.team):'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')+')</p>');
+  }
+  /* ④ 세무조사연기신청서 — 국세기본법 시행규칙 별지 제55호서식 */
+  if(d.incDefer){
+    const w=AUDIT_DEFER[d.deferWhy]||AUDIT_DEFER.r4;
+    docs.push(form('국세기본법 시행규칙 [별지 제55호서식] &lt;개정 2019. 3. 20.&gt;')+'<h1>세무조사연기신청서</h1>'+
+      '<table><tr><th>접수번호</th><td style="width:22%"></td><th>접수일</th><td style="width:22%"></td><th>처리기간</th><td></td></tr></table>'+
+      '<p style="margin:0"><b>신청인</b></p><table class="party"><tr><td>① 성명</td><td>'+(rep||tn||B)+'</td><td style="width:20%;background:#f3f4f6;font-weight:700;text-align:center">② 주민등록번호</td><td>'+v(d.tId)+'</td></tr><tr><td>③ 상호</td><td>'+(corp||d.tType==='biz'?v(d.tName):'')+'</td><td style="background:#f3f4f6;font-weight:700;text-align:center">④ 사업자등록번호</td><td>'+v(d.tBiz)+'</td></tr><tr><td>⑤ 주소(거소) 또는 영업소</td><td colspan="3">'+v(d.tAddr)+'</td></tr></table>'+
+      '<p style="margin:0"><b>신청내용</b></p><table class="party"><tr><td>⑥ 당초 조사기간</td><td>'+kd(d.aStart)+' ~ '+kd(d.aEnd)+'</td></tr><tr><td>⑦ 연기받으려는 사유</td><td>'+w[0]+'<br>('+w[1]+')'+(d.deferDetail?'<br>구체적 사정: '+esc(d.deferDetail).replace(/\n/g,'<br>'):'')+'</td></tr><tr><td>⑧ 연기를 원하는 기간</td><td>'+kd(d.deferFrom)+' ~ '+kd(d.deferTo)+'</td></tr></table>'+
+      '<p>「국세기본법」 제81조의7제2항 및 같은 법 시행령 제63조의7제2항에 따라 위와 같이 신청합니다.</p>'+
+      '<p style="text-align:center;margin:12pt 0 8pt">'+kd(d.signDate)+'</p><p style="text-align:right">신청인 &nbsp;'+who+' <span class="stamp">(서명 또는 인)</span></p>'+
+      '<p style="margin-top:10pt"><b>'+c.head+' 귀하</b></p>'+
+      '<table><tr><th style="width:18%">첨부서류</th><td>사유를 증명하는 자료</td><th style="width:14%">수수료</th><td class="c" style="width:10%">없음</td></tr></table>');
+  }
+  /* ⑤ 별지: 착수 체크리스트 */
+  if(d.incGuide){
+    const rows=[
+      ['사전통지서 확인 — 조사대상 세목·과세기간·조사기간·조사사유, 부분조사 범위, 조사제외 대상','조사 시작 20일 전 수령(재조사 7일 전)'+(d.noticeKind!=='start'&&c.lead!=null?' — 이번 '+c.lead+'일':''),'국기법 §81의7 ①, 조사사무처리규정 §21 ③'],
+      ['연기 사유(재해·질병·장기출장·장부 압수·사업 손실 등)가 있으면 연기신청 — 증빙 첨부','조사 시작 전 · 관서는 조사 개시 전까지 승인 여부 통지','국기법 §81의7 ②③, 국기령 §63의7'],
+      ['세무대리인 위임장 제출(자격증 사본) — 명단에 없는 대리인은 참여·의견 진술 불가','조사 첫날','국기법 §81의5, 규정 §28 ②③'],
+      ['조사원증 제시, 납세자권리헌장 교부·낭독, 조사사유·기간·권리구제 설명 확인 후 확인서 날인','조사 시작 때','국기법 §81의2 ③, 규정 §24'],
+      ['청렴서약서 — 납세자·세무대리인·조사공무원 함께 작성(동의하지 않으면 공무원이 「날인거부」 표기)','조사 시작 때','규정 §25 ③④'],
+      ['조사기간 확인 — 수입금액 100억원 미만은 20일 이내, 연장은 승인·문서 통지'+(c.len>0?' — 이번 '+c.len+'일':''),'조사기간 중','국기법 §81의8 ②③⑦'],
+      ['장부·서류 일시보관은 <b>납세자 동의</b>가 있어야 함 — 동의서·일시보관증 받기, 반환 요청 시 14일 이내 반환','일시보관 요청 시','국기법 §81의10 ②③④, 규정 §40'],
+      ['조사대상 세목·과세기간과 관련 없는 장부 제출 요구, 조사와 관련 없는 사생활 질문은 금지','조사기간 중','규정 §30 ② 2호·6호'],
+      ['위법·부당한 조사나 조사공무원의 위법·부당한 행위 → 일시중지·중지 요청(납세자보호위원회 심의)','즉시','국기법 §81의18 ② 4호']
+    ];
+    docs.push('<h1 style="letter-spacing:3px">세무조사 착수 체크리스트</h1><p style="text-align:center;margin:-6pt 0 8pt">'+(tn||'________')+' · '+office+' · '+kd(d.aStart)+' ~ '+kd(d.aEnd)+'</p>'+
+      '<table><tr><th style="width:6%">□</th><th>항목</th><th style="width:26%">시점</th><th style="width:22%">근거</th></tr>'+rows.map(r=>'<tr><td class="c">□</td><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')+'</table>'+
+      '<h2>첫날 준비물</h2><table><tr><th style="width:6%">□</th><th>자료</th></tr>'+
+      ['세무조사 사전(개시) 통지서 사본','이 세트 — 위임장(자격증 사본 첨부)·청렴서약서·권리헌장 낭독 확인서 — 날인할 도장(법인인감 또는 사용인감)','법인등기사항증명서·정관·주주명부(법인) / 사업자등록증 사본','조사대상 과세기간의 결산서·세무조정계산서·신고서 사본','계정별 원장·증빙 목록 — 원본은 요청받은 범위에서 제출하고 제출 목록을 남김','대표자·실무 담당자 연락처, 자료 요청 창구(세무대리인) 지정']
+      .map(t=>'<tr><td class="c">□</td><td>'+t+'</td></tr>').join('')+'</table>'+
+      '<div class="note">조사 중 받은 자료 요청·질문과 제출한 자료는 날짜별로 기록해 두십시오. 확인서·진술서에 서명하기 전에 세무대리인과 내용을 확인하십시오. 문의: '+esc(d.agOffice||'세무법인 한백택스')+' '+esc(d.agName||'')+' '+esc(d.agTel||'')+'</div>');
+  }
+  return docs.join('<div class="pb"></div>')+(d.showTool?'<div class="foot">세무법인 한백택스 계약서 작성기 · 02-2277-3101 · hb090@hanbaektax.kr</div>':'');
+}
+
+function render(){if(doc==='labor')renderLabor();else if(doc==='loan')renderLoan();else if(doc==='tax')renderTax();else if(doc==='exec')renderExec();else if(doc==='resign')renderResign();else if(doc==='audit')renderAudit();else renderFree();}
+bind();renderDays();renderAllow();renderExecRows();renderAuditMembers();
 initStaff();
 PADS.client=sigPad('padClient','tax','sigClient','client');
 showDoc(doc);
