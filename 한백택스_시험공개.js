@@ -9,7 +9,7 @@
 (function(){
   'use strict';
   var HASHES = [
-    'b2613f6dad4d5148d90f5d3d8f5f9c684e7058c0d63ddb0931ed3df8393f5940'  /* 신용평가 시뮬레이터 시험 — 2026-09-28 */
+    /* 비어 있음 — 시험 중인 도구 없음. 신용평가 시뮬레이터는 2026-09-28 정식 공개로 키 해제 */
   ];
   var LS = 'hb_trial_key';
   var k = null;
