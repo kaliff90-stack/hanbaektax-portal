@@ -1089,7 +1089,7 @@ function consentHtml(d){
   '<table class="party" style="margin-top:8pt"><tr><td>연소근로자 성명</td><td>'+esc(d.wName)+'</td></tr><tr><td>생년월일</td><td>'+(d.wBirth?kd(d.wBirth):'')+'</td></tr><tr><td>주소</td><td>'+esc(d.wAddr)+'</td></tr></table>'+
   '<table class="party" style="margin-top:8pt"><tr><td>사업장 명칭</td><td>'+esc(d.coName)+'</td></tr><tr><td>사업장 주소</td><td>'+esc(d.coAddr)+'</td></tr><tr><td>대표자</td><td>'+esc(d.coRep)+'</td></tr><tr><td>담당 업무</td><td>'+esc(d.job)+'</td></tr></table>'+
   '<p style="margin-top:10pt">본인은 위 연소근로자 '+esc(d.wName||'________')+'이(가) 위 사업장에서 근로를 하는 것에 대하여 동의합니다.</p>'+
-  '<p style="text-align:center;margin:14pt 0">'+kd(d.signDate)+'</p><p style="text-align:right">친권자(후견인) '+esc(d.gdName||'________')+' <span class="stamp">(서명 또는 인)</span></p>'+
+  '<p style="text-align:center;margin:14pt 0">'+kd(d.signDate)+'</p><p style="text-align:right">친권자(후견인) '+esc(d.gdName||'________')+' '+SG('labor','gd','<span class="stamp">(서명 또는 인)</span>')+'</p>'+
   '<p style="font-size:9.5pt;margin-top:10pt">첨부: 가족관계증명서 1부</p>';
 }
 function laborHtml(d,c){
@@ -1126,8 +1126,8 @@ function laborHtml(d,c){
   art('근로계약·취업규칙 등의 성실 이행')+'<p>갑과 을은 각자 근로계약, 취업규칙, 단체협약을 지키고 성실하게 이행하여야 한다. 이 계약에 정하지 아니한 사항은 근로기준법 등 관계 법령과 취업규칙에 따르며, 이 계약의 내용이 관계 법령에 미달하는 경우 그 부분은 무효로 하고 법령이 정한 기준에 따른다.</p>'+
   (d.extra?art('특약 사항')+'<p>'+esc(d.extra).replace(/\n/g,'<br>')+'</p>':'')+
   '<div class="sign"><p style="text-align:center;margin:10pt 0">'+kd(d.signDate)+'</p>'+
-  '<table class="party"><tr><td>(갑) 사업체명</td><td>'+esc(d.coName)+'</td></tr><tr><td>사업자등록번호</td><td>'+esc(d.coBiz)+'</td></tr><tr><td>주소</td><td>'+esc(d.coAddr)+'</td></tr><tr><td>전화</td><td>'+esc(d.coTel)+'</td></tr><tr><td>대표자</td><td>'+esc(d.coRep)+' <span class="stamp">(서명 또는 인)</span></td></tr></table>'+
-  '<table class="party" style="margin-top:8pt"><tr><td>(을) 성명</td><td>'+esc(d.wName)+' <span class="stamp">(서명 또는 인)</span></td></tr><tr><td>생년월일</td><td>'+(d.wBirth?kd(d.wBirth):'')+(rrn?' ('+rrn+')':'')+'</td></tr><tr><td>주소</td><td>'+esc(d.wAddr)+'</td></tr><tr><td>연락처</td><td>'+esc(d.wTel)+'</td></tr></table></div>'+
+  '<table class="party"><tr><td>(갑) 사업체명</td><td>'+esc(d.coName)+'</td></tr><tr><td>사업자등록번호</td><td>'+esc(d.coBiz)+'</td></tr><tr><td>주소</td><td>'+esc(d.coAddr)+'</td></tr><tr><td>전화</td><td>'+esc(d.coTel)+'</td></tr><tr><td>대표자</td><td>'+esc(d.coRep)+' '+SG('labor','co','<span class="stamp">(서명 또는 인)</span>')+'</td></tr></table>'+
+  '<table class="party" style="margin-top:8pt"><tr><td>(을) 성명</td><td>'+esc(d.wName)+' '+SG('labor','w','<span class="stamp">(서명 또는 인)</span>')+'</td></tr><tr><td>생년월일</td><td>'+(d.wBirth?kd(d.wBirth):'')+(rrn?' ('+rrn+')':'')+'</td></tr><tr><td>주소</td><td>'+esc(d.wAddr)+'</td></tr><tr><td>연락처</td><td>'+esc(d.wTel)+'</td></tr></table></div>'+
   consentHtml(d)+
   (d.showTool?'<div class="foot">세무법인 한백택스 계약서 작성기 · 02-2277-3101 · hb090@hanbaektax.kr</div>':'');
 }
@@ -1182,7 +1182,7 @@ function renderLoan(){
 function loanHtml(d,rows){
   const P=+d.amt||0,r=+d.rate||0,lr=+d.lateRate||0;
   const idLabel=t=>t==='ind'?'생년월일':'사업자등록번호';
-  const party=(pre,nm,tp,id,addr,tel,sign)=>'<table class="party"><tr><td>'+pre+' '+(tp==='ind'?'성명':'상호')+'</td><td>'+esc(nm)+(sign?' <span class="stamp">(서명 또는 인)</span>':'')+'</td></tr>'+(tp!=='ind'?'<tr><td>대표자</td><td>&nbsp;<span class="stamp">(서명 또는 인)</span></td></tr>':'')+'<tr><td>'+idLabel(tp)+'</td><td>'+esc(id)+'</td></tr><tr><td>주소</td><td>'+esc(addr)+'</td></tr><tr><td>연락처</td><td>'+esc(tel)+'</td></tr></table>';
+  const party=(pre,nm,tp,id,addr,tel,sign,role)=>'<table class="party"><tr><td>'+pre+' '+(tp==='ind'?'성명':'상호')+'</td><td>'+esc(nm)+(sign?' '+SG('loan',role,'<span class="stamp">(서명 또는 인)</span>')+'':'')+'</td></tr>'+(tp!=='ind'?'<tr><td>대표자</td><td>&nbsp;'+SG('loan',role,'<span class="stamp">(서명 또는 인)</span>')+'</td></tr>':'')+'<tr><td>'+idLabel(tp)+'</td><td>'+esc(id)+'</td></tr><tr><td>주소</td><td>'+esc(addr)+'</td></tr><tr><td>연락처</td><td>'+esc(tel)+'</td></tr></table>';
   let n=0;const art=t=>'<h2>제'+(++n)+'조 ('+t+')</h2>';
   const intClause=d.intHow==='none'?'이 대여금에는 이자를 붙이지 아니한다.':'이자는 연 '+r+'%(연 '+MAX_RATE+'%를 초과하지 아니하는 범위)로 하고, '+(d.intHow==='monthly'?'대여일 다음 달부터 '+(d.intDay==='last'?'매월 말일':'매월 '+d.intDay+'일')+'에 그 달분 이자를 지급한다.':'변제기에 원금과 함께 일괄 지급한다.')+' 이자는 대여일부터 실제 변제일까지 일할(1년 365일) 계산한다.';
   const repayT={bullet:'을은 변제기일인 '+kd(d.dueDate)+'에 원금 전액을 일시에 변제한다.',equalP:'을은 대여일 다음 달부터 변제기일까지 매월 이자 지급일에 원금을 균등 분할하여 변제하고, 이자는 매월 잔여 원금에 대하여 계산한다(별지 상환 일정표 참조).',equalPI:'을은 대여일 다음 달부터 변제기일까지 매월 이자 지급일에 원리금을 균등 분할하여 변제한다(별지 상환 일정표 참조).'}[d.repay];
@@ -1205,9 +1205,9 @@ function loanHtml(d,rows){
   (d.extra?art('특약 사항')+'<p>'+esc(d.extra).replace(/\n/g,'<br>')+'</p>':'')+
   '<p style="margin-top:8pt">이 계약의 성립을 증명하기 위하여 계약서 '+(d.gName?'3':'2')+'통을 작성하여 갑·을'+(d.gName?'·연대보증인':'')+'이 서명 또는 날인한 후 각 1통씩 보관한다.'+(P>50000000?' (인지세법에 따른 전자수입인지 '+fmt(stampTax(P))+'원을 첨부한다.)':'')+'</p>'+
   '<div class="sign"><p style="text-align:center;margin:10pt 0">'+kd(d.signDate)+'</p>'+
-  party('(갑) 대여인',d.lName,d.lType,d.lId,d.lAddr,d.lTel,d.lType==='ind')+'<div style="height:8pt"></div>'+
-  party('(을) 차용인',d.bName,d.bType,d.bId,d.bAddr,d.bTel,d.bType==='ind')+
-  (d.gName?'<div style="height:8pt"></div><table class="party"><tr><td>연대보증인 성명</td><td>'+esc(d.gName)+' <span class="stamp">(서명 또는 인)</span></td></tr><tr><td>생년월일</td><td>'+esc(d.gId)+'</td></tr><tr><td>주소</td><td>'+esc(d.gAddr)+'</td></tr></table>':'')+
+  party('(갑) 대여인',d.lName,d.lType,d.lId,d.lAddr,d.lTel,d.lType==='ind','l')+'<div style="height:8pt"></div>'+
+  party('(을) 차용인',d.bName,d.bType,d.bId,d.bAddr,d.bTel,d.bType==='ind','b')+
+  (d.gName?'<div style="height:8pt"></div><table class="party"><tr><td>연대보증인 성명</td><td>'+esc(d.gName)+' '+SG('loan','g','<span class="stamp">(서명 또는 인)</span>')+'</td></tr><tr><td>생년월일</td><td>'+esc(d.gId)+'</td></tr><tr><td>주소</td><td>'+esc(d.gAddr)+'</td></tr></table>':'')+
   '</div>'+sched+
   (d.showTool?'<div class="foot">세무법인 한백택스 계약서 작성기 · 02-2277-3101 · hb090@hanbaektax.kr</div>':'');
 }
@@ -1277,8 +1277,8 @@ function freeHtml(d,c){
   (d.extra?art('특약 사항')+'<p>'+esc(d.extra).replace(/\n/g,'<br>')+'</p>':'')+
   '<p style="margin-top:8pt">이 계약의 성립을 증명하기 위하여 계약서 2통을 작성하여 갑과 을이 서명 또는 날인한 후 각 1통씩 보관한다.</p>'+
   '<div class="sign"><p style="text-align:center;margin:10pt 0">'+kd(d.signDate)+'</p>'+
-  '<table class="party"><tr><td>(갑) 상호</td><td>'+esc(d.coName)+'</td></tr><tr><td>사업자등록번호</td><td>'+esc(d.coBiz)+'</td></tr><tr><td>주소</td><td>'+esc(d.coAddr)+'</td></tr><tr><td>전화</td><td>'+esc(d.coTel)+'</td></tr><tr><td>대표자</td><td>'+esc(d.coRep)+' <span class="stamp">(서명 또는 인)</span></td></tr></table>'+
-  '<table class="party" style="margin-top:8pt"><tr><td>(을) 성명</td><td>'+esc(d.fName)+' <span class="stamp">(서명 또는 인)</span></td></tr><tr><td>주민등록번호</td><td>'+rrn+'</td></tr><tr><td>주소</td><td>'+esc(d.fAddr)+'</td></tr><tr><td>연락처</td><td>'+esc(d.fTel)+'</td></tr></table></div>'+
+  '<table class="party"><tr><td>(갑) 상호</td><td>'+esc(d.coName)+'</td></tr><tr><td>사업자등록번호</td><td>'+esc(d.coBiz)+'</td></tr><tr><td>주소</td><td>'+esc(d.coAddr)+'</td></tr><tr><td>전화</td><td>'+esc(d.coTel)+'</td></tr><tr><td>대표자</td><td>'+esc(d.coRep)+' '+SG('free','co','<span class="stamp">(서명 또는 인)</span>')+'</td></tr></table>'+
+  '<table class="party" style="margin-top:8pt"><tr><td>(을) 성명</td><td>'+esc(d.fName)+' '+SG('free','f','<span class="stamp">(서명 또는 인)</span>')+'</td></tr><tr><td>주민등록번호</td><td>'+rrn+'</td></tr><tr><td>주소</td><td>'+esc(d.fAddr)+'</td></tr><tr><td>연락처</td><td>'+esc(d.fTel)+'</td></tr></table></div>'+
   (d.showTool?'<div class="foot">세무법인 한백택스 계약서 작성기 · 02-2277-3101 · hb090@hanbaektax.kr</div>':'');
 }
 
@@ -1497,12 +1497,14 @@ function taxSigKey(d){
 }
 
 /* 서명 패드 — 포인터로 그린다(터치·펜·마우스). 한 획이 끝날 때마다 여백을 잘라 투명 PNG 로 저장한다. */
-function sigPad(canvasId,form,key,name){
+function sigPad(canvasId,form,key,name,io){
   const cv=$(canvasId),box=cv.parentNode,ctx=cv.getContext('2d');
   const INK='#0b1f3a',PEN=2.6,ERASER=18,UNDO_MAX=20;
   let drawing=false,last=null,w=0,tool='pen',hist=[],shown=null;
   const dpr=()=>window.devicePixelRatio||1;
-  const cur=()=>S[form][key];
+  const cur=()=>io?io.get():S[form][key];
+  /* 서명 저장 — 약정서는 기존 칸(sigClient·sigAt·sigFor), 다른 문서는 io 가 S[doc].sigs[역할] 에 둔다 */
+  function put(v){if(io){io.set(v);return;}S[form][key]=v;S[form].sigAt=v?new Date().toLocaleString('ko-KR'):'';S[form].sigFor=v?taxSigKey(S[form]):'';}
   function style(){
     ctx.lineCap='round';ctx.lineJoin='round';
     if(tool==='erase'){ctx.globalCompositeOperation='destination-out';ctx.lineWidth=ERASER;ctx.strokeStyle='#000';ctx.fillStyle='#000';}
@@ -1552,18 +1554,17 @@ function sigPad(canvasId,form,key,name){
     for(let y=0;y<cv.height;y+=2)for(let x=0;x<cv.width;x+=2){
       if(d[(y*cv.width+x)*4+3]>8){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}
     }
-    if(x1<0){S[form][key]='';shown='';S[form].sigFor='';S[form].sigAt='';box.classList.remove('has');persist();render();return;}
+    if(x1<0){put('');shown='';box.classList.remove('has');persist();render();return;}
     const pad=8;x0=Math.max(0,x0-pad);y0=Math.max(0,y0-pad);x1=Math.min(cv.width-1,x1+pad);y1=Math.min(cv.height-1,y1+pad);
     const out=document.createElement('canvas');out.width=x1-x0+1;out.height=y1-y0+1;
     out.getContext('2d').drawImage(cv,x0,y0,out.width,out.height,0,0,out.width,out.height);
-    S[form][key]=out.toDataURL('image/png');shown=S[form][key];box.classList.add('has');
-    S[form].sigAt=new Date().toLocaleString('ko-KR');S[form].sigFor=taxSigKey(S[form]);
+    put(out.toDataURL('image/png'));shown=cur();box.classList.add('has');
     persist();render();
   }
   function undo(){if(!hist.length)return;ctx.putImageData(hist.pop(),0,0);save();}
   function clear(){
     snap();wipe();setTool('pen');
-    S[form][key]='';shown='';S[form].sigFor='';S[form].sigAt='';
+    put('');shown='';
     box.classList.remove('has');persist();render();
   }
   function sync(){if(w&&cur()!==shown){hist=[];setTool('pen');load();}}
@@ -1577,7 +1578,50 @@ function refreshPads(){
   $('sigClientAt').textContent=d.sigClient?'서명함 · '+d.sigAt:'';
   PADS.client.fit();PADS.client.sync();
 }
-window.addEventListener('resize',()=>{if(PADS.client)PADS.client.fit(true);});
+window.addEventListener('resize',()=>{Object.values(PADS).forEach(p=>p.fit(true));});
+
+/* ═══════ 문서별 서명란 — 업체에서 화면을 보여 주고 바로 서명을 받는다 ═══════
+ * 서명은 S[doc].sigs[역할]={img,at,key}. key 는 서명 당시 내용의 지문 — 서명 뒤 내용을 고치면 다시 받으라고 알린다.
+ * 서류의 (서명 또는 인) 자리는 SG() 가 서명 이미지로 바꾼다 */
+const SIG_ROLES={
+  labor:[{r:'co',l:'사업주(대표자)',who:d=>[d.coName,d.coRep]},{r:'w',l:'근로자',who:d=>[d.wName]},
+         {r:'gd',l:'친권자(후견인) — 동의서',who:d=>[d.gdName],on:d=>d.kind==='minor'&&d.gdForm}],
+  loan:[{r:'l',l:'대여인(갑)',who:d=>[d.lName]},{r:'b',l:'차용인(을)',who:d=>[d.bName]},{r:'g',l:'연대보증인',who:d=>[d.gName],on:d=>!!d.gName}],
+  free:[{r:'co',l:'위탁자(갑) 대표자',who:d=>[d.coName,d.coRep]},{r:'f',l:'수탁자(을)',who:d=>[d.fName]}],
+  exec:[{r:'co',l:'주주총회 의장 겸 대표이사',who:d=>[d.coName,d.coRep]}],
+  resign:[{r:'w',l:'근로자(제출인·수령인)',who:d=>[d.wName]},{r:'co',l:'회사 대표',who:d=>[d.coName,d.coRep]}],
+  audit:[{r:'t',l:'납세자(위임자·대표자)',who:d=>[d.tName,d.tRep]},{r:'ag',l:'세무대리인(청렴서약서)',who:d=>[d.agName]}]
+};
+const SG=(form,role,txt)=>{const x=S[form]&&S[form].sigs&&S[form].sigs[role];return x&&/^data:image\//.test(x.img||'')?'<img class="sigimg" alt="서명" src="'+x.img+'">':txt;};
+function docSigKey(form){const o=Object.assign({},S[form]);delete o.sigs;delete o.showTool;const t=JSON.stringify(o);let h=5381;for(let i=0;i<t.length;i++)h=(h*33+t.charCodeAt(i))>>>0;return h.toString(36);}
+function mountSigs(){
+  Object.keys(SIG_ROLES).forEach(form=>{
+    const host=$('form-'+form);if(!host)return;
+    const sec=document.createElement('div');sec.className='sigsec nopr';
+    sec.innerHTML='<h2><span class="n">✍</span>서명 <span class="hint">(업체에서 화면을 보여 주고 손가락·펜·마우스로 바로 받습니다)</span></h2>'+
+      SIG_ROLES[form].map(R=>{const id=form+'_'+R.r;return '<div class="sigwrap" id="sigw_'+id+'"><div class="fld">'+R.l+' 서명 <span class="hint" id="sigwho_'+id+'"></span></div>'+
+        '<div class="sigpad"><canvas id="pad_'+id+'"></canvas><div class="ph">여기에 서명하십시오</div></div><div class="sigbar">'+
+        '<button type="button" class="btn sm tool on" data-pad="'+id+'" data-tool="pen">✏ 펜</button><button type="button" class="btn sm tool" data-pad="'+id+'" data-tool="erase">🧽 지우개</button>'+
+        '<button type="button" class="btn sm" data-sigundo="'+id+'">↶ 되돌리기</button><button type="button" class="btn sm" data-sigclr="'+id+'" style="color:#B91C1C;border-color:#fca5a5">🗑 서명 지우기</button>'+
+        '<span id="sigat_'+id+'"></span></div></div>';}).join('')+
+      '<div class="hint" style="line-height:1.6;margin-top:4px">서명하면 아래 서류의 「(서명 또는 인)」 자리에 바로 들어가 인쇄·PDF로 완성됩니다. 서명은 이 브라우저와 「저장(JSON)」 파일에만 남습니다. 서명한 뒤 내용을 고치면 다시 받으라고 알려 줍니다. 업체 PC에서 받은 뒤에는 맨 위 초기화로 지우십시오.</div>';
+    host.appendChild(sec);
+    SIG_ROLES[form].forEach(R=>{const id=form+'_'+R.r;
+      PADS[id]=sigPad('pad_'+id,form,null,id,{get:()=>{const x=S[form].sigs&&S[form].sigs[R.r];return x?x.img:'';},
+        set:v=>{S[form].sigs=S[form].sigs||{};if(v)S[form].sigs[R.r]={img:v,at:new Date().toLocaleString('ko-KR'),key:docSigKey(form)};else delete S[form].sigs[R.r];}});});
+    sec.addEventListener('click',e=>{const u=e.target.closest('[data-sigundo]'),c=e.target.closest('[data-sigclr]');if(u)PADS[u.dataset.sigundo].undo();if(c)PADS[c.dataset.sigclr].clear();});
+  });
+}
+function refreshSigs(){
+  const roles=SIG_ROLES[doc];if(!roles)return;const d=S[doc];
+  roles.forEach(R=>{const id=doc+'_'+R.r,on=!R.on||R.on(d);if(!PADS[id])return;$('sigw_'+id).style.display=on?'':'none';if(!on)return;
+    const who=R.who(d).filter(Boolean).join(' ');$('sigwho_'+id).textContent=who?'('+who+')':'';
+    const x=d.sigs&&d.sigs[R.r],at=$('sigat_'+id);
+    if(!x){at.textContent='';at.style.color='';}
+    else if(x.key!==docSigKey(doc)){at.textContent='서명함 · '+x.at+' — 서명 뒤 내용이 바뀌었습니다. 확인하고 다시 받으십시오';at.style.color='#B91C1C';}
+    else{at.textContent='서명함 · '+x.at;at.style.color='';}
+    PADS[id].fit();PADS[id].sync();});
+}
 
 /* ═══════ 세무대리 약정서 계산 · 점검 ═══════ */
 /* 수임 업무 항목 — 체크 순서대로 약정서 제2조에 번호가 붙는다. 문구는 세무사법 §2 각 호를 따른다. */
@@ -1823,7 +1867,7 @@ function execHtml(d,c){
     (d.mode==='delegate'?'<h2>제2호 의안: 임원퇴직금 지급규정 제정의 건</h2><p>의장은 별첨 「임원퇴직금 지급규정」의 제정을 제안하고 직위별 지급배수('+d.rows.map(r=>esc(r.pos||'')+' '+(+r.x||0)+'배').join(', ')+')와 산정 기준을 설명한 후 가부를 물은바, 출석 주주 의결권 '+(A2?fmt(A2)+'주':'____주')+' 중 '+(Y?fmt(Y)+'주':'____주')+'의 찬성으로 원안대로 승인 가결하였다.</p>':'')+
     '<p>의장은 이상으로 의안 전부를 심의 종료하였으므로 폐회를 선언하였다.</p><p>위 의사의 경과 요령과 결과를 명확히 하기 위하여 이 의사록을 작성하고 의장과 출석한 이사가 기명날인 또는 서명한다.</p>'+
     '<div class="sign"><p style="text-align:center;margin:10pt 0">'+kd(d.meetDate)+'</p><p style="text-align:center">'+co+'</p>'+
-    '<table class="party"><tr><td>의장 겸 대표이사</td><td>'+esc(d.coRep)+' <span class="stamp">(인)</span></td></tr><tr><td>이사</td><td>&nbsp;<span class="stamp">(인)</span></td></tr><tr><td>이사</td><td>&nbsp;<span class="stamp">(인)</span></td></tr></table></div>';
+    '<table class="party"><tr><td>의장 겸 대표이사</td><td>'+esc(d.coRep)+' '+SG('exec','co','<span class="stamp">(인)</span>')+'</td></tr><tr><td>이사</td><td>&nbsp;<span class="stamp">(인)</span></td></tr><tr><td>이사</td><td>&nbsp;<span class="stamp">(인)</span></td></tr></table></div>';
   }
   return teikan+rule+mins+(d.showTool?'<div class="foot">세무법인 한백택스 계약서 작성기 · 02-2277-3101 · hb090@hanbaektax.kr</div>':'');
 }
@@ -1916,7 +1960,7 @@ function resignHtml(d,c){
   const handover=d.handover?'<p>본인은 퇴직일까지 담당 업무와 자료를 후임자 또는 회사가 지정한 사람에게 성실히 인계하겠습니다.</p>':'';
   const confid=d.confid?'<p>본인은 재직 중 알게 된 회사의 영업상·기술상 비밀을 퇴직 후에도 누설하지 않겠습니다.</p>':'';
   const extra=d.extra?'<p>'+esc(d.extra).replace(/\n/g,'<br>')+'</p>':'';
-  const sign1=(label,date,name,addr)=>'<div class="sign"><p style="text-align:center;margin:12pt 0 8pt">'+kd(date)+'</p><table class="party"><tr><td>'+label+'</td><td>'+name+' <span class="stamp">(서명 또는 인)</span>'+(addr?'<br><span style="font-size:9.5pt">'+esc(addr)+'</span>':'')+'</td></tr></table></div>';
+  const sign1=(label,date,name,addr)=>'<div class="sign"><p style="text-align:center;margin:12pt 0 8pt">'+kd(date)+'</p><table class="party"><tr><td>'+label+'</td><td>'+name+' '+SG('resign','w','<span class="stamp">(서명 또는 인)</span>')+''+(addr?'<br><span style="font-size:9.5pt">'+esc(addr)+'</span>':'')+'</td></tr></table></div>';
   let out='';
   /* 사직서 · 사직원 · 희망퇴직 신청서 */
   if(['self','just','dismiss','advised','honor'].includes(K)){
@@ -1937,7 +1981,7 @@ function resignHtml(d,c){
       (d.confid?A('비밀유지')+'<p>근로자는 재직 중 알게 된 회사의 영업상·기술상 비밀과 개인정보를 퇴직 후에도 제3자에게 누설하거나 이용하지 않는다.</p>':'')+
       (d.noClaim?A('상호 청구의 포기')+'<p>① 근로자는 이 합의에 따른 퇴직이 본인의 자유로운 의사에 의한 것임을 확인하고, 이 퇴직에 관하여 부당해고 구제신청이나 소송 등 이의를 제기하지 않는다.</p><p>② 회사는 이 합의에서 정한 것 외에 근로자에게 퇴직과 관련한 손해배상 등을 청구하지 않는다.</p><p>③ 제1항은 미지급 임금·퇴직금 등 법령상 청구권과 산업재해에 관한 권리에는 적용하지 않는다.</p>':'')+
       A('기타')+'<p>이 합의서에 정하지 아니한 사항은 관계 법령과 취업규칙에 따른다. 이 합의서는 2부를 작성하여 회사와 근로자가 각 1부씩 보관한다.</p>'+extra+
-      '<div class="sign"><p style="text-align:center;margin:12pt 0 8pt">'+kd(d.signDate)+'</p><table class="party"><tr><td>회사</td><td>'+co+' 대표 '+rep+' <span class="stamp">(인)</span>'+(d.coAddr?'<br><span style="font-size:9.5pt">'+esc(d.coAddr)+'</span>':'')+'</td></tr><tr><td>근로자</td><td>'+wn+' <span class="stamp">(서명 또는 인)</span>'+(d.wAddr?'<br><span style="font-size:9.5pt">'+esc(d.wAddr)+'</span>':'')+'</td></tr></table></div>';
+      '<div class="sign"><p style="text-align:center;margin:12pt 0 8pt">'+kd(d.signDate)+'</p><table class="party"><tr><td>회사</td><td>'+co+' 대표 '+rep+' '+SG('resign','co','<span class="stamp">(인)</span>')+''+(d.coAddr?'<br><span style="font-size:9.5pt">'+esc(d.coAddr)+'</span>':'')+'</td></tr><tr><td>근로자</td><td>'+wn+' '+SG('resign','w','<span class="stamp">(서명 또는 인)</span>')+''+(d.wAddr?'<br><span style="font-size:9.5pt">'+esc(d.wAddr)+'</span>':'')+'</td></tr></table></div>';
   }
   /* 의원면직 통지서 */
   if(K==='dismiss'&&d.acceptDoc){
@@ -1945,7 +1989,7 @@ function resignHtml(d,c){
       '<p>귀하가 '+kd(d.submitDate)+' 제출한 사직원을 '+kd(d.acceptDate)+' 수리하여 '+kd(d.lastDay)+'자로 의원면직함을 통지합니다.</p>'+
       '<p>퇴직 사유: '+reasonLine.replace(/로$|어$|여$/,'')+' (고용보험 상실사유 코드 '+esc(c.code)+' '+esc(c.name)+')</p>'+
       '<p>회사는 퇴직일까지의 임금과 퇴직금 등 금품을 퇴직일부터 14일 이내에 지급하고(근로기준법 제36조, 근로자퇴직급여 보장법 제9조), 고용보험 등 피보험자격 상실신고를 기한 내에 하며, 요청 시 이직확인서와 근로소득·퇴직소득 원천징수영수증을 발급합니다.</p>'+extra+
-      '<div class="sign"><p style="text-align:center;margin:12pt 0 8pt">'+kd(d.acceptDate)+'</p><table class="party"><tr><td>회사</td><td>'+co+' 대표 '+rep+' <span class="stamp">(인)</span></td></tr><tr><td>수령 확인</td><td>'+wn+' <span class="stamp">(서명)</span> &nbsp; 수령일 ________</td></tr></table></div>';
+      '<div class="sign"><p style="text-align:center;margin:12pt 0 8pt">'+kd(d.acceptDate)+'</p><table class="party"><tr><td>회사</td><td>'+co+' 대표 '+rep+' '+SG('resign','co','<span class="stamp">(인)</span>')+'</td></tr><tr><td>수령 확인</td><td>'+wn+' '+SG('resign','w','<span class="stamp">(서명)</span>')+' &nbsp; 수령일 ________</td></tr></table></div>';
   }
   /* 정년퇴직 통지서 */
   if(K==='retire'){
@@ -1954,7 +1998,7 @@ function resignHtml(d,c){
       '<p>회사는 퇴직일까지의 임금, 미사용 연차유급휴가수당, 퇴직금 등 모든 금품을 퇴직일부터 14일 이내에 지급하고(근로기준법 제36조, 근로자퇴직급여 보장법 제9조), 고용보험 피보험자격 상실사유를 「정년(코드 31)」으로 신고하며, 요청 시 이직확인서를 발급합니다.</p>'+
       (d.rehire?'<p>회사는 귀하와 협의하여 정년퇴직 후 촉탁(기간제) 근로계약을 체결할 수 있으며, 이 경우 근로조건은 별도의 근로계약서에 따릅니다.</p>':'')+
       (d.handover?'<p>퇴직일까지 담당 업무와 자료를 후임자에게 인계하여 주시기 바랍니다.</p>':'')+extra+ei+
-      '<div class="sign"><p style="text-align:center;margin:12pt 0 8pt">'+kd(d.signDate)+'</p><table class="party"><tr><td>회사</td><td>'+co+' 대표 '+rep+' <span class="stamp">(인)</span></td></tr><tr><td>수령 확인</td><td>위 통지를 받았음을 확인합니다. &nbsp; '+wn+' <span class="stamp">(서명)</span> &nbsp; 수령일 ________</td></tr></table></div>';
+      '<div class="sign"><p style="text-align:center;margin:12pt 0 8pt">'+kd(d.signDate)+'</p><table class="party"><tr><td>회사</td><td>'+co+' 대표 '+rep+' '+SG('resign','co','<span class="stamp">(인)</span>')+'</td></tr><tr><td>수령 확인</td><td>위 통지를 받았음을 확인합니다. &nbsp; '+wn+' '+SG('resign','w','<span class="stamp">(서명)</span>')+' &nbsp; 수령일 ________</td></tr></table></div>';
   }
   /* 계약기간 만료 통지서 */
   if(K==='expire'){
@@ -1962,7 +2006,7 @@ function resignHtml(d,c){
       '<p>귀하와 회사가 체결한 근로계약(계약기간 '+kd(d.contractStart)+' ~ '+kd(d.contractEnd)+')은 '+kd(d.contractEnd)+' 기간 만료로 종료되며, '+(d.renewBy==='co'?'회사는 이를 갱신하지 않음을 통지합니다.':'귀하가 계약 갱신을 원하지 않음을 확인하여 계약이 종료됨을 통지합니다.')+(d.reason?' (사유: '+esc(d.reason)+')':'')+'</p>'+
       '<p>회사는 계약 종료일까지의 임금, 미사용 연차유급휴가수당, 퇴직금(계속근로 1년 이상) 등 모든 금품을 종료일부터 14일 이내에 지급하고(근로기준법 제36조, 근로자퇴직급여 보장법 제9조), 고용보험 피보험자격 상실사유를 「'+esc(c.name)+'(코드 '+esc(c.code)+')」로 신고하며, 요청 시 이직확인서를 발급합니다.</p>'+
       (d.handover?'<p>종료일까지 담당 업무와 자료를 인계하여 주시기 바랍니다.</p>':'')+extra+ei+
-      '<div class="sign"><p style="text-align:center;margin:12pt 0 8pt">'+kd(d.signDate)+'</p><table class="party"><tr><td>회사</td><td>'+co+' 대표 '+rep+' <span class="stamp">(인)</span></td></tr><tr><td>수령 확인</td><td>위 통지를 받았음을 확인합니다. &nbsp; '+wn+' <span class="stamp">(서명)</span> &nbsp; 수령일 ________</td></tr></table></div>';
+      '<div class="sign"><p style="text-align:center;margin:12pt 0 8pt">'+kd(d.signDate)+'</p><table class="party"><tr><td>회사</td><td>'+co+' 대표 '+rep+' '+SG('resign','co','<span class="stamp">(인)</span>')+'</td></tr><tr><td>수령 확인</td><td>위 통지를 받았음을 확인합니다. &nbsp; '+wn+' '+SG('resign','w','<span class="stamp">(서명)</span>')+' &nbsp; 수령일 ________</td></tr></table></div>';
   }
   /* 해고 통지서 */
   if(K==='fire'){
@@ -1973,7 +2017,7 @@ function resignHtml(d,c){
       (d.noticeOK==='y'?'<p>이 통지는 해고일 '+(n!=null?n+'일 ':'')+'전에 하는 해고의 예고(근로기준법 제26조)를 겸합니다.</p>':d.noticeOK==='n'?'<p>회사는 30일 전 예고에 갈음하여 30일분 이상의 통상임금을 해고예고수당으로 해고일부터 14일 이내에 지급합니다(근로기준법 제26조).</p>':'<p>이 해고는 근로기준법 제26조 단서(계속근로 3개월 미만, 부득이한 사유로 사업 계속 불가능, 고의로 막대한 지장·재산상 손해)에 해당하여 해고 예고를 적용하지 않습니다.</p>')+
       (d.fireKind==='mgmt'?'<p>회사는 긴박한 경영상의 필요에 따라 해고를 피하기 위한 노력을 다하고 합리적이고 공정한 기준으로 대상자를 선정하였으며, 근로자대표에게 해고일 50일 전에 통보하고 성실히 협의하였습니다(근로기준법 제24조).</p>':'<p>회사는 취업규칙 등이 정한 징계 절차에 따라 귀하에게 소명 기회를 부여한 뒤 위와 같이 결정하였습니다.</p>')+
       '<p>회사는 해고일까지의 임금, 미사용 연차유급휴가수당, 퇴직금 등 모든 금품을 해고일부터 14일 이내에 지급하고(근로기준법 제36조, 근로자퇴직급여 보장법 제9조), 고용보험 피보험자격 상실사유를 「'+esc(c.name)+'(코드 '+esc(c.code)+')」로 신고하며, 요청 시 이직확인서를 발급합니다. 이 해고에 이의가 있으면 해고일부터 3개월 이내에 관할 지방노동위원회에 구제를 신청할 수 있습니다(근로기준법 제28조).</p>'+extra+ei+
-      '<div class="sign"><p style="text-align:center;margin:12pt 0 8pt">'+kd(d.noticeDate||d.signDate)+'</p><table class="party"><tr><td>회사</td><td>'+co+' 대표 '+rep+' <span class="stamp">(인)</span>'+(d.coAddr?'<br><span style="font-size:9.5pt">'+esc(d.coAddr)+'</span>':'')+'</td></tr><tr><td>수령 확인</td><td>위 통지서를 받았음을 확인합니다. &nbsp; '+wn+' <span class="stamp">(서명)</span> &nbsp; 수령일 ________</td></tr></table></div>';
+      '<div class="sign"><p style="text-align:center;margin:12pt 0 8pt">'+kd(d.noticeDate||d.signDate)+'</p><table class="party"><tr><td>회사</td><td>'+co+' 대표 '+rep+' '+SG('resign','co','<span class="stamp">(인)</span>')+''+(d.coAddr?'<br><span style="font-size:9.5pt">'+esc(d.coAddr)+'</span>':'')+'</td></tr><tr><td>수령 확인</td><td>위 통지서를 받았음을 확인합니다. &nbsp; '+wn+' '+SG('resign','w','<span class="stamp">(서명)</span>')+' &nbsp; 수령일 ________</td></tr></table></div>';
   }
   /* 별지: 퇴직 처리 체크리스트 */
   if(d.checklist){
@@ -2080,7 +2124,7 @@ function auditHtml(d,c){
       '<tr><td>자격</td><td>'+v(d.agQual)+'</td><td style="background:#f3f4f6;font-weight:700;text-align:center">관계</td><td>'+v(d.agRel)+'<br><span style="font-size:9pt">(기장대행, 세무조정, 고문, 사외이사 등)</span></td></tr></table>'+
       '<p>상기 세무대리인에게 '+office+'에서 '+period+' 실시하는 조사와 관련하여 「국세기본법」 제81조의5에 따른 “조사에 참여하거나 의견을 진술할 수 있는 권한”을 위임합니다.</p>'+
       '<p style="text-align:center;margin:12pt 0 8pt">'+kd(d.signDate)+'</p>'+
-      '<p style="margin:0"><b>위 임 자</b></p><table class="party"><tr><td>사업장소재지(주소)</td><td>'+v(d.tAddr)+'</td></tr><tr><td>법인명(상호)</td><td>'+v(d.tName)+'</td></tr><tr><td>사업자(주민)등록번호</td><td>'+v(d.tBiz||d.tId)+'</td></tr><tr><td>대표자(성명)</td><td>'+(rep||tn||B)+' <span class="stamp">(인)</span></td></tr></table>'+
+      '<p style="margin:0"><b>위 임 자</b></p><table class="party"><tr><td>사업장소재지(주소)</td><td>'+v(d.tAddr)+'</td></tr><tr><td>법인명(상호)</td><td>'+v(d.tName)+'</td></tr><tr><td>사업자(주민)등록번호</td><td>'+v(d.tBiz||d.tId)+'</td></tr><tr><td>대표자(성명)</td><td>'+(rep||tn||B)+' '+SG('audit','t','<span class="stamp">(인)</span>')+'</td></tr></table>'+
       '<p style="margin-top:10pt"><b>'+c.head+' 귀하</b></p><p>첨부 : 자격증 사본 각 1부.</p>'+
       '<p style="font-size:9.5pt">※ 세무조사에 참여하거나 의견을 진술할 세무대리인은 이 위임장을 조사과'+(d.team?'('+esc(d.team)+')':'(전화: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)')+'로 제출하여 주시기 바랍니다.</p>'+
       '<div class="pb"></div>'+form('조사사무처리규정 [별지 제13호 서식]')+'<h1 style="letter-spacing:4px">위 임 장</h1><p style="text-align:right;font-size:9.5pt;margin:-10pt 0 6pt">(2-2)</p>'+
@@ -2100,7 +2144,7 @@ function auditHtml(d,c){
       '<p>위 조사받는 납세자와 그 세무대리인은 '+period+' 실시하는 ( '+(d.aKind?esc(d.aKind):'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')+' ) 세무조사와 관련하여 조사시작에서부터 종결까지는 물론 조사종결 후에도 금품·향응 또는 공무수행 목적 외의 사적편의를 제공·알선하지 않을 것이며, 조사공무원으로부터 부당한 요구가 있을 경우에는 단호히 거절할 것입니다.</p>'+
       '<p>이를 위반한 경우에는 관계 법령 또는 규정에 따라 형사처벌, 세무조사 실시 및 세정상 각종 혜택배제, 징계 등 어떠한 처벌이나 불이익도 감수할 것임을 서약하고 이를 '+c.head+'에게 제출합니다.</p>'+
       '<p style="text-align:center;margin:4pt 0">'+kd(d.signDate)+'</p>'+
-      '<table class="party" style="margin:2pt 0 4pt"><tr><td>위 서약자 · 납세자</td><td>성명 &nbsp;'+who+' <span class="stamp">(인)</span></td></tr><tr><td>위 서약자 · 세무대리인</td><td>성명 &nbsp;'+v(d.agName)+' <span class="stamp">(인)</span></td></tr></table>'+
+      '<table class="party" style="margin:2pt 0 4pt"><tr><td>위 서약자 · 납세자</td><td>성명 &nbsp;'+who+' '+SG('audit','t','<span class="stamp">(인)</span>')+'</td></tr><tr><td>위 서약자 · 세무대리인</td><td>성명 &nbsp;'+v(d.agName)+' '+SG('audit','ag','<span class="stamp">(인)</span>')+'</td></tr></table>'+
       '<p style="margin-top:6pt">아래 본인은 조사기간 중 국세청이 발송하는 「준법·청렴 메시지」 수신에 (동의함 '+ck('y')+', 동의하지 않음 '+ck('n')+')</p>'+
       '<p>(성명) '+v(d.msgName)+' &nbsp; (직위) '+v(d.msgPos)+' &nbsp; (메시지 수신할 번호) '+v(d.msgPhone)+'</p>'+
       '<hr style="border:none;border-top:1px dashed #000;margin:6pt 0">'+
@@ -2117,7 +2161,7 @@ function auditHtml(d,c){
       '<p style="margin-left:12pt">1. 세무조사 개시(사전) 통지<br>2. 납세자권리헌장</p>'+
       '<table class="party"><tr><td>교부 장소</td><td>'+v(d.givePlace)+'</td></tr><tr><td>(사유)</td><td>'+(d.giveReason?esc(d.giveReason):'&nbsp;')+'<br><span style="font-size:9pt">※ 교부장소가 조사관서인 경우에만 사유를 기재</span></td></tr></table>'+
       '<p style="text-align:center;margin:12pt 0 8pt">'+kd(d.signDate)+'</p>'+
-      '<p style="margin:0"><b>수령인</b></p><table class="party"><tr><td>소재지(주 소)</td><td>'+v(d.tAddr)+'</td></tr><tr><td>법인명(상 호)</td><td>'+v(d.tName)+'</td></tr><tr><td>E-Mail(이메일주소)</td><td>'+v(d.tEmail)+'</td></tr><tr><td>전화번호</td><td>'+v(d.tTel)+'</td></tr><tr><td>대표자(성 명)</td><td>'+(rep||tn||B)+' <span class="stamp">(인)</span></td></tr></table>'+
+      '<p style="margin:0"><b>수령인</b></p><table class="party"><tr><td>소재지(주 소)</td><td>'+v(d.tAddr)+'</td></tr><tr><td>법인명(상 호)</td><td>'+v(d.tName)+'</td></tr><tr><td>E-Mail(이메일주소)</td><td>'+v(d.tEmail)+'</td></tr><tr><td>전화번호</td><td>'+v(d.tTel)+'</td></tr><tr><td>대표자(성 명)</td><td>'+(rep||tn||B)+' '+SG('audit','t','<span class="stamp">(인)</span>')+'</td></tr></table>'+
       '<p style="margin-top:10pt"><b>'+c.head+' 귀하</b></p><p>(조사팀 : '+(d.team?esc(d.team):'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')+')</p>');
   }
   /* ④ 세무조사연기신청서 — 국세기본법 시행규칙 별지 제55호서식 */
@@ -2128,7 +2172,7 @@ function auditHtml(d,c){
       '<p style="margin:0"><b>신청인</b></p><table class="party"><tr><td>① 성명</td><td>'+(rep||tn||B)+'</td><td style="width:20%;background:#f3f4f6;font-weight:700;text-align:center">② 주민등록번호</td><td>'+v(d.tId)+'</td></tr><tr><td>③ 상호</td><td>'+(corp||d.tType==='biz'?v(d.tName):'')+'</td><td style="background:#f3f4f6;font-weight:700;text-align:center">④ 사업자등록번호</td><td>'+v(d.tBiz)+'</td></tr><tr><td>⑤ 주소(거소) 또는 영업소</td><td colspan="3">'+v(d.tAddr)+'</td></tr></table>'+
       '<p style="margin:0"><b>신청내용</b></p><table class="party"><tr><td>⑥ 당초 조사기간</td><td>'+kd(d.aStart)+' ~ '+kd(d.aEnd)+'</td></tr><tr><td>⑦ 연기받으려는 사유</td><td>'+w[0]+'<br>('+w[1]+')'+(d.deferDetail?'<br>구체적 사정: '+esc(d.deferDetail).replace(/\n/g,'<br>'):'')+'</td></tr><tr><td>⑧ 연기를 원하는 기간</td><td>'+kd(d.deferFrom)+' ~ '+kd(d.deferTo)+'</td></tr></table>'+
       '<p>「국세기본법」 제81조의7제2항 및 같은 법 시행령 제63조의7제2항에 따라 위와 같이 신청합니다.</p>'+
-      '<p style="text-align:center;margin:12pt 0 8pt">'+kd(d.signDate)+'</p><p style="text-align:right">신청인 &nbsp;'+who+' <span class="stamp">(서명 또는 인)</span></p>'+
+      '<p style="text-align:center;margin:12pt 0 8pt">'+kd(d.signDate)+'</p><p style="text-align:right">신청인 &nbsp;'+who+' '+SG('audit','t','<span class="stamp">(서명 또는 인)</span>')+'</p>'+
       '<p style="margin-top:10pt"><b>'+c.head+' 귀하</b></p>'+
       '<table><tr><th style="width:18%">첨부서류</th><td>사유를 증명하는 자료</td><th style="width:14%">수수료</th><td class="c" style="width:10%">없음</td></tr></table>');
   }
@@ -2163,10 +2207,11 @@ function printOne(i){
 }
 window.addEventListener('beforeprint',()=>{if(!printOneOn)document.body.classList.remove('print-one');});
 window.addEventListener('afterprint',()=>{printOneOn=false;document.body.classList.remove('print-one');});
-function render(){$('sheet').classList.toggle('multi',doc==='audit');if(doc==='labor')renderLabor();else if(doc==='loan')renderLoan();else if(doc==='tax')renderTax();else if(doc==='exec')renderExec();else if(doc==='resign')renderResign();else if(doc==='audit')renderAudit();else renderFree();}
+function render(){$('sheet').classList.toggle('multi',doc==='audit');if(doc==='labor')renderLabor();else if(doc==='loan')renderLoan();else if(doc==='tax')renderTax();else if(doc==='exec')renderExec();else if(doc==='resign')renderResign();else if(doc==='audit')renderAudit();else renderFree();refreshSigs();}
 bind();renderDays();renderAllow();renderExecRows();renderAuditMembers();
 initStaff();
 PADS.client=sigPad('padClient','tax','sigClient','client');
+mountSigs();
 showDoc(doc);
 </script>
 </body>
