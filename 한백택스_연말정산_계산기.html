@@ -206,8 +206,9 @@
     }
 
     .logo-badge {
-      background: linear-gradient(135deg, var(--gold-400), var(--gold-600));
-      color: var(--navy-950);
+      background: #fff;
+      border: 2px solid var(--gold-400);
+      text-decoration: none;
       width: 42px;
       height: 42px;
       border-radius: 12px;
@@ -1599,8 +1600,10 @@
     '.bar{box-sizing:border-box;display:flex;align-items:center;gap:10px;height:42px;padding:0 16px;' +
       'background:#fff;border-bottom:2px solid #C8963E;box-shadow:0 2px 8px rgba(15,36,64,.08);' +
       'font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:13px;line-height:1;color:#1B3A5C}' +
-    '.home{display:inline-flex;align-items:center;gap:6px;background:#C8963E;color:#fff;font-weight:800;' +
-      'padding:7px 13px;border-radius:999px;text-decoration:none;white-space:nowrap;letter-spacing:-.2px}' +
+    '.home{display:inline-flex;align-items:center;gap:7px;background:#C8963E;color:#fff;font-weight:800;' +
+      'padding:3px 13px 3px 3px;border-radius:999px;text-decoration:none;white-space:nowrap;letter-spacing:-.2px}' +
+    '.mk{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#fff;flex:none}' +
+    '.mk img{width:24px;height:24px;display:block}' +
     '.home:hover{background:#b8862f}' +
     '.ttl{font-weight:700;color:#1B3A5C;white-space:nowrap;opacity:.85}' +
     '.sp{flex:1}' +
@@ -1610,7 +1613,7 @@
     '@media print{.bar{display:none}}' +
     '</style>' +
     '<div class="bar">' +
-      '<a class="home" href="index.html" title="한백택스 세무 도구 모음(메인 화면)으로">&#8592; 메인 화면</a>' +
+      '<a class="home" href="index.html" title="한백택스 세무 도구 모음(메인 화면)으로"><span class="mk"><img src="logo-mark.png" alt="HB"></span>&#8592; 메인 화면</a>' +
       '<span class="ttl">세무법인 한백택스 · 세무 도구</span>' +
       '<span class="sp"></span>' +
       links.map(function(l){ return '<a class="lnk" href="' + l[0] + '">' + l[1] + '</a>'; }).join('') +
@@ -1627,7 +1630,7 @@
   <!-- 상단 탑 헤더 바 -->
   <div class="top-bar">
     <div class="logo-container">
-      <div class="logo-badge">HB</div>
+      <a class="logo-badge" href="index.html" title="메인 화면으로"><img src="logo-mark.png" alt="HB" width="34" height="34"></a>
       <div class="logo-text">
         <h1>세무법인 한백택스</h1>
         <div class="sub">대표세무사 차재영 | 서울특별시 중구 동호로 315, 2층</div>
