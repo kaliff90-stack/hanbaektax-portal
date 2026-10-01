@@ -191,6 +191,49 @@
 })();
 </script>
 <!-- /HB-HOME -->
+<!-- HB-SIBLING v1 -->
+<script>
+/* 한백택스 같은 세목 다른 계산기 안내 — 생성기: 02-도구 & 스크립트/Python 스크립트/관련계산기_주입.py
+   이 블록은 자동 생성이다. 직접 고치지 말고 생성기를 고쳐 다시 실행한다. */
+(function(){
+  if (window.self !== window.top) return;
+  if (window.__hbSib) return;
+  window.__hbSib = 1;
+  var G = [["한백택스_양도소득세_계산기.html", "양도소득세 계산기", "1주택·일반 양도, 보유·거주기간 자동"], ["2026_양도소득세_계산기.html", "다주택·분양권", "주택 수·중과·분양권·토지·상가"]], T = "양도소득세";
+  var me = decodeURIComponent((location.pathname.split('/').pop() || '').toLowerCase());
+  var host = document.createElement('div');
+  host.id = 'hbSibling';
+  host.setAttribute('data-nogate', '1');
+  host.style.cssText = 'display:block;margin:0;padding:0;line-height:normal';
+  var sh = host.attachShadow({ mode: 'open' });
+  var esc = function(t){ return String(t).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+  sh.innerHTML =
+    '<style>' +
+    ':host{all:initial;display:block}' +
+    '.w{box-sizing:border-box;display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:7px 16px;background:#F5F8FC;' +
+      'border-bottom:1px solid #DCE5F0;font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:12.5px;color:#1B3A5C}' +
+    '.h{font-weight:800;white-space:nowrap}' +
+    '.c{display:inline-flex;flex-direction:column;gap:1px;padding:4px 10px;border:1px solid #DCE5F0;border-radius:10px;background:#fff;' +
+      'text-decoration:none;color:#1B3A5C;max-width:100%}' +
+    '.c b{font-weight:800;font-size:12.5px}' +
+    '.c small{font-size:11px;color:#5A6B82}' +
+    'a.c:hover{border-color:#C8963E}' +
+    '.c.on{background:#1B3A5C;border-color:#1B3A5C;color:#fff}.c.on small{color:#D9E3F0}' +
+    '@media(max-width:640px){.w{padding:6px 10px}.c small{display:none}}' +
+    '@media print{.w{display:none}}' +
+    '</style>' +
+    '<div class="w"><span class="h">' + esc(T) + ' 계산기</span>' +
+    G.map(function(g){
+      var on = g[0].toLowerCase() === me;
+      return on ? '<span class="c on" aria-current="page"><b>' + esc(g[1]) + '</b><small>' + esc(g[2]) + '</small></span>'
+                : '<a class="c" href="' + esc(g[0]) + '"><b>' + esc(g[1]) + '</b><small>' + esc(g[2]) + '</small></a>';
+    }).join('') + '</div>';
+  var s = document.currentScript;
+  if (s && s.parentNode) s.parentNode.insertBefore(host, s);
+  else document.body.insertBefore(host, document.body.firstChild);
+})();
+</script>
+<!-- /HB-SIBLING -->
 
 
 <!-- Header -->

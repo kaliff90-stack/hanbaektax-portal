@@ -5,6 +5,7 @@
      값을 고칠 때마다 결과가 즉시 바뀌던 것을 멈추고, 「계산 시작」을 누른 뒤에만 계산되게 한다.
      계산기마다 계산 함수 이름이 다르므로 함수를 부르지 않는다. input·change 를 캡처 단계에서 붙잡아 두었다가
      버튼을 누르면 손댄 칸에만 같은 이벤트를 다시 흘려 보낸다. 계산기 본문 코드는 손대지 않는다. -->
+<script src="한백택스_사회보험요율.js"></script><!-- 4대보험 요율 공용 모듈 — 해마다 이 파일만 고친다 -->
 <script>
 (function(){
   'use strict';
@@ -297,7 +298,13 @@ const INS=[
   ['고용안정·직능',0,0.25,'wage'],
   ['산재보험',0,null,'wage'],
 ];
-const LTC_RATE=13.14; // 건강보험료 대비 %
+let LTC_RATE=13.14; // 건강보험료 대비 %
+/* 공용 요율 모듈(한백택스_사회보험요율.js)이 있으면 올해 요율·국민연금 상하한으로 맞춘다 — 못 읽으면 위 2026 값 */
+if(window.HB_SI){ const _f=HB_SI.flat();
+  INS[0][1]=INS[0][2]=+(_f.np*100).toFixed(3); INS[1][1]=INS[1][2]=+(_f.hi*100).toFixed(4); INS[3][1]=INS[3][2]=+(_f.ei*100).toFixed(3);
+  LTC_RATE=+(_f.ltc*100).toFixed(2);
+  const _mx=document.getElementById('np_max'), _mn=document.getElementById('np_min');
+  if(_mx&&_mx.value==='6590000') _mx.value=_f.npMax; if(_mn&&_mn.value==='410000') _mn.value=_f.npMin; }
 
 // v2: Previous values for flash animation
 let prevValues={};
@@ -373,9 +380,9 @@ function calc(){
     if(ins[0]==='산재보험')rRate=v('wi_rate');
     let emp,er;
     if(ins[3]==='ltc'){ // 장기요양 = 건강보험료 × LTC_RATE
-      emp=Math.floor(hiEmp*LTC_RATE/100);er=Math.floor(hiEr*LTC_RATE/100);eRate=LTC_RATE;rRate=LTC_RATE;baseLabel='건보료×'+LTC_RATE+'%';
+      emp=Math.floor(hiEmp*LTC_RATE/100+1e-7);er=Math.floor(hiEr*LTC_RATE/100+1e-7);eRate=LTC_RATE;rRate=LTC_RATE;baseLabel='건보료×'+LTC_RATE+'%';
     }else{
-      emp=Math.floor(base*eRate/100);er=Math.floor(base*rRate/100);
+      emp=Math.floor(base*eRate/100+1e-7);er=Math.floor(base*rRate/100+1e-7);
     }
     if(ins[0]==='건강보험'){hiEmp=emp;hiEr=er;}
     empTot+=emp;erTot+=er;
@@ -465,15 +472,15 @@ function runVerification(data,empTot,erTot,hiEmp,hiEr,wage){
   data.forEach(d=>{
     if(d.type==='ltc'){
       // Check: 장기요양 = 건보료 × 13.14%
-      const expectedEmp=Math.floor(hiEmp*LTC_RATE/100);
-      const expectedEr=Math.floor(hiEr*LTC_RATE/100);
+      const expectedEmp=Math.floor(hiEmp*LTC_RATE/100+1e-7);
+      const expectedEr=Math.floor(hiEr*LTC_RATE/100+1e-7);
       const ok=d.emp===expectedEmp&&d.er===expectedEr;
       if(!ok)allOk=false;
       html+='<div class="verify-row"><span class="vr-label">'+d.name+'</span><span class="vr-calc">건보 근로자 '+fmt(hiEmp)+' x '+LTC_RATE+'% = '+fmt(expectedEmp)+' / 건보 사업주 '+fmt(hiEr)+' x '+LTC_RATE+'% = '+fmt(expectedEr)+'</span><span class="vr-result '+(ok?'vr-ok':'vr-fail')+'">'+(ok?'✓':'✗')+'</span></div>';
     }else{
       // Check: base × rate / 100 = floor(premium)
-      const expectedEmp=Math.floor(d.base*d.eRate/100);
-      const expectedEr=Math.floor(d.base*(d.name==='산재보험'?d.rRate:d.rRate)/100);
+      const expectedEmp=Math.floor(d.base*d.eRate/100+1e-7);
+      const expectedEr=Math.floor(d.base*(d.name==='산재보험'?d.rRate:d.rRate)/100+1e-7);
       const okEmp=d.emp===expectedEmp;
       const okEr=d.er===expectedEr;
       const ok=okEmp&&okEr;

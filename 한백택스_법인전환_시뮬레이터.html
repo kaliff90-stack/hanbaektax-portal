@@ -79,6 +79,7 @@ table.t tr.best td{background:#F0FDF4;font-weight:800}
 </head>
 <body>
 <!-- HB-HOME v1 -->
+<script src="한백택스_사회보험요율.js"></script><!-- 4대보험 요율 공용 모듈 — 해마다 이 파일만 고친다 -->
 <script>
 /* 한백택스 홈 바 — 생성기: 02-도구 & 스크립트/Python 스크립트/홈바_주입.py
    이 블록은 자동 생성이다. 직접 고치지 말고 생성기를 고쳐 다시 실행한다. */
@@ -178,7 +179,7 @@ function prog(b){if(b<=0)return 0;const T=[[14e6,.06,0],[50e6,.15,84e4],[88e6,.2
 function corpTax(b){if(b<=0)return 0;if(b<=2e8)return b*.10;if(b<=2e10)return 2e7+(b-2e8)*.20;if(b<=3e11)return 398e7+(b-2e10)*.22;return 6558e7+(b-3e11)*.25;}
 function earnDed(s){let d;if(s<=5e6)d=s*.7;else if(s<=15e6)d=35e5+(s-5e6)*.4;else if(s<=45e6)d=75e5+(s-15e6)*.15;else if(s<=1e8)d=12e6+(s-45e6)*.05;else d=1475e4+(s-1e8)*.02;return Math.min(d,2e7,s);}
 function earnCredit(tax,s){let c=tax<=13e5?tax*.55:715e3+(tax-13e5)*.3;let lim;if(s<=33e6)lim=74e4;else if(s<=7e7)lim=Math.max(66e4,74e4-(s-33e6)*.008);else if(s<=12e7)lim=Math.max(5e5,66e4-(s-7e7)*.5);else lim=Math.max(2e5,5e5-(s-12e7)*.5);return Math.min(c,lim);}
-const R={np:.0475,hi:.03595,ltc:.1314,npMax:6590000,npMin:410000};
+const R=window.HB_SI?HB_SI.flat():{np:.0475,hi:.03595,ltc:.1314,npMax:6590000,npMin:410000}; /* 공용 요율 모듈, 못 읽으면 2026 값 */
 function npBase(annual){return Math.min(R.npMax,Math.max(R.npMin,annual/12))*12;}
 
 /* 개인사업자 */

@@ -291,6 +291,7 @@ input::placeholder,textarea::placeholder{color:var(--g4)}
 </head>
 <body>
 <!-- HB-HOME v1 -->
+<script src="한백택스_사회보험요율.js"></script><!-- 4대보험 요율 공용 모듈 — 해마다 이 파일만 고친다 -->
 <script>
 /* 한백택스 홈 바 — 생성기: 02-도구 & 스크립트/Python 스크립트/홈바_주입.py
    이 블록은 자동 생성이다. 직접 고치지 말고 생성기를 고쳐 다시 실행한다. */
@@ -1471,23 +1472,29 @@ function calcGift(){
   toast('계산 완료');
 }
 
-/* CALC: 4대보험 (2026) */
+/* 4대보험 요율 — 공용 모듈(한백택스_사회보험요율.js), 못 읽으면 2026 값 */
+function kSI(){ return window.HB_SI?HB_SI.flat():{np:0.0475,hi:0.03595,ltc:0.1314,ei:0.009,npMax:6590000,npMin:410000}; }
+function kF10(n){ return Math.floor(n/10+1e-7)*10; }
+function kP(r){ return +(r*100).toFixed(3)+'%'; }
+/* CALC: 4대보험 */
 function calcInsurance(){
   const sal=parseMoney(document.getElementById('ins_salary').value);
   if(!sal){toast('월급여를 입력하세요');return;}
   // 2026 rates
-  const nps=Math.floor(sal*0.0475); // 국민연금 4.75%
-  const hi=Math.floor(sal*0.03595); // 건강보험 3.595%
-  const ltc=Math.floor(hi*0.1314); // 장기요양 건강보험의 13.14%
-  const ei=Math.floor(sal*0.009); // 고용보험 0.9%
+  // 요율: 공용 모듈(한백택스_사회보험요율.js), 못 읽으면 2026 값. 국민연금은 기준소득월액 상하한, 보험료는 10원 미만 절사
+  const R=kSI();
+  const nps=kF10(Math.min(Math.max(sal,R.npMin),R.npMax)*R.np);
+  const hi=kF10(sal*R.hi);
+  const ltc=kF10(hi*R.ltc);
+  const ei=kF10(sal*R.ei);
   const empTotal=nps+hi+ltc+ei;
   // 사업자 부담
-  const nps2=nps, hi2=hi, ltc2=ltc, ei2=Math.floor(sal*0.009); // 150인미만 0.9%
+  const nps2=nps, hi2=hi, ltc2=ltc, ei2=kF10(sal*R.ei); // 150인미만 0.9%
   const bizTotal=nps2+hi2+ltc2+ei2;
   document.getElementById('insuranceResult').innerHTML=`
     <div class="result-box"><div class="fs-12 fw-700 mb-8">근로자 부담 합계</div><div class="big-num">${fmtW(empTotal)}</div></div>
-    <div class="card"><div class="fw-800 fs-13 mb-8">근로자 부담</div><div class="result-row"><span class="label">국민연금 (4.75%)</span><span class="value">${fmtW(nps)}</span></div><div class="result-row"><span class="label">건강보험 (3.595%)</span><span class="value">${fmtW(hi)}</span></div><div class="result-row"><span class="label">장기요양보험 (건강보험의 13.14%)</span><span class="value">${fmtW(ltc)}</span></div><div class="result-row"><span class="label">고용보험 (0.9%)</span><span class="value">${fmtW(ei)}</span></div><div class="result-row"><span class="label fw-800">합계</span><span class="value fw-800 text-p">${fmtW(empTotal)}</span></div></div>
-    <div class="card mt-12"><div class="fw-800 fs-13 mb-8">사업자 부담</div><div class="result-row"><span class="label">국민연금 (4.75%)</span><span class="value">${fmtW(nps2)}</span></div><div class="result-row"><span class="label">건강보험 (3.595%)</span><span class="value">${fmtW(hi2)}</span></div><div class="result-row"><span class="label">장기요양보험</span><span class="value">${fmtW(ltc2)}</span></div><div class="result-row"><span class="label">고용보험 (0.9%)</span><span class="value">${fmtW(ei2)}</span></div><div class="result-row"><span class="label fw-800">합계</span><span class="value fw-800 text-ac">${fmtW(bizTotal)}</span></div></div>`;
+    <div class="card"><div class="fw-800 fs-13 mb-8">근로자 부담</div><div class="result-row"><span class="label">국민연금 (${kP(R.np)})</span><span class="value">${fmtW(nps)}</span></div><div class="result-row"><span class="label">건강보험 (${kP(R.hi)})</span><span class="value">${fmtW(hi)}</span></div><div class="result-row"><span class="label">장기요양보험 (건강보험의 ${kP(R.ltc)})</span><span class="value">${fmtW(ltc)}</span></div><div class="result-row"><span class="label">고용보험 (${kP(R.ei)})</span><span class="value">${fmtW(ei)}</span></div><div class="result-row"><span class="label fw-800">합계</span><span class="value fw-800 text-p">${fmtW(empTotal)}</span></div></div>
+    <div class="card mt-12"><div class="fw-800 fs-13 mb-8">사업자 부담</div><div class="result-row"><span class="label">국민연금 (${kP(R.np)})</span><span class="value">${fmtW(nps2)}</span></div><div class="result-row"><span class="label">건강보험 (${kP(R.hi)})</span><span class="value">${fmtW(hi2)}</span></div><div class="result-row"><span class="label">장기요양보험</span><span class="value">${fmtW(ltc2)}</span></div><div class="result-row"><span class="label">고용보험 (${kP(R.ei)})</span><span class="value">${fmtW(ei2)}</span></div><div class="result-row"><span class="label fw-800">합계</span><span class="value fw-800 text-ac">${fmtW(bizTotal)}</span></div></div>`;
   toast('계산 완료');
 }
 
@@ -1498,10 +1505,11 @@ function calcSalary(){
   if(!annual){toast('연봉을 입력하세요');return;}
   const monthly=Math.floor(annual/12);
   // 4대보험
-  const nps=Math.floor(monthly*0.0475);
-  const hi=Math.floor(monthly*0.03595);
-  const ltc=Math.floor(hi*0.1314);
-  const ei=Math.floor(monthly*0.009);
+  const R=kSI();
+  const nps=kF10(Math.min(Math.max(monthly,R.npMin),R.npMax)*R.np);
+  const hi=kF10(monthly*R.hi);
+  const ltc=kF10(hi*R.ltc);
+  const ei=kF10(monthly*R.ei);
   const insTotal=nps+hi+ltc+ei;
   // 소득세 근사 (간이세액표 근사: 월급 기준 누진)
   const monthlyTaxable=Math.max(monthly-insTotal-dep*1500000/12, 0);

@@ -109,6 +109,7 @@ table.t td.l{color:#334155}
 </head>
 <body>
 <!-- HB-HOME v1 -->
+<script src="한백택스_사회보험요율.js"></script><!-- 4대보험 요율 공용 모듈 — 해마다 이 파일만 고친다 -->
 <script>
 /* 한백택스 홈 바 — 생성기: 02-도구 & 스크립트/Python 스크립트/홈바_주입.py
    이 블록은 자동 생성이다. 직접 고치지 말고 생성기를 고쳐 다시 실행한다. */
@@ -831,12 +832,12 @@ function cHour(d){
 }
 
 /* ═══════ 11. 임금명세서 ═══════ */
-const INS={np:.0475,hi:.03595,ltc:.1314,ei:.009,npMax:6590000,npMin:410000};
+const INS=window.HB_SI?HB_SI.flat():{np:.0475,hi:.03595,ltc:.1314,ei:.009,npMax:6590000,npMin:410000}; /* 공용 요율 모듈, 못 읽으면 2026 값 */
 function payTotals(d){const items=(d.items||[]).filter(i=>i.nm||num(i.amt));const gross=items.reduce((s,i)=>s+num(i.amt),0);const taxFree=items.filter(i=>/비과세/.test(i.nm||'')).reduce((s,i)=>s+num(i.amt),0);return {items,gross,taxFree};}
 function autoIns(){const d=S.d.pay;const {gross,taxFree}=payTotals(d);const base=gross-taxFree;
   const npBase=Math.min(INS.npMax,Math.max(INS.npMin,Math.floor(base/1000)*1000));
-  const hi=Math.floor(base*INS.hi/10)*10;
-  Object.assign(d,{np:Math.floor(npBase*INS.np/10)*10,hi,ltc:Math.floor(hi*INS.ltc/10)*10,ei:Math.floor(base*INS.ei/10)*10});save();bindAll();render();}
+  const hi=Math.floor(base*INS.hi/10+1e-7)*10;
+  Object.assign(d,{np:Math.floor(npBase*INS.np/10+1e-7)*10,hi,ltc:Math.floor(hi*INS.ltc/10+1e-7)*10,ei:Math.floor(base*INS.ei/10+1e-7)*10});save();bindAll();render();}
 function cPay(d){
   const {items,gross}=payTotals(d);
   const ded=[['국민연금',num(d.np)],['건강보험',num(d.hi)],['장기요양보험',num(d.ltc)],['고용보험',num(d.ei)],['소득세',num(d.it)],['지방소득세',num(d.lt)]];

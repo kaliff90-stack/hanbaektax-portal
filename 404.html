@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>페이지를 찾을 수 없습니다 | 세무법인 한백택스</title>
+<!-- GitHub Pages 가 없는 주소에 내보내는 페이지. 하위 경로에서도 열리므로 자산은 사이트 루트 기준으로 계산하고, 글꼴 외에는 모두 이 파일 안에 둔다 -->
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1B3A5C;--gold:#C8963E;--bg:#F5F8FC;--line:#DCE5F0;--txt2:#35507A}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--navy);
+  font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:16px;padding:24px 16px}
+.box{width:100%;max-width:520px;background:#fff;border:1px solid var(--line);border-top:4px solid var(--gold);border-radius:14px;padding:28px 24px;box-shadow:0 4px 14px rgba(15,36,64,.06)}
+h1{font-size:22px;margin:0 0 10px;font-weight:800}
+p{margin:0 0 14px;line-height:1.6;color:var(--txt2)}
+code{background:var(--bg);padding:2px 6px;border-radius:6px;word-break:break-all}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+a.b{display:inline-block;padding:10px 16px;border-radius:999px;font-weight:800;text-decoration:none;border:1.5px solid var(--navy);color:var(--navy)}
+a.b.p{background:var(--navy);color:#fff}
+.ft{margin-top:20px;font-size:13px;color:#6E7F94;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>찾으시는 페이지가 없습니다</h1>
+  <p>주소가 바뀌었거나 정리된 도구일 수 있습니다. 메인 화면에서 도구 이름으로 찾아 보십시오.</p>
+  <p id="asked" hidden>요청한 주소: <code id="path"></code></p>
+  <div class="btns">
+    <a class="b p" id="home" href="/hanbaektax-portal/">메인 화면으로</a>
+    <a class="b" id="find" href="/hanbaektax-portal/" hidden>비슷한 도구 찾기</a>
+  </div>
+  <div class="ft">세무법인 한백택스 · 02-2277-3101 · hb090@hanbaektax.kr</div>
+</div>
+<script>
+(function(){
+  /* 사이트 루트 — 공개 사이트는 /hanbaektax-portal/, 다른 곳(앱 사본 등)에서는 이 파일이 있는 폴더 */
+  var path = decodeURIComponent(location.pathname);
+  var root = /\/hanbaektax-portal\//.test(location.pathname) ? '/hanbaektax-portal/' : location.pathname.replace(/[^\/]*$/, '');
+  document.getElementById('home').href = root;
+  var name = path.split('/').pop().replace(/\.html?$/i, '');
+  if (name && name !== '404') {
+    document.getElementById('path').textContent = path;
+    document.getElementById('asked').hidden = false;
+    /* 파일 이름에서 버전·연도·회사명을 덜어 낸 낱말로 메인 화면 검색을 연다 */
+    var q = name.replace(/한백택스_?/g, '').replace(/_?v\d+/gi, '').replace(/20\d\d년?_?/g, '').replace(/[_\-]+/g, ' ').trim();
+    if (q) { var f = document.getElementById('find'); f.href = root + '?q=' + encodeURIComponent(q); f.hidden = false; }
+  }
+})();
+</script>
+</body>
+</html>
