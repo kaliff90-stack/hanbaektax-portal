@@ -6,7 +6,9 @@
  * 요율은 근로자 부담분(사용자 부담도 같은 율). ltc 는 건강보험료에 곱하는 장기요양 비율.
  *   2024·2025  국민연금 4.5% · 건강보험 3.545%(7.09%) · 장기요양 12.95% · 고용보험 0.9%
  *   2026       국민연금 4.75%(9.5%, 모수개혁 1년차) · 건강보험 3.595%(7.19%) · 장기요양 13.14%(0.9448%) · 고용보험 0.9%
- *   2027       국민연금 5%(10%) — 국민연금법 2025.4.2 개정 부칙의 단계 인상분. 본문 §88 ③은 최종 1천분의 65만 둔다. 부칙 원문 별도 확인 필요.
+ *   2027       국민연금 5%(10%) — 2025년 개정 국민연금법의 단계 인상분(본문 §88 ③은 최종 1천분의 65만 둔다).
+ *              국민연금공단 「연금개혁」 안내(nps.or.kr getOHAF0104M0, 1차 확인 2026-10-01): "기존(2025년) 9%인 보험료율은 2026년부터
+ *              매년 단계적으로 0.5%p씩 8년간 인상되어 2033년 13%에 도달". 부칙 조문 원문은 법령 MCP로 나오지 않아 미대조.
  *              건강보험 3.595%(7.19% 동결) — 2026.9.8 제15차 건강보험정책심의위원회 결정(보건복지부 보도, 1차 확인 2026-10-01).
  *              장기요양·고용보험 — 미결정(장기요양위원회 10월 이후 결정 예정). 결정 전까지 2026 값을 쓰고 화면에 「확인 필요」를 띄운다.
  * 국민연금 기준소득월액 상·하한(매년 7.1~다음 해 6.30, 보건복지부 고시)
@@ -62,6 +64,25 @@ function note(y){
   if(!r.pending.length) return '';
   return r.year+'년 '+r.pending.map(function(k){return NAMES[k];}).join('·')+' 요율은 아직 결정되지 않아 직전 확정 요율로 계산했습니다(확인 필요).';
 }
-var API={META:META,YEARS:YEARS,rates:rates,npLimits:npLimits,flat:flat,note:note};
+/* 올해 요율 중 미결정이 있으면 페이지 맨 위(홈 바·안내 띠 아래)에 한 줄 알린다. 포털 iframe 안에서는 부모가 알리므로 띄우지 않는다 */
+function banner(y){
+  if(typeof document==='undefined') return null;
+  var t=note(y); if(!t) return null;
+  var old=document.getElementById('hbSiNote'); if(old) old.remove();
+  var el=document.createElement('div');
+  el.id='hbSiNote'; el.setAttribute('role','note'); el.setAttribute('data-nogate','1');
+  el.style.cssText='box-sizing:border-box;margin:0;padding:7px 16px;background:#FBF3E4;border-bottom:1px solid #E8D3AE;color:#7A5418;'+
+    'font:700 12.5px/1.5 "Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif';
+  el.textContent='※ '+t;
+  var after=document.getElementById('hbSibling')||document.getElementById('hbHome');
+  if(after&&after.parentNode) after.parentNode.insertBefore(el,after.nextSibling);
+  else document.body.insertBefore(el,document.body.firstChild);
+  return el;
+}
+if(typeof window!=='undefined'&&typeof document!=='undefined'&&window.self===window.top){
+  var go=function(){ banner(new Date().getFullYear()); };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go();
+}
+var API={META:META,YEARS:YEARS,rates:rates,npLimits:npLimits,flat:flat,note:note,banner:banner};
 if(typeof module!=='undefined'&&module.exports)module.exports=API;root.HB_SI=API;
 })(typeof window!=='undefined'?window:globalThis);
