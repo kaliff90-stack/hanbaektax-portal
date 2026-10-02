@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<script>if(window.self!==window.top)document.documentElement.classList.add('inframe');</script>
+<title>한백택스 납부서 작성기 — 납부 안내서 · 홈택스 입력값</title>
+<meta name="description" content="한백택스 납부서 작성기(직원용) — 세목·세액·기준일을 넣으면 납부기한·분납·지방소득세를 계산해 거래처용 납부 안내서와 홈택스 자진납부 입력값을 만든다">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<!--
+  세무법인 한백택스 납부서 작성기 v1 (2026-10-02) — 사무실 내부용(직원 → 거래처 전달)
+  - 하는 일: 거래처·세목·세액·기준일 → 납부기한(토·일·공휴일 이월)·분납·지방소득세 → A4 납부 안내서(인쇄·PDF) + 홈택스 자진납부 입력값 + 카톡 문구
+  - 금융기관 수납용 납부서(OCR)가 아니다. 실제 납부는 홈택스에서 자진납부로 받은 전자납부번호로 한다. 안내서에 그 점을 적는다.
+  - 거래처: 업무판(localStorage hanbaek_board_v1)의 명부를 불러온다. 공휴일도 업무판 설정을 쓰고, 없으면 아래 기본 목록.
+  - 앱 파일에는 거래처 데이터가 없다. 작성 중인 내용은 이 브라우저(localStorage hanbaek_payslip_v1)에만 남는다.
+  - 기한·분납 근거는 RULES 주석에 조문으로 적었다(K-Law MCP 확인일 기재).
+-->
+<style>
+:root{--navy:#1B3A5C;--blue:#2E6DA4;--gold:#C8963E;--bg:#F5F8FC;--line:#DCE5F0;--t1:#0F2440;--t2:#35507A;--gray:#6E7F94;--red:#C0392B;--redbg:#FDECEA;--green:#1E7D4E;--greenbg:#E6F4EC;--gsoft:#FBF3E4;--amber:#8a6100}
+*{box-sizing:border-box;margin:0;padding:0;font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif}
+body{background:var(--bg);color:var(--t1);font-size:14px;line-height:1.55}
+.top{background:#fff;border-bottom:2px solid var(--gold);padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:42px;z-index:20}
+.inframe .top{top:0}
+.top h1{font-size:18px;color:var(--navy)}
+.top .sub{color:var(--t2);font-size:12px}
+.tag{font-size:12px;font-weight:700;color:#92400E;background:#FEF3C7;border-radius:8px;padding:3px 8px}
+.wrap{max-width:1320px;margin:0 auto;padding:18px 16px 60px;display:grid;grid-template-columns:minmax(0,520px) minmax(0,1fr);gap:18px;align-items:start}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.card h2{font-size:15px;color:var(--navy);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.fld{display:flex;flex-direction:column;gap:3px;font-size:12px;font-weight:700;color:var(--t2)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+input,select,textarea{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:13.5px;color:var(--t1);background:#fff;width:100%}
+input.num{text-align:right}
+input:focus,select:focus{outline:none;border-color:var(--gold)}
+input.bad{border-color:var(--red);background:var(--redbg)}
+.btn{border:none;border-radius:8px;padding:8px 13px;font-size:13px;font-weight:700;cursor:pointer;background:#E9F0F8;color:var(--navy);white-space:nowrap}
+.btn.p{background:var(--navy);color:#fff}.btn.g{background:var(--gold);color:#fff}.btn.d{background:var(--redbg);color:var(--red)}.btn.sm{padding:4px 9px;font-size:12px}
+.btn:hover{filter:brightness(.95)}
+.kinds{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.kinds button{padding:6px 11px;border:1px solid var(--line);border-radius:20px;background:#fff;font-size:12.5px;font-weight:700;color:var(--navy);cursor:pointer}
+.kinds button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.chk{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--t2)}
+.chk input{width:auto}
+.note{background:var(--gsoft);border-left:4px solid var(--gold);padding:8px 12px;border-radius:0 8px 8px 0;font-size:12px;margin:8px 0;color:var(--t2)}
+.warn{background:var(--redbg);border-left-color:var(--red);color:var(--red)}
+table{width:100%;border-collapse:collapse}
+.items th,.items td{border:1px solid var(--line);padding:6px 7px;font-size:12.5px}
+.items th{background:#f8fafc;color:#475569;text-align:center}
+.items td.r{text-align:right}.items td.c{text-align:center}
+.wht th,.wht td{border:1px solid var(--line);padding:5px 6px;font-size:12.5px}
+.wht th{background:#f8fafc;text-align:center;color:#475569}
+.wht td:first-child{white-space:nowrap}
+.mt8{margin-top:8px}.mt12{margin-top:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ht ol{padding-left:20px}
+.ht li{margin:4px 0;font-size:13px}
+.ht .v{display:inline-block;background:#F1F5F9;border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-weight:800;color:var(--navy);cursor:pointer}
+.ht .v:hover{border-color:var(--gold)}
+.ht h3{font-size:14px;color:var(--navy);margin:12px 0 4px}
+textarea.kakao{min-height:150px;font-size:13px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:9px 16px;border-radius:9px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:99}
+.toast.on{opacity:1}
+/* A4 안내서 */
+.docwrap{overflow-x:auto}
+.doc{width:210mm;min-height:297mm;margin:0 auto;background:#fff;padding:16mm 15mm 14mm;box-shadow:0 2px 12px rgba(15,36,64,.12);font-size:11pt;color:#111;position:relative;display:flex;flex-direction:column}
+.doc .hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2.5px solid var(--navy);padding-bottom:6px}
+.doc .hd .co{font-weight:800;color:var(--navy);font-size:12pt}
+.doc .hd .dt{font-size:11pt;color:#444}
+.doc h1{text-align:center;font-size:20pt;color:var(--navy);letter-spacing:6px;margin:8mm 0 1mm}
+.doc .stamp{text-align:center;font-size:11pt;color:var(--red);font-weight:800;margin-bottom:6mm}
+.doc table{font-size:11pt}
+.doc th,.doc td{border:1px solid #9aa9bb;padding:5px 7px;word-break:keep-all}
+.doc th{background:#EEF2F7;color:var(--navy);text-align:center;font-weight:800}
+.doc td.r{text-align:right;white-space:nowrap}.doc td.c{text-align:center}.doc td.nw{white-space:nowrap}
+.doc .who th{width:24%}
+.doc .tot td{font-weight:800;background:#FBF3E4}
+.doc h2{font-size:12.5pt;color:var(--navy);margin:5mm 0 2mm;padding-left:8px;border-left:4px solid var(--gold)}
+.doc ul{padding-left:18px}
+.doc li{margin:2px 0}
+.doc .foot{margin-top:6mm;border-top:1.5px solid var(--navy);padding-top:6px;font-size:11pt;color:#333}
+.doc .foot b{color:var(--navy)}
+.empty{color:var(--gray);text-align:center;padding:30px 0}
+@media(max-width:1100px){.wrap{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:640px){.g3{grid-template-columns:1fr 1fr}.top{top:40px}.doc{transform-origin:top left}}
+@media print{
+  @page{size:A4;margin:0}
+  body{background:#fff}
+  #hbHome,.top,.side,.noprint,.toast{display:none!important}
+  .wrap{display:block;padding:0;max-width:none}
+  .docwrap{overflow:visible}
+  .doc{box-shadow:none;margin:0;min-height:0;height:auto;padding:12mm 15mm 8mm}
+}
+</style>
+</head>
+<body>
+<!-- HB-HOME v1 -->
+<script>
+/* 한백택스 홈 바 — 생성기: 02-도구 & 스크립트/Python 스크립트/홈바_주입.py
+   이 블록은 자동 생성이다. 직접 고치지 말고 생성기를 고쳐 다시 실행한다. */
+(function(){
+  if (window.self !== window.top) return;          /* 포털 iframe 안에서는 부모의 바를 쓴다 */
+  if (window.__hbHome) return;
+  window.__hbHome = 1;
+  var me = decodeURIComponent((location.pathname.split('/').pop() || '').toLowerCase());
+  var host = document.createElement('div');
+  host.id = 'hbHome';
+  host.setAttribute('data-nogate', '1');
+  host.style.cssText = 'display:block;position:sticky;top:0;z-index:2147483000;margin:0;padding:0;line-height:0';
+  var links = [
+    ['한백택스_세무계산_포털.html', '세무계산 포털'],
+    ['한백택스_모바일.html', '모바일 포털']
+  ].filter(function(l){ return l[0].toLowerCase() !== me; });
+  var sh = host.attachShadow({ mode: 'open' });
+  sh.innerHTML =
+    '<style>' +
+    ':host{all:initial;display:block}' +
+    '.bar{box-sizing:border-box;display:flex;align-items:center;gap:10px;height:42px;padding:0 16px;' +
+      'background:#fff;border-bottom:2px solid #C8963E;box-shadow:0 2px 8px rgba(15,36,64,.08);' +
+      'font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:13px;line-height:1;color:#1B3A5C}' +
+    '.home{display:inline-flex;align-items:center;gap:7px;background:#C8963E;color:#fff;font-weight:800;' +
+      'padding:3px 13px 3px 3px;border-radius:999px;text-decoration:none;white-space:nowrap;letter-spacing:-.2px}' +
+    '.mk{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#fff;flex:none}' +
+    '.mk img{width:24px;height:24px;display:block}' +
+    '.home:hover{background:#b8862f}' +
+    '.ttl{font-weight:700;color:#1B3A5C;white-space:nowrap;opacity:.85}' +
+    '.sp{flex:1}' +
+    '.lnk{color:#35507A;font-weight:700;text-decoration:none;padding:6px 10px;border:1px solid #DCE5F0;border-radius:999px;white-space:nowrap;background:#F5F8FC}' +
+    '.lnk:hover{border-color:#C8963E;color:#1B3A5C}' +
+    '@media(max-width:640px){.bar{padding:0 10px;gap:6px;height:40px}.ttl{display:none}.lnk{padding:6px 8px;font-size:12px}}' +
+    '@media print{.bar{display:none}}' +
+    '</style>' +
+    '<div class="bar">' +
+      '<a class="home" href="index.html" title="한백택스 세무 도구 모음(메인 화면)으로"><span class="mk"><img src="logo-mark.png" alt="HB"></span>&#8592; 메인 화면</a>' +
+      '<span class="ttl">세무법인 한백택스 · 세무 도구</span>' +
+      '<span class="sp"></span>' +
+      links.map(function(l){ return '<a class="lnk" href="' + l[0] + '">' + l[1] + '</a>'; }).join('') +
+    '</div>';
+  var s = document.currentScript;
+  if (s && s.parentNode) s.parentNode.insertBefore(host, s);
+  else document.body.insertBefore(host, document.body.firstChild);
+})();
+</script>
+<!-- /HB-HOME -->
+
+<div class="top">
+  <h1>납부서 작성기</h1><span class="tag">직원용</span>
+  <span class="sub">세목·세액·기준일 → 납부기한·분납·지방소득세 계산 → 거래처용 납부 안내서 · 홈택스 입력값 · 카톡 문구</span>
+</div>
+
+<div class="wrap">
+<div class="side">
+  <div class="card">
+    <h2>① 납세자 <span class="row"><select id="cliPick" style="width:auto;max-width:230px" onchange="pickClient()"><option value="">업무판 거래처 불러오기</option></select></span></h2>
+    <div class="g2">
+      <label class="fld">상호 · 성명<input id="tName" oninput="saveDraft();render()"></label>
+      <label class="fld">대표자<input id="tCeo" oninput="saveDraft();render()"></label>
+      <label class="fld">사업자등록번호 · 주민등록번호<input id="tId" oninput="chkId();saveDraft();render()" placeholder="000-00-00000"></label>
+      <label class="fld">연락처<input id="tTel" oninput="saveDraft();render()"></label>
+    </div>
+    <div id="idMsg" class="note warn" style="display:none"></div>
+    <div class="g2 mt8">
+      <label class="fld">담당자<input id="tStaff" oninput="saveDraft();render()" placeholder="예: 박교원 세무사"></label>
+      <label class="fld">안내일<input id="tDate" type="date" oninput="saveDraft();render()"></label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>② 납부 항목 추가</h2>
+    <div class="kinds" id="kinds"></div>
+    <div id="form"></div>
+    <div class="row mt12"><button class="btn p" onclick="addItem()">목록에 추가</button><span id="formMsg" style="font-size:12px;color:var(--red)"></span></div>
+  </div>
+
+  <div class="card">
+    <h2>③ 납부 목록 <span class="row"><button class="btn sm d" onclick="clearItems()">모두 지우기</button></span></h2>
+    <div id="itemList"></div>
+  </div>
+
+  <div class="card ht" id="htCard">
+    <h2>④ 홈택스 입력값 <span style="font-size:12px;color:var(--gray);font-weight:700">값을 누르면 복사</span></h2>
+    <div id="htBody"></div>
+  </div>
+
+  <div class="card">
+    <h2>⑤ 카톡 · 문자 문구 <button class="btn sm" onclick="copyText($('kakao').value)">복사</button></h2>
+    <textarea class="kakao" id="kakao"></textarea>
+  </div>
+</div>
+
+<div>
+  <div class="row noprint" style="margin-bottom:10px">
+    <button class="btn g" onclick="window.print()">인쇄 · PDF 저장</button>
+    <span style="font-size:12px;color:var(--gray)">인쇄 창에서 「PDF로 저장」을 고르면 거래처에 보낼 파일이 됩니다. 용지 A4 · 여백 없음 · 배경 그래픽 켜기.</span>
+  </div>
+  <div class="docwrap"><div class="doc" id="doc"></div></div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const won=n=>Math.round(n||0).toLocaleString('ko-KR');
+const num=v=>{const n=parseInt(String(v||'').replace(/[^0-9-]/g,''),10);return isNaN(n)?0:n;};
+const pad=n=>String(n).padStart(2,'0');
+const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const WD='일월화수목금토';
+const ymK=ym=>{const [y,m]=String(ym||'').split('-');return y+'년 '+(+m)+'월';};
+const kdate=s=>{if(!s)return '';const d=new Date(s+'T00:00:00');return d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate()+'.('+WD[d.getDay()]+')';};
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),1800);}
+function copyText(s){(navigator.clipboard?navigator.clipboard.writeText(s):Promise.reject()).then(()=>toast('복사했습니다')).catch(()=>{const ta=document.createElement('textarea');ta.value=s;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('복사했습니다');}catch(e){}ta.remove();});}
+
+/* ---------- 업무판 연동 · 공휴일 ---------- */
+const BOARD_LS='hanbaek_board_v1', LS='hanbaek_payslip_v1';
+/* 업무판 기본 공휴일과 같은 목록(업무판 설정이 있으면 그것을 쓴다) */
+const DEFAULT_HOL=['2026-01-01','2026-02-16','2026-02-17','2026-02-18','2026-03-02','2026-05-05','2026-05-25','2026-06-06','2026-08-17','2026-09-24','2026-09-25','2026-09-26','2026-10-05','2026-10-09','2026-12-25','2027-01-01','2027-02-08','2027-02-09','2027-02-10','2027-03-01','2027-05-05','2027-05-13','2027-06-06','2027-08-16','2027-09-14','2027-09-15','2027-09-16','2027-10-04','2027-10-11','2027-12-27'];
+let BOARD=null;try{BOARD=JSON.parse(localStorage.getItem(BOARD_LS)||'null');}catch(e){}
+const HOL=new Set((BOARD&&BOARD.settings&&BOARD.settings.hol&&BOARD.settings.hol.length)?BOARD.settings.hol:DEFAULT_HOL);
+/* 국세기본법 §5 ①: 기한이 토·일, 공휴일·대체공휴일(제2호), 노동절(제3호, 5월 1일)이면 그 다음 날 — MCP 확인 2026-10-02 */
+function nextBiz(s){let d=new Date(s+'T00:00:00');for(let i=0;i<15;i++){const w=d.getDay(),k=iso(d),may1=(d.getMonth()===4&&d.getDate()===1);if(w!==0&&w!==6&&!HOL.has(k)&&!may1)break;d.setDate(d.getDate()+1);}return iso(d);}
+const lastDay=(y,m)=>new Date(y,m,0).getDate();           /* m: 1~12 */
+const ymd=(y,m,d)=>{while(m>12){m-=12;y++;}while(m<1){m+=12;y--;}return y+'-'+pad(m)+'-'+pad(Math.min(d,lastDay(y,m)));};
+const monthEnd=(y,m)=>ymd(y,m,31);                          /* 그 달 말일 (m 이 12 를 넘으면 다음 해) */
+/* 기한 + n개월: 말일 기한이면 말일로, 아니면 같은 날 */
+function addMonths(s,n){const [y,m,d]=s.split('-').map(Number);return d===lastDay(y,m)?monthEnd(y,m+n):ymd(y,m+n,d);}
+
+/* ---------- 세목 정의 ---------- */
+/* 기한 근거 — 모두 K-Law MCP 원문 확인 2026-10-02 (부칙·시행예정 개정은 미확인)
+   원천세      소득세법 §128 ① 다음 달 10일, ② 반기의 마지막 달의 다음 달 10일 / 지방소득세 특별징수 지방세법 §103의13 ② (반기 단서 포함)
+   부가가치세  부가가치세법 §48 ① 예정 25일, §49 ① 확정 25일
+   종합소득세  소득세법 §70 ① 5월 31일, §70의2 ② 성실신고확인 6월 30일, §65 중간예납 11월 30일
+   법인세      법인세법 §60 ① 사업연도 종료일이 속하는 달의 말일부터 3개월(성실신고확인서 제출 시 4개월, 같은 항 괄호), §63 ③ 중간예납기간(개시 6개월) 지난 날부터 2개월, §63 ④ 중간예납 분납
+   양도소득세  소득세법 §105 ① 1호 달 말일부터 2개월, 2호 주식 반기 말일부터 2개월, 3호 부담부증여 3개월, §110 ① 확정 5월
+   증여세      상증법 §68 ① 3개월 / 상속세 §67 ① 6개월, ④ 피상속인·상속인이 외국에 주소를 둔 경우 9개월
+   분납        소득세법 §77·영 §140, 법인세법 §64 ②·영 §101 ②, 상증법 §70 ②·영 §66 ②
+   4대보험     다음 달 10일 — 국민건강보험법 §78 ①, 국민연금법 §89 ①, 고용산재보험료징수법 §16의7 ①                                                   */
+const KINDS={
+  wht:{t:'원천세',  ht:'원천세'},
+  vat:{t:'부가가치세',ht:'부가가치세'},
+  inc:{t:'종합소득세',ht:'종합소득세'},
+  corp:{t:'법인세',  ht:'법인세'},
+  trf:{t:'양도소득세',ht:'양도소득세'},
+  gift:{t:'증여세',  ht:'증여세'},
+  inh:{t:'상속세',  ht:'상속세'},
+  si:{t:'4대보험료', ht:''}
+};
+const WHT_ROWS=[['근로','근로소득'],['연말','연말정산(근로)'],['퇴직','퇴직소득'],['사업','사업소득'],['기타','기타소득'],['이자','이자소득'],['배당','배당소득'],['연금','연금소득']];
+/* 홈택스 자진납부 세목코드 — 삼일아이닷컴 표(민간, 1차 확인 2026-10-02), 양도 22 는 국세청 납부서 작성요령과 일치. 국세청 고시 원문 대조 전 */
+const SEMOK={근로소득:'14',"연말정산(근로)":'14',퇴직소득:'21',사업소득:'13',기타소득:'16',이자소득:'11',배당소득:'12',연금소득:'17',종합소득세:'10',양도소득세:'22',법인세:'31',상속세:'32',증여세:'33',부가가치세:'41'};
+const SPLIT_MONTHS={inc:2,trf:2,gift:2,inh:2,corp:1};       /* 법인세 중소기업 2개월 */
+let kind='wht';
+const today=iso(new Date());
+const thisY=new Date().getFullYear(), thisM=new Date().getMonth()+1;
+const prevYM=(thisM===1?(thisY-1)+'-12':thisY+'-'+pad(thisM-1));
+
+function sel(id,opts,val){return '<select id="'+id+'">'+opts.map(o=>{const [v,t]=Array.isArray(o)?o:[o,o];return '<option value="'+esc(v)+'"'+(String(v)===String(val)?' selected':'')+'>'+esc(t)+'</option>';}).join('')+'</select>';}
+const years=()=>{const a=[];for(let y=thisY+1;y>=thisY-5;y--)a.push(y);return a;};
+const DUE_INPUT='<label class="fld" id="fDueWrap" style="display:none">납부할 날(수정·기한후)<input id="fDue" type="date"></label>';
+const SPLIT_INPUT='<label class="chk mt8"><input type="checkbox" id="fSplit"> 분납 (1천만원 초과분)</label>';
+
+function renderKinds(){$('kinds').innerHTML=Object.keys(KINDS).map(k=>'<button class="'+(k===kind?'on':'')+'" onclick="setKind(\''+k+'\')">'+KINDS[k].t+'</button>').join('');}
+function setKind(k){kind=k;renderKinds();renderForm();}
+function renderForm(){
+  let h='';
+  if(kind==='wht'){
+    h='<div class="g3"><label class="fld">납부 주기'+sel('fCycle',[['m','매월'],['h','반기']],'m')+'</label>'+
+      '<label class="fld">지급연월(매월)<input id="fYM" type="month" value="'+prevYM+'"></label>'+
+      '<label class="fld">반기'+sel('fHalf',years().flatMap(y=>[[y+'-1',y+'년 상반기(1~6월)'],[y+'-2',y+'년 하반기(7~12월)']]),thisY+'-1')+'</label></div>'+
+      '<div class="g2 mt8"><label class="fld">신고 구분'+sel('fType',['정기','수정','기한후'],'정기')+'</label>'+DUE_INPUT+'</div>'+
+      '<table class="wht mt8"><tr><th>소득 구분</th><th>소득세 (원)</th><th>지방소득세 (원)</th></tr>'+
+      WHT_ROWS.map(([k,t])=>'<tr><td>'+t+'</td><td><input class="num" id="w_'+k+'" oninput="whtLocal(\''+k+'\')"></td><td><input class="num" id="l_'+k+'"></td></tr>').join('')+'</table>'+
+      '<div class="note">반기납부라도 법인세법 §67 처분 상여·배당·기타소득 등은 다음 달 10일에 냅니다(소득세법 §128 ②). 지방소득세는 소득세의 10%(10원 미만 절사)로 채워 둡니다. 원천징수이행상황신고서·특별징수 신고 금액과 다르면 고쳐 넣으십시오. 환급 충당 후 금액을 넣습니다.</div>';
+  }else if(kind==='vat'){
+    h='<div class="g2"><label class="fld">과세기간'+sel('fVat',years().flatMap(y=>[[y+'-1p',y+'년 1기 예정(1~3월)'],[y+'-1',y+'년 1기 확정'],[y+'-2p',y+'년 2기 예정(7~9월)'],[y+'-2',y+'년 2기 확정']]),thisY+'-1')+'</label>'+
+      '<label class="fld">신고 구분'+sel('fType',['정기','수정','기한후'],'정기')+'</label>'+
+      '<label class="fld">납부할 세액 (원)<input class="num" id="fAmt"></label>'+DUE_INPUT+'</div>'+
+      '<div class="note">개인 일반과세자의 예정고지분과 간이과세자 예정부과분은 세무서가 보낸 고지서로 냅니다(자진납부 대상 아님). 부가가치세는 분납이 없습니다.</div>';
+  }else if(kind==='inc'){
+    h='<div class="g2"><label class="fld">귀속연도'+sel('fY',years(),thisY-1)+'</label>'+
+      '<label class="fld">신고 구분'+sel('fType',['확정','성실신고확인','수정','기한후'],'확정')+'</label>'+
+      '<label class="fld">납부할 세액 (원)<input class="num" id="fAmt"></label>'+DUE_INPUT+'</div>'+
+      '<label class="chk mt8"><input type="checkbox" id="fLocal" checked> 개인지방소득세(10%) 줄 함께 넣기</label>'+SPLIT_INPUT+
+      '<div class="note">중간예납(11월)은 고지서로 냅니다. 개인지방소득세는 위택스(또는 홈택스 신고 후 연계)로 따로 냅니다.</div>';
+  }else if(kind==='corp'){
+    h='<div class="g2"><label class="fld">사업연도 종료월 (중간예납은 진행 중인 사업연도)<input id="fYM" type="month" value="'+(thisY-1)+'-12"></label>'+
+      '<label class="fld">신고 구분'+sel('fType',['확정','성실신고확인','중간예납','수정','기한후'],'확정')+'</label>'+
+      '<label class="fld">납부할 세액 (원)<input class="num" id="fAmt"></label>'+DUE_INPUT+'</div>'+
+      '<label class="chk mt8"><input type="checkbox" id="fSme" checked> 중소기업 (분납 2개월, 아니면 1개월)</label>'+SPLIT_INPUT+
+      '<div class="note">중간예납은 사업연도 개시일부터 6개월 기간 기준으로 계산합니다(12월 결산법인 8월 31일). 법인지방소득세는 위택스에서 따로 신고·납부합니다.</div>';
+  }else if(kind==='trf'){
+    h='<div class="g2"><label class="fld">양도일 (잔금청산일 등)<input id="fD" type="date"></label>'+
+      '<label class="fld">신고 구분'+sel('fType',['예정','확정','수정','기한후'],'예정')+'</label>'+
+      '<label class="fld">납부할 세액 (원)<input class="num" id="fAmt"></label>'+DUE_INPUT+'</div>'+
+      '<label class="chk mt8"><input type="checkbox" id="fBurden"> 부담부증여의 채무액 부분(예정신고 3개월)</label>'+
+      '<label class="chk mt8"><input type="checkbox" id="fStock"> 주식(국내 주식 등 — 양도일이 속하는 반기 말일부터 2개월)</label>'+
+      '<label class="chk mt8"><input type="checkbox" id="fLocal" checked> 개인지방소득세(10%) 줄 함께 넣기</label>'+SPLIT_INPUT;
+  }else if(kind==='gift'||kind==='inh'){
+    h='<div class="g2"><label class="fld">'+(kind==='gift'?'증여받은 날':'상속개시일')+'<input id="fD" type="date"></label>'+
+      '<label class="fld">신고 구분'+sel('fType',['정기','수정','기한후'],'정기')+'</label>'+
+      '<label class="fld">납부할 세액 (원)<input class="num" id="fAmt"></label>'+DUE_INPUT+'</div>'+
+      (kind==='inh'?'<label class="chk mt8"><input type="checkbox" id="fNR"> 피상속인이나 상속인이 외국에 주소를 둔 경우(9개월, 상증법 §67 ④)</label>':'')+SPLIT_INPUT+
+      '<div class="note">연부연납(2천만원 초과, 납세담보 필요)은 신청·허가 절차가 따로 있어 이 도구에서는 나누지 않습니다.</div>';
+  }else if(kind==='si'){
+    h='<div class="g2"><label class="fld">보험료 해당 월 (고지 월)<input id="fYM" type="month" value="'+thisY+'-'+pad(thisM)+'"></label><span></span>'+
+      [['np','국민연금'],['hi','건강보험'],['lt','장기요양보험'],['ei','고용보험'],['ia','산재보험']].map(([k,t])=>'<label class="fld">'+t+' (원)<input class="num" id="s_'+k+'"></label>').join('')+'</div>'+
+      '<div class="note">4대보험료는 국세가 아니어서 홈택스로 내지 않습니다. 공단이 보낸 고지서(가상계좌·지로) 또는 자동이체로 냅니다. 고지서 금액 그대로 넣으십시오.</div>';
+  }
+  $('form').innerHTML=h;$('formMsg').textContent='';
+  const ft=$('fType');if(ft){ft.onchange=()=>{$('fDueWrap').style.display=/수정|기한후/.test(ft.value)?'':'none';};}
+  const fc=$('fCycle');if(fc){const f=()=>{$('fYM').parentNode.style.display=fc.value==='m'?'':'none';$('fHalf').parentNode.style.display=fc.value==='h'?'':'none';};fc.onchange=f;f();}
+}
+function whtLocal(k){const v=num($('w_'+k).value);$('l_'+k).value=v?won(Math.floor(v*0.1/10)*10):'';}
+
+/* ---------- 기한 계산 ---------- */
+function dueOf(it){
+  if(/수정|기한후/.test(it.type))return {due:it.due,legal:''};
+  let s='',why='';
+  switch(it.kind){
+    case 'wht':
+      if(it.cycle==='h'){const [y,h]=it.half.split('-').map(Number);s=h===1?y+'-07-10':(y+1)+'-01-10';why='소득세법 §128 ② (반기납부)';}
+      else{const [y,m]=it.ym.split('-').map(Number);s=ymd(y,m+1,10);why='소득세법 §128 ①';}
+      break;
+    case 'vat':{const [y,p]=it.vat.split('-');const Y=+y;s={'1p':Y+'-04-25','1':Y+'-07-25','2p':Y+'-10-25','2':(Y+1)+'-01-25'}[p];why=p.endsWith('p')?'부가가치세법 §48 ①':'부가가치세법 §49 ①';break;}
+    case 'inc':s=(it.y+1)+(it.type==='성실신고확인'?'-06-30':'-05-31');why=it.type==='성실신고확인'?'소득세법 §70의2 ②':'소득세법 §70 ①';break;
+    case 'corp':{const [y,m]=it.ym.split('-').map(Number);
+      if(it.type==='중간예납'){s=monthEnd(y,m-4);why='법인세법 §63 ③';}      /* 1년 사업연도 기준: 개시 후 6개월(종료월-6) 지난 날부터 2개월 → 종료월-4 의 말일 */
+      else{s=monthEnd(y,m+(it.type==='성실신고확인'?4:3));why='법인세법 §60 ①';}
+      break;}
+    case 'trf':{const [y,m]=it.d.split('-').map(Number);
+      if(it.type==='확정'){s=(y+1)+'-05-31';why='소득세법 §110 ①';}
+      else if(it.stock){s=monthEnd(y,(m<=6?6:12)+2);why='소득세법 §105 ① 2호';}
+      else{s=monthEnd(y,m+(it.burden?3:2));why=it.burden?'소득세법 §105 ① 3호':'소득세법 §105 ① 1호';}
+      break;}
+    case 'gift':{const [y,m]=it.d.split('-').map(Number);s=monthEnd(y,m+3);why='상증법 §68 ①';break;}
+    case 'inh':{const [y,m]=it.d.split('-').map(Number);s=monthEnd(y,m+(it.nr?9:6));why=it.nr?'상증법 §67 ④':'상증법 §67 ①';break;}
+    case 'si':{const [y,m]=it.ym.split('-').map(Number);s=ymd(y,m+1,10);why='국민건강보험법 §78 ① 등';break;}
+  }
+  return {due:nextBiz(s),legal:s,why};
+}
+/* 분납: 1천만원 초과 — 2천만원 이하면 1천만원 초과분, 2천만원 초과면 50% 이하 */
+function splitAmt(a){if(a<=10000000)return 0;return a<=20000000?a-10000000:Math.floor(a/2);}
+function ttlOf(it){
+  const K=KINDS[it.kind].t;
+  switch(it.kind){
+    case 'wht':return it.cycle==='h'?it.half.replace(/-1$/,'년 상반기').replace(/-2$/,'년 하반기')+' 지급분':ymK(it.ym)+' 지급분';
+    case 'vat':{const [y,p]=it.vat.split('-');return y+'년 '+{'1p':'1기 예정','1':'1기 확정','2p':'2기 예정','2':'2기 확정'}[p];}
+    case 'inc':return it.y+'년 귀속';
+    case 'corp':return ymK(it.ym)+' 종료 사업연도';
+    case 'trf':return '양도일 '+it.d;
+    case 'gift':return '증여일 '+it.d;
+    case 'inh':return '상속개시일 '+it.d;
+    case 'si':return ymK(it.ym)+'분';
+  }
+  return K;
+}
+/* 항목 → 안내서 줄 */
+function linesOf(it){
+  const {due,legal,why}=dueOf(it), L=[], K=KINDS[it.kind].t, per=ttlOf(it), tp=it.type||'';
+  const where={nat:'홈택스',loc:'위택스',si:'공단 고지'};
+  if(it.kind==='wht'){
+    const nat=it.rows.reduce((s,r)=>s+r.a,0), loc=it.rows.reduce((s,r)=>s+r.l,0);
+    const det=it.rows.filter(r=>r.a).map(r=>r.t).join('·');
+    if(nat)L.push({tax:'원천세 (소득세)',per,tp,det,amt:nat,due,legal,why,ch:where.nat});
+    if(loc)L.push({tax:'지방소득세 (특별징수)',per,tp,det,amt:loc,due,legal,why:'지방세법 §103의13 ②',ch:where.loc});
+    return L;
+  }
+  if(it.kind==='si'){
+    [['np','국민연금'],['hi','건강보험'],['lt','장기요양보험'],['ei','고용보험'],['ia','산재보험']].forEach(([k,t])=>{if(it.s[k])L.push({tax:t,per,tp:'고지',det:'',amt:it.s[k],due,legal,why,ch:where.si});});
+    return L;
+  }
+  const a=it.amt, sp=it.split?splitAmt(a):0;
+  if(sp){
+    const n=it.kind==='corp'?(it.sme?2:1):SPLIT_MONTHS[it.kind];
+    const base=legal||due, due2=nextBiz(addMonths(base,n));
+    L.push({tax:K,per,tp,det:'1차(기한 내)',amt:a-sp,due,legal,why,ch:where.nat});
+    L.push({tax:K,per,tp,det:'2차(분납 '+n+'개월)',amt:sp,due:due2,legal:'',why:'분납',ch:where.nat});
+  }else L.push({tax:K,per,tp,det:'',amt:a,due,legal,why,ch:where.nat});
+  if(it.local&&(it.kind==='inc'||it.kind==='trf')){
+    const la=Math.floor(a*0.1/10)*10;
+    L.push({tax:'개인지방소득세',per,tp,det:'소득세의 10% (신고서 금액 확인)',amt:la,due,legal,why:'지방세법',ch:where.loc});
+  }
+  return L;
+}
+
+/* ---------- 항목 추가 · 목록 ---------- */
+let ITEMS=[];
+function v(id){const e=$(id);return e?e.value:'';}
+function c(id){const e=$(id);return !!(e&&e.checked);}
+function addItem(){
+  const it={id:Date.now()+''+Math.random().toString(36).slice(2,6),kind,type:v('fType')||'정기'};
+  const msg=m=>{$('formMsg').textContent=m;return false;};
+  if(/수정|기한후/.test(it.type)){it.due=v('fDue');if(!it.due)return msg('수정·기한후는 납부할 날을 넣으십시오');}
+  if(kind==='wht'){
+    it.cycle=v('fCycle');it.ym=v('fYM');it.half=v('fHalf');
+    if(it.cycle==='m'&&!it.ym)return msg('지급연월을 넣으십시오');
+    it.rows=WHT_ROWS.map(([k,t])=>({t,a:num(v('w_'+k)),l:num(v('l_'+k))})).filter(r=>r.a||r.l);
+    if(!it.rows.length)return msg('세액을 한 줄 이상 넣으십시오');
+  }else if(kind==='si'){
+    it.ym=v('fYM');it.s={};['np','hi','lt','ei','ia'].forEach(k=>it.s[k]=num(v('s_'+k)));
+    if(!Object.values(it.s).some(x=>x))return msg('보험료를 넣으십시오');
+  }else{
+    it.amt=num(v('fAmt'));if(!it.amt)return msg('세액을 넣으십시오');
+    if(kind==='vat')it.vat=v('fVat');
+    if(kind==='inc')it.y=+v('fY');
+    if(kind==='corp'){it.ym=v('fYM');it.sme=c('fSme');if(!it.ym)return msg('사업연도 종료월을 넣으십시오');}
+    if(kind==='trf'||kind==='gift'||kind==='inh'){it.d=v('fD');if(!it.d&&!it.due)return msg('기준일을 넣으십시오');}
+    if(kind==='trf'){it.burden=c('fBurden');it.stock=c('fStock');if(it.burden&&it.stock)return msg('부담부증여와 주식 중 하나만 고르십시오');}
+    if(kind==='inh')it.nr=c('fNR');
+    it.local=c('fLocal');it.split=c('fSplit');
+    if(it.split&&it.amt<=10000000)return msg('분납은 세액 1천만원 초과일 때만 됩니다');
+    if(/수정|기한후/.test(it.type)&&it.split)return msg('수정·기한후 분납은 이 도구에서 나누지 않습니다');
+  }
+  ITEMS.push(it);saveDraft();renderForm();render();toast(KINDS[kind].t+' 항목을 넣었습니다');
+}
+function delItem(id){ITEMS=ITEMS.filter(x=>x.id!==id);saveDraft();render();}
+function clearItems(){if(ITEMS.length&&!confirm('납부 목록을 모두 지울까요?'))return;ITEMS=[];saveDraft();render();}
+
+/* ---------- 납세자 ---------- */
+function bizValid(no){const d=String(no||'').replace(/[^0-9]/g,'');if(d.length!==10)return false;const w=[1,3,7,1,3,7,1,3,5];let s=0;for(let i=0;i<9;i++)s+=parseInt(d[i])*w[i];s+=Math.floor(parseInt(d[8])*5/10);return (10-(s%10))%10===parseInt(d[9]);}
+function fmtId(s){const d=String(s||'').replace(/[^0-9]/g,'');if(d.length===10)return d.slice(0,3)+'-'+d.slice(3,5)+'-'+d.slice(5);if(d.length===13)return d.slice(0,6)+'-'+d.slice(6);return s||'';}
+function chkId(){const d=v('tId').replace(/[^0-9]/g,''),m=$('idMsg');let e='';
+  if(d.length===10&&!bizValid(d))e='사업자등록번호 검증번호가 맞지 않습니다. 번호를 다시 확인하십시오.';
+  else if(d&&d.length!==10&&d.length!==13)e='사업자등록번호는 10자리, 주민등록번호는 13자리입니다(지금 '+d.length+'자리).';
+  m.style.display=e?'':'none';m.textContent=e;$('tId').classList.toggle('bad',!!e);}
+function fillClients(){const L=(BOARD&&BOARD.clients)||[];const s=$('cliPick');
+  if(!L.length){s.innerHTML='<option value="">업무판 거래처 없음</option>';s.disabled=true;return;}
+  s.innerHTML='<option value="">업무판 거래처 불러오기 ('+L.length+')</option>'+L.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.name||'(이름 없음)')+' '+esc(c.biz||'')+'</option>').join('');}
+function pickClient(){const c=((BOARD&&BOARD.clients)||[]).find(x=>x.id===v('cliPick'));if(!c)return;
+  $('tName').value=c.name||'';$('tCeo').value=c.ceo||'';$('tId').value=c.biz||'';$('tTel').value=c.tel||'';if(c.staff)$('tStaff').value=c.staff;
+  chkId();saveDraft();render();}
+
+/* ---------- 안내서 · 홈택스 · 카톡 ---------- */
+function allLines(){return ITEMS.flatMap(it=>linesOf(it).map(l=>Object.assign(l,{iid:it.id,kind:it.kind})));}
+function render(){
+  const L=allLines();
+  /* 목록 */
+  $('itemList').innerHTML=ITEMS.length?'<table class="items"><tr><th>세목</th><th>귀속 · 구분</th><th>금액(원)</th><th>납부기한</th><th></th></tr>'+
+    ITEMS.map(it=>{const ls=linesOf(it);return '<tr><td>'+KINDS[it.kind].t+'</td><td>'+esc(ttlOf(it))+' · '+esc(it.type)+'</td><td class="r">'+won(ls.reduce((s,l)=>s+l.amt,0))+'</td><td class="c">'+ls.map(l=>esc(l.due)).filter((x,i,a)=>a.indexOf(x)===i).join('<br>')+'</td><td class="c"><button class="btn sm d" onclick="delItem(\''+it.id+'\')">삭제</button></td></tr>';}).join('')+'</table>':'<div class="empty">아직 넣은 항목이 없습니다</div>';
+  /* 안내서 */
+  const name=v('tName')||'(납세자)', idv=fmtId(v('tId')), dt=v('tDate')||today;
+  const tot=L.reduce((s,l)=>s+l.amt,0);
+  const chs=[...new Set(L.map(l=>l.ch))];
+  const shifted=L.filter(l=>l.legal&&l.legal!==l.due);
+  $('doc').innerHTML=
+    '<div class="hd"><span class="co">세무법인 한백택스</span><span class="dt">안내일 '+kdate(dt)+'</span></div>'+
+    '<h1>세금 납부 안내서</h1>'+
+    '<div class="stamp">※ 납부 금액·기한 안내용입니다. 금융기관 수납용 납부서가 아닙니다.</div>'+
+    '<table class="who"><tr><th>상호 · 성명</th><td>'+esc(name)+'</td><th>대표자</th><td>'+esc(v('tCeo'))+'</td></tr>'+
+    '<tr><th>사업자 · 주민번호</th><td>'+esc(idv)+'</td><th>연락처</th><td>'+esc(v('tTel'))+'</td></tr></table>'+
+    '<h2>납부하실 세금</h2>'+
+    (L.length?'<table><tr><th>세목</th><th>귀속 · 구분</th><th>납부금액 (원)</th><th>납부기한</th><th>납부처</th></tr>'+
+      L.map(l=>'<tr><td>'+esc(l.tax)+(l.det?'<br><span style="font-size:10.5pt;color:#555">'+esc(l.det)+'</span>':'')+'</td><td>'+esc(l.per)+'<br><span style="font-size:10.5pt;color:#555">'+esc(l.tp)+'</span></td><td class="r">'+won(l.amt)+'</td><td class="c nw">'+kdate(l.due)+'</td><td class="c nw">'+esc(l.ch)+'</td></tr>').join('')+
+      '<tr class="tot"><td colspan="2" class="c">합 계</td><td class="r">'+won(tot)+'</td><td colspan="2"></td></tr></table>'
+     :'<p class="empty">왼쪽에서 납부 항목을 넣으십시오.</p>')+
+    (shifted.length?'<p style="font-size:10.5pt;color:#555;margin-top:4px">기한이 토·일·공휴일이면 다음 영업일로 옮겨 적었습니다(국세기본법 제5조).</p>':'')+
+    '<h2>납부 방법</h2><ul>'+
+    (chs.includes('홈택스')?'<li><b>국세(홈택스)</b> — 홈택스·손택스의 「납부·고지·환급 → 납부」에서 납부합니다. 저희가 보내 드리는 <b>납부서(납부번호)</b>로 계좌이체(본인 명의)·신용카드·인터넷뱅킹·은행 창구 납부가 됩니다. 카드 수수료는 신용카드 0.7%, 체크카드 0.4%입니다(영세 사업자 부가세·종소세는 더 낮음).</li>':'')+
+    (chs.includes('위택스')?'<li><b>지방소득세(위택스)</b> — 위택스(wetax.go.kr)·스마트위택스 또는 은행 앱의 지방세 납부에서 냅니다. 위 표의 기한까지 냅니다.</li>':'')+
+    (chs.includes('공단 고지')?'<li><b>4대보험료</b> — 공단 고지서의 가상계좌, 사회보험 통합징수포털(si4n.nhis.or.kr)의 즉시이체·카드, 또는 자동이체로 냅니다. 홈택스로는 낼 수 없습니다.</li>':'')+
+    '<li>기한을 넘기면 납부지연가산세가 붙습니다. 자금 사정으로 기한 내 납부가 어려우면 기한 전에 담당자에게 알려 주십시오.</li></ul>'+
+    '<h2>문의</h2><p>담당 '+esc(v('tStaff')||'세무법인 한백택스')+' · 전화 02-2277-3101 · hb090@hanbaektax.kr</p>'+
+    '<div class="foot"><b>세무법인 한백택스</b> · 서울특별시 중구 동호로 315, 신안빌딩 2층<br>전화 02-2277-3101 · 팩스 02-2277-3161 · hb090@hanbaektax.kr · hb3101@nate.com</div>';
+  /* 홈택스 입력값 */
+  const N=L.filter(l=>l.ch==='홈택스'), W=L.filter(l=>l.ch==='위택스'), S=L.filter(l=>l.ch==='공단 고지');
+  const vv=s=>'<span class="v" onclick="copyText(this.textContent)">'+esc(s)+'</span>';
+  let h='';
+  if(!L.length)h='<div class="empty">납부 항목을 넣으면 입력할 값이 나옵니다</div>';
+  if(N.length){
+    h+='<div class="note">'+HT_PATH+'</div>';
+    /* 원천세는 소득 종류(세목)마다 납부서 1장 — 같은 세목(근로·연말정산)은 합친다 */
+    const slips=[];
+    N.forEach(l=>{const it=ITEMS.find(x=>x.id===l.iid);
+      if(l.kind==='wht'){const m={};it.rows.filter(r=>r.a).forEach(r=>{const nm=r.t==='연말정산(근로)'?'근로소득':r.t;m[nm]=(m[nm]||0)+r.a;});
+        Object.keys(m).forEach(nm=>slips.push({it,l,semok:nm+'세',code:SEMOK[nm],amt:m[nm]}));}
+      else slips.push({it,l,semok:KINDS[l.kind].ht,code:SEMOK[KINDS[l.kind].ht],amt:l.amt});});
+    slips.forEach((x,i)=>{const {it,l}=x;
+      h+='<h3>'+(i+1)+'. '+esc(x.semok)+(l.kind==='wht'?'':' '+esc(l.det||''))+'</h3><ol>'+
+      '<li>납세자번호 '+vv(fmtId(v('tId'))||'(번호 없음)')+'</li>'+
+      '<li>세목 '+vv(x.semok)+(x.code?' <span style="font-size:12px;color:var(--gray)">(세목코드 '+x.code+')</span>':'')+'</li>'+
+      '<li>귀속연월 '+vv(htPeriod(it))+(l.kind==='wht'?' <span style="font-size:12px;color:var(--gray)">지급 '+esc(htPay(it))+'</span>':'')+'</li>'+
+      '<li>결정구분 '+vv(KYUL[kyul(it)])+'</li>'+
+      '<li>납부할세액 '+vv(won(x.amt))+' · 납부기한 '+vv(l.due)+'</li></ol>';});
+    h+='<div class="note">세목코드·결정구분 번호는 참고용입니다(세목코드는 민간 정리표, 국세청 고시 원문 대조 전). 화면에서는 세목 이름으로 고릅니다.</div>';
+    h+='<div class="note">출력한 납부서를 안내서와 함께 거래처에 보내십시오. 홈택스로 전자신고한 건은 자진납부 대신 「조회납부」에 나오는 납부서를 그대로 씁니다. 기한후신고는 신고 당일이 지나면 조회납부에 나오지 않으므로 자진납부에서 직접 입력합니다(국세상담센터 FAQ).</div>';
+  }
+  if(W.length)h+='<h3>위택스 (지방소득세)</h3><ol>'+W.map(l=>'<li>'+esc(l.tax)+' '+vv(won(l.amt))+' · 기한 '+vv(l.due)+'</li>').join('')+'</ol>';
+  if(S.length)h+='<h3>4대보험료</h3><p style="font-size:13px">홈택스 입력 없음 — 공단 고지서 금액·가상계좌 그대로 안내합니다.</p>';
+  $('htBody').innerHTML=h;
+  /* 카톡 */
+  const k=L.length?(name+' 대표님, 세무법인 한백택스 '+(v('tStaff')||'')+'입니다.\n이번에 납부하실 세금 안내드립니다.\n\n'+
+    L.map(l=>'■ '+l.tax+(l.det?' '+l.det:'')+' ('+l.per+')\n  '+won(l.amt)+'원 / 기한 '+kdate(l.due)+' / '+l.ch).join('\n')+
+    '\n\n합계 '+won(tot)+'원\n'+(N.length?'국세는 보내 드리는 납부서(납부번호)로 홈택스·은행 앱에서 납부하시면 됩니다.\n':'')+
+    '기한이 지나면 가산세가 붙으니 기한 내 납부 부탁드립니다. 문의 02-2277-3101'):'';
+  $('kakao').value=k;
+}
+function htPeriod(it){if(!it)return '';switch(it.kind){
+  case 'wht':return it.cycle==='h'?(it.half.split('-')[1]==='1'?it.half.split('-')[0]+'년 1월':it.half.split('-')[0]+'년 7월'):ymK(it.ym)+'';
+  case 'vat':{const [y,p]=it.vat.split('-');return y+'년 '+(p[0])+'기 '+(p.endsWith('p')?'예정':'확정');}
+  case 'inc':return it.y+'년';
+  case 'corp':return ymK(it.ym)+' (사업연도 종료)';
+  default:return it.d?it.d.slice(0,7).replace('-','년 ')+'월':'';}}
+function htPay(it){if(it.cycle==='h'){const [y,h]=it.half.split('-');return h==='1'?y+'년 6월':y+'년 12월';}return ymK(it.ym)+'';}
+
+/* 홈택스 자진납부 경로 — 1차 확인 결과로 채움 */
+/* 1차 확인 2026-10-02: 국세상담센터 「세액납부」 FAQ(call.nts.go.kr), 손택스 자진납부 화면(입력 항목: 세목·귀속연월·결정구분·납세자번호·납부할세액·납부기한),
+   결정구분 1 확정분자납 · 2 수시분자납 · 3 중간예납·예정신고 · 4 원천분자납(국세청 양도소득세 납부서 작성요령). PC 개편 화면 메뉴명은 실화면 미확인. */
+const HT_PATH='홈택스 「납부·고지·환급 → 납부 → 자진납부」(손택스 같은 메뉴)에서 아래 값을 넣고 납부서를 출력합니다. 귀속연월은 신고서의 귀속연월과 대조하십시오. 메뉴 이름은 홈택스 개편으로 바뀔 수 있습니다.';
+const KYUL={1:'1 확정분자납',2:'2 수시분자납',3:'3 중간예납·예정신고',4:'4 원천분자납'};
+function kyul(it){if(/수정|기한후/.test(it.type))return 2;if(it.kind==='wht')return 4;if(it.type==='중간예납'||it.type==='예정'||(it.kind==='vat'&&it.vat.endsWith('p')))return 3;return 1;}
+
+/* ---------- 저장 ---------- */
+function saveDraft(){try{localStorage.setItem(LS,JSON.stringify({t:{name:v('tName'),ceo:v('tCeo'),id:v('tId'),tel:v('tTel'),staff:v('tStaff'),date:v('tDate')},items:ITEMS}));}catch(e){}}
+function loadDraft(){try{const d=JSON.parse(localStorage.getItem(LS)||'null');if(!d)return;const t=d.t||{};
+  $('tName').value=t.name||'';$('tCeo').value=t.ceo||'';$('tId').value=t.id||'';$('tTel').value=t.tel||'';$('tStaff').value=t.staff||'';$('tDate').value=t.date||'';ITEMS=d.items||[];}catch(e){}}
+
+$('tDate').value=today;
+loadDraft();fillClients();renderKinds();renderForm();chkId();render();
+window.HB_PAY={dueOf,linesOf,splitAmt,nextBiz,addMonths,ITEMS:()=>ITEMS};
+</script>
+</body>
+</html>
