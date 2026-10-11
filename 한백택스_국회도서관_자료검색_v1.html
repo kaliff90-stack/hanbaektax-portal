@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>📚 국회도서관 자료검색 | 한백택스</title>
+<meta name="description" content="국회도서관 OpenAPI로 도서·학위논문·국내기사·국회회의록 등 21종 자료를 검색하고 상세정보·목차까지 확인">
+<meta property="og:title" content="📚 국회도서관 자료검색">
+<meta property="og:description" content="통합검색 · 상세검색 · 상세정보 · 목차 · CSV 내보내기 · 세무법인 한백택스">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#1B3A5C">
+<meta name="color-scheme" content="light dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="국회도서관 검색">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<script>
+/* 랜딩(index.html)과 같은 키(hbt_theme)로 테마를 맞춘다. 깜빡임을 막기 위해 head 에서 먼저 적용 */
+(function(){
+  try{
+    var t = localStorage.getItem('hbt_theme');
+    if(!t) t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  }catch(e){ document.documentElement.setAttribute('data-theme','light'); }
+})();
+</script>
+<style>
+/* ══ 토큰 (랜딩 index.html 과 동일 체계) ══ */
+:root{
+  --navy:#1B3A5C; --blue:#2E6DA4; --gold:#C8963E;
+  --bg:#F3F5F9; --card:#FFFFFF; --card-2:#FBFCFE;
+  --txt:#22303F; --txt-2:#3A4C60; --gray:#6B7A8D; --border:#DDE4ED;
+  --head:#1B3A5C; --head-2:#24507C; --head-txt:#FFFFFF; --head-sub:#AFC4DA;
+  --bar:#12293F;
+  --input-bg:#FFF8E1; --auto-bg:#FDF2E9;
+  --ok:#2C7A6B; --ok-bg:#E3F3EF; --warn:#9A5B12; --warn-bg:#FBECC8; --bad:#B23A3A; --bad-bg:#FBE4E4;
+  --sh1:0 1px 2px rgba(27,58,92,.05), 0 2px 6px rgba(27,58,92,.06);
+  --r-s:10px; --r:14px;
+  --ff:'Nanum Gothic','Malgun Gothic','Apple SD Gothic Neo',system-ui,-apple-system,sans-serif;
+}
+html[data-theme="dark"]{
+  --bg:#101620; --card:#1A2230; --card-2:#1E2736;
+  --txt:#E6EDF5; --txt-2:#CBD8E6; --gray:#94A6BB; --border:#2C3849;
+  --head:#0D1520; --head-2:#152238; --head-txt:#F1F5F9; --head-sub:#93A9C2;
+  --bar:#0A111B; --blue:#5B9BD5; --gold:#D8A85A;
+  --input-bg:#2A2A1E; --auto-bg:#2B2420;
+  --ok:#4CA290; --ok-bg:#16322C; --warn:#E0B060; --warn-bg:#3A2E14; --bad:#E07A7A; --bad-bg:#3A1C1C;
+  --sh1:0 1px 2px rgba(0,0,0,.35), 0 2px 8px rgba(0,0,0,.28);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none !important}
+body{background:var(--bg);color:var(--txt);font-family:var(--ff);font-size:16px;line-height:1.55;min-height:100dvh;
+  padding-bottom:calc(24px + env(safe-area-inset-bottom));-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--blue)}
+
+/* ══ 머리말 (다른 계산기와 동일) ══ */
+.top-bar{background:linear-gradient(135deg,var(--head) 0%,var(--head-2) 100%);color:var(--head-txt);
+  padding:calc(14px + env(safe-area-inset-top)) 28px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.top-bar h1{font-size:24px;letter-spacing:-.5px;line-height:1.25}
+.top-bar .sub{font-size:14px;color:var(--head-sub);margin-top:3px}
+.top-bar .tag{color:var(--gold);font-weight:800;font-size:12px;text-align:right;white-space:nowrap}
+.brand-bar{background:var(--bar);color:var(--gold);text-align:center;padding:8px 12px;font-size:13px;font-weight:700;border-bottom:3px solid var(--gold)}
+.standalone-back{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;margin:14px 28px 0;transition:opacity .2s}
+.standalone-back:hover{opacity:.85}
+
+/* ══ 본문 ══ */
+.wrap{max-width:1100px;margin:0 auto;padding:16px 28px 28px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh1);padding:16px 18px;margin-bottom:16px}
+.card h2{font-size:17px;color:var(--navy);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--border)}
+html[data-theme="dark"] .card h2{color:var(--head-sub)}
+
+.btn{border:1px solid var(--border);background:var(--card-2);color:var(--txt);border-radius:8px;padding:8px 14px;font-weight:700;font-size:14px;cursor:pointer;
+  min-height:40px;transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--blue)}
+.btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}
+html[data-theme="dark"] .btn.primary{background:var(--blue);border-color:var(--blue)}
+.btn.primary:hover{opacity:.9}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* 탭 */
+.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.tab{border:1px solid var(--border);background:var(--card-2);color:var(--txt-2);border-radius:8px;padding:8px 16px;font-weight:700;font-size:14px;cursor:pointer;min-height:40px}
+.tab[aria-selected="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+html[data-theme="dark"] .tab[aria-selected="true"]{background:var(--blue);border-color:var(--blue)}
+
+/* 폼 */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.f label{display:block;font-size:13px;font-weight:700;color:var(--txt-2);margin-bottom:5px}
+.f input,.f select{width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:8px;padding:9px 11px;font-size:15px;min-height:42px}
+html[data-theme="dark"] .f input,html[data-theme="dark"] .f select{background:var(--card-2)}
+.f input:focus,.f select:focus{outline:2px solid var(--blue);outline-offset:-1px}
+.f .hint{font-size:12px;color:var(--gray);margin-top:4px}
+.row-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-top:14px}
+.row-actions .sp{flex:1}
+
+/* 상태 */
+.status{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r-s);padding:10px 14px;box-shadow:var(--sh1);margin-bottom:16px;font-size:14px;color:var(--txt-2)}
+.status b{color:var(--txt)}
+.status .sp{flex:1}
+.msg{border-radius:var(--r-s);padding:11px 14px;font-size:14px;margin-bottom:14px;border:1px solid transparent;line-height:1.6}
+.msg.ok{background:var(--ok-bg);color:var(--ok);border-color:var(--ok)}
+.msg.warn{background:var(--warn-bg);color:var(--warn);border-color:var(--warn)}
+.msg.bad{background:var(--bad-bg);color:var(--bad);border-color:var(--bad)}
+.msg code{background:rgba(0,0,0,.07);padding:1px 5px;border-radius:4px;font-size:13px}
+html[data-theme="dark"] .msg code{background:rgba(255,255,255,.12)}
+
+/* 결과 */
+.rec{border:1px solid var(--border);border-radius:var(--r-s);background:var(--card-2);padding:13px 15px;margin-bottom:10px}
+.rec .t{font-size:16px;font-weight:800;color:var(--navy);line-height:1.4;margin-bottom:7px}
+html[data-theme="dark"] .rec .t{color:var(--head-sub)}
+.rec dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 12px;font-size:14px}
+.rec dt{color:var(--gray);font-weight:700;white-space:nowrap}
+.rec dd{color:var(--txt-2);word-break:break-word}
+.rec .acts{margin-top:10px;display:flex;gap:7px;flex-wrap:wrap}
+.rec .acts .btn{min-height:34px;padding:5px 11px;font-size:13px}
+.detail{margin-top:11px;border-top:1px dashed var(--border);padding-top:11px}
+
+/* 페이지네이션 */
+.pager{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.pager .pg{font-size:14px;color:var(--txt-2);font-weight:700;padding:0 8px}
+
+details.raw{margin-top:14px;border:1px solid var(--border);border-radius:var(--r-s);background:var(--card-2)}
+details.raw summary{cursor:pointer;padding:9px 13px;font-size:13px;font-weight:700;color:var(--txt-2)}
+details.raw pre{margin:0;padding:0 13px 13px;font-size:12px;line-height:1.5;overflow-x:auto;white-space:pre-wrap;word-break:break-all;color:var(--gray);max-height:340px;overflow-y:auto}
+
+.foot{margin-top:24px;padding-top:16px;border-top:1px solid var(--border);font-size:13px;color:var(--gray);line-height:1.7;text-align:center}
+
+@media (max-width:640px){
+  .top-bar{padding-left:14px;padding-right:14px}
+  .top-bar h1{font-size:20px} .top-bar .sub{font-size:12px} .brand-bar{font-size:12px}
+  .standalone-back{margin:10px 12px 0;font-size:12px}
+  .wrap{padding:14px 14px 22px}
+  .rec dl{grid-template-columns:1fr;gap:2px}
+  .rec dt{margin-top:6px}
+}
+@media print{
+  .top-bar .tag,.standalone-back,.tabs,.row-actions,.pager,details.raw,.rec .acts{display:none !important}
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div>
+    <h1>세무법인 한백택스</h1>
+    <div class="sub">대표세무사 차재영 | 서울특별시 중구 동호로 315, 2층</div>
+  </div>
+  <div class="tag">국회도서관 자료검색 v1</div>
+</div>
+<div class="brand-bar">HANBAEK TAX — 국회도서관 자료검색 (통합검색 · 상세검색 · 상세정보 · 목차)</div>
+
+<a class="standalone-back" href="index.html">← 세무 도구 모음</a>
+
+<main class="wrap">
+
+  <div class="status" role="status" aria-live="polite">
+    <span>출처 <b>국회도서관 OpenAPI</b></span>
+    <span class="sp"></span>
+    <span id="keyState">인증키 확인 중…</span>
+    <button class="btn" id="btnKey" type="button">인증키 설정</button>
+  </div>
+
+  <div id="msg" hidden></div>
+
+  <section class="card">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tabBasic"  aria-selected="true"  type="button">통합검색</button>
+      <button class="tab" role="tab" id="tabDetail" aria-selected="false" type="button">상세검색</button>
+    </div>
+
+    <!-- 통합검색 -->
+    <div id="paneBasic">
+      <div class="grid">
+        <div class="f">
+          <label for="bCat">검색항목</label>
+          <select id="bCat">
+            <option value="전체" selected>전체</option>
+            <option value="자료명">자료명</option>
+            <option value="저자">저자</option>
+            <option value="발행자">발행자</option>
+            <option value="키워드">키워드</option>
+            <option value="청구기호">청구기호</option>
+          </select>
+        </div>
+        <div class="f" style="grid-column:span 2;min-width:0">
+          <label for="bKw">검색어</label>
+          <input id="bKw" type="search" placeholder="예: 상속세 과세표준" autocomplete="off">
+          <div class="hint">검색항목과 검색어가 AND 로 묶입니다.</div>
+        </div>
+      </div>
+      <div class="f" style="margin-top:12px">
+        <label for="bExtra">추가조건 (선택 · <code>검색항목,검색어</code> 형태)</label>
+        <input id="bExtra" type="text" placeholder="예: 저자,홍길동" autocomplete="off">
+      </div>
+    </div>
+
+    <!-- 상세검색 -->
+    <div id="paneDetail" hidden>
+      <div class="grid">
+        <div class="f">
+          <label for="dDb">검색대상 DB</label>
+          <select id="dDb"></select>
+        </div>
+        <div class="f">
+          <label for="dCat">검색항목</label>
+          <select id="dCat"></select>
+        </div>
+        <div class="f" style="min-width:0">
+          <label for="dKw">검색어</label>
+          <input id="dKw" type="search" placeholder="예: 부가가치세" autocomplete="off">
+        </div>
+      </div>
+      <div class="grid" style="margin-top:12px">
+        <div class="f">
+          <label for="dYFrom">발행년도 시작 (선택)</label>
+          <input id="dYFrom" type="number" inputmode="numeric" placeholder="2000" min="1000" max="2100">
+        </div>
+        <div class="f">
+          <label for="dYTo">발행년도 종료 (선택)</label>
+          <input id="dYTo" type="number" inputmode="numeric" placeholder="2026" min="1000" max="2100">
+          <div class="hint">시작만 넣으면 그 해부터 현재까지 검색합니다.</div>
+        </div>
+        <div class="f">
+          <label for="dFull">원문 유무 (선택)</label>
+          <select id="dFull">
+            <option value="" selected>지정 안 함</option>
+            <option value="1">원문 있는 자료만</option>
+            <option value="0">원문 없는 자료만</option>
+          </select>
+        </div>
+      </div>
+      <div class="hint" style="margin-top:10px;font-size:12px;color:var(--gray)">
+        검색항목은 DB마다 지원 범위가 다릅니다. 결과가 0건이면 <b>전체항목</b>으로 바꿔 다시 시도해 보십시오.
+      </div>
+    </div>
+
+    <div class="row-actions">
+      <div class="f" style="width:150px">
+        <label for="lines">페이지당 건수</label>
+        <select id="lines">
+          <option>10</option><option selected>20</option><option>50</option><option>100</option>
+        </select>
+      </div>
+      <span class="sp"></span>
+      <button class="btn" id="btnCsv" type="button" disabled>CSV 내려받기</button>
+      <button class="btn primary" id="btnSearch" type="button">검색</button>
+    </div>
+  </section>
+
+  <section class="card" id="resultCard" hidden>
+    <h2 id="resultHead">검색 결과</h2>
+    <div id="results"></div>
+    <div class="pager" id="pager" hidden>
+      <button class="btn" id="btnPrev" type="button">← 이전</button>
+      <span class="pg" id="pgLabel"></span>
+      <button class="btn" id="btnNext" type="button">다음 →</button>
+    </div>
+    <details class="raw" id="rawBox" hidden>
+      <summary>응답 원문(XML) 보기 — 항목이 비어 보일 때 확인용</summary>
+      <pre id="rawXml"></pre>
+    </details>
+  </section>
+
+  <footer class="foot">
+    <b>세무법인 한백택스</b> · 서울특별시 중구 동호로 315, 신안빌딩 2층<br>
+    전화 02-2277-3101 · 팩스 02-2277-3161 · hb090@hanbaektax.kr · hb3101@naver.com<br>
+    <span>자료는 국회도서관 OpenAPI 가 제공하는 서지정보이며, 원문 이용 조건은 국회도서관 규정을 따릅니다.</span>
+  </footer>
+</main>
+
+<!-- 인증키 로컬 파일 (선택). .gitignore 로 차단되어 공개 사이트에는 배포되지 않으므로
+     여기서 404 가 나는 것은 정상이며 화면 동작에는 영향이 없다. -->
+<script src="nanet-key.local.js" onerror="void 0"></script>
+
+<script>
+'use strict';
+
+/* ════════════════════════════════════════════════════════════════
+   국회도서관 OpenAPI 인증키
+   ──────────────────────────────────────────────────────────────
+   공공데이터포털(data.go.kr)에서 「국회도서관_자료검색서비스」 활용신청 후
+   받은 일반 인증키(Encoding)를 아래 따옴표 안에 넣으십시오.
+
+   [주의] 이 파일은 GitHub Pages 공개 저장소에 배포됩니다. 여기에 키를 적으면
+   페이지 소스를 보는 누구나 키를 볼 수 있습니다. 비워 두면 화면에서 직접
+   입력받아 이 브라우저에만(localStorage) 저장합니다.
+   ════════════════════════════════════════════════════════════════ */
+var SERVICE_KEY = '';
+
+var API = {
+  basic : 'https://apis.data.go.kr/9720000/searchservice/basic',
+  detail: 'https://apis.data.go.kr/9720000/searchservice/detail',
+  info  : 'https://apis.data.go.kr/9720000/detailinfoservice/detail',
+  toc   : 'https://apis.data.go.kr/9720000/detailinfoservice/toc'
+};
+
+var LS_KEY = 'hbt_nanet_key';
+
+/* 국회도서관 명세의 검색대상 DB 21종 */
+var DBS = ['일반도서','학위논문','국내기사','국외기사','학술지,잡지','신문','E-BOOK','고서',
+  '세미나자료','웹자료','전자매체','전자저널','국회의안정보','국회회의록','외국법률번역DB',
+  '표,그림DB','지식공유','동영상자료','오디오자료','마이크로폼자료','지도/기타자료'];
+
+/* 일반도서 기준 검색항목(대부분의 DB 공통). DB 별로 일부는 미지원 */
+var CATS = ['전체항목','자료명','저자명','발행자','키워드','목차','ISBN','ISSN','DDC',
+  'CIS/UNSA','청구기호','본문언어','DDC분류','저작권허락','초록유무','발행년도','별치기호',
+  '원문DB유무','음성지원유무'];
+
+function $(id){ return document.getElementById(id); }
+var mode = 'basic';      /* basic | detail */
+var page = 1;
+var lastRows = [];       /* CSV 용 */
+var lastTotal = 0;
+
+/* ── 인증키 ───────────────────────────────────────────── */
+/* 우선순위: ① 로컬 키 파일(nanet-key.local.js) → ② 이 파일의 SERVICE_KEY → ③ 브라우저 저장값 */
+function getKey(){
+  try { if (window.NANET_KEY && String(window.NANET_KEY).trim()) return String(window.NANET_KEY).trim(); } catch(e){}
+  if (SERVICE_KEY && SERVICE_KEY.trim()) return SERVICE_KEY.trim();
+  try { return (localStorage.getItem(LS_KEY) || '').trim(); } catch(e){ return ''; }
+}
+/* 키 출처 표기 — 어디서 읽혔는지 화면에 그대로 보여 준다 */
+function keySource(){
+  try { if (window.NANET_KEY && String(window.NANET_KEY).trim()) return '로컬 파일'; } catch(e){}
+  if (SERVICE_KEY && SERVICE_KEY.trim()) return '파일 내 지정';
+  try { if ((localStorage.getItem(LS_KEY) || '').trim()) return '이 브라우저'; } catch(e){}
+  return '';
+}
+function paintKeyState(){
+  var k = getKey(), el = $('keyState');
+  if (!k){
+    el.innerHTML = '인증키 <b style="color:var(--bad)">미설정</b>';
+    $('btnKey').textContent = '인증키 설정';
+  } else {
+    el.innerHTML = '인증키 <b style="color:var(--ok)">설정됨</b> · ' + esc(keySource()) +
+                   ' (…' + esc(k.slice(-6)) + ')';
+    $('btnKey').textContent = '인증키 변경';
+  }
+}
+$('btnKey').addEventListener('click', function(){
+  try{
+    if (window.NANET_KEY && String(window.NANET_KEY).trim()){
+      show('warn','인증키를 로컬 파일 <code>nanet-key.local.js</code> 에서 읽고 있습니다. ' +
+        '바꾸시려면 그 파일의 <code>window.NANET_KEY</code> 값을 수정하고 새로고침하십시오.');
+      return;
+    }
+  }catch(e){}
+  if (SERVICE_KEY && SERVICE_KEY.trim()){
+    show('warn','인증키가 이 파일 안에 직접 지정되어 있습니다. 바꾸려면 파일 상단의 <code>SERVICE_KEY</code> 값을 수정하십시오.');
+    return;
+  }
+  var cur = getKey();
+  var v = window.prompt('공공데이터포털에서 발급받은 국회도서관 인증키(Encoding)를 붙여넣으십시오.\n\n이 브라우저에만 저장되며 외부로 전송되지 않습니다.', cur);
+  if (v === null) return;
+  try{
+    if (v.trim()) localStorage.setItem(LS_KEY, v.trim());
+    else localStorage.removeItem(LS_KEY);
+  }catch(e){
+    show('bad','이 브라우저에서 저장소를 쓸 수 없습니다. 시크릿 모드라면 일반 창에서 다시 시도하십시오.');
+  }
+  paintKeyState();
+  hideMsg();
+});
+
+/* ── 화면 도우미 ──────────────────────────────────────── */
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function show(kind, html){
+  var m = $('msg');
+  m.className = 'msg ' + kind;
+  m.innerHTML = html;
+  m.hidden = false;
+}
+function hideMsg(){ $('msg').hidden = true; }
+
+/* ── 셀렉트 채우기 ────────────────────────────────────── */
+(function initSelects(){
+  $('dDb').innerHTML  = DBS.map(function(d){ return '<option>' + esc(d) + '</option>'; }).join('');
+  $('dCat').innerHTML = CATS.map(function(c){ return '<option>' + esc(c) + '</option>'; }).join('');
+})();
+
+/* ── 탭 ───────────────────────────────────────────────── */
+function setMode(m){
+  mode = m;
+  $('tabBasic').setAttribute('aria-selected',  m === 'basic'  ? 'true' : 'false');
+  $('tabDetail').setAttribute('aria-selected', m === 'detail' ? 'true' : 'false');
+  $('paneBasic').hidden  = (m !== 'basic');
+  $('paneDetail').hidden = (m !== 'detail');
+}
+$('tabBasic').addEventListener('click',  function(){ setMode('basic'); });
+$('tabDetail').addEventListener('click', function(){ setMode('detail'); });
+
+/* ── 검색 조건 조립 ───────────────────────────────────── */
+function buildSearch(){
+  var parts = [];
+  if (mode === 'basic'){
+    var kw = $('bKw').value.trim();
+    if (!kw) return null;
+    parts.push($('bCat').value + ',' + kw);
+    var ex = $('bExtra').value.trim();
+    if (ex){
+      if (ex.indexOf(',') < 0){
+        return { err: '추가조건은 <code>검색항목,검색어</code> 형태로 넣어야 합니다. 예) <code>저자,홍길동</code>' };
+      }
+      parts.push(ex);
+    }
+  } else {
+    var dkw = $('dKw').value.trim();
+    if (!dkw) return null;
+    parts.push($('dCat').value + ',' + dkw);
+  }
+  return parts.join('|');
+}
+function buildOption(){
+  var parts = [];
+  var yf = $('dYFrom').value.trim(), yt = $('dYTo').value.trim();
+  if (yf) parts.push('발행년도,' + yf);
+  if (yf && yt) parts.push('발행년도,' + yt);
+  var full = $('dFull').value;
+  if (full !== '') parts.push('원문유무,' + full);
+  return parts.join('|');
+}
+
+/* ── XML 파싱 ─────────────────────────────────────────── */
+function textOf(node, tag){
+  var el = node.getElementsByTagName(tag)[0];
+  return el ? (el.textContent || '').trim() : '';
+}
+/* record → { 항목명: 값 } */
+function recordToObj(rec){
+  var obj = {}, i;
+  var items = rec.getElementsByTagName('item');
+  for (i = 0; i < items.length; i++){
+    var n = textOf(items[i], 'name');
+    var v = textOf(items[i], 'value');
+    if (n) obj[n] = v;
+  }
+  /* item 구조가 아닌 응답이면 자식 요소를 그대로 담는다 */
+  if (!items.length){
+    var kids = rec.children;
+    for (i = 0; i < kids.length; i++){
+      obj[kids[i].tagName] = (kids[i].textContent || '').trim();
+    }
+  }
+  return obj;
+}
+/* data.go.kr 공통 오류 봉투 해석 */
+function apiError(doc){
+  var em = textOf(doc, 'errMsg') || textOf(doc, 'returnAuthMsg');
+  var rc = textOf(doc, 'returnReasonCode');
+  if (em) return em + (rc ? ' (코드 ' + rc + ')' : '');
+  var code = textOf(doc, 'resultCode') || textOf(doc, 'CODE');
+  var m = textOf(doc, 'resultMsg') || textOf(doc, 'MESSAGE');
+  if (code && code !== '00' && code !== 'SUCCESS' && m) return m + ' (코드 ' + code + ')';
+  return '';
+}
+function hintFor(errText){
+  var t = String(errText);
+  if (/NOT_REGISTERED|ERROR01|유효하지/.test(t))
+    return '발급받은 인증키가 아직 등록·승인되지 않았거나 값이 잘못되었습니다. 공공데이터포털의 <b>일반 인증키(Encoding)</b>를 그대로 넣었는지 확인하십시오. 신규 승인 직후에는 반영까지 1시간가량 걸릴 수 있습니다.';
+  if (/LIMITED_NUMBER|ERROR09|트래픽/.test(t))
+    return '일일 허용 호출 건수를 초과했습니다. 자정 이후 초기화되며, 필요하면 포털에서 증량을 신청하십시오.';
+  if (/IP|ERROR11/.test(t))
+    return '허용되지 않은 IP 입니다. 포털 활용신청 정보에 등록한 IP 를 확인하십시오.';
+  if (/DEADLINE|기간만료/.test(t))
+    return '활용신청 기간이 만료되었습니다. 포털에서 연장 신청이 필요합니다.';
+  return '';
+}
+
+/* ── 검색 실행 ────────────────────────────────────────── */
+function runSearch(){
+  var key = getKey();
+  if (!key){
+    show('bad','인증키가 없습니다. 위쪽 <b>인증키 설정</b>을 눌러 공공데이터포털에서 발급받은 키를 넣으십시오.');
+    return;
+  }
+  var s = buildSearch();
+  if (s === null){ show('warn','검색어를 입력하십시오.'); return; }
+  if (s && s.err){ show('warn', s.err); return; }
+
+  var lines = $('lines').value;
+  var url = new URL(mode === 'basic' ? API.basic : API.detail);
+  url.searchParams.set('pageno', String(page));
+  url.searchParams.set('displaylines', lines);
+  url.searchParams.set('search', s);
+  if (mode === 'detail'){
+    url.searchParams.set('dbname', $('dDb').value);
+    var opt = buildOption();
+    if (opt) url.searchParams.set('option', opt);
+  }
+  /* 인증키는 이미 URL 인코딩된 값이므로 문자열로 직접 덧붙인다 (이중 인코딩 방지) */
+  var finalUrl = url.toString() + '&ServiceKey=' + key;
+
+  $('btnSearch').disabled = true;
+  $('btnSearch').textContent = '검색 중…';
+  hideMsg();
+
+  fetch(finalUrl, { headers: { 'Accept': 'application/xml' } })
+    .then(function(res){ return res.text(); })
+    .then(function(txt){
+      $('rawXml').textContent = txt.slice(0, 20000);
+      $('rawBox').hidden = false;
+
+      var doc = new DOMParser().parseFromString(txt, 'application/xml');
+      if (doc.getElementsByTagName('parsererror').length){
+        show('bad','응답을 XML 로 해석하지 못했습니다. 아래 <b>응답 원문</b>을 확인하십시오.');
+        $('resultCard').hidden = false;
+        return;
+      }
+      var err = apiError(doc);
+      if (err){
+        var h = hintFor(err);
+        show('bad','<b>국회도서관 API 오류</b> — ' + esc(err) + (h ? '<br>' + h : ''));
+        $('resultCard').hidden = false;
+        $('results').innerHTML = '';
+        $('pager').hidden = true;
+        return;
+      }
+
+      var recs = doc.getElementsByTagName('record');
+      lastTotal = parseInt((textOf(doc,'total') || '0').replace(/[^0-9]/g,''), 10) || 0;
+      lastRows = [];
+      for (var i = 0; i < recs.length; i++) lastRows.push(recordToObj(recs[i]));
+
+      render();
+      if (!lastRows.length){
+        show('warn','검색 결과가 없습니다. 검색항목을 <b>전체</b>(상세검색은 <b>전체항목</b>)로 바꾸거나 검색어를 줄여 보십시오.');
+      }
+    })
+    .catch(function(e){
+      show('bad','호출에 실패했습니다 — ' + esc(e && e.message ? e.message : String(e)) +
+        '<br>네트워크 차단이나 국회도서관 서버 점검일 수 있습니다. 잠시 후 다시 시도하십시오.');
+    })
+    .then(function(){
+      $('btnSearch').disabled = false;
+      $('btnSearch').textContent = '검색';
+    });
+}
+
+/* ── 결과 렌더 ────────────────────────────────────────── */
+var TITLE_KEYS = ['자료명','자료명/저자사항','기사명','제목','회의록명','의안명'];
+function titleOf(o){
+  var i, k;
+  for (i = 0; i < TITLE_KEYS.length; i++){ if (o[TITLE_KEYS[i]]) return o[TITLE_KEYS[i]]; }
+  for (k in o){ if (o[k]) return o[k]; }
+  return '(제목 없음)';
+}
+function render(){
+  var box = $('results');
+  var lines = parseInt($('lines').value, 10);
+  $('resultCard').hidden = false;
+  $('resultHead').textContent = '검색 결과 — 전체 ' + lastTotal.toLocaleString('ko-KR') + '건';
+  $('btnCsv').disabled = !lastRows.length;
+
+  box.innerHTML = lastRows.map(function(o, idx){
+    var ctrl = o['제어번호'] || '';
+    var dl = Object.keys(o).filter(function(k){ return k !== '제어번호' && o[k]; })
+      .map(function(k){ return '<dt>' + esc(k) + '</dt><dd>' + esc(o[k]) + '</dd>'; }).join('');
+    return '<div class="rec">' +
+      '<div class="t">' + ((page - 1) * lines + idx + 1) + '. ' + esc(titleOf(o)) + '</div>' +
+      '<dl>' + dl + (ctrl ? '<dt>제어번호</dt><dd>' + esc(ctrl) + '</dd>' : '') + '</dl>' +
+      (ctrl ? '<div class="acts">' +
+        '<button class="btn" type="button" data-info="' + esc(ctrl) + '">상세정보</button>' +
+        '<button class="btn" type="button" data-toc="' + esc(ctrl) + '">목차</button>' +
+        '<a class="btn" style="text-decoration:none;display:inline-flex;align-items:center" target="_blank" rel="noopener" ' +
+          'href="https://dl.nanet.go.kr/search/searchInnerDetail.do?controlNo=' + encodeURIComponent(ctrl) + '">국회도서관에서 보기 ↗</a>' +
+      '</div><div class="detail" data-slot="' + esc(ctrl) + '" hidden></div>' : '') +
+    '</div>';
+  }).join('');
+
+  var maxPage = Math.max(1, Math.ceil(lastTotal / lines));
+  $('pager').hidden = lastTotal <= lines;
+  $('pgLabel').textContent = page + ' / ' + maxPage + ' 쪽';
+  $('btnPrev').disabled = (page <= 1);
+  $('btnNext').disabled = (page >= maxPage);
+}
+
+/* ── 상세정보 · 목차 ──────────────────────────────────── */
+function loadSub(kind, ctrl, slot){
+  var key = getKey();
+  var url = (kind === 'toc' ? API.toc : API.info) +
+    '?controlno=' + encodeURIComponent(ctrl) + '&ServiceKey=' + key;
+  slot.hidden = false;
+  slot.innerHTML = '<span style="color:var(--gray);font-size:14px">불러오는 중…</span>';
+  fetch(url, { headers: { 'Accept': 'application/xml' } })
+    .then(function(res){ return res.text(); })
+    .then(function(txt){
+      var doc = new DOMParser().parseFromString(txt, 'application/xml');
+      var err = apiError(doc);
+      if (err){ slot.innerHTML = '<span style="color:var(--bad);font-size:14px">' + esc(err) + '</span>'; return; }
+      var recs = doc.getElementsByTagName('record');
+      if (!recs.length){
+        slot.innerHTML = '<span style="color:var(--gray);font-size:14px">제공되는 ' + (kind === 'toc' ? '목차' : '상세정보') + '가 없습니다.</span>';
+        return;
+      }
+      var html = '';
+      for (var i = 0; i < recs.length; i++){
+        var o = recordToObj(recs[i]);
+        html += '<dl>' + Object.keys(o).filter(function(k){ return o[k]; })
+          .map(function(k){ return '<dt>' + esc(k) + '</dt><dd>' + esc(o[k]) + '</dd>'; }).join('') + '</dl>';
+      }
+      slot.innerHTML = html;
+    })
+    .catch(function(e){
+      slot.innerHTML = '<span style="color:var(--bad);font-size:14px">불러오지 못했습니다 — ' + esc(e.message || e) + '</span>';
+    });
+}
+$('results').addEventListener('click', function(ev){
+  var b = ev.target.closest('button[data-info],button[data-toc]');
+  if (!b) return;
+  var isToc = b.hasAttribute('data-toc');
+  var ctrl = isToc ? b.getAttribute('data-toc') : b.getAttribute('data-info');
+  var kind = isToc ? 'toc' : 'info';
+  var slots = $('results').querySelectorAll('.detail');
+  var slot = null;
+  for (var i = 0; i < slots.length; i++){
+    if (slots[i].getAttribute('data-slot') === ctrl){ slot = slots[i]; break; }
+  }
+  if (!slot) return;
+  if (!slot.hidden && slot.getAttribute('data-kind') === kind){ slot.hidden = true; return; }
+  slot.setAttribute('data-kind', kind);
+  loadSub(kind, ctrl, slot);
+});
+
+/* ── 페이지 이동 ──────────────────────────────────────── */
+$('btnPrev').addEventListener('click', function(){
+  if (page > 1){ page--; runSearch(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+});
+$('btnNext').addEventListener('click', function(){
+  page++; runSearch(); window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+$('btnSearch').addEventListener('click', function(){ page = 1; runSearch(); });
+['bKw','bExtra','dKw'].forEach(function(id){
+  $(id).addEventListener('keydown', function(e){ if (e.key === 'Enter'){ page = 1; runSearch(); } });
+});
+
+/* ── CSV 내려받기 (엑셀 호환: BOM + CRLF) ─────────────── */
+$('btnCsv').addEventListener('click', function(){
+  if (!lastRows.length) return;
+  var cols = [];
+  lastRows.forEach(function(o){
+    Object.keys(o).forEach(function(k){ if (cols.indexOf(k) < 0) cols.push(k); });
+  });
+  var q = function(v){ return '"' + String(v == null ? '' : v).replace(/"/g,'""') + '"'; };
+  var rows = [cols.map(q).join(',')];
+  lastRows.forEach(function(o){
+    rows.push(cols.map(function(c){ return q(o[c]); }).join(','));
+  });
+  var csv = '﻿' + rows.join('\r\n') + '\r\n';
+  var kw = (mode === 'basic' ? $('bKw').value : $('dKw').value).trim().replace(/[\\/:*?"<>|]/g,'') || '검색결과';
+  var d = new Date(), p = function(n){ return String(n).padStart(2,'0'); };
+  var name = '국회도서관_' + kw + '_' + d.getFullYear() + p(d.getMonth()+1) + p(d.getDate()) + '.csv';
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+  a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+});
+
+/* ── 시작 ─────────────────────────────────────────────── */
+paintKeyState();
+setMode('basic');
+if (!getKey()){
+  show('warn','처음이시면 <b>인증키 설정</b>을 먼저 눌러 주십시오. ' +
+    '공공데이터포털에서 「국회도서관_자료검색서비스」 활용신청 후 받은 <b>일반 인증키(Encoding)</b>를 넣으면 됩니다.');
+}
+</script>
+</body>
+</html>

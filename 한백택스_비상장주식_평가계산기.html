@@ -303,10 +303,10 @@ input.dauto,select.dauto{background:#eefbe7!important;border-color:#86c96b!impor
 <section class="card docup nopr" id="docUp" data-nogate>
   <h2>📎 서류 올려서 채우기 <span style="font-size:13px;font-weight:400;color:var(--gray)">(선택 — 직접 입력해도 됩니다)</span></h2>
   <div class="drop" id="docDrop">
-    <b>사업자등록증 · 법인 등기부등본 · 재무제표 · 법인세 세액조정계산서 · 소득금액조정합계표 · 법인지방소득세 신고서</b> PDF·사진을 여러 개 한꺼번에 끌어 놓거나
+    <b>사업자등록증 · 법인 등기부등본 · 재무제표 · 법인세 세액조정계산서 · 소득금액조정합계표 · 법인지방소득세 신고서</b> PDF·사진·압축(zip) 파일을 여러 개 한꺼번에 끌어 놓거나
     <button type="button" class="btn sm" id="docBtn">파일 선택</button>
-    <input type="file" id="docPick" accept=".pdf,.jpg,.jpeg,.png" multiple hidden>
-    <div class="dnote">서류 종류와 사업연도를 알아서 가려 법인명·대표자·사업자번호·설립일·발행주식 총수, 자산·부채·부동산 장부금액, 3년 각 사업연도 소득·법인세·가감 항목을 채웁니다. 채운 칸은 연두색입니다. 반드시 원본과 대조하십시오. 파일은 이 브라우저에서만 읽고 어디에도 보내지 않습니다. 스캔본·사진은 OCR로 읽습니다(쪽당 30~60초).</div>
+    <input type="file" id="docPick" accept=".pdf,.jpg,.jpeg,.png,.zip" multiple hidden>
+    <div class="dnote">서류 종류와 사업연도를 알아서 가려 법인명·대표자·사업자번호·설립일·발행주식 총수, 자산·부채·부동산 장부금액, 3년 각 사업연도 소득·법인세·가감 항목을 채웁니다. 홈택스·세무사랑에서 신고서를 한 파일로 받은 PDF도 쪽마다 서류를 가려 읽습니다. 채운 칸은 연두색입니다. 반드시 원본과 대조하십시오. 파일은 이 브라우저에서만 읽고 어디에도 보내지 않습니다. 스캔본·사진은 OCR로 읽습니다(쪽당 30~60초).</div>
   </div>
   <div id="docList"></div>
   <pre class="dlog" id="docLog"></pre>
@@ -796,12 +796,29 @@ E.sharesOf=function(lines){const ns=lines.join('').replace(/\s+/g,'');const m=ns
 /* 서류 종류 — 세무 서식은 「사업자등록번호」가 들어 있어 회사 서류보다 먼저 가린다 */
 E.kind=function(lines){
   const ns=lines.join('').replace(/\s+/g,'');
+  /* 접수증·제출 서류 목록은 서식 이름을 여럿 늘어놓을 뿐 값이 없다 */
+  if(/접수증/.test(ns)||[/소득금액조정합계표/,/법인세과세표준및세액조정계산서/,/재무상태표|대차대조표/,/법인지방소득세/].filter(r=>r.test(ns)).length>=2)return '';
   if(/소득금액조정합계표/.test(ns))return 'adj';
   if(/법인지방소득세/.test(ns)&&/과세표준/.test(ns))return 'local';
   if(/농어촌특별세과세표준및세액/.test(ns))return 'rural';
   if(/세액조정계산서/.test(ns))return 'corp';
   if(/재무상태표|대차대조표|손익계산서/.test(ns))return 'fs';
-  const d=E.parseCoDoc(lines).docType;return d||'';
+  const d=E.parseCoDoc(lines).docType;
+  /* 신고서·접수증 쪽은 「사업자등록번호」가 있어도 사업자등록증이 아니다 */
+  if(d==='biz'&&!/사업자등록증/.test(ns)&&/신고서|계산서|명세서|합계표|접수증|별지|서식/.test(ns))return '';
+  return d||'';
+};
+/* 여러 서식을 묶은 PDF(홈택스·세무사랑 신고서 일괄 출력) → 쪽마다 종류를 가려 같은 서류끼리 묶는다.
+ * 제목이 없는 쪽은 앞 서류의 이어지는 쪽으로 보되, 다른 서식 제목이 보이면 버린다.
+ * pages: [[줄...], ...] → [{kind, from, to, lines}] (쪽 번호는 1부터) */
+E.splitPages=function(pages){
+  const g=[];let cur=null;
+  pages.forEach((lines,i)=>{const k=E.kind(lines),p=i+1;
+    if(k){if(cur&&cur.kind===k&&cur.to===p-1){cur.to=p;cur.lines=cur.lines.concat(lines);}else{cur={kind:k,from:p,to:p,lines:lines.slice()};g.push(cur);}return;}
+    const head=lines.slice(0,6).join('').replace(/\s+/g,'');
+    if(cur&&cur.to===p-1&&!/명세서|계산서|신고서|조서|증명서|확인서|접수증|별지/.test(head)){cur.to=p;cur.lines=cur.lines.concat(lines);}
+    else cur=null;});
+  return g;
 };
 /* 줄에서 제목 뒤 첫 금액. 괄호 속 계산식 (104+105-106)·(108=106) 과 과목 코드(2~3자리)는 건너뛴다 */
 E.amtAfter=function(lines,keys){
@@ -1170,45 +1187,87 @@ function loadJs(src){return new Promise((ok,no)=>{const s=document.createElement
 async function needPdf(){if(!window.pdfjsLib)await loadJs(PDFV+'pdf.min.js');pdfjsLib.GlobalWorkerOptions.workerSrc=PDFV+'pdf.worker.min.js';}
 async function needTess(){if(!window.Tesseract)await loadJs('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');}
 const ocrLines=t=>t.split('\n').map(l=>l.replace(/[|]/g,' ').replace(/(\d)\s*[.,]\s*(\d{3})/g,'$1,$2')).filter(x=>x.trim());
-async function pdfLines(f){
+/* 쪽마다 글자층을 줄로 모은다. 글자층이 빈약한 쪽(스캔본)은 ok=false → 그 쪽만 OCR */
+async function pdfPages(f){
   await needPdf();const doc=await pdfjsLib.getDocument({data:await f.arrayBuffer(),cMapUrl:DIST+'cmaps/',cMapPacked:true,standardFontDataUrl:DIST+'standard_fonts/'}).promise;
-  const pages=[];let ch=0,hg=0;
-  for(let p=1;p<=doc.numPages;p++){const tc=await (await doc.getPage(p)).getTextContent();const rs=[];
+  const pages=[];
+  for(let p=1;p<=doc.numPages;p++){const tc=await (await doc.getPage(p)).getTextContent();const rs=[];let ch=0,hg=0;
     tc.items.forEach(it=>{if(!it.str||!it.str.trim())return;ch+=it.str.length;hg+=(it.str.match(/[가-힣]/g)||[]).length;const x=it.transform[4],y=it.transform[5];
       let r=rs.find(r=>Math.abs(r.y-y)<3);if(!r){r={y,items:[]};rs.push(r);}r.items.push({x,s:it.str,w:it.width||0});});
     rs.sort((a,b)=>b.y-a.y).forEach(r=>r.items.sort((a,b)=>a.x-b.x));
-    pages.push(rs.map(r=>{let s='',px=null;r.items.forEach(it=>{if(px!=null&&it.x-px>2)s+=' ';s+=it.s;px=it.x+it.w;});return s;}));}
-  return {doc,pages,ok:ch>=30&&hg>=10};
+    pages.push({ok:ch>=30&&hg>=10,lines:rs.map(r=>{let s='',px=null;r.items.forEach(it=>{if(px!=null&&it.x-px>2)s+=' ';s+=it.s;px=it.x+it.w;});return s;})});}
+  return {doc,pages};
 }
-async function ocrPdf(doc){
-  await needTess();const w=await Tesseract.createWorker('kor+eng');await w.setParameters({tessedit_pageseg_mode:'4',preserve_interword_spaces:'1'});const out=[];
-  for(let p=1;p<=doc.numPages;p++){const page=await doc.getPage(p);const vp=page.getViewport({scale:3.5});const cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;
+async function ocrPages(doc,nums){
+  await needTess();const w=await Tesseract.createWorker('kor+eng');await w.setParameters({tessedit_pageseg_mode:'4',preserve_interword_spaces:'1'});const out={};
+  try{for(let i=0;i<nums.length;i++){const p=nums[i];const page=await doc.getPage(p);const vp=page.getViewport({scale:3.5});const cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;
     const x=cv.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,cv.width,cv.height);await page.render({canvasContext:x,viewport:vp}).promise;
-    const d=x.getImageData(0,0,cv.width,cv.height),a=d.data;for(let i=0;i<a.length;i+=4){const v=(a[i]*.3+a[i+1]*.59+a[i+2]*.11)<170?0:255;a[i]=a[i+1]=a[i+2]=v;}x.putImageData(d,0,0);
-    out.push(...ocrLines((await w.recognize(cv)).data.text));log('  OCR '+p+'/'+doc.numPages+'쪽');}
-  await w.terminate();return out;
+    const d=x.getImageData(0,0,cv.width,cv.height),a=d.data;for(let j=0;j<a.length;j+=4){const v=(a[j]*.3+a[j+1]*.59+a[j+2]*.11)<170?0:255;a[j]=a[j+1]=a[j+2]=v;}x.putImageData(d,0,0);
+    out[p]=ocrLines((await w.recognize(cv)).data.text);log('  OCR '+p+'쪽 ('+(i+1)+'/'+nums.length+')');}}
+  finally{await w.terminate();}
+  return out;
 }
 async function ocrImg(f){await needTess();const w=await Tesseract.createWorker('kor+eng');await w.setParameters({tessedit_pageseg_mode:'4',preserve_interword_spaces:'1'});const r=await w.recognize(f);await w.terminate();return ocrLines(r.data.text);}
+/* 압축 파일 — 브라우저 안에서 풀어 PDF·사진만 꺼낸다. 윈도우에서 만든 압축은 파일명이 CP949(한글 깨짐)라 UTF-8 이 아니면 EUC-KR 로 읽는다 */
+const ZIPJS='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+const OKEXT=['pdf','jpg','jpeg','png'];
+async function needZip(){if(!window.JSZip)await loadJs(ZIPJS);}
+function zName(b){const u=typeof b==='string'?Uint8Array.from(b,c=>c.charCodeAt(0)&255):Uint8Array.from(b);
+  try{return new TextDecoder('utf-8',{fatal:true}).decode(u);}catch(e){try{return new TextDecoder('euc-kr').decode(u);}catch(e2){return String.fromCharCode(...u);}}}
+async function unzip(f,depth){
+  await needZip();let z;
+  try{z=await JSZip.loadAsync(await f.arrayBuffer(),{decodeFileName:zName});}
+  catch(e){log('['+f.name+'] 압축을 풀지 못했습니다'+(/encrypt/i.test(e.message)?' — 암호가 걸린 압축입니다. 풀어서 올려 주십시오':': '+e.message));return [];}
+  const ents=Object.values(z.files).filter(e=>!e.dir&&!/(^|\/)(__MACOSX|\.)/.test(e.name));
+  log('['+f.name+'] 압축 — 파일 '+ents.length+'개');
+  const out=[],skip=[];
+  for(const e of ents){const ext=e.name.split('.').pop().toLowerCase();
+    if(ext==='zip'&&depth<2){out.push(...await unzip(new File([await e.async('blob')],e.name.split('/').pop()),depth+1));continue;}
+    if(!OKEXT.includes(ext)){skip.push(e.name.split('/').pop());continue;}
+    out.push(new File([await e.async('blob')],e.name.replace(/\//g,' › '),{type:ext==='pdf'?'application/pdf':'image/'+(ext==='jpg'?'jpeg':ext)}));}
+  if(skip.length)log('  건너뜀(PDF·JPG·PNG가 아님): '+skip.join(', '));
+  return out;
+}
+/* 읽은 서류 하나를 목록에 넣는다. 다른 파일에서 같은 내용을 이미 읽었으면(압축과 낱장을 함께 올린 경우) 건너뛴다 */
+function take(name,src,r){
+  if(!r.kind){log('['+name+'] 어떤 서류인지 알아보지 못했습니다');return null;}
+  const n=Object.keys(r.f).length+(r.items||[]).length;
+  if(!n){log('['+name+'] '+KIND[r.kind]+' — 넣을 값을 찾지 못했습니다');return null;}
+  const sig=JSON.stringify([r.kind,r.year,r.f,(r.items||[]).map(i=>[i.to,i.v])]);
+  const dup=(S.docs||[]).find(d=>(d.src||d.name)!==src&&JSON.stringify([d.kind,d.year,d.f,(d.items||[]).map(i=>[i.to,i.v])])===sig);
+  if(dup){log('['+name+'] '+KIND[r.kind]+(r.year?' '+r.year+'년':'')+' — 「'+dup.name+'」와 같은 내용이라 건너뜁니다');return null;}
+  S.docs.push({name,src,kind:r.kind,year:r.year,f:r.f,items:r.items||[]});
+  log('['+name+'] '+KIND[r.kind]+(r.year?' · '+r.year+'년':'')+' — '+n+'건 읽음');
+  (r.items||[]).forEach(it=>log('  '+it.l+': '+it.v.toLocaleString('ko-KR')+'원'+(it.lab?' ('+it.lab+')':'')));
+  (r.unk||[]).forEach(u=>log('  ※ '+u.lab+' '+u.v.toLocaleString('ko-KR')+'원 — '+u.why));
+  (r.notes||[]).forEach(t=>log('  '+t));
+  if(r.f.biz&&!DR.bizOk(r.f.biz))log('  ※ 사업자등록번호 '+r.f.biz+' — 10자리 검증식 불일치. 원본과 대조하십시오');
+  return Object.keys(r.f).concat(r.items.length?['*']:[]);
+}
 async function readOne(f){
-  const ext=f.name.split('.').pop().toLowerCase();let lines=[];
+  const ext=f.name.split('.').pop().toLowerCase();
   try{
-    if(ext==='pdf'){const t=await pdfLines(f);lines=t.pages.flat();
-      let r=t.ok?DR.readDoc(lines):null;
-      if(!t.ok||!r.kind){log('['+f.name+'] '+(t.ok?'서류 종류를 알아보지 못해':'글자층이 없는 스캔본이라')+' OCR로 읽습니다(쪽당 30~60초)');lines=await ocrPdf(t.doc);}
-      else log('['+f.name+'] '+t.doc.numPages+'쪽, 글자층 '+lines.length+'줄');}
-    else if(['jpg','jpeg','png'].includes(ext)){log('['+f.name+'] 사진 — OCR(30~60초)');lines=await ocrImg(f);}
-    else{log('지원하지 않는 형식: '+f.name+' (PDF·JPG·PNG)');return;}
-    const r=DR.readDoc(lines);
-    if(!r.kind){log('['+f.name+'] 어떤 서류인지 알아보지 못했습니다. 앞부분: '+lines.slice(0,5).join(' / ').slice(0,160));return;}
-    const n=Object.keys(r.f).length+(r.items||[]).length;
-    if(!n){log('['+f.name+'] '+KIND[r.kind]+' — 넣을 값을 찾지 못했습니다');return;}
-    S.docs=(S.docs||[]).filter(d=>d.name!==f.name);S.docs.push({name:f.name,kind:r.kind,year:r.year,f:r.f,items:r.items||[]});
-    log('['+f.name+'] '+KIND[r.kind]+(r.year?' · '+r.year+'년':'')+' — '+n+'건 읽음');
-    (r.items||[]).forEach(it=>log('  '+it.l+': '+it.v.toLocaleString('ko-KR')+'원'+(it.lab?' ('+it.lab+')':'')));
-    (r.unk||[]).forEach(u=>log('  ※ '+u.lab+' '+u.v.toLocaleString('ko-KR')+'원 — '+u.why));
-    (r.notes||[]).forEach(t=>log('  '+t));
-    if(r.f.biz&&!DR.bizOk(r.f.biz))log('  ※ 사업자등록번호 '+r.f.biz+' — 10자리 검증식 불일치. 원본과 대조하십시오');
-    apply(Object.keys(r.f).concat(r.items.length?['*']:[]));
+    const before=(S.docs||[]).length;S.docs=(S.docs||[]).filter(d=>(d.src||d.name)!==f.name);const gone=before!==S.docs.length;
+    let groups;
+    if(ext==='pdf'){
+      const t=await pdfPages(f),np=t.pages.length;
+      let need=t.pages.map((p,i)=>p.ok?0:i+1).filter(Boolean);
+      /* 글자층이 있어도 어느 쪽에서도 서류를 못 알아보면(글꼴이 깨진 PDF) 전부 OCR */
+      if(!need.length&&!t.pages.some(p=>DR.kind(p.lines)))need=t.pages.map((p,i)=>i+1);
+      log('['+f.name+'] '+np+'쪽'+(need.length?' — '+need.length+'쪽은 글자층이 없거나 읽을 수 없어 OCR로 읽습니다(쪽당 30~60초)':', 글자층 '+t.pages.reduce((a,p)=>a+p.lines.length,0)+'줄'));
+      if(need.length){const o=await ocrPages(t.doc,need);need.forEach(p=>{t.pages[p-1].lines=o[p];});}
+      const pl=t.pages.map(p=>p.lines),fy=DR.detectYear(pl.flat());
+      groups=DR.splitPages(pl).map(g=>({name:(g.from!==1||g.to!==np)?f.name+' ('+(g.from===g.to?g.from:g.from+'~'+g.to)+'쪽)':f.name,lines:g.lines,fy}));
+      if(!groups.length){log('['+f.name+'] 어떤 서류인지 알아보지 못했습니다. 앞부분: '+pl.flat().slice(0,5).join(' / ').slice(0,160));if(gone)apply([]);return;}
+      if(groups.length>1)log('  서류 '+groups.length+'건이 묶인 파일 — '+groups.map(g=>KIND[DR.kind(g.lines)]).join(', '));
+    }else if(['jpg','jpeg','png'].includes(ext)){log('['+f.name+'] 사진 — OCR(30~60초)');groups=[{name:f.name,lines:await ocrImg(f)}];}
+    else{log('지원하지 않는 형식: '+f.name+' (PDF·JPG·PNG·ZIP)');return;}
+    let fresh=[];
+    groups.forEach(g=>{const r=DR.readDoc(g.lines);
+      if(!r.year&&g.fy&&['corp','local','rural','adj','fs'].includes(r.kind))r.year=g.fy;
+      if(!r.kind)log('['+g.name+'] 어떤 서류인지 알아보지 못했습니다. 앞부분: '+g.lines.slice(0,5).join(' / ').slice(0,160));
+      else{const k=take(g.name,f.name,r);if(k)fresh=fresh.concat(k);}});
+    if(fresh.length||gone)apply(fresh);else renderDocs();
   }catch(e){log('['+f.name+'] 읽기 실패: '+e.message);}
 }
 /* 목록 → 칸. 자동으로 채운 칸만 다시 쓰고, 손으로 고친 칸은 새 서류가 그 칸을 읽었을 때만 바꾼다 */
@@ -1228,7 +1287,11 @@ function renderDocs(){
   box.innerHTML=d.map((x,i)=>'<div class="dl"><span class="dk">'+(KIND[x.kind]||'서류')+(x.year?' '+x.year:'')+'</span><span class="dn">'+esc(x.name)+'</span><button type="button" class="btn sm" data-rm="'+i+'">빼기</button></div>').join('');
 }
 let q=Promise.resolve();
-function queue(files){const l=[...files];if(!l.length)return q;if(l.length>1)log(l.length+'개 파일 — 차례로 읽습니다');l.forEach(f=>{q=q.then(()=>readOne(f));});return q;}
+/* 압축은 먼저 풀어 안의 파일을 차례에 넣는다 */
+function queue(files){const l=[...files];if(!l.length)return q;
+  q=q.then(async()=>{const all=[];for(const f of l){if(/\.zip$/i.test(f.name))all.push(...await unzip(f,0));else all.push(f);}
+    if(all.length>1)log(all.length+'개 파일 — 차례로 읽습니다');for(const f of all)await readOne(f);}).catch(e=>log('읽기 실패: '+e.message));
+  return q;}
 window.__docQueue=queue;
 document.addEventListener('DOMContentLoaded',init);if(document.readyState!=='loading')init();
 function init(){
