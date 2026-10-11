@@ -179,8 +179,8 @@ table.t input.num{width:80px;text-align:right;font:inherit;font-size:13px;border
   <section class="card" id="secCo">
     <h2>1. 기업 정보</h2>
     <div class="drop" id="dropCo">
-      <b>사업자등록증 · 법인 등기사항증명서(등기부등본)</b> PDF·사진을 여러 개 한꺼번에 끌어 놓거나 <button type="button" class="btn sm" id="bPickCo">파일 선택</button>
-      <input type="file" id="fPickCo" accept=".pdf,.jpg,.jpeg,.png" multiple hidden>
+      <b>사업자등록증 · 법인 등기사항증명서(등기부등본)</b> PDF·사진·압축(zip)을 여러 개 한꺼번에 끌어 놓거나 <button type="button" class="btn sm" id="bPickCo">파일 선택</button>
+      <input type="file" id="fPickCo" accept=".pdf,.jpg,.jpeg,.png,.zip" multiple hidden>
       <div class="note" style="margin-top:6px">상호·대표자·사업자등록번호·법인등록번호·개업(설립)일·소재지·업태·종목·자본금을 읽어 채웁니다. 읽은 칸은 연두색이며, 반드시 원본과 대조하십시오. 스캔본·사진은 OCR로 읽습니다(장당 30~60초).
       여러 서류는 차례로 읽어 합칩니다. 등록번호·사업장·업태·종목·대표자는 사업자등록증, 법인등록번호·설립일·자본금은 등기사항증명서 값을 먼저 씁니다.</div>
     </div>
@@ -235,8 +235,8 @@ table.t input.num{width:80px;text-align:right;font:inherit;font-size:13px;border
   <section class="card" id="secFs">
     <h2>2. 재무제표 (3개년)</h2>
     <div class="drop" id="drop">
-      <b>엑셀(.xlsx·.xls·.csv) · PDF · 사진</b>을 여기에 끌어 놓거나 <button type="button" class="btn sm" id="bPick">파일 선택</button>
-      <input type="file" id="fPick" accept=".xlsx,.xls,.csv,.pdf,.jpg,.jpeg,.png" multiple hidden>
+      <b>엑셀(.xlsx·.xls·.csv) · PDF · 사진 · 압축(.zip)</b>을 여기에 끌어 놓거나 <button type="button" class="btn sm" id="bPick">파일 선택</button>
+      <input type="file" id="fPick" accept=".xlsx,.xls,.csv,.pdf,.jpg,.jpeg,.png,.zip" multiple hidden>
       <div class="row" style="justify-content:center;margin-top:8px">
         <label class="note">첫 금액 열 →
           <select id="colStart"><option value="0">당기(최근 결산연도)</option><option value="1">전기</option><option value="2">전전기</option></select></label>
@@ -1236,6 +1236,26 @@ async function ocrImage(f){
   const r=await w.recognize(f);await w.terminate();return ocrLines(r.data.text);
 }
 
+/* ── 압축(zip) — 브라우저 안에서 풀어 안의 파일을 꺼낸다. 윈도우에서 만든 압축은 파일명이 CP949 라 UTF-8 이 아니면 EUC-KR 로 읽는다 ── */
+async function loadZip(){if(window.JSZip)return;await new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';s.onload=ok;s.onerror=()=>no(new Error('압축 모듈 로드 실패(인터넷 연결 확인)'));document.head.appendChild(s);});}
+function zName(b){const u=typeof b==='string'?Uint8Array.from(b,c=>c.charCodeAt(0)&255):Uint8Array.from(b);
+  try{return new TextDecoder('utf-8',{fatal:true}).decode(u);}catch(e){try{return new TextDecoder('euc-kr').decode(u);}catch(e2){return String.fromCharCode(...u);}}}
+async function unzip(f,lg,okExt,depth){
+  depth=depth||0;let z;
+  try{await loadZip();z=await JSZip.loadAsync(await f.arrayBuffer(),{decodeFileName:zName});}
+  catch(e){lg('['+f.name+'] 압축을 풀지 못했습니다'+(/encrypt/i.test(e.message)?' — 암호가 걸린 압축입니다. 풀어서 올려 주십시오':': '+e.message));return [];}
+  const ents=Object.values(z.files).filter(e=>!e.dir&&!/(^|\/)(__MACOSX|\.)/.test(e.name));
+  lg('['+f.name+'] 압축 — 파일 '+ents.length+'개');
+  const out=[],skip=[];
+  for(const e of ents){const ext=e.name.split('.').pop().toLowerCase();
+    if(ext==='zip'&&depth<2){out.push(...await unzip(new File([await e.async('blob')],e.name.split('/').pop()),lg,okExt,depth+1));continue;}
+    if(!okExt.includes(ext)){skip.push(e.name.split('/').pop());continue;}
+    out.push(new File([await e.async('blob')],e.name.replace(/\//g,' › ')));}
+  if(skip.length)lg('  건너뜀('+okExt.join('·').toUpperCase()+'가 아님): '+skip.join(', '));
+  return out;
+}
+async function expand(files,lg,okExt){const all=[];for(const f of files){if(/\.zip$/i.test(f.name))all.push(...await unzip(f,lg,okExt));else all.push(f);}return all;}
+
 /* ── 사업자등록증 · 등기사항증명서 → 기업 정보 ── */
 const logCo=$('logCo');function logC(s){logCo.style.display='block';logCo.textContent+=s+'\n';logCo.scrollTop=1e9;}
 const CO_LAB={name:'상호',rep:'대표자',biz:'사업자등록번호',corpNo:'법인등록번호',est:'개업(설립)일',addr:'소재지',bizType:'업태',bizItem:'종목',capital:'자본금',form:'기업 형태',ind:'업종 구분'};
@@ -1287,9 +1307,10 @@ $('coDocs').addEventListener('click',e=>{const b=e.target.closest('[data-rmco]')
   S.coDocs.splice(+b.dataset.rmco,1);logC('['+d.name+'] 목록에서 뺐습니다 — 남은 서류로 다시 합칩니다');mergeCo([]);});
 /* 여러 파일은 차례로 읽는다(OCR 동시 실행·늦게 끝난 서류가 앞 서류를 덮는 일 방지) */
 let coQueue=Promise.resolve();
-function queueCo(files){const list=[...files];if(!list.length)return coQueue;
-  if(list.length>1)logC(list.length+'개 파일 — 차례로 읽습니다');
-  list.forEach(f=>{coQueue=coQueue.then(()=>readCoFile(f));});return coQueue;}
+function queueCo(files){const l0=[...files];if(!l0.length)return coQueue;
+  coQueue=coQueue.then(async()=>{const list=await expand(l0,logC,['pdf','jpg','jpeg','png']);
+    if(list.length>1)logC(list.length+'개 파일 — 차례로 읽습니다');for(const f of list)await readCoFile(f);}).catch(e=>logC('읽기 실패: '+e.message));
+  return coQueue;}
 const dropCo=$('dropCo');
 ['dragover','dragenter'].forEach(ev=>dropCo.addEventListener(ev,e=>{e.preventDefault();dropCo.classList.add('over');}));
 ['dragleave','drop'].forEach(ev=>dropCo.addEventListener(ev,e=>{e.preventDefault();dropCo.classList.remove('over');}));
@@ -1314,9 +1335,15 @@ $('fsClr').addEventListener('click',e=>{const b=e.target.closest('[data-clr]');i
 const drop=$('drop');
 ['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over');}));
 ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over');}));
-drop.addEventListener('drop',e=>{[...e.dataTransfer.files].forEach(readFile);});
+/* 재무제표도 차례로 읽는다. 압축은 먼저 풀어 엑셀·PDF·사진만 꺼낸다 */
+let fsQueue=Promise.resolve();
+function queueFs(files){const l0=[...files];if(!l0.length)return fsQueue;
+  fsQueue=fsQueue.then(async()=>{const list=await expand(l0,log,['xlsx','xls','csv','pdf','jpg','jpeg','png']);
+    if(list.length>1)log(list.length+'개 파일 — 차례로 읽습니다');for(const f of list)await readFile(f);}).catch(e=>log('읽기 실패: '+e.message));
+  return fsQueue;}
+drop.addEventListener('drop',e=>{queueFs(e.dataTransfer.files);});
 $('bPick').addEventListener('click',()=>$('fPick').click());
-$('fPick').addEventListener('change',e=>{[...e.target.files].forEach(readFile);e.target.value='';});
+$('fPick').addEventListener('change',e=>{queueFs(e.target.files);e.target.value='';});
 
 /* ── 비율 표 ── */
 function renderRatios(){
@@ -1535,7 +1562,7 @@ $('noSave').checked=noSave;
 $('noSave').addEventListener('change',e=>{noSave=e.target.checked;try{if(noSave)localStorage.setItem(NSKEY,'1');else localStorage.removeItem(NSKEY);}catch(err){}persist();});
 
 refillCo();renderFs();renderAll();showTab();
-window.__hb={S:()=>S,readFile,readCoFile,applyCo,queueCo,wipeAll,ocrImage,pdfDoc,pdfText,ocrPdf,printSheets,lastProc:()=>lastProc,lastBond:()=>lastBond};
+window.__hb={S:()=>S,readFile,readCoFile,applyCo,queueCo,queueFs,wipeAll,ocrImage,pdfDoc,pdfText,ocrPdf,printSheets,lastProc:()=>lastProc,lastBond:()=>lastBond};
 })();
 </script>
 </body>
