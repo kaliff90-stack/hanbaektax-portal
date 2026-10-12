@@ -139,6 +139,8 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
 .q .t{display:block;font-weight:800;color:#111;margin-bottom:3px;font-size:15px}
 .q .pq{font-size:13.5px;font-weight:700;color:#222;margin:9px 0 4px}.q .pq small{font-weight:400;color:#666}
 .premchk{margin-top:10px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fafcff}.premchk input{width:18px;height:18px}
+.mini{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}.mini th,.mini td{border:1px solid var(--line);padding:6px 7px;vertical-align:top;text-align:left}.mini th{background:#F1F6FB}
+#relScope{margin-top:8px}#relScope summary{cursor:pointer;font-size:13.5px}#relScope .note{font-size:12.5px;color:#555;margin-top:6px}
 .q .why{font-size:12.5px;color:var(--blue);background:#F1F6FB;border-left:3px solid var(--blue);padding:5px 9px;border-radius:0 6px 6px 0;margin:4px 0 8px}
 .q .where{font-size:12.5px;color:#5b4a1f;background:#FFF8E8;border-left:3px solid var(--gold);padding:5px 9px;border-radius:0 6px 6px 0;margin:4px 0 8px}
 input[type=number],input[type=text],input[type=date],select,textarea{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:9px;width:100%;max-width:300px;background:#fff}
@@ -436,6 +438,26 @@ input.dauto,select.dauto{background:#eefbe7!important;border-color:#86c96b!impor
       <a href="한백택스_가업상속_시뮬레이터.html">가업상속 시뮬레이터 →</a>
       <a href="한백택스_상속세_계산기.html">상속세 계산기 →</a>
     </div>
+  </section>
+  <section class="card" id="tradeCard">
+    <h2>특수관계인과 사고팔 때 — 세금 없는 가격 변폭</h2>
+    <p class="lead">주식을 평가액(시가)과 다른 값으로 사고팔면 차액이 증여세나 양도소득세 문제가 됩니다. 특수관계 여부에 따라 기준이 다릅니다.</p>
+    <div class="q"><span class="t">사고파는 두 사람이 특수관계인인가요? <a href="#relScope" onclick="document.getElementById('relScope').open=true">범위 보기</a></span>
+      <div class="opts" id="relBox"><label data-v="y">예 — 특수관계인</label><label data-v="n">아니요 — 남남(제3자)</label><label data-v="u">모름 — 특수관계로 보고 계산</label></div>
+      <div class="row3">
+        <div>사고팔 주식 수 <input type="number" class="money" data-k="tradeShares" placeholder="평가할 주식 수와 같음"></div>
+        <div>정한 매매가 (1주당, 선택) <input type="number" class="money" data-k="tradePrice" placeholder="넣으면 과세 여부를 봅니다"></div>
+        <div></div>
+      </div>
+      <div class="judge" id="tradeOut"></div>
+    </div>
+    <details id="relScope"><summary><b>특수관계인 범위</b> — 상속세·증여세와 소득세가 서로 다릅니다</summary>
+      <table class="mini"><tr><th>구분</th><th>상속세 및 증여세법 (시행령 §2의2 ①)</th><th>소득세법 (시행령 §98 ① → 국세기본법 시행령 §1의2)</th></tr>
+      <tr><td>친족</td><td>국세기본법상 친족(오른쪽 칸) + <b>직계비속 배우자의 2촌 이내 혈족과 그 배우자</b>(사돈)</td><td>4촌 이내 혈족, 3촌 이내 인척, 배우자(사실혼 포함), 친양자로 입양된 친생자와 그 배우자·직계비속, 인지한 혼인 외 출생자의 생부·생모(생계를 같이하는 경우)</td></tr>
+      <tr><td>경제적 연관</td><td>사용인(출자로 지배하는 법인의 사용인 포함), 본인 재산으로 생계를 유지하는 자</td><td>임원·사용인, 본인 재산으로 생계를 유지하는 자, 그들과 생계를 함께하는 친족</td></tr>
+      <tr><td>경영지배</td><td>본인·친족이 사실상 영향력을 행사하는 기업집단 소속 기업과 그 임원·퇴직임원(3년, 공시대상기업집단 5년), 본인 등이 <b>30% 이상</b> 출자한 법인, 그 법인과 함께 <b>50% 이상</b> 출자한 법인, 출연·이사 과반 비영리법인</td><td>본인이 직접 또는 친족·경제적 연관자를 통해 <b>30% 이상</b> 출자하거나 임원 임면 등으로 사실상 영향력을 행사하는 법인(시행령 §1의2 ③ 1호·④)</td></tr></table>
+      <p class="note">회사와 그 회사의 주주(30% 이상 출자 등)가 사고파는 경우에는 법인세법상 부당행위계산(§52, 시행령 §88 ③ — 시가 5%·3억원, 상장주식 제외)도 함께 봅니다.</p>
+    </details>
   </section>
   <section class="card consult">
     <h2>세무사에게 확인받기</h2>
@@ -1091,7 +1113,23 @@ function giftSim({value,rel,prior}){
   return{cap,base:baseAll-basePrior,calc,surcharge,computed,credit,pay:computed-credit};
 }
 function inheritSim({estate,spouse}){const ded=5e8+(spouse?5e8:0);const base=Math.max(0,estate-ded);const calc=giftRaw(base),credit=fl(calc*.03);return{ded,base,calc,credit,pay:calc-credit};}
-if(typeof module!=='undefined')module.exports={N,yearNet,capAdjust,incomeValue,decideMethod,assetValue,finalValue,evaluate,giftRaw,giftSim,inheritSim};
+/* ── 특수관계인 간 매매 가격 변폭 ──
+ * 상증법 §35 ① (특수관계인): 대가와 시가의 차액 ≥ min(시가 30%, 3억원) → 증여재산가액 = 차액 − min(…)  (령 §26 ②)
+ * 상증법 §35 ② (특수관계 없음): 정당한 사유 없이 차액 ≥ 시가 30% → 증여재산가액 = 차액 − 3억원  (령 §26 ③·④)
+ * 소득세법 §101 ① · 령 §167 ③ (특수관계인): 저가 양도·고가 매입으로 차액 ≥ 3억원 또는 시가 5% → 양도(취득)가액을 시가로
+ * 「이상」이면 과세되므로 안전한 가격은 차액이 기준 「미만」. value = 1주당 시가(평가액), n = 거래 주식 수, price = 1주당 거래가(선택) */
+function tradeRange({value,n,rel,price}){
+  const T=fl(value*n);if(!(T>0&&n>0))return null;
+  const g=rel?Math.min(fl(T*0.3),3e8):fl(T*0.3), i=rel?Math.min(fl(T*0.05),3e8):null;
+  const band=d=>({lo:fl((T-d)/n)+1,hi:Math.ceil((T+d)/n)-1,d});
+  const o={T,rel,gift:band(g),inc:i!=null?band(i):null};
+  if(price>0){const P=fl(price*n),diff=Math.abs(P-T),low=P<T;o.P=P;o.diff=diff;o.low=low;
+    o.giftTax=rel?(diff>=g?diff-g:0):(diff>=fl(T*0.3)?Math.max(0,diff-3e8):0);   /* 저가 → 사는 사람, 고가 → 파는 사람의 증여재산가액 */
+    o.giftTo=low?'buyer':'seller';
+    o.incHit=rel&&diff>0&&(diff>=3e8||diff>=fl(T*0.05));}
+  return o;
+}
+if(typeof module!=='undefined')module.exports={N,yearNet,capAdjust,incomeValue,decideMethod,assetValue,finalValue,evaluate,giftRaw,giftSim,inheritSim,tradeRange};
 </script>
 <script>
 /* ═══════ 상태 ═══════ */
@@ -1102,7 +1140,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 const kd=s=>{if(!s)return '________';const d=new Date(s+'T00:00:00');if(isNaN(d))return esc(s);return d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일';};
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
 const LS='hbt_unlisted_v3',LS_CASES='hbt_unlisted_cases_v3';
-const DEF={name:'',ceo:'',biz:'',date:'',founded:'',shares:'',holdShares:'',status:'normal',small:'',major:'',mid:'',premManual:'',reCat:'',methodMode:'auto',ftype:'normal',reValue:'',stkValue:'',rate:10,prem:'20',author:'',
+const DEF={name:'',ceo:'',biz:'',date:'',founded:'',shares:'',holdShares:'',status:'normal',small:'',major:'',mid:'',premManual:'',rel:'',tradeShares:'',tradePrice:'',reCat:'',methodMode:'auto',ftype:'normal',reValue:'',stkValue:'',rate:10,prem:'20',author:'',
   y1label:'',y2label:'',y3label:'',y1inc:'',y2inc:'',y3inc:'',y1m:'',y2m:'',y3m:'',y1sh:'',y2sh:'',y3sh:'',cap:'n',capKind:'up',capYear:'1',capBefore:'',capDelta:'',capPaid:'',capMonth:12,
   asset:'',reBook:'',reMarket:'',evalDiff:'',aRecv:'',aPrepaid:'',liab:'',lTax:'',lDiv:'',lRetire:'',lReserve:'',gwMode:'auto',gwExcess:50,gwInt:10,gwPv:3.7908,gwManual:'',
   giftRel:'child',giftPrior:'',giftShares:'',spouse:'y',attachList:true,showHometax:true,docs:[],docAuto:{}};
@@ -1125,7 +1163,7 @@ function bind(){
     el.addEventListener('input',()=>{S[k]=el.type==='checkbox'?el.checked:el.value;persist();render();});
     el.addEventListener('change',()=>{S[k]=el.type==='checkbox'?el.checked:el.value;persist();render();});});
   document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
-  [['smallBox','small'],['majorBox','major'],['midBox','mid'],['reBox','reCat'],['capBox','cap'],['spouseBox','spouse']].forEach(([b,k])=>document.querySelectorAll('#'+b+' label').forEach(l=>l.onclick=()=>{S[k]=l.dataset.v;if(['small','major','mid'].includes(k))S.premManual='';persist();render();}));
+  [['smallBox','small'],['majorBox','major'],['midBox','mid'],['relBox','rel'],['reBox','reCat'],['capBox','cap'],['spouseBox','spouse']].forEach(([b,k])=>document.querySelectorAll('#'+b+' label').forEach(l=>l.onclick=()=>{S[k]=l.dataset.v;if(['small','major','mid'].includes(k))S.premManual='';persist();render();}));
   const po=document.getElementById('premOff');if(po)po.onchange=()=>{S.premManual=po.checked?'off':'on';persist();render();};
 }
 function refill(){document.querySelectorAll('[data-k]').forEach(el=>{const v=S[el.dataset.k];if(el.type==='checkbox')el.checked=!!v;else el.value=(v==null?'':v);});}
@@ -1140,7 +1178,8 @@ function ftName(ft){return{normal:'일반법인 3 : 2',estate:'부동산과다 2
 /* ═══════ 화면 ═══════ */
 function render(){const R=evaluate(S);window.__lastResult={S:JSON.parse(JSON.stringify(S)),R};if(mode==='easy')renderEasy(R);else renderPro(R);}
 function renderEasy(R){
-  [['smallBox','small'],['majorBox','major'],['midBox','mid'],['reBox','reCat'],['capBox','cap'],['spouseBox','spouse']].forEach(([b,k])=>document.querySelectorAll('#'+b+' label').forEach(l=>l.classList.toggle('on',l.dataset.v===S[k])));
+  [['smallBox','small'],['majorBox','major'],['midBox','mid'],['relBox','rel'],['reBox','reCat'],['capBox','cap'],['spouseBox','spouse']].forEach(([b,k])=>document.querySelectorAll('#'+b+' label').forEach(l=>l.classList.toggle('on',l.dataset.v===S[k])));
+  $('tradeOut').innerHTML=tradeHtml(R);
   /* ③ 중견기업 문항은 ② 에서 「아니요·모름」일 때만, ②·③ 은 ① 에서 「아니요」면 숨긴다 */
   const showMid=S.major!=='n'&&(S.small==='n'||S.small==='u');$('midQ').style.display=showMid?'':'none';$('midBox').style.display=showMid?'':'none';
   ['smallBox'].forEach(id=>{$(id).style.display=S.major==='n'?'none':'';$(id).previousElementSibling.style.display=S.major==='n'?'none':'';});
@@ -1181,6 +1220,27 @@ function renderEasy(R){
   $('easyBasis').innerHTML=['상속세 및 증여세법 §63 ①·③(비상장주식 평가·최대주주 할증), 시행령 §53 ⑧(할증 제외)·§54(가중평균 3:2·2:3, 80% 하한, 순자산가치만 평가 사유, 평가심의 70~130%)·§55(순자산가액, 영업권 합산·제외)·§56(3년 순손익 가중평균·가감 항목·증자감자)·§59 ②(영업권), 시행규칙 §17(환원율 10%)·§17의2(자산·부채 가감)·§17의3(1년 미만 환산·환산주식수)·§19 ①(자기자본 이자율 10%) — 2026-09-23 법제처 원문 확인',
     '증여·상속 시산: 상증법 §26(세율)·§53(증여재산공제)·§57(세대생략 할증)·§58(기납부세액)·§69 ②(신고세액공제 3%), 상속 일괄공제 5억·배우자 최소 5억(§21·§19). 기타 재산·채무·공제는 반영하지 않은 어림값.',
     '금액은 원 미만 절사. 결과는 참고용이며 실제 신고는 세무사 검토를 기준으로 합니다.'].map(x=>'· '+x).join('<br>');
+}
+/* 특수관계인 매매 변폭 화면 */
+function tradeHtml(R){
+  if(!(N(S.shares)>0)||!(R.final>0))return '평가액이 나오면 변폭을 보여 드립니다.';
+  if(!S.rel)return '위에서 특수관계 여부를 고르십시오. 모르면 「모름」 — 특수관계로 보고 좁은 쪽 범위를 보여 드립니다.';
+  const rel=S.rel!=='n',n=N(S.tradeShares)>0?N(S.tradeShares):R.hold,t=tradeRange({value:R.final,n,rel,price:N(S.tradePrice)});if(!t)return '';
+  const per=v=>won(v)+'/주',rng=b=>per(b.lo)+' ~ '+per(b.hi)+' <small>(총액 차이 '+won(b.d)+' 미만)</small>';
+  let h='시가(평가액) '+won(R.final)+' × '+fmt(n)+'주 = <b>'+won(t.T)+'</b><br>';
+  if(rel){
+    h+='• <b>증여세가 생기지 않는 범위</b> — 차액이 시가 30%와 3억원 중 적은 금액('+won(t.gift.d)+') 미만: '+rng(t.gift)+' <small>(상증법 §35 ①, 령 §26 ②)</small><br>';
+    h+='• <b>파는 사람 양도소득세 부당행위까지 피하는 범위</b> — 차액이 시가 5%와 3억원 중 적은 금액('+won(t.inc.d)+') 미만: '+rng(t.inc)+' <small>(소득세법 §101 ①, 령 §167 ③ — 비싸게 사면 사는 사람의 취득가액이 시가로 줄어듦)</small>';
+  }else{
+    h+='• <b>증여세가 생기지 않는 범위</b> — 차액이 시가 30%('+won(t.gift.d)+') 미만: '+rng(t.gift)+' <small>(상증법 §35 ②, 령 §26 ③ — 거래 관행상 정당한 사유가 있으면 적용하지 않음)</small><br>';
+    h+='• 30% 이상 벌어져도 증여재산가액은 차액에서 <b>3억원</b>을 뺀 금액입니다(령 §26 ④). 특수관계가 아니면 소득세 부당행위계산은 적용되지 않습니다.';
+  }
+  if(t.P!=null){
+    h+='<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)">정한 매매가 '+per(N(S.tradePrice))+' × '+fmt(n)+'주 = '+won(t.P)+' — 시가보다 '+(t.low?'낮음':'높음')+', 차액 '+won(t.diff)+'<br>';
+    h+=t.giftTax>0?'→ <b style="color:#b42318">증여세 과세</b>: '+(t.giftTo==='buyer'?'사는 사람':'파는 사람')+'의 증여재산가액 <b>'+won(t.giftTax)+'</b>'+(rel?' (차액 − '+won(t.gift.d)+')':' (차액 − 3억원, 정당한 사유가 없을 때)'):'→ 증여세 문제 없음';
+    if(rel)h+='<br>'+(t.incHit?'→ <b style="color:#b42318">소득세 부당행위계산</b>: '+(t.low?'파는 사람의 양도가액을 시가 '+won(t.T)+'으로 다시 계산':'사는 사람의 취득가액을 시가로 계산(나중에 팔 때 양도차익 증가)'):'→ 소득세 부당행위계산 대상 아님(차액이 5%·3억원 미만)');
+    h+='</div>';}
+  return h;
 }
 function renderPro(R){
   [1,2,3].forEach(y=>{const Y=R.inc.Y[y];$('pi_'+y+'add').textContent=fmt(Y.add);$('pi_'+y+'sub').textContent=fmt(Y.sub);$('pi_'+y+'net').textContent=fmt(Y.net);$('pi_'+y+'ps').textContent=fmt(Y.ps);});
