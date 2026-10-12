@@ -247,6 +247,7 @@ input.dauto,select.dauto{background:#eefbe7!important;border-color:#86c96b!impor
   .pro{display:block}.sheet{border:none;box-shadow:none;padding:0}.result{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
+<script src="한백택스_계산신호.js" defer></script><!-- HB-SIGNAL -->
 </head>
 <body>
 <!-- HB-HOME v1 -->
@@ -1485,8 +1486,10 @@ function renderDocs(){
 let q=Promise.resolve();
 /* 압축은 먼저 풀어 안의 파일을 차례에 넣는다 */
 function queue(files){const l=[...files];if(!l.length)return q;
-  q=q.then(async()=>{const all=[];for(const f of l){if(/\.zip$/i.test(f.name))all.push(...await unzip(f,0));else all.push(f);}
-    if(all.length>1)log(all.length+'개 파일 — 차례로 읽습니다');for(const f of all)await readOne(f);}).catch(e=>log('읽기 실패: '+e.message));
+  q=q.then(async()=>{if(window.hbBusy)hbBusy(true,'서류 읽는 중…');   /* 공용 계산 신호(한백택스_계산신호.js) — 읽는 동안 시계가 돈다 */
+    try{const all=[];for(const f of l){if(/\.zip$/i.test(f.name))all.push(...await unzip(f,0));else all.push(f);}
+    if(all.length>1)log(all.length+'개 파일 — 차례로 읽습니다');for(const f of all)await readOne(f);}
+    finally{if(window.hbBusy)hbBusy(false,'서류 읽기 완료');}}).catch(e=>log('읽기 실패: '+e.message));
   return q;}
 window.__docQueue=queue;
 document.addEventListener('DOMContentLoaded',init);if(document.readyState!=='loading')init();
