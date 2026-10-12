@@ -1318,7 +1318,7 @@ function dealSheet(R){
   const d=dealCalc(R);if(!d)return '';
   const per=v=>v===Infinity?'제한 없음':fmt(v);
   let h='<h2>Ⅵ. 특수관계 거래·증여 — 추가 세부담 없는 가액</h2><table><tr><th>구분</th><th>1주당 하한</th><th>1주당 상한</th><th>근거</th></tr>';
-  h+='<tr><td>상대방 · 특수관계</td><td colspan="2">'+esc(d.label)+' — 상증법 '+(d.g?'예':'아니요')+' · 소득세법 '+(d.i?'예':'아니요')+' · '+fmt(d.n)+'주 × '+fmt(d.v)+' = '+fmt(d.T)+'원</td><td>상증령 §2의2 ① · 소득령 §98 ①</td></tr>';
+  h+='<tr><td>상대방 · 특수관계</td><td colspan="2">'+esc(d.label)+' — 상증법 '+(d.g?'예':'아니요')+' · 소득세법 '+(d.i?'예':'아니요')+' · '+fmt(d.n)+'주'+(N(S.dealShares)>0?'(넘길 주식 수 입력값)':'(평가대상 주식수)')+' × '+fmt(d.v)+' = '+fmt(d.T)+'원'+(d.wide?'<br><b style="color:#b42318">⚠ 주식 수가 적어 3억원 기준이 1주당 범위를 크게 벌림 — 주식 수 확인</b>':'')+'</td><td>상증령 §2의2 ① · 소득령 §98 ①</td></tr>';
   h+='<tr><td>증여세 없는 매매가</td><td class="r">'+per(d.gift.lo)+'</td><td class="r">'+per(d.gift.hi)+'</td><td>상증법 §35 '+(d.g?'① · 령 §26 ②':'② · 령 §26 ③④')+'</td></tr>';
   h+='<tr><td>양도세 부당행위 없는 매매가</td><td class="r">'+(d.inc?per(d.inc.lo):'—')+'</td><td class="r">'+(d.inc?per(d.inc.hi):'—')+'</td><td>'+(d.i?'소득세법 §101 ① · 령 §167 ③':'적용 없음')+'</td></tr>';
   h+='<tr class="tot"><td>둘 다 피하는 매매가</td><td class="r">'+per(d.both.lo)+'</td><td class="r">'+per(d.both.hi)+'</td><td></td></tr>';
@@ -1344,6 +1344,7 @@ function renderPro(R){
   if(S.methodMode==='auto'&&!(N(S.reValue)||N(S.reMarket)||N(S.reBook)||N(S.stkValue))&&R.method.ft!=='netonly')F.push(['warn','방법 판정','부동산·주식 가액이 없어 비율 판정을 못 했습니다. 부동산등 가액을 넣거나 방법을 직접 고르십시오(§54 ①·④).']);
   if(S.prem==='20'&&S.small==='y')F.push(['info','할증','쉬운 입력에서 중소·중견기업으로 답해 할증을 제외했습니다. 대기업이면 「중소·중견」 답변을 바꾸십시오.']);
   if(R.hold>R.shares)F.push(['err','주식수','평가대상 주식수가 발행주식 총수보다 큽니다.']);
+  if(S.dealSheet&&N(S.shares)>0&&R.final>0){const d=dealCalc(R);if(d&&d.wide)F.push(['warn','특수관계 거래','넘길 주식이 '+fmt(d.n)+'주뿐이라 Ⅵ의 1주당 범위가 크게 벌어집니다 — 「넘길 주식 수」·「평가대상 주식수」를 확인하십시오.']);}
   F.push(['info','평가심의','납세자가 유사상장법인 비교·현금흐름할인·배당할인 등으로 평가한 가액이 보충적 평가액의 70~130%면 평가심의위원회 심의를 신청할 수 있습니다(§54 ⑥): '+fmt(R.lo)+' ~ '+fmt(R.hi)+'원.']);
   F.push(['info','특례','10% 이하 출자 비상장주식은 취득가액 평가 가능(§54 ③, 시가 우선). 일시적·우발적 손익 등 규칙 §17의3 ① 사유면 신용평가기관 등 둘 이상의 추정이익 평균가액으로 대체 가능(§56 ②).']);
   $('proFlags').innerHTML=F.map(f=>'<div class="flag '+f[0]+'"><b>'+f[1]+'</b><span>'+f[2]+'</span></div>').join('');

@@ -1309,8 +1309,10 @@ $('coDocs').addEventListener('click',e=>{const b=e.target.closest('[data-rmco]')
 /* 여러 파일은 차례로 읽는다(OCR 동시 실행·늦게 끝난 서류가 앞 서류를 덮는 일 방지) */
 let coQueue=Promise.resolve();
 function queueCo(files){const l0=[...files];if(!l0.length)return coQueue;
-  coQueue=coQueue.then(async()=>{const list=await expand(l0,logC,['pdf','jpg','jpeg','png']);
-    if(list.length>1)logC(list.length+'개 파일 — 차례로 읽습니다');for(const f of list)await readCoFile(f);}).catch(e=>logC('읽기 실패: '+e.message));
+  coQueue=coQueue.then(async()=>{if(window.hbBusy)hbBusy(true,'서류 읽는 중…');   /* 공용 계산 신호(한백택스_계산신호.js) — 읽는 동안 시계가 돈다 */
+    try{const list=await expand(l0,logC,['pdf','jpg','jpeg','png']);
+    if(list.length>1)logC(list.length+'개 파일 — 차례로 읽습니다');for(const f of list)await readCoFile(f);}
+    finally{if(window.hbBusy)hbBusy(false,'서류 읽기 완료');}}).catch(e=>logC('읽기 실패: '+e.message));
   return coQueue;}
 const dropCo=$('dropCo');
 ['dragover','dragenter'].forEach(ev=>dropCo.addEventListener(ev,e=>{e.preventDefault();dropCo.classList.add('over');}));
@@ -1339,8 +1341,10 @@ const drop=$('drop');
 /* 재무제표도 차례로 읽는다. 압축은 먼저 풀어 엑셀·PDF·사진만 꺼낸다 */
 let fsQueue=Promise.resolve();
 function queueFs(files){const l0=[...files];if(!l0.length)return fsQueue;
-  fsQueue=fsQueue.then(async()=>{const list=await expand(l0,log,['xlsx','xls','csv','pdf','jpg','jpeg','png']);
-    if(list.length>1)log(list.length+'개 파일 — 차례로 읽습니다');for(const f of list)await readFile(f);}).catch(e=>log('읽기 실패: '+e.message));
+  fsQueue=fsQueue.then(async()=>{if(window.hbBusy)hbBusy(true,'서류 읽는 중…');
+    try{const list=await expand(l0,log,['xlsx','xls','csv','pdf','jpg','jpeg','png']);
+    if(list.length>1)log(list.length+'개 파일 — 차례로 읽습니다');for(const f of list)await readFile(f);}
+    finally{if(window.hbBusy)hbBusy(false,'서류 읽기 완료');}}).catch(e=>log('읽기 실패: '+e.message));
   return fsQueue;}
 drop.addEventListener('drop',e=>{queueFs(e.dataTransfer.files);});
 $('bPick').addEventListener('click',()=>$('fPick').click());

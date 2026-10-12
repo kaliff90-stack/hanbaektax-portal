@@ -690,7 +690,8 @@ function eta(t0,done,total){if(!done)return'계산 중';const per=(Date.now()-t0
 async function run(){
   if(state.running||!state.files.length)return;
   if(!window.pdfjsLib||!window.Tesseract||!window.XLSX){banner($('libBanner'),'err','<span>⚠️</span><div>구성요소를 불러오지 못해 변환할 수 없습니다. 새로고침 후 다시 시도하십시오.</div>');$('libBanner').hidden=false;return;}
-  state.running=true;state.cancel=false;state.results=[];state.logs=[];$('log').innerHTML='';$('log2').innerHTML='';$('cancelBtn').disabled=false;$('libBanner').hidden=true;
+  state.running=true;if(window.hbBusy)hbBusy(true,'변환 중…');   /* 공용 계산 신호 — 변환하는 동안 시계가 돈다 */
+  state.cancel=false;state.results=[];state.logs=[];$('log').innerHTML='';$('log2').innerHTML='';$('cancelBtn').disabled=false;$('libBanner').hidden=true;
   const opts={docType:$('docType').value,lang:$('lang').value,scale:parseFloat($('quality').value)||2.2,pre:$('optPre').checked,rot:$('rotSel').value,merge:$('optMerge').checked};
   setStep(2);setProg(0,'준비 중','');renderFiles();
   const t0=Date.now();let done=0,total=0;
@@ -744,7 +745,7 @@ async function run(){
     }
     setProg(100,state.cancel?'중단됨':'완료',`${done}/${total}쪽 · ${((Date.now()-t0)/1000).toFixed(1)}초`);
   }catch(e){log('오류: '+(e.message||e),'err');console.error(e);}
-  state.running=false;renderFiles();
+  state.running=false;if(window.hbBusy)hbBusy(false,state.cancel?'변환 중단':'변환 완료');renderFiles();
   if(state.results.length){setTimeout(showResults,250);}else{setStep(1);banner($('libBanner'),'err','<span>⚠️</span><div>읽어 낸 결과가 없습니다. 로그를 확인하고 다른 품질·언어로 다시 시도하십시오.</div>');$('libBanner').hidden=false;}
 }
 

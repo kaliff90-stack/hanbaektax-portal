@@ -54,12 +54,14 @@ function plan(o) {
     capLeft: capLeft, mbLeft: mbLeft, free: free, low2: band(Math.min(giftLowSafe, iSafe)), low2gift: band(giftLowSafe),
     freeShares: v > 0 ? fl(free / v) : 0 };
   d.freeVal = d.freeShares * v;
+  /* 주식 수가 적으면 3억원 기준이 몇 주에 다 실려 1주당 범위가 시가의 2배를 넘게 벌어진다 — 입력 확인 안내 */
+  d.wide = d.both.hi !== Infinity && (d.both.hi > v * 2 || d.both.lo === 0);
   var price = N(o.price);
   if (price > 0) {
     var P = fl(price * n), diff = Math.abs(P - T), low = P < T;
-    var giftVal = g ? (diff >= gStd ? diff - gStd : 0) : (diff >= fl(T * 0.3) ? Math.max(0, diff - 3e8) : 0);
+    var giftVal = g ? (diff >= gStd ? diff - gStd : 0) : (diff >= T * 0.3 ? Math.max(0, diff - 3e8) : 0);   /* 「30% 이상」은 원 미만까지 비교(안전 범위 ceil − 1 과 같은 경계) */
     d.price = { unit: price, P: P, diff: diff, low: low, giftVal: giftVal, giftTo: low ? 'buyer' : 'seller',
-      incHit: i && diff > 0 && (diff >= 3e8 || diff >= fl(T * 0.05)),
+      incHit: i && diff > 0 && (diff >= 3e8 || diff >= T * 0.05),
       giftAfterDed: low && g ? Math.max(0, giftVal - free) : giftVal };
   }
   return d;
@@ -86,6 +88,7 @@ function html(d) {
   h += '<tr class="sum"><td><b>둘 다 피하는 매매가</b></td><td><b>' + rng(d.both) + '</b><br><small>총액 ' + won(d.both.lo * d.n) + ' ~ ' + (d.both.hi === Infinity ? '' : won(d.both.hi * d.n)) + '</small></td><td><small>낮게 팔면 파는 사람 양도세·사는 사람 증여세, 높게 팔면 파는 사람 증여세·사는 사람 취득가액 감액</small></td></tr>';
   if (d.g && d.free > 0) h += '<tr><td>증여재산공제까지 쓰면 (싸게 살 때)</td><td>' + per(d.low2gift.lo) + ' 이상이면 증여세 0' + (d.inc ? '<br><small>다만 양도세 부당행위 하한 ' + per(d.inc.lo) + '이 더 높아 실제 하한은 ' + per(d.low2.lo) + '</small>' : '') + '</td><td><small>이익(차액 − 기준금액)이 남은 공제 ' + won(d.free) + ' 안 — 상증법 §53' + (d.mbLeft ? '·§53의2' : '') + '. 공제를 쓰면 다음 증여 때 줄어듦</small></td></tr>';
   h += '</table>';
+  if (d.wide) h += '<p class="note" style="margin-top:6px;color:#b42318">⚠ 넘길 주식이 ' + fmt(d.n) + '주(시가 ' + won(d.T) + ')뿐이라 3억원 기준이 이 주식에 다 실려 1주당 범위가 크게 벌어졌습니다. 넘길 주식 수가 맞는지 확인하십시오.</p>';
   h += '<div style="margin-top:8px"><b>증여로 넘길 때 — 세금 없이 줄 수 있는 몫</b>: ';
   if (d.free > 0) h += '남은 공제 ' + won(d.free) + (d.mbLeft ? ' (증여재산공제 ' + won(d.capLeft) + ' + 혼인·출산 ' + won(d.mbLeft) + ')' : '') + ' ÷ ' + per(d.v) + ' = <b>' + fmt(d.freeShares) + '주 · ' + won(d.freeVal) + '</b>';
   else h += d.g && d.cap > 0 ? '남은 증여재산공제가 없습니다(10년 합산 한도 소진).' : '이 관계에는 증여재산공제가 없어 1주라도 증여하면 증여세가 생깁니다.';
