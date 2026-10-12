@@ -2918,9 +2918,9 @@ function calcStock(){
   });
   let wavgPS=(ps[1]*3+ps[2]*2+ps[3]*1)/6; if(wavgPS<0)wavgPS=0;
   let wavgTot=(nets[1]*3+nets[2]*2+nets[3]*1)/6; if(wavgTot<0)wavgTot=0;
-  s('wavg_ps',fmt(wavgPS));
+  s('wavg_ps',fmt(Math.floor(wavgPS)));
   const rate=v('rate')/100;
-  const incPer=rate>0?wavgPS/rate:0;
+  const incPer=rate>0?Math.floor(wavgPS/rate):0;   /* 원 미만 절사 — v3 엔진과 같게 */
   s('incval',fmt(incPer));
 
   // 3년 연속 결손 판정 (§63③ 할증 제외 · §55③3호 영업권 미합산)
@@ -2967,14 +2967,14 @@ function calcStock(){
   let goodwill=0;
   const excessAmt=wavgTot*(v('gw_excess')/100)-selfCap*(v('gw_int')/100);
   s('gw_excess_amt',fmt(excessAmt));
-  if(gwMode==='auto')goodwill=Math.max(0,excessAmt*v('gw_pv'));
+  if(gwMode==='auto')goodwill=Math.max(0,Math.floor(excessAmt*v('gw_pv')));
   else if(gwMode==='manual')goodwill=v('gw_manual');
   if(gwExcluded&&gwMode!=='none'){goodwill=0;s('gw_note',(loss3?'3년 연속 결손':ft==='re80'?'부동산 80%↑ 법인':'순자산가치만 평가하는 법인')+' → §55③ 영업권 합산 제외 (자동 0)');}
   else s('gw_note','');
   s('goodwill_val',fmt(goodwill));
   let networth=selfCap+goodwill; if(networth<0)networth=0;
   s('networth',fmt(networth));
-  const assetPer=networth/shares;
+  const assetPer=Math.floor(networth/shares);
   s('assetval',fmt(assetPer));
 
   // 최종
@@ -2984,16 +2984,16 @@ function calcStock(){
   if(ft==='netonly'){
     weighted=assetPer;beforePrem=assetPer;floorVal=assetPer;floorLbl='순자산가치 (100%)';formula='순자산가치만 적용 (§54④)';
   }else if(ft==='re80'){
-    weighted=(incPer*2+assetPer*3)/5;floorVal=assetPer;floorLbl='순자산가치 (비교, §54④3호 단서)';
+    weighted=Math.floor((incPer*2+assetPer*3)/5);floorVal=assetPer;floorLbl='순자산가치 (비교, §54④3호 단서)';
     beforePrem=Math.max(weighted,assetPer);formula='부동산80%↑: max(가중평균2:3, 순자산)';
   }else if(ft==='stk80'){
-    weighted=(incPer*3+assetPer*2)/5;floorVal=assetPer;floorLbl='순자산가치 (비교, §54④5호 단서)';
+    weighted=Math.floor((incPer*3+assetPer*2)/5);floorVal=assetPer;floorLbl='순자산가치 (비교, §54④5호 단서)';
     beforePrem=Math.max(weighted,assetPer);formula='주식80%↑: max(가중평균3:2, 순자산)';
   }else if(ft==='estate'){
-    weighted=(incPer*2+assetPer*3)/5;floorVal=assetPer*0.8;floorLbl='순자산가치 80% 하한';
+    weighted=Math.floor((incPer*2+assetPer*3)/5);floorVal=Math.floor(assetPer*0.8);floorLbl='순자산가치 80% 하한';
     beforePrem=Math.max(weighted,floorVal);formula='(순손익2 + 순자산3) ÷ 5, 80%하한';
   }else{
-    weighted=(incPer*3+assetPer*2)/5;floorVal=assetPer*0.8;floorLbl='순자산가치 80% 하한';
+    weighted=Math.floor((incPer*3+assetPer*2)/5);floorVal=Math.floor(assetPer*0.8);floorLbl='순자산가치 80% 하한';
     beforePrem=Math.max(weighted,floorVal);formula='(순손익3 + 순자산2) ÷ 5, 80%하한';
   }
   s('weighted',fmt(weighted));
@@ -3003,7 +3003,7 @@ function calcStock(){
   s('beforeprem',fmt(beforePrem));
   let premRate=parseFloat(document.getElementById('prem').value)/100;
   if(loss3)premRate=0;
-  const premAmt=beforePrem*premRate;
+  const premAmt=Math.floor(Math.round(beforePrem*premRate*1e6)/1e6);
   s('premamt',fmt(premAmt));
   const final=beforePrem+premAmt;
   s('final',fmt(final)+' 원');

@@ -137,6 +137,8 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
 .q{padding:12px 0;border-top:1px dashed var(--line)}
 .q:first-of-type{border-top:none;padding-top:0}
 .q .t{display:block;font-weight:800;color:#111;margin-bottom:3px;font-size:15px}
+.q .pq{font-size:13.5px;font-weight:700;color:#222;margin:9px 0 4px}.q .pq small{font-weight:400;color:#666}
+.premchk{margin-top:10px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fafcff}.premchk input{width:18px;height:18px}
 .q .why{font-size:12.5px;color:var(--blue);background:#F1F6FB;border-left:3px solid var(--blue);padding:5px 9px;border-radius:0 6px 6px 0;margin:4px 0 8px}
 .q .where{font-size:12.5px;color:#5b4a1f;background:#FFF8E8;border-left:3px solid var(--gold);padding:5px 9px;border-radius:0 6px 6px 0;margin:4px 0 8px}
 input[type=number],input[type=text],input[type=date],select,textarea{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:9px;width:100%;max-width:300px;background:#fff}
@@ -333,9 +335,15 @@ input.dauto,select.dauto{background:#eefbe7!important;border-color:#86c96b!impor
   </div>
     <div class="where">발행주식 총수는 등기부등본 「발행주식의 총수」 또는 주주명부. 평가기준일 현재 수량입니다(§54 ⑤).</div>
   </div>
-  <div class="q"><span class="t">중소기업 또는 중견기업(직전 3년 평균 매출 5천억 미만)인가요?</span>
-    <div class="opts" id="smallBox"><label data-v="y">예 — 중소·중견기업</label><label data-v="n">아니요 — 대기업 또는 모름</label></div>
-    <div class="why">최대주주 지분은 원래 20%를 더해 평가하지만(상증법 §63 ③), 중소기업·중견기업 주식은 할증하지 않습니다(시행령 §53 ⑧ 9호). 3년 연속 결손 법인도 할증 제외.</div>
+  <div class="q" id="premQ"><span class="t">최대주주 할증 — 20%를 더할까요?</span>
+    <div class="why">최대주주 쪽 주식은 1주당 평가액에 20%를 더합니다(상증법 §63 ③). 다만 중소기업(시행령 §53 ⑥)과 직전 3년 평균 매출액 5천억원 미만 중견기업(⑦)의 주식, 3년 연속 결손 법인 주식은 더하지 않습니다(§53 ⑧ 1·9호). 아래 세 가지에 답하면 「할증 없음」이 자동으로 정해집니다.</div>
+    <div class="pq">① 넘기는 주식이 최대주주 쪽(본인과 친족 등 특수관계인 지분을 합쳐 가장 많은 무리) 주식인가요?</div>
+    <div class="opts" id="majorBox"><label data-v="y">예</label><label data-v="n">아니요 — 소수 주주 지분</label></div>
+    <div class="pq">② 회사가 중소기업인가요? <small>법인세 신고서 「중소기업 등 기준검토표」의 적합(Y), 중소기업확인서로 확인</small></div>
+    <div class="opts" id="smallBox"><label data-v="y">예 — 중소기업</label><label data-v="n">아니요</label><label data-v="u">모름</label></div>
+    <div class="pq" id="midQ">③ 중견기업이고, 직전 3년 평균 매출액(손익계산서)이 5천억원 미만인가요?</div>
+    <div class="opts" id="midBox"><label data-v="y">예 — 중견기업 · 5천억 미만</label><label data-v="n">아니요 — 대기업 또는 5천억 이상</label></div>
+    <label class="chk premchk"><input type="checkbox" id="premOff"> <b>할증 없음</b> <span id="premWhyTxt" class="unit"></span></label>
   </div>
   <div class="q"><span class="t">회사 자산 중 부동산(토지·건물·부동산 권리) 비중은 어느 정도인가요?</span>
     <div class="opts" id="reBox"><label data-v="lt50">절반 미만</label><label data-v="50-80">절반 이상 80% 미만</label><label data-v="ge80">80% 이상 (부동산 회사)</label><label data-v="stk80">자산의 80% 이상이 다른 회사 주식 (지주회사)</label><label data-v="unknown">모름 — 다음 단계에서 금액으로 판정</label></div>
@@ -690,9 +698,16 @@ E.detectUnit=function(lines){
 E.detectYear=function(lines){
   const L=(lines||[]).map(l=>typeof l==='string'?l:(l&&l.text)||'');
   const dateY=ln=>{const a=[...String(ln).matchAll(/((?:19|20)\d{2})\s*[년.\-/]\s*\d{1,2}\s*[월.\-/]\s*\d{1,2}/g)];return a.length?+a[a.length-1][1]:null;};
-  for(const re of [/\(\s*당\s*\)\s*기|당\s*기/,/사업\s*연\s*도|과세\s*기간|회계\s*기간|제\s*\d+\s*기/]){
-    for(const ln of L){if(!re.test(ln))continue;const y=dateY(String(ln).split(/\(\s*전\s*\)\s*기|전\s*기/)[0]);if(y)return y;}
-  }
+  for(const ln of L){if(!/\(\s*당\s*\)\s*기|당\s*기/.test(ln))continue;const y=dateY(String(ln).split(/\(\s*전\s*\)\s*기|전\s*기/)[0]);if(y)return y;}
+  /* 사업연도 끝(월말) 날짜를 세어 가장 많은 해 — 서식 머리의 개정일(「(2024.3.22 개정)」·「<개정 2023.3.20.>」)은 뺀다. 같으면 늦은 해(당기) */
+  const cnt={};
+  for(const ln0 of L){const ln=String(ln0).replace(/<\s*개정[^>]{0,24}>/g,' ').replace(/개정\s*(?:19|20)\d{2}[\d.\s]{0,10}/g,' ').replace(/(?:19|20)\d{2}\s*[.\-/]\s*\d{1,2}\s*[.\-/]\s*\d{1,2}\s*\.?\s*개정/g,' ');
+    for(const m of ln.matchAll(/((?:19|20)\d{2})\s*[년.\-/]\s*(\d{1,2})\s*[월.\-/]\s*(\d{1,2})/g)){const y=+m[1],mo=+m[2],d=+m[3];if(mo>=1&&mo<=12&&d===new Date(y,mo,0).getDate())cnt[y]=(cnt[y]||0)+1;}}
+  /* 사업연도 시작일(YYYY.MM.01)과 1년 뒤 끝날이 함께 있으면 그 끝 해에 +5 — 신고일·제출일(「2026.03.31」)보다 사업연도를 앞세운다 */
+  const all=L.join(' '),ds=[...all.matchAll(/((?:19|20)\d{2})\s*[년.\-/]\s*(\d{1,2})\s*[월.\-/]\s*(\d{1,2})/g)].map(m=>[+m[1],+m[2],+m[3]]);
+  ds.filter(([y,mo,d])=>d===1).forEach(([y,mo])=>{const ey=mo===1?y:y+1,em=mo===1?12:mo-1,ed=new Date(ey,em,0).getDate();if(ds.some(([a,b,c])=>a===ey&&b===em&&c===ed))cnt[ey]=(cnt[ey]||0)+5;});
+  const ys=Object.keys(cnt).map(Number).sort((a,b)=>cnt[b]-cnt[a]||b-a);if(ys.length)return ys[0];
+  for(const ln of L){if(!/사업\s*연\s*도|과세\s*기간|회계\s*기간|제\s*\d+\s*기/.test(ln))continue;const y=dateY(ln);if(y)return y;}
   return null;
 };
 /* 문서 단위·연도를 이번 파일에 맞춘다. 선택값과 다르면 문서 표기를 따르고 알린다.
@@ -770,13 +785,13 @@ E.parseCoDoc=function(lines){
   const L=(Array.isArray(lines)?lines:String(lines||'').split('\n')).map(x=>String(x).replace(/ /g,' ').trim()).filter(Boolean);
   const all=L.join('\n'), ns=all.replace(/\s+/g,'');
   const o={}, first=keys=>{for(const k of keys)for(const ln of L){const v=E.afterKey(ln,k);if(v)return v;}return null;};
-  const docType=/등기사항|등기부|회사성립연월일|등기번호/.test(ns)?'reg':/사업자등록증|등록번호/.test(ns)?'biz':'';
+  const docType=/등기사항|등기부|회사성립연월일|등기번호/.test(ns)?'reg':/사업자등록증|등록번호/.test(ns)||(/사업자등록/.test(ns)&&/증명/.test(ns))?'biz':'';   /* 사업자등록증명(원) 포함 */
   let m=all.match(/(\d{3})\s*-\s*(\d{2})\s*-\s*(\d{5})(?!\d)/);if(m)o.biz=m[1]+'-'+m[2]+'-'+m[3];
   m=ns.match(/(?:법인등록번호|등록번호)[:：]?(\d{6})-?(\d{7})/);if(m)o.corpNo=m[1]+'-'+m[2];
-  let v=first(['법인명(단체명)','상호(법인명)','상호(단체명)','법인명','상호']);if(v)o.name=v;
+  let v=first(['법인명(단체명)','상호(법인명)','상호(단체명)','법인명','상호']);if(v)o.name=v.replace(/\s+\d.*$/,'').trim();   /* OCR 꼬리(숫자·잡글자) 자름 */
   v=first(['대표자성명','대표자']);if(!v&&docType!=='reg')v=first(['성명']);
   const reps=[];for(const ln of L){const r=ln.match(/대\s*표\s*이\s*사\s*[:：]?\s*([가-힣]{2,5})(?=\s|\d|$)/);if(r&&!reps.includes(r[1]))reps.push(r[1]);}
-  if(v)o.rep=v.split(/\s+/)[0];else if(reps.length)o.rep=reps[0];
+  if(v)o.rep=v.replace(/^[(（][^)）]*[)）]\s*/,'').split(/\s+/)[0].replace(/[(（].*$/,'');else if(reps.length)o.rep=reps[0];   /* 「(대표유형) 안혁주(단독대표)」 → 안혁주 */
   m=ns.match(/(?:회사성립연월일|개업연월일|설립연월일|법인설립일|설립일)[:：]?(\d{4})[년.\-/](\d{1,2})[월.\-/](\d{1,2})/);
   if(m)o.est=m[1]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[3]).slice(-2);
   v=first(['사업장소재지','본점소재지','본점']);if(v)o.addr=v;
@@ -792,20 +807,40 @@ E.parseCoDoc=function(lines){
 
 
 /* 등기부 「발행주식의 총수」 */
-E.sharesOf=function(lines){const ns=lines.join('').replace(/\s+/g,'');const m=ns.match(/발행주식의총수[^\d]{0,12}?(\d{1,3}(?:,\d{3})+|\d+)주/);return m?+m[1].replace(/,/g,''):null;};
+E.sharesOf=function(lines){const ns=lines.join('').replace(/\s+/g,'');const m=ns.match(/발행주식의총수[^\d]{0,12}?(\d{1,3}(?:,\d{3})+|\d+)주/);if(m)return +m[1].replace(/,/g,'');
+  /* 등기부 「발행주식의 총수와 그 종류 및 각각의 수 · 자본금의 액」 칸: 제목을 OCR 이 못 읽으면 「10,000 주 금 50,000,000 원」 줄을 1주의 금액으로 검산해 고른다(마지막 = 최신) */
+  const pm=ns.match(/1주의금액[^\d]{0,4}?(\d{1,3}(?:,\d{3})+|\d+)원/);const par=pm?+pm[1].replace(/,/g,''):0;let n=null;
+  if(par)for(const ln of lines)for(const mm of String(ln).matchAll(/(\d{1,3}(?:,\d{3})+|\d+)\s*주\s*금\s*(\d{1,3}(?:,\d{3})+)\s*원/g)){const a=+mm[1].replace(/,/g,''),c=+mm[2].replace(/,/g,'');if(a>0&&a*par===c)n=a;}
+  return n;};
 /* 서류 종류 — 세무 서식은 「사업자등록번호」가 들어 있어 회사 서류보다 먼저 가린다 */
+E.FORMNO={'2':'rural','3':'corp','12':'rural','15':'adj','54':'stk','3의3':'fs'};
+E.formKind=function(text){const t=String(text).replace(/\s+/g,'');
+  const m=t.match(/(?:별지|\]|\[|시행규칙)[^제]{0,6}제(\d{1,2})호(?:의?(\d)(?=서식|\(|$))?(?:서식)?(부표)?/);   /* 「제3호3서식」처럼 「의」가 빠져도 3의3 */if(!m||m[3])return '';
+  return E.FORMNO[m[1]+(m[2]?'의'+m[2]:'')]||'';};
+E.TITLES=[
+  [/소득금액조정합계표|소득금액조정합|금액조정합계표/,'adj'],
+  [/농어촌특별세과세표[준순]및세액(?:조정계산서|신고서)/,'rural'],
+  [/법인지방소득세과세표[준순](?:및세액)?(?:확정)?(?:신고|조정)/,'local'],
+  [/주식등변동상황명세서/,'stk'],
+  [/과세표[준순]및세액조정계산서|법인세과세표[준순]및세액조정/,'corp'],
+  [/재무상태표|대차대조표|손익계산서/,'fs']];
 E.kind=function(lines){
-  const ns=lines.join('').replace(/\s+/g,'');
+  const ns=lines.join('').replace(/\s+/g,''),hd=lines.slice(0,14).join('').replace(/\s+/g,'');
+  /* 쪽 머리(서식 제목)로 먼저 가린다 — 본문에 다른 서식 이름(「동업기업 법인지방소득세」 등)이 나와도 흔들리지 않게 */
+  if(!/접수증/.test(hd))for(const [re,k] of E.TITLES)if(re.test(hd)&&!/최저한세/.test(hd))return k;
+  if(!/접수증/.test(hd)){const fk=E.formKind(hd);if(fk)return fk;}
+  /* 서식 머리(별지·서식)인데 위 제목이 아니면 평가에 쓰지 않는 서식 */
+  if(/별지|명세서|계산서|신고서|합계표|조서/.test(hd)&&!/사업자등록|등기/.test(hd))return '';
   /* 접수증·제출 서류 목록은 서식 이름을 여럿 늘어놓을 뿐 값이 없다 */
   if(/접수증/.test(ns)||[/소득금액조정합계표/,/법인세과세표준및세액조정계산서/,/재무상태표|대차대조표/,/법인지방소득세/].filter(r=>r.test(ns)).length>=2)return '';
   if(/소득금액조정합계표/.test(ns))return 'adj';
-  if(/법인지방소득세/.test(ns)&&/과세표준/.test(ns))return 'local';
   if(/농어촌특별세과세표준및세액/.test(ns))return 'rural';
-  if(/세액조정계산서/.test(ns))return 'corp';
+  if(/세액조정계산서/.test(ns)&&!/최저한세조정계산서/.test(hd))return 'corp';
+  if(/법인지방소득세과세표준/.test(ns))return 'local';
   if(/재무상태표|대차대조표|손익계산서/.test(ns))return 'fs';
   const d=E.parseCoDoc(lines).docType;
   /* 신고서·접수증 쪽은 「사업자등록번호」가 있어도 사업자등록증이 아니다 */
-  if(d==='biz'&&!/사업자등록증/.test(ns)&&/신고서|계산서|명세서|합계표|접수증|별지|서식/.test(ns))return '';
+  if(d==='biz'&&!/사업자등록증/.test(ns)&&!(/사업자등록/.test(hd)&&/증명/.test(ns))&&/신고서|계산서|명세서|합계표|접수증|별지|서식/.test(ns))return '';
   return d||'';
 };
 /* 여러 서식을 묶은 PDF(홈택스·세무사랑 신고서 일괄 출력) → 쪽마다 종류를 가려 같은 서류끼리 묶는다.
@@ -846,24 +881,46 @@ E.ADJ_RULES=[
 ];
 E.parseAdj=function(lines){
   const items=[],unk=[];
-  for(const ln of lines){for(const p of E.splitParts(ln)){
+  for(const ln0 of lines){const ln=String(ln0).replace(/[|│]/g,' ').replace(/(\d)(?=[가-힣])/g,'$1 ');for(const p of E.splitParts(ln)){
     const lab=p.label.replace(/\s+/g,'').replace(/^(기타사외유출|유보감소|유보발생|유보|상여|배당|기타|손금불산입|익금불산입)+/,'');
-    if(!lab||!p.nums.length)continue;const v=p.nums[p.nums.length-1];if(!v)continue;
+    if(!lab||!p.nums.length)continue;const v=p.nums[0];if(!v)continue;
     const r=E.ADJ_RULES.find(x=>x.re.test(lab));
-    if(r)items.push({to:r.to,l:r.l,lab,v});else if(/가산세/.test(lab))unk.push({lab,v,why:'가산세(법인세법 §21 1호)는 차② 대상이 아닙니다 — 필요하면 직접 반영'});}}
+    if(r)items.push({to:r.to,l:r.l,lab,v});else if(/가산세/.test(lab))unk.push({lab,v,why:'가산세(법인세법 §21 1호)는 차② 대상이 아닙니다 — 필요하면 직접 반영'});
+    else if(/잡손실|세금과공과|잡비/.test(lab))unk.push({lab,v,why:'손금불산입 내용이 벌금·과태료·가산금(§21 3호)이면 차② 에 넣으십시오 — 「과목별 소득금액조정명세서」의 조정 내용으로 확인'});}}
   return {items,unk};
+};
+/* 같은 금액이 여러 줄에 나오는 서식(세액조정계산서: 차가감소득 04·각사업연도소득 06·과세표준 10·56)에서
+ * 제목 뒤 금액과 줄번호 뒤 금액을 모아 가중치를 더한다. OCR 이 한두 자리를 잘못 읽어도 다수결로 고른다 */
+E.vote=function(lines,specs){
+  const sc=new Map(),add=(v,w)=>{if(v!=null&&isFinite(v))sc.set(v,(sc.get(v)||0)+w);};
+  for(const sp of specs){
+    for(const k of sp.keys||[])for(const ln of lines){const a=E.amtAfter([ln],[k]);if(a)add(a.v,sp.w);}
+    for(const c of sp.codes||[]){const re=new RegExp('(?:^|[^\\d,.])'+c+'\\s*[|│ㅣ\\]]?\\s*([△-]?\\s*\\d{1,3}(?:,\\d{3})+)(?![\\d,])');
+      for(const ln of lines){const m=E.normMinus(String(ln)).match(re);if(m)add(E.parseNum(m[1]),sp.w);}}}
+  let best=null,bw=0;for(const [v,w] of sc)if(w>bw){best=v;bw=w;}
+  return best==null?null:{v:best,w:bw,alt:[...sc.keys()].filter(x=>x!==best)};
 };
 /* 서류 한 건 → {kind,year,fields,items,notes} */
 E.readDoc=function(lines){
   const kind=E.kind(lines),year=E.detectYear(lines),o={kind,year,f:{},items:[],notes:[]};
   if(kind==='corp'){
-    const a=E.amtAfter(lines,['각사업연도소득금액']);if(a)o.f.inc=a.v;
-    const t=E.amtAfter(lines,['총부담세액','가감계']);if(t){o.f.taxCorp=t.v;o.notes.push('법인세 「'+t.k+'」 '+t.v.toLocaleString('ko-KR')+'원');}
-    const d=E.amtAfter(lines,['기부금한도초과액']);if(d&&d.v)o.items.push({to:'s3',l:'기부금 한도초과액(§24)',v:d.v});
-    const c=E.amtAfter(lines,['기부금한도초과이월액손금산입']);if(c&&c.v)o.items.push({to:'a3',l:'기부금 한도초과 이월액 손금산입(§24 ⑤)',v:c.v});
+    const a=E.vote(lines,[{keys:['각사업연도소득금액'],codes:['06'],w:3},{keys:['차가감소득금액'],codes:['04'],w:2},{keys:['과세표준'],codes:['10','56'],w:1}]);
+    if(a){o.f.inc=a.v;if(a.alt.length)o.notes.push('각 사업연도 소득 '+a.v.toLocaleString('ko-KR')+'원 — 다른 값('+a.alt.slice(0,3).map(x=>x.toLocaleString('ko-KR')).join(', ')+')도 읽혀 다수결로 골랐습니다. 신고서와 대조하십시오');}
+    const t=E.vote(lines,[{keys:['가감계'],codes:['21'],w:3},{keys:['총부담세액'],w:2}]);
+    if(t){o.f.taxCorp=t.v;o.notes.push('법인세 「가감계」 '+t.v.toLocaleString('ko-KR')+'원');}
+    /* 산출세액 — 법인지방소득세 신고서가 없을 때 추정용(지방세법 §103의20 표준세율은 법인세법 §55 세율의 1/10) */
+    const q=E.vote(lines,[{keys:['산출세액'],codes:['12','16'],w:1}]);if(q&&q.v>0)o.f.taxCalc=q.v;
+    const tb=E.vote(lines,[{keys:['과세표준'],codes:['10','56'],w:1}]);if(tb&&tb.v>0)o.f.tb=tb.v;
+    /* 기부금은 줄번호 뒤 천 단위 금액만 — 제목 뒤 아무 숫자(줄번호 열 「101 102…」)를 잡지 않게 */
+    const d=E.vote(lines,[{codes:['05'],w:1}]);if(d&&d.v>0)o.items.push({to:'s3',l:'기부금 한도초과액(§24)',v:d.v});
+    const c=E.vote(lines,[{codes:['54'],w:1}]);if(c&&c.v>0)o.items.push({to:'a3',l:'기부금 한도초과 이월액 손금산입(§24 ⑤)',v:c.v});
   }else if(kind==='local'||kind==='rural'){
-    const t=E.amtAfter(lines,['총부담세액','가감계','산출세액']);if(t){o.f[kind==='local'?'taxLocal':'taxRural']=t.v;o.notes.push((kind==='local'?'법인지방소득세':'농어촌특별세')+' 「'+t.k+'」');}
+    let t=E.amtAfter(lines,['총부담세액','가감계','산출세액']);
+    if(!t&&kind==='rural')for(const ln of lines){const ns=E.normMinus(String(ln)).replace(/(\d)\s*[.,]\s*(\d{3})/g,'$1,$2');const a=(ns.match(/\d{1,3}(?:,\d{3})+/g)||[]).map(x=>+x.replace(/,/g,''));
+      for(let i=0;i+1<a.length;i++)if(Math.abs(a[i+1]-Math.floor(a[i]*0.2))<=10){t={v:a[i+1],k:'감면세액 × 20%'};break;}if(t)break;}
+    if(t){o.f[kind==='local'?'taxLocal':'taxRural']=t.v;o.notes.push((kind==='local'?'법인지방소득세':'농어촌특별세')+' 「'+t.k+'」 '+t.v.toLocaleString('ko-KR')+'원');}
   }else if(kind==='adj'){const r=E.parseAdj(lines);o.items=r.items;o.unk=r.unk;}
+  else if(kind==='stk'){const ns=lines.join('').replace(/\s+/g,'');const m=ns.match(/기말[^\d]{0,12}(\d{1,3}(?:,\d{3})+)/);if(m){o.f.shares=+m[1].replace(/,/g,'');o.notes.push('사업연도 말 발행주식 '+o.f.shares.toLocaleString('ko-KR')+'주 (주식등변동상황명세서)');}}
   else if(kind==='fs'){
     const r=E.extract(lines,{unit:E.detectUnit(lines)||1});const v=k=>r.values[k]&&r.values[k][0]!=null?r.values[k][0]:null;
     if(v('ta')!=null)o.f.asset=v('ta');if(v('tl')!=null)o.f.liab=v('tl');
@@ -878,6 +935,9 @@ E.readDoc=function(lines){
   }
   return o;
 };
+E.prog=function(b,rates){const lim=[2e8,200e8,3000e8,Infinity];let t=0,prev=0;for(let i=0;i<4;i++){if(b<=prev)break;t+=(Math.min(b,lim[i])-prev)*rates[i];prev=lim[i];}return Math.floor(t+1e-6);};
+E.natTax=(b,y)=>y>=2023&&y<=2025?E.prog(b,[.09,.19,.21,.24]):null;
+E.locTax=(b,y)=>y>=2023&&y<=2025?E.prog(b,[.009,.019,.021,.024]):y>=2026?E.prog(b,[.01,.02,.022,.025]):null;
 /* 서류 목록 → 입력 칸. baseYear: 평가기준일 직전 사업연도(12월 결산 가정). 없으면 올린 세무 서류의 가장 늦은 해 */
 E.mergeDocs=function(docs,evalDate){
   const out={},src={},log=[];
@@ -886,23 +946,48 @@ E.mergeDocs=function(docs,evalDate){
   const dy=evalDate?+String(evalDate).slice(0,4):null;
   const base=dy?dy-1:(taxYears.length?Math.max(...taxYears):null);
   /* 회사: 상호·대표자·사업자번호는 사업자등록증, 설립일·발행주식은 등기부 우선 */
-  const pri=(k,d)=>d.kind===(['founded','shares'].includes(k)?'reg':'biz')?0:1;
+  const pri=(k,d)=>k==='shares'?({reg:0,stk:1}[d.kind]??2)-(d.kind==='stk'?(+d.year||0)/1e5:0):d.kind===(k==='founded'?'reg':'biz')?0:1;
   ['name','ceo','biz','founded','shares'].forEach(k=>{const c=docs.filter(d=>d.f&&d.f[k]!=null&&d.f[k]!=='').sort((a,b)=>pri(k,a)-pri(k,b));if(c.length)put(k,c[0].f[k],c[0].name);});
-  ['asset','liab','reBook'].forEach(k=>{const c=docs.filter(d=>d.kind==='fs'&&d.f[k]!=null);if(c.length){const d=c[c.length-1];put(k,d.f[k],d.name);}});
+  const kindsOf={};docs.forEach(d=>{const k=d.src||d.name.replace(/\s*\([\d~]+쪽\)$/,'');(kindsOf[k]=kindsOf[k]||new Set()).add(d.kind);});
+  const lim=dy?dy-1:Infinity,bundle=d=>kindsOf[d.src||d.name.replace(/\s*\([\d~]+쪽\)$/,'')].size>1?1:0;   /* 신고서 묶음 속 표준재무제표보다 재무제표 파일 */
+  const fsd=docs.filter(d=>d.kind==='fs'&&(d.f.asset!=null||d.f.liab!=null)&&(!d.year||d.year<=lim))
+    .sort((a,b)=>(+b.year||0)-(+a.year||0)||bundle(a)-bundle(b));
+  if(fsd.length){const d=fsd[0];['asset','liab','reBook'].forEach(k=>{if(d.f[k]!=null)put(k,d.f[k],d.name);});
+    if(fsd.length>1)log.push('재무제표 '+fsd.length+'건 중 「'+d.name+'」('+(d.year||'연도 미상')+')의 자산·부채를 넣었습니다');}
   if(base!=null){
     const Y={};
     docs.filter(d=>['corp','local','rural','adj'].includes(d.kind)).forEach(d=>{
       if(!d.year){log.push('['+d.name+'] 사업연도를 읽지 못해 넣지 않았습니다 — 직접 입력하십시오');return;}
       const y=base-d.year+1;if(y<1||y>3){log.push('['+d.name+'] '+d.year+'년 — 평가기준일 직전 3개 사업연도('+(base-2)+'~'+base+')가 아니라 넣지 않았습니다');return;}
       const t=Y[y]=Y[y]||{};
-      if(d.f.inc!=null){t.inc=d.f.inc;t.incSrc=d.name;}
-      ['taxCorp','taxLocal','taxRural'].forEach(k=>{if(d.f[k]!=null)t[k]=d.f[k];});
+      const main=d.kind!=='corp'||d.f.taxCorp!=null||t.inc==null;   /* 같은 해 세액조정계산서가 또 읽혀도(서식 오판) 가감계가 있는 쪽 값을 지킨다 */
+      if(d.f.inc!=null&&main){t.inc=d.f.inc;t.incSrc=d.name;}
+      ['taxCorp','taxLocal','taxRural','taxCalc','tb'].forEach(k=>{if(d.f[k]!=null&&(main||t[k]==null))t[k]=d.f[k];});
       (d.items||[]).forEach(it=>{t[it.to]=(t[it.to]||0)+it.v;});
       t.year=d.year;});
     for(const y in Y){const t=Y[y];put('y'+y+'label',String(t.year),'');
       if(t.inc!=null)put('y'+y+'inc',t.inc,t.incSrc);
-      if(t.taxCorp!=null||t.taxLocal!=null||t.taxRural!=null){put('y'+y+'s1',(t.taxCorp||0)+(t.taxLocal||0)+(t.taxRural||0),'');
-        if(t.taxLocal==null)log.push(t.year+'년 차① — 법인지방소득세 신고서가 없어 법인세'+(t.taxRural!=null?'·농특세':'')+'만 넣었습니다. 지방소득세를 더하거나 서류를 함께 올리십시오');}
+      if(t.taxCorp!=null||t.taxLocal!=null||t.taxRural!=null){
+        /* 법인지방소득세 신고서가 없으면 법인세 산출세액의 1/10 로 추정 — 2023~2025 사업연도 0.9·1.9·2.1·2.4% = 법인세 9·19·21·24% 의 1/10 (지방세법 §103의20 ①, 법인세법 §55 ①, 2026-10-12 MCP 확인), 조례 가감·토지등 양도소득분 제외 */
+        /* 산출세액 검산: 과세표준(또는 각 사업연도 소득)에 세율표를 적용한 값과 맞으면 읽은 값을 믿는다. 안 맞으면 OCR 오독으로 보고 세율표 값을 쓴다 */
+        const bases=[t.tb,t.inc].filter(v=>v>0),calcOk=t.taxCalc!=null&&bases.some(b=>{const n=E.natTax(b,t.year);return n!=null&&Math.abs(n-t.taxCalc)<=10;});
+        const okBase=bases.find(b=>{const n=E.natTax(b,t.year);return n!=null&&t.taxCalc!=null&&Math.abs(n-t.taxCalc)<=10;});
+        const base=okBase!=null?okBase:(t.inc>0?t.inc:(t.tb>0?t.tb:null));   /* 과세표준은 OCR 오독이 잦아 검산에 맞을 때만 쓴다 */
+        let calc=calcOk?t.taxCalc:(base!=null?E.natTax(base,t.year):null);
+        if(!calcOk&&t.taxCalc!=null&&calc!=null)log.push(t.year+'년 산출세액 — 읽은 값 '+t.taxCalc.toLocaleString('ko-KR')+'원이 과세표준 '+base.toLocaleString('ko-KR')+'원의 세율표 계산('+calc.toLocaleString('ko-KR')+'원)과 달라 오독으로 보고 계산값을 썼습니다');
+        /* 법인지방소득세: 신고서 → 산출세액 1/10 → 과세표준 × 지방세율 */
+        let loc=t.taxLocal,locWhy='';
+        if(loc==null){if(calcOk){loc=Math.floor(t.taxCalc/10);locWhy='법인세 산출세액 '+t.taxCalc.toLocaleString('ko-KR')+'원의 1/10';}
+          else if(base!=null&&E.locTax(base,t.year)!=null){loc=E.locTax(base,t.year);locWhy='과세표준 '+base.toLocaleString('ko-KR')+'원 × 지방소득세 표준세율';}}
+        /* 농어촌특별세: 신고서 값 → 없거나 감면세액 20% 와 자릿수가 어긋나면(OCR 이 천 단위를 잘라 읽음) (산출세액 − 가감계) × 20% */
+        let rur=t.taxRural,rurWhy='';const gam=calc!=null&&t.taxCorp!=null&&calc>t.taxCorp?calc-t.taxCorp:0,rEst=gam?Math.floor(gam*0.2):null;
+        if(rEst!=null&&(rur==null||(rur>0&&rur<rEst/100))){if(rur!=null)rurWhy='읽은 값 '+rur.toLocaleString('ko-KR')+'원이 감면세액 20%('+rEst.toLocaleString('ko-KR')+'원)와 자릿수가 달라 바꿈 — ';rur=rEst;rurWhy+='감면세액 '+gam.toLocaleString('ko-KR')+'원(산출세액 − 가감계) × 20%';}
+        put('y'+y+'s1',(t.taxCorp||0)+(loc||0)+(rur||0),'');
+        if(t.taxLocal==null)log.push(loc!=null
+          ?t.year+'년 차① — 법인지방소득세 신고서가 없어 '+locWhy+' = '+loc.toLocaleString('ko-KR')+'원으로 추정해 더했습니다(조례 가감 없는 표준세율). 지방소득세 신고서 금액과 대조하십시오'
+          :t.year+'년 차① — 법인지방소득세 신고서가 없어 법인세'+(rur!=null?'·농특세':'')+'만 넣었습니다. 지방소득세를 더하거나 서류를 함께 올리십시오');
+        if(rurWhy)log.push(t.year+'년 차① 농어촌특별세 '+rur.toLocaleString('ko-KR')+'원 — '+rurWhy+(t.taxRural==null?' (농특세 신고서를 찾지 못해 추정. 농특세 비과세 감면이면 빼십시오)':''));
+        else if(rur==null)log.push(t.year+'년 차① — 농어촌특별세 신고서를 찾지 못했습니다. 공제·감면세액이 있으면 그 20%를 더하십시오');}
       ['a1','a2','a3','s2','s3'].forEach(k=>{if(t[k])put('y'+y+k,t[k],'');});}
   }
   return {fields:out,src,log,base};
@@ -959,13 +1044,14 @@ function assetValue(S,inc,ft){
   const assetSide=assetEval+N(S.aRecv)-N(S.aPrepaid);
   const liabSide=N(S.liab)+N(S.lTax)+N(S.lDiv)+N(S.lRetire)-N(S.lReserve);
   const selfCap=assetSide-liabSide;
-  const gwExcluded=ft==='netonly'||ft==='re80'||inc.loss3;                      /* §55 ③ */
+  /* §55 ③ — 영업권 미합산: §54 ④ 1호(청산 등)·2호(휴폐업·개시 3년 미만)·3호(부동산 80%), 3년 연속 결손. 6호(존속기한 3년 이내)·5호(주식 80%)는 합산 */
+  const gwExcluded=(ft==='netonly'&&S.status!=='term3')||ft==='re80'||inc.loss3;
   const excess=fl(inc.wavgNet*N(S.gwExcess)/100-selfCap*N(S.gwInt)/100);
   let gw=0,gwNote='';
   if(S.gwMode==='auto')gw=Math.max(0,fl(excess*N(S.gwPv)));else if(S.gwMode==='manual')gw=N(S.gwManual);
   if(gwExcluded&&S.gwMode!=='none'){gw=0;gwNote=(inc.loss3?'3년 연속 결손':ft==='re80'?'부동산 80%↑ 법인':'순자산가치만 평가하는 법인')+' → §55 ③ 합산 제외';}
-  const networth=Math.max(0,selfCap+gw);const shares=N(S.shares)||1;
-  return{reDiff,assetEval,assetSide,liabSide,selfCap,excess,gw,gwNote,gwExcluded,networth,assetPer:fl(networth/shares)};
+  const networth=Math.max(0,selfCap+gw);const shares=N(S.shares);
+  return{reDiff,assetEval,assetSide,liabSide,selfCap,excess,gw,gwNote,gwExcluded,networth,assetPer:shares>0?fl(networth/shares):0};
 }
 function finalValue(ft,incPer,assetPer,premRate){
   let weighted,before,floorVal,floorLbl,formula;
@@ -982,7 +1068,11 @@ function evaluate(S){
   const m=decideMethod(S,pre.assetEval);
   const as=assetValue(S,inc,m.ft);
   let premRate=N(S.prem)/100;let premWhy='';
-  if(S.small==='y'){premRate=0;premWhy='중소·중견기업 — 할증 제외 (령 §53 ⑧ 9호)';}
+  if(S.major==='n'){premRate=0;premWhy='최대주주등의 주식이 아님 — 할증 없음 (법 §63 ③)';}
+  else if(S.small==='y'){premRate=0;premWhy='중소기업 — 할증 제외 (령 §53 ⑥·⑧ 9호)';}
+  else if(S.mid==='y'){premRate=0;premWhy='중견기업 · 직전 3년 평균 매출액 5천억원 미만 — 할증 제외 (령 §53 ⑦·⑧ 9호)';}
+  /* 화면의 「할증 없음」 체크를 직접 바꾼 경우 그 값을 따른다 */
+  if(S.premManual==='off'){premRate=0;premWhy='「할증 없음」 직접 체크';}else if(S.premManual==='on'&&premRate===0){premRate=0.2;premWhy='「할증 없음」 체크 해제 — 20% 적용';}
   if(inc.loss3){premRate=0;premWhy='3년 연속 결손 — 할증 제외 (령 §53 ⑧ 1호)';}
   const f=finalValue(m.ft,inc.incPer,as.assetPer,premRate);
   const shares=N(S.shares)||0,hold=N(S.holdShares)>0?N(S.holdShares):shares;
@@ -1012,7 +1102,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 const kd=s=>{if(!s)return '________';const d=new Date(s+'T00:00:00');if(isNaN(d))return esc(s);return d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일';};
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
 const LS='hbt_unlisted_v3',LS_CASES='hbt_unlisted_cases_v3';
-const DEF={name:'',ceo:'',biz:'',date:'',founded:'',shares:'',holdShares:'',status:'normal',small:'',reCat:'',methodMode:'auto',ftype:'normal',reValue:'',stkValue:'',rate:10,prem:'20',author:'',
+const DEF={name:'',ceo:'',biz:'',date:'',founded:'',shares:'',holdShares:'',status:'normal',small:'',major:'',mid:'',premManual:'',reCat:'',methodMode:'auto',ftype:'normal',reValue:'',stkValue:'',rate:10,prem:'20',author:'',
   y1label:'',y2label:'',y3label:'',y1inc:'',y2inc:'',y3inc:'',y1m:'',y2m:'',y3m:'',y1sh:'',y2sh:'',y3sh:'',cap:'n',capKind:'up',capYear:'1',capBefore:'',capDelta:'',capPaid:'',capMonth:12,
   asset:'',reBook:'',reMarket:'',evalDiff:'',aRecv:'',aPrepaid:'',liab:'',lTax:'',lDiv:'',lRetire:'',lReserve:'',gwMode:'auto',gwExcess:50,gwInt:10,gwPv:3.7908,gwManual:'',
   giftRel:'child',giftPrior:'',giftShares:'',spouse:'y',attachList:true,showHometax:true,docs:[],docAuto:{}};
@@ -1035,7 +1125,8 @@ function bind(){
     el.addEventListener('input',()=>{S[k]=el.type==='checkbox'?el.checked:el.value;persist();render();});
     el.addEventListener('change',()=>{S[k]=el.type==='checkbox'?el.checked:el.value;persist();render();});});
   document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
-  [['smallBox','small'],['reBox','reCat'],['capBox','cap'],['spouseBox','spouse']].forEach(([b,k])=>document.querySelectorAll('#'+b+' label').forEach(l=>l.onclick=()=>{S[k]=l.dataset.v;persist();render();}));
+  [['smallBox','small'],['majorBox','major'],['midBox','mid'],['reBox','reCat'],['capBox','cap'],['spouseBox','spouse']].forEach(([b,k])=>document.querySelectorAll('#'+b+' label').forEach(l=>l.onclick=()=>{S[k]=l.dataset.v;if(['small','major','mid'].includes(k))S.premManual='';persist();render();}));
+  const po=document.getElementById('premOff');if(po)po.onchange=()=>{S.premManual=po.checked?'off':'on';persist();render();};
 }
 function refill(){document.querySelectorAll('[data-k]').forEach(el=>{const v=S[el.dataset.k];if(el.type==='checkbox')el.checked=!!v;else el.value=(v==null?'':v);});}
 function persist(){try{localStorage.setItem(LS,JSON.stringify({S,mode,step}));}catch(e){}}
@@ -1049,14 +1140,18 @@ function ftName(ft){return{normal:'일반법인 3 : 2',estate:'부동산과다 2
 /* ═══════ 화면 ═══════ */
 function render(){const R=evaluate(S);window.__lastResult={S:JSON.parse(JSON.stringify(S)),R};if(mode==='easy')renderEasy(R);else renderPro(R);}
 function renderEasy(R){
-  [['smallBox','small'],['reBox','reCat'],['capBox','cap'],['spouseBox','spouse']].forEach(([b,k])=>document.querySelectorAll('#'+b+' label').forEach(l=>l.classList.toggle('on',l.dataset.v===S[k])));
+  [['smallBox','small'],['majorBox','major'],['midBox','mid'],['reBox','reCat'],['capBox','cap'],['spouseBox','spouse']].forEach(([b,k])=>document.querySelectorAll('#'+b+' label').forEach(l=>l.classList.toggle('on',l.dataset.v===S[k])));
+  /* ③ 중견기업 문항은 ② 에서 「아니요·모름」일 때만, ②·③ 은 ① 에서 「아니요」면 숨긴다 */
+  const showMid=S.major!=='n'&&(S.small==='n'||S.small==='u');$('midQ').style.display=showMid?'':'none';$('midBox').style.display=showMid?'':'none';
+  ['smallBox'].forEach(id=>{$(id).style.display=S.major==='n'?'none':'';$(id).previousElementSibling.style.display=S.major==='n'?'none':'';});
+  $('premOff').checked=R.premRate===0;$('premWhyTxt').textContent=R.premRate===0?'— '+R.premWhy:'— 20% 적용'+(S.premManual==='on'?' (직접 정함)':'');
   const sh=N(S.shares),hd=N(S.holdShares);$('holdPct').textContent=sh&&hd?'지분 '+(hd/sh*100).toFixed(2)+'%':'';
   [1,2,3].forEach(y=>$('e_n'+y).textContent=fmt(R.inc.Y[y].net));
   const rd=R.as.reDiff;$('reDiffCalc').textContent=N(S.reMarket)?(rd>0?'자산에 +'+won(rd):'장부금액 유지 (§55 ① 후단)'):'';
   $('judge1').innerHTML=(R.inc.loss3?'<b>3년 연속 결손</b> — 순손익가치 0, 할증 없음, 영업권 미합산. ':'')+'가중평균 1주당 순손익액 <b>'+won(R.inc.wavgPS)+'</b> → 10%로 나눈 순손익가치 <b>'+won(R.inc.incPer)+'</b>'+(S.cap==='y'?'<br><span style="color:var(--red)">증자·감자가 있어 직원이 정밀 조서에서 환산합니다. 아래 결과는 환산 전 값입니다.</span>':'');
   $('judge2').innerHTML='자산 '+won(R.as.assetSide)+' − 부채 '+won(R.as.liabSide)+(R.as.gw?' + 영업권 '+won(R.as.gw):'')+' = 순자산 <b>'+won(R.as.networth)+'</b> → 1주당 <b>'+won(R.as.assetPer)+'</b>'+(R.as.gw?'<br>영업권(초과이익의 5년 현가)이 자동으로 더해졌습니다. 정밀 조서에서 확인합니다.':'');
   if(step!==3)return;
-  $('rAmt').textContent=won(R.final);
+  $('rAmt').textContent=N(S.shares)>0?won(R.final):'발행주식 총수를 넣어 주십시오';
   $('rDue').innerHTML='적용 방법 <b>'+ftName(R.method.ft)+'</b> — '+esc(R.method.why)+(R.premRate?' · 최대주주 할증 20%':(R.premWhy?' · '+esc(R.premWhy):' · 할증 미적용'));
   $('kHold').textContent=won(R.holdVal)+' ('+fmt(R.hold)+'주)';$('kTotal').textContent=won(R.total);$('kBoth').textContent=fmt(R.inc.incPer)+' / '+fmt(R.as.assetPer);$('kRange').textContent=fmt(R.lo)+' ~ '+fmt(R.hi)+'원';
   const rows=[];const A=(a,b,c,cls)=>rows.push('<tr class="'+(cls||'')+'"><td>'+a+'</td><td>'+(b||'')+'</td><td class="num">'+c+'</td></tr>');
@@ -1074,7 +1169,7 @@ function renderEasy(R){
   if(R.before>R.weighted&&R.method.ft!=='netonly')F.push(['info','하한 적용','가중평균이 순자산가치의 80%(또는 순자산가치)보다 낮아 그 값이 적용됐습니다. 이익이 적어도 자산이 많으면 평가액이 높게 나오는 이유입니다.']);
   if(S.reCat==='unknown'&&!N(S.reMarket)&&!N(S.reBook))F.push(['warn','부동산 비율','부동산 비중을 모르고 금액도 없어 일반법인(3:2)으로 가정했습니다. 부동산이 절반 이상이면 평가액이 달라집니다.']);
   if(N(S.reMarket)&&N(S.reMarket)<N(S.reBook))F.push(['warn','부동산 평가','공시가격이 장부보다 낮아 장부금액을 썼습니다(§55 ① 후단). 정당한 사유가 있으면 낮은 값을 쓸 수 있으니 직원과 상의하십시오.']);
-  if(!S.small)F.push(['warn','할증','중소·중견기업 여부를 고르지 않아 할증 20%를 적용했습니다. 대부분의 회사는 중소기업이라 할증이 없습니다.']);
+  if(R.premRate>0&&!S.premManual&&(!S.major||!S.small||S.small==='u'))F.push(['warn','할증','최대주주 할증 문답을 다 답하지 않아 20%를 더했습니다. 대부분의 회사는 중소기업이라 할증이 없습니다 — 「최대주주 할증」 세 문항에 답하거나 「할증 없음」을 체크하십시오.']);
   F.push(['info','평가심의','회사의 실제 가치가 이 값과 크게 다르면 70~130% 범위에서 평가심의위원회에 다른 평가방법(유사상장법인 비교·현금흐름할인 등)을 신청할 수 있습니다(§54 ⑥).']);
   F.push(['','참고','이 결과는 입력값으로 계산한 추정치입니다. 자산의 상증법 평가(시가·감정), 법정 가감 항목, 영업권, 증자·감자 환산은 정밀 조서에서 직원이 확인합니다. 10% 이하 출자주식(§54 ③), 추정이익(§56 ②) 등 특례는 반영하지 않았습니다.']);
   $('easyFlags').innerHTML=F.map(f=>'<div class="flag '+f[0]+'"><b>'+f[1]+'</b><span>'+f[2]+'</span></div>').join('');
@@ -1095,7 +1190,7 @@ function renderPro(R){
   $('p_gw').textContent=fmt(R.as.gw);$('p_gwNote').textContent=R.as.gwNote||(S.gwMode==='auto'?'초과이익 '+fmt(R.as.excess)+' × 현가계수':'');
   $('p_networth').textContent=fmt(R.as.networth);$('p_assetPer').textContent=fmt(R.as.assetPer);
   $('p_method').textContent=ftName(R.method.ft)+' — '+R.method.why;$('p_weighted').textContent=fmt(R.weighted);$('p_floorLbl').textContent=R.floorLbl;$('p_floor').textContent=fmt(R.floorVal);
-  $('p_before').textContent=fmt(R.before);$('p_prem').textContent=fmt(R.prem)+(R.premWhy?' ('+R.premWhy+')':'');$('p_final').textContent=fmt(R.final);
+  $('p_before').textContent=fmt(R.before);$('p_prem').textContent=fmt(R.prem)+(R.premWhy?' ('+R.premWhy+')':'');$('p_final').textContent=N(S.shares)>0?fmt(R.final):'발행주식 총수 필요';
   const F=[];
   if(!S.name||!S.date)F.push(['warn','기본 정보','법인명·평가기준일을 넣어야 조서 머리가 채워집니다.']);
   if(R.inc.loss3)F.push(['info','3년 결손','평가기준일 전 3년 연속 결손 — 할증 제외(령 §53 ⑧ 1호), 영업권 미합산(§55 ③ 3호).']);
@@ -1176,7 +1271,7 @@ setMode(mode);go(mode==='easy'?Math.min(step,3):0);
 /* ═══════ 서류 올려 채우기 — 화면 ═══════ */
 (function(){
 const PDFV='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/',DIST='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/';
-const KIND={biz:'사업자등록증',reg:'법인 등기부등본',fs:'재무제표',corp:'법인세 세액조정계산서',local:'법인지방소득세 신고서',rural:'농어촌특별세 신고서',adj:'소득금액조정합계표'};
+const KIND={biz:'사업자등록증',reg:'법인 등기부등본',fs:'재무제표',corp:'법인세 세액조정계산서',local:'법인지방소득세 신고서',rural:'농어촌특별세 신고서',adj:'소득금액조정합계표',stk:'주식등변동상황명세서'};
 const LAB={name:'법인명',ceo:'대표자',biz:'사업자등록번호',founded:'설립일',shares:'발행주식 총수',asset:'자산총계',liab:'부채총계',reBook:'부동산 장부금액'};
 const lab=k=>LAB[k]||(k.replace(/^y(\d)(.*)$/,(m,y,f)=>'직전 '+y+'년 '+({label:'사업연도',inc:'각 사업연도 소득',s1:'차① 법인세 등',s2:'차② 벌과금 등',s3:'차③ 한도초과 등',a1:'가① 환급금이자',a2:'가② 수입배당금',a3:'가③ 이월 손금산입'}[f]||f)));
 const logEl=()=>document.getElementById('docLog');
@@ -1198,15 +1293,22 @@ async function pdfPages(f){
     pages.push({ok:ch>=30&&hg>=10,lines:rs.map(r=>{let s='',px=null;r.items.forEach(it=>{if(px!=null&&it.x-px>2)s+=' ';s+=it.s;px=it.x+it.w;});return s;})});}
   return {doc,pages};
 }
-async function ocrPages(doc,nums){
-  await needTess();const w=await Tesseract.createWorker('kor+eng');await w.setParameters({tessedit_pageseg_mode:'4',preserve_interword_spaces:'1'});const out={};
-  try{for(let i=0;i<nums.length;i++){const p=nums[i];const page=await doc.getPage(p);const vp=page.getViewport({scale:3.5});const cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;
+/* head: 쪽 윗부분(서식 제목 띠)만 작게 읽는다 — 많은 쪽짜리 스캔 신고서에서 필요한 서식만 골라 전체 OCR 하기 위해 */
+/* split: 좌우 두 단 세무 서식(세액조정계산서·조정합계표)은 단을 나눠 읽는다 — 한 줄로 읽으면 두 단 글자가 섞여 제목·금액이 깨진다 */
+async function ocrPages(doc,nums,head,split){
+  await needTess();const w=await Tesseract.createWorker('kor+eng');await w.setParameters({tessedit_pageseg_mode:split?'6':'4',preserve_interword_spaces:'1'});const out={};
+  try{for(let i=0;i<nums.length;i++){const p=nums[i];const page=await doc.getPage(p);const vp=page.getViewport({scale:head?2:split?4:3.5});const cv=document.createElement('canvas');cv.width=vp.width;cv.height=head?Math.round(vp.height*0.22):vp.height;
     const x=cv.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,cv.width,cv.height);await page.render({canvasContext:x,viewport:vp}).promise;
-    const d=x.getImageData(0,0,cv.width,cv.height),a=d.data;for(let j=0;j<a.length;j+=4){const v=(a[j]*.3+a[j+1]*.59+a[j+2]*.11)<170?0:255;a[j]=a[j+1]=a[j+2]=v;}x.putImageData(d,0,0);
-    out[p]=ocrLines((await w.recognize(cv)).data.text);log('  OCR '+p+'쪽 ('+(i+1)+'/'+nums.length+')');}}
+    if(!split){const d=x.getImageData(0,0,cv.width,cv.height),a=d.data;for(let j=0;j<a.length;j+=4){const v=(a[j]*.3+a[j+1]*.59+a[j+2]*.11)<170?0:255;a[j]=a[j+1]=a[j+2]=v;}x.putImageData(d,0,0);
+      out[p]=ocrLines((await w.recognize(cv)).data.text);}
+    else{out[p]=[];for(const [x0,x1] of [[0,0.5],[0.5,1]]){const c2=document.createElement('canvas');c2.width=Math.round(cv.width*(x1-x0));c2.height=cv.height;c2.getContext('2d').drawImage(cv,-Math.round(cv.width*x0),0);
+      out[p]=out[p].concat(ocrLines((await w.recognize(c2)).data.text));}}
+    log('  '+(head?'제목 확인 ':'OCR ')+p+'쪽 ('+(i+1)+'/'+nums.length+')');}}
   finally{await w.terminate();}
   return out;
 }
+/* 평가에 쓰는 서식 제목 — 「과목별 소득금액조정명세서」는 조정합계표와 같은 항목을 다시 적은 것이라 넣지 않는다(이중 계산 방지) */
+const NEED_FORM=/세액조정계산서|소득금액조정합|조정합계표|합계표|농어촌특별세과세표준|법인지방소득세|주식등변동상황|재무상태표|대차대조표|손익계산서|사업자등록증|등기사항|등기부/;
 async function ocrImg(f){await needTess();const w=await Tesseract.createWorker('kor+eng');await w.setParameters({tessedit_pageseg_mode:'4',preserve_interword_spaces:'1'});const r=await w.recognize(f);await w.terminate();return ocrLines(r.data.text);}
 /* 압축 파일 — 브라우저 안에서 풀어 PDF·사진만 꺼낸다. 윈도우에서 만든 압축은 파일명이 CP949(한글 깨짐)라 UTF-8 이 아니면 EUC-KR 로 읽는다 */
 const ZIPJS='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
@@ -1232,7 +1334,7 @@ async function unzip(f,depth){
 function take(name,src,r){
   if(!r.kind){log('['+name+'] 어떤 서류인지 알아보지 못했습니다');return null;}
   const n=Object.keys(r.f).length+(r.items||[]).length;
-  if(!n){log('['+name+'] '+KIND[r.kind]+' — 넣을 값을 찾지 못했습니다');return null;}
+  if(!n){log('['+name+'] '+KIND[r.kind]+' — 넣을 값을 찾지 못했습니다');(r.unk||[]).forEach(u=>log('  ※ '+u.lab+' '+u.v.toLocaleString('ko-KR')+'원 — '+u.why));return null;}
   const sig=JSON.stringify([r.kind,r.year,r.f,(r.items||[]).map(i=>[i.to,i.v])]);
   const dup=(S.docs||[]).find(d=>(d.src||d.name)!==src&&JSON.stringify([d.kind,d.year,d.f,(d.items||[]).map(i=>[i.to,i.v])])===sig);
   if(dup){log('['+name+'] '+KIND[r.kind]+(r.year?' '+r.year+'년':'')+' — 「'+dup.name+'」와 같은 내용이라 건너뜁니다');return null;}
@@ -1254,8 +1356,17 @@ async function readOne(f){
       let need=t.pages.map((p,i)=>p.ok?0:i+1).filter(Boolean);
       /* 글자층이 있어도 어느 쪽에서도 서류를 못 알아보면(글꼴이 깨진 PDF) 전부 OCR */
       if(!need.length&&!t.pages.some(p=>DR.kind(p.lines)))need=t.pages.map((p,i)=>i+1);
-      log('['+f.name+'] '+np+'쪽'+(need.length?' — '+need.length+'쪽은 글자층이 없거나 읽을 수 없어 OCR로 읽습니다(쪽당 30~60초)':', 글자층 '+t.pages.reduce((a,p)=>a+p.lines.length,0)+'줄'));
-      if(need.length){const o=await ocrPages(t.doc,need);need.forEach(p=>{t.pages[p-1].lines=o[p];});}
+      log('['+f.name+'] '+np+'쪽'+(need.length?' — '+need.length+'쪽은 글자층이 없거나 읽을 수 없어 OCR로 읽습니다('+(need.length>6?'제목으로 필요한 서식만 골라 읽음':'쪽당 30~60초')+')':', 글자층 '+t.pages.reduce((a,p)=>a+p.lines.length,0)+'줄'));
+      if(need.length>6){
+        /* 쪽이 많은 스캔본(신고서 묶음): 제목 띠만 먼저 읽어 필요한 서식만 전체 OCR — 60쪽 기준 10분 → 1~2분 */
+        const hd=await ocrPages(t.doc,need,true);
+        const keep=need.filter(p=>{const h=(hd[p]||[]).join('').replace(/\s+/g,'');return NEED_FORM.test(h)||!!DR.formKind(h);});   /* 제목이 깨져도 서식 번호(별지 제3·12·15호 등)로 고른다 */
+        if(keep.length){log('  필요한 서식 '+keep.length+'쪽만 자세히 읽습니다: '+keep.join(', ')+'쪽');
+          need.forEach(p=>{t.pages[p-1].lines=hd[p]||[];});
+          /* 단 나눠 읽은 줄 앞에 제목 띠(한 줄로 읽은 것)를 붙여 서식 종류를 가리게 한다 */
+          const o=await ocrPages(t.doc,keep,false,true);keep.forEach(p=>{t.pages[p-1].lines=(hd[p]||[]).concat(o[p]);});}
+        else{log('  제목으로 서식을 가리지 못해 전체 쪽을 읽습니다');const o=await ocrPages(t.doc,need);need.forEach(p=>{t.pages[p-1].lines=o[p];});}
+      }else if(need.length){const o=await ocrPages(t.doc,need);need.forEach(p=>{t.pages[p-1].lines=o[p];});}
       const pl=t.pages.map(p=>p.lines),fy=DR.detectYear(pl.flat());
       groups=DR.splitPages(pl).map(g=>({name:(g.from!==1||g.to!==np)?f.name+' ('+(g.from===g.to?g.from:g.from+'~'+g.to)+'쪽)':f.name,lines:g.lines,fy}));
       if(!groups.length){log('['+f.name+'] 어떤 서류인지 알아보지 못했습니다. 앞부분: '+pl.flat().slice(0,5).join(' / ').slice(0,160));if(gone)apply([]);return;}
