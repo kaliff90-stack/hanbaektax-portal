@@ -313,6 +313,7 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
 </style>
 <link rel="stylesheet" href="hb-light.css">
 <style>html:not(.hb-trial) [data-trial]{display:none!important}</style>
+<script src="한백택스_특수관계거래.js"></script><!-- 비상장주식 탭 「특수관계 거래·증여 가액」 공용 모듈 -->
 <script src="한백택스_사회보험요율.js"></script><!-- 4대보험 요율 공용 모듈 — 해마다 이 파일만 고친다 -->
 <script>/* 시험 공개 스위치 — 한백택스_시험공개.js */(function(){window.HB_TRIAL_Q=location.search;var s=document.createElement('script');s.src='한백택스_시험공개.js?v='+Date.now();document.head.appendChild(s);})();</script>
 <script src="한백택스_계산신호.js" defer></script><!-- HB-SIGNAL -->
@@ -1341,7 +1342,7 @@ window.openBizFull=function(){window.open(F,'_blank');};})();</script>
 <!-- ==================== 8. 비상장주식 평가조서 (최신판) ==================== -->
 <div class="page" id="page-stock">
   <div class="calc-title"><h2>📊 비상장주식 평가조서</h2><div class="sub">순손익가치 · 순자산가치(법정 가감) · 영업권 · 가중평균 정밀 산정 (상증법 §63·시행령 §54~56·59·시행규칙 §17의2)</div></div>
-  <div class="nopr" style="margin:0 0 12px;padding:10px 14px;border:1px solid #DCE5F0;border-left:4px solid #C8963E;border-radius:10px;background:#FBF3E4;font-size:13.5px;line-height:1.6">📎 <b>서류 올려 채우기</b>(사업자등록증·등기부·재무제표·세액조정계산서·주식등변동상황명세서 등) · <b>특수관계 거래·증여 — 추가 세부담 없는 가액</b> · <b>업체 자료 전부 지우기</b>는 <a href="한백택스_비상장주식_평가계산기.html?mode=pro" target="_blank" rel="noopener" style="font-weight:800;color:#1B3A5C">비상장주식 평가계산기(정밀 조서) 열기 ↗</a></div>
+  <div class="nopr" style="margin:0 0 12px;padding:10px 14px;border:1px solid #DCE5F0;border-left:4px solid #C8963E;border-radius:10px;background:#FBF3E4;font-size:13.5px;line-height:1.6">📎 <b>서류 올려 채우기</b>(사업자등록증·등기부·재무제표·세액조정계산서·주식등변동상황명세서 등)와 <b>업체 자료 전부 지우기</b>는 <a href="한백택스_비상장주식_평가계산기.html?mode=pro" target="_blank" rel="noopener" style="font-weight:800;color:#1B3A5C">비상장주식 평가계산기(정밀 조서) 열기 ↗</a></div>
   <div class="calc-body">
     <div class="hdr-info">
       <div class="f"><label>법인명</label><input type="text" id="h_name" placeholder="(주)○○"></div>
@@ -1474,6 +1475,7 @@ window.openBizFull=function(){window.open(F,'_blank');};})();</script>
       <div class="rb"><div class="k">평가심의위 신청 가능범위 (§54⑥ 70~130%)</div><div class="v" id="rng" style="font-size:14px">0 ~ 0 원</div></div>
     </div>
 
+    <div id="dealBox"></div>
     <div class="verify-box" id="vf_stock"><h4>🔍 계산 검증 (독립 재계산)</h4><div id="vf_stock_body"><div style="color:#718096;font-size:13px">입력값을 변경하면 자동 검증됩니다.</div></div></div>
 
     <div class="formula-bar">
@@ -2964,6 +2966,8 @@ function calcStock(){
   const ok=Math.abs(wAlt-wavgPS)<2&&Math.abs(netAlt-networth)<2&&Math.abs(wAltFinal-weighted)<2;
   {const _vr=document.getElementById('vf_result');if(_vr)_vr.innerHTML=ok?'<div class="vok">✔ 모든 산출항목 검증 통과</div>':'<div class="vfail">✘ 검증 불일치 항목이 있습니다</div>';}
   try{stkCalcCap();}catch(e){}
+  /* 특수관계 거래·증여 — 추가 세부담 없는 가액 (공용 모듈 HB_DEAL) */
+  try{if(window.HB_DEAL)HB_DEAL.update('dealBox',{value:final,n:hold});}catch(e){}
 }
 
 // ========== Init ==========
