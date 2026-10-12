@@ -506,7 +506,10 @@ input.dauto,select.dauto{background:#eefbe7!important;border-color:#86c96b!impor
     <div class="fr"><div class="l">부동산등 가액 (자동판정용) <small>비우면 아래 부동산 평가액 사용</small></div><input type="number" data-k="reValue"></div>
     <div class="fr"><div class="l">주식등 가액 (자동판정용) <small>타법인 출자주식 등</small></div><input type="number" data-k="stkValue"></div>
     <div class="fr"><div class="l">순손익가치 환원율 <small>규칙 §17 · 연 10%</small></div><input type="number" data-k="rate" step="0.1"></div>
-    <div class="fr"><div class="l">최대주주 할증 <small>§63 ③ · 령 §53 ⑧</small></div><select data-k="prem"><option value="0">미적용 (중소·중견기업 · 3년 결손 등)</option><option value="20">적용 +20%</option></select></div>
+    <div class="fr"><div class="l">최대주주 할증 ① 최대주주등의 주식 <small>법 §63 ③</small></div><select data-k="major" data-prem><option value="">선택</option><option value="y">예</option><option value="n">아니요 — 소수 주주 지분(할증 없음)</option></select></div>
+    <div class="fr"><div class="l">② 중소기업 <small>령 §53 ⑥ · ⑧ 9호</small></div><select data-k="small" data-prem><option value="">선택</option><option value="y">예 — 할증 없음</option><option value="n">아니요</option><option value="u">모름</option></select></div>
+    <div class="fr"><div class="l">③ 중견기업 · 직전 3년 평균 매출액 5천억 미만 <small>령 §53 ⑦</small></div><select data-k="mid" data-prem><option value="">선택</option><option value="y">예 — 할증 없음</option><option value="n">아니요</option></select></div>
+    <div class="fr"><div class="l">할증 결과</div><label class="chk"><input type="checkbox" id="premOff2"> <b>할증 없음</b> <span id="premWhy2" class="unit"></span></label></div>
     <div class="fr"><div class="l">작성자</div><input type="text" data-k="author" placeholder="담당 직원"></div>
   </div>
   <div class="sec"><h2><span class="n">1</span>1주당 순손익가치 <small style="font-weight:400;color:var(--gray)">시행령 §56 ④ · 규칙 §17의3</small></h2>
@@ -558,9 +561,10 @@ input.dauto,select.dauto{background:#eefbe7!important;border-color:#86c96b!impor
     <div id="proFlags" style="margin-top:10px"></div>
     <div class="chk"><input type="checkbox" data-k="attachList" checked><span>조서에 첨부 서류 목록·검토 확인란 넣기</span></div>
     <div class="chk"><input type="checkbox" data-k="showHometax" checked><span>홈택스 「재산 및 평가명세서」 기재값 표 넣기</span></div>
+    <div class="nopr" style="margin-top:10px"><button class="btn p" type="button" onclick="window.print()">🖨 조서 출력 · PDF 저장</button></div>
   </div>
 </div>
-<div class="sheetwrap"><div class="sheet" id="sheet"></div></div>
+<div class="sheetwrap"><div class="sheet" id="sheet"></div><div class="nopr" style="text-align:center;margin:12px 0"><button class="btn p" type="button" onclick="window.print()">🖨 조서 출력 · PDF 저장</button></div></div>
 </div>
 </div>
 </div>
@@ -942,7 +946,14 @@ E.readDoc=function(lines){
       for(let i=0;i+1<a.length;i++)if(Math.abs(a[i+1]-Math.floor(a[i]*0.2))<=10){t={v:a[i+1],k:'감면세액 × 20%'};break;}if(t)break;}
     if(t){o.f[kind==='local'?'taxLocal':'taxRural']=t.v;o.notes.push((kind==='local'?'법인지방소득세':'농어촌특별세')+' 「'+t.k+'」 '+t.v.toLocaleString('ko-KR')+'원');}
   }else if(kind==='adj'){const r=E.parseAdj(lines);o.items=r.items;o.unk=r.unk;}
-  else if(kind==='stk'){const ns=lines.join('').replace(/\s+/g,'');const m=ns.match(/기말[^\d]{0,12}(\d{1,3}(?:,\d{3})+)/);if(m){o.f.shares=+m[1].replace(/,/g,'');o.notes.push('사업연도 말 발행주식 '+o.f.shares.toLocaleString('ko-KR')+'주 (주식등변동상황명세서)');}}
+  else if(kind==='stk'){
+    /* 글자층 줄 순서가 「보통주 10,000 50,000,000 | 17기 말 5,000」처럼 섞여 「기말 뒤 첫 숫자」는 액면가를 잡는다(2026-10-12 실제 서식) */
+    const ns=lines.join(' ').replace(/\s+/g,' ');let sh=null,why='';
+    const t=ns.replace(/\s+/g,'').match(/합계(\d{1,3}(?:,\d{3})+)100\.00/);if(t){sh=+t[1].replace(/,/g,'');why='주주별 합계(지분율 100%)';}
+    if(!sh){const nums=(ns.match(/\d{1,3}(?:,\d{3})+/g)||[]).map(x=>+x.replace(/,/g,''));const cand=[];
+      for(const a of nums)for(const c of nums)if(c>a&&c%a===0&&nums.includes(c/a)&&c/a>=100)cand.push(Math.max(a,c/a));
+      if(cand.length){sh=cand[cand.length-1];why='주식수 × 액면가액 = 자본금 검산';}}
+    if(sh){o.f.shares=sh;o.notes.push('사업연도 말 발행주식 '+sh.toLocaleString('ko-KR')+'주 (주식등변동상황명세서 — '+why+')');}}
   else if(kind==='fs'){
     const r=E.extract(lines,{unit:E.detectUnit(lines)||1});const v=k=>r.values[k]&&r.values[k][0]!=null?r.values[k][0]:null;
     if(v('ta')!=null)o.f.asset=v('ta');if(v('tl')!=null)o.f.liab=v('tl');
@@ -970,6 +981,7 @@ E.mergeDocs=function(docs,evalDate){
   /* 회사: 상호·대표자·사업자번호는 사업자등록증, 설립일·발행주식은 등기부 우선 */
   const pri=(k,d)=>k==='shares'?({reg:0,stk:1}[d.kind]??2)-(d.kind==='stk'?(+d.year||0)/1e5:0):d.kind===(k==='founded'?'reg':'biz')?0:1;
   ['name','ceo','biz','founded','shares'].forEach(k=>{const c=docs.filter(d=>d.f&&d.f[k]!=null&&d.f[k]!=='').sort((a,b)=>pri(k,a)-pri(k,b));if(c.length)put(k,c[0].f[k],c[0].name);});
+  {const sv=[...new Set(docs.filter(d=>d.f&&d.f.shares>0).map(d=>d.f.shares))];if(sv.length>1)log.push('발행주식 총수가 서류마다 다릅니다('+sv.map(v=>v.toLocaleString('ko-KR')+'주').join(', ')+') — 등기부 값을 넣었습니다. 평가기준일 현재 수량으로 확인하십시오(§54 ⑤)');}
   const kindsOf={};docs.forEach(d=>{const k=d.src||d.name.replace(/\s*\([\d~]+쪽\)$/,'');(kindsOf[k]=kindsOf[k]||new Set()).add(d.kind);});
   const lim=dy?dy-1:Infinity,bundle=d=>kindsOf[d.src||d.name.replace(/\s*\([\d~]+쪽\)$/,'')].size>1?1:0;   /* 신고서 묶음 속 표준재무제표보다 재무제표 파일 */
   const fsd=docs.filter(d=>d.kind==='fs'&&(d.f.asset!=null||d.f.liab!=null)&&(!d.year||d.year<=lim))
@@ -1164,11 +1176,12 @@ function bind(){
     el.addEventListener('change',()=>{S[k]=el.type==='checkbox'?el.checked:el.value;persist();render();});});
   document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
   [['smallBox','small'],['majorBox','major'],['midBox','mid'],['relBox','rel'],['reBox','reCat'],['capBox','cap'],['spouseBox','spouse']].forEach(([b,k])=>document.querySelectorAll('#'+b+' label').forEach(l=>l.onclick=()=>{S[k]=l.dataset.v;if(['small','major','mid'].includes(k))S.premManual='';persist();render();}));
-  const po=document.getElementById('premOff');if(po)po.onchange=()=>{S.premManual=po.checked?'off':'on';persist();render();};
+  ['premOff','premOff2'].forEach(id=>{const po=document.getElementById(id);if(po)po.onchange=()=>{S.premManual=po.checked?'off':'on';persist();render();};});
+  document.querySelectorAll('[data-prem]').forEach(el=>el.addEventListener('change',()=>{S.premManual='';persist();render();}));
 }
 function refill(){document.querySelectorAll('[data-k]').forEach(el=>{const v=S[el.dataset.k];if(el.type==='checkbox')el.checked=!!v;else el.value=(v==null?'':v);});}
 function persist(){try{localStorage.setItem(LS,JSON.stringify({S,mode,step}));}catch(e){}}
-function load(){try{const o=JSON.parse(localStorage.getItem(LS)||'null');if(o&&o.S){S=Object.assign({},DEF,o.S);mode=o.mode||'easy';step=o.step||0;}}catch(e){}}
+function load(){try{const o=JSON.parse(localStorage.getItem(LS)||'null');if(o&&o.S){S=Object.assign({},DEF,o.S);if(S.prem==='0'&&!S.premManual){S.premManual='off';S.prem='20';}mode=o.mode||'easy';step=o.step||0;}}catch(e){}}
 function setMode(m){mode=m;refill();document.querySelectorAll('#modes button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));$('easy').classList.toggle('hidden',m!=='easy');$('pro').classList.toggle('hidden',m!=='pro');persist();render();window.scrollTo({top:0});}
 function go(n){if(n>=1&&!(N(S.shares)>0)){alert('발행주식 총수를 넣어 주십시오.');return;}step=n;for(let k=0;k<4;k++)$('s'+k).classList.toggle('hidden',k!==n);
   const sb=$('steps');sb.innerHTML='';['① 회사','② 3년 손익','③ 재무상태','④ 결과'].forEach((t,k)=>{const b=document.createElement('button');b.textContent=t;b.className=k===n?'on':(k<n?'done':'');b.onclick=()=>go(k);sb.appendChild(b);});
@@ -1243,6 +1256,7 @@ function tradeHtml(R){
   return h;
 }
 function renderPro(R){
+  {const c=$('premOff2');if(c){c.checked=R.premRate===0;$('premWhy2').textContent=R.premRate===0?'— '+R.premWhy:'— 20% 적용'+(S.premManual==='on'?' (직접 정함)':'');}}
   [1,2,3].forEach(y=>{const Y=R.inc.Y[y];$('pi_'+y+'add').textContent=fmt(Y.add);$('pi_'+y+'sub').textContent=fmt(Y.sub);$('pi_'+y+'net').textContent=fmt(Y.net);$('pi_'+y+'ps').textContent=fmt(Y.ps);});
   const c=capAdjust(S);$('capOut').innerHTML=c.valid?'배율 × '+c.ratio.toFixed(4)+' · 환산주식수 '+[1,2,3].map(y=>fmt(c.sh[y])).join(' / ')+' · '+(c.kind==='up'?'가산':'차감')+' '+[1,2,3].map(y=>fmt(c.adj[y])).join(' / '):'—';
   $('p_wavg').textContent=fmt(R.inc.wavgPS);$('p_inc').textContent=fmt(R.inc.incPer);
