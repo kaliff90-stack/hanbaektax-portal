@@ -283,12 +283,14 @@ tr.annual td.l{background:#F0FFF4;color:var(--green-txt)}
       </table>
     </div>
     <div style="padding:0 26px 20px"><button onclick="window.print()" style="background:var(--blue);color:#fff;border:none;padding:12px 22px;border-radius:9px;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit">🖨 인쇄</button></div>
-    <div class="disclaimer">※ 요율은 <b>2026년 기준</b>이며 기관 고시에 따라 달라질 수 있습니다. <b>국민연금</b>은 2025년 연금개혁으로 보험료율이 9%→13%(기준소득월액의 6.5%씩, 국민연금법 §88③)로 <b>매년 0.5%p 단계 인상</b>되며, <b>2026년 적용치는 9.5%(근로자 4.75%)</b>입니다(최종 13%는 2033년 도달). 국민연금은 기준소득월액 <b>상·하한</b>을 적용하고 보험료는 통상 <b>원 단위 절사</b>됩니다. 산재요율·고용안정요율은 사업장 업종·규모에 따라 다르므로 실제 고지서와 대조하세요. (근거: 국민연금법·국민건강보험법·고용보험법·산업재해보상보험법 및 각 시행령)</div>
+    <div class="disclaimer">※ <b>끝수 처리 — 보험별·근로자분/사업주분 각각 10원 미만 버림</b>: 국민연금(국민연금법 §117 → 국고금관리법 §47 ①)·건강보험(국민건강보험법 §107 → 같은 조)은 법령 규정. 장기요양·고용·산재보험은 법령에 끝수 조항이 없어 공단 고지 실무에 맞춰 같은 방식으로 버림(확인 필요). 국민연금 기준소득월액은 천원 미만 버림 후 상·하한 적용(국민연금법 시행령 §5 ①).<br>※ 요율은 <b>2026년 기준</b>이며 기관 고시에 따라 달라질 수 있습니다. <b>국민연금</b>은 2025년 연금개혁으로 보험료율이 9%→13%(기준소득월액의 6.5%씩, 국민연금법 §88③)로 <b>매년 0.5%p 단계 인상</b>되며, <b>2026년 적용치는 9.5%(근로자 4.75%)</b>입니다(최종 13%는 2033년 도달). 국민연금은 기준소득월액 <b>상·하한</b>을 적용하고 보험료는 통상 <b>원 단위 절사</b>됩니다. 산재요율·고용안정요율은 사업장 업종·규모에 따라 다르므로 실제 고지서와 대조하세요. (근거: 국민연금법·국민건강보험법·고용보험법·산업재해보상보험법 및 각 시행령)</div>
   </div>
 </div>
 
 <script>
 const fmt=n=>{if(n==null||isNaN(n))return'0';return Math.round(n).toLocaleString('ko-KR');};
+/* 보험료 끝수: 10원 미만 버림 — 국민연금법 §117·국민건강보험법 §107 → 국고금관리법 §47 ① (2026-10-13 MCP 확인). 장기요양·고용·산재는 법령 끝수 조항 없음 → 공단 실무에 맞춰 같게(확인 필요). +1e-7: 요율 곱의 부동소수점 오차로 10원이 덜 잘리는 것을 막는다 */
+const T10=x=>Math.floor(x/10+1e-7)*10;
 const v=id=>{const raw=parseFloat(String(document.getElementById(id).value).replace(/,/g,''));return isNaN(raw)?0:raw;};
 // 보험 정의: [명칭, 근로자요율, 사업주요율, 부과기준키]
 const INS=[
@@ -381,9 +383,9 @@ function calc(){
     if(ins[0]==='산재보험')rRate=v('wi_rate');
     let emp,er;
     if(ins[3]==='ltc'){ // 장기요양 = 건강보험료 × LTC_RATE
-      emp=Math.floor(hiEmp*LTC_RATE/100+1e-7);er=Math.floor(hiEr*LTC_RATE/100+1e-7);eRate=LTC_RATE;rRate=LTC_RATE;baseLabel='건보료×'+LTC_RATE+'%';
+      emp=T10(hiEmp*LTC_RATE/100);er=T10(hiEr*LTC_RATE/100);eRate=LTC_RATE;rRate=LTC_RATE;baseLabel='건보료×'+LTC_RATE+'%';
     }else{
-      emp=Math.floor(base*eRate/100+1e-7);er=Math.floor(base*rRate/100+1e-7);
+      emp=T10(base*eRate/100);er=T10(base*rRate/100);
     }
     if(ins[0]==='건강보험'){hiEmp=emp;hiEr=er;}
     empTot+=emp;erTot+=er;
@@ -473,15 +475,15 @@ function runVerification(data,empTot,erTot,hiEmp,hiEr,wage){
   data.forEach(d=>{
     if(d.type==='ltc'){
       // Check: 장기요양 = 건보료 × 13.14%
-      const expectedEmp=Math.floor(hiEmp*LTC_RATE/100+1e-7);
-      const expectedEr=Math.floor(hiEr*LTC_RATE/100+1e-7);
+      const expectedEmp=T10(hiEmp*LTC_RATE/100);
+      const expectedEr=T10(hiEr*LTC_RATE/100);
       const ok=d.emp===expectedEmp&&d.er===expectedEr;
       if(!ok)allOk=false;
       html+='<div class="verify-row"><span class="vr-label">'+d.name+'</span><span class="vr-calc">건보 근로자 '+fmt(hiEmp)+' x '+LTC_RATE+'% = '+fmt(expectedEmp)+' / 건보 사업주 '+fmt(hiEr)+' x '+LTC_RATE+'% = '+fmt(expectedEr)+'</span><span class="vr-result '+(ok?'vr-ok':'vr-fail')+'">'+(ok?'✓':'✗')+'</span></div>';
     }else{
       // Check: base × rate / 100 = floor(premium)
-      const expectedEmp=Math.floor(d.base*d.eRate/100+1e-7);
-      const expectedEr=Math.floor(d.base*(d.name==='산재보험'?d.rRate:d.rRate)/100+1e-7);
+      const expectedEmp=T10(d.base*d.eRate/100);
+      const expectedEr=T10(d.base*d.rRate/100);
       const okEmp=d.emp===expectedEmp;
       const okEr=d.er===expectedEr;
       const ok=okEmp&&okEr;
