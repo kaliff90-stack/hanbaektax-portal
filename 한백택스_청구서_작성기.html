@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<script>if(window.self!==window.top)document.documentElement.classList.add('inframe');</script>
+<title>한백택스 청구서 작성기 — 기장·사업자등록·업무대행·경정청구·세무조사 대리 수수료 청구서</title>
+<meta name="description" content="한백택스 청구서 작성기(직원용) — 거래처에 보낼 수수료 청구서를 종류별로 만든다. 기장·조정 보수, 사업자등록 대행, 업무대행, 경정청구·세무조사 대리·불복 착수금과 성공보수, 재산제세 신고, 자문. 부가세 별도·포함, 대납 실비, 기수령 착수금 차감, A4 인쇄·PDF, 카톡 문구.">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<!--
+  세무법인 한백택스 청구서 작성기 v1 (2026-10-14) — 사무실 내부용(직원 → 거래처 전달)
+  - 하는 일: 거래처 + 청구서 종류 + 청구 항목 → 공급가액·부가세·대납 실비·합계 → A4 청구서(인쇄·PDF) + 카톡 문구 + 발행 기록
+  - 청구서 종류: 기장·조정 / 사업자등록 / 업무대행 / 경정청구 / 세무조사 대리 / 조세불복 대리 / 재산제세 신고 / 자문·컨설팅 / 자유 작성
+  - 성공보수: 기준금액 × 요율(최저보수 적용), 기수령 착수금은 음수 줄로 차감한다.
+  - 부가세: 부가가치세법 §30 세율 10% (K-Law MCP 원문 확인 2026-10-14, 2026.1.2. 시행본). 원 미만 절사, 합계 단계에서 한 번만.
+    · 단가 부가세 별도: 부가세 = ⌊과세 공급가액 × 10%⌋
+    · 단가 부가세 포함: 부가세 = ⌊과세 합계 ÷ 11⌋, 공급가액 = 과세 합계 − 부가세
+    · 「부가세 없음」 줄(대납 인지대·수수료 등)은 합계에만 더한다. 과세 여부는 담당 세무사가 판단한다.
+  - 기본 단가는 예시값이다(업체비용청구서 v1 의 부가세 포함 단가를 공급가액으로 환산). 사무소 보수 기준으로 「단가표」에서 고쳐 저장한다.
+  - 앱 파일에는 거래처 데이터·입금계좌·직인 이미지가 없다. 거래처는 업무판(localStorage hanbaek_board_v1)에서 불러오고,
+    작성 내용·발행 기록·계좌는 hanbaek_invoice_v1, 직인 이미지는 hanbaek_invoice_seal_v1 (이 브라우저)에만 남는다.
+-->
+<style>
+:root{--navy:#1B3A5C;--blue:#2E6DA4;--gold:#C8963E;--bg:#F5F8FC;--line:#DCE5F0;--t1:#0F2440;--t2:#35507A;--gray:#6E7F94;--red:#C0392B;--redbg:#FDECEA;--green:#1E7D4E;--greenbg:#E6F4EC;--gsoft:#FBF3E4}
+*{box-sizing:border-box;margin:0;padding:0;font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif}
+body{background:var(--bg);color:var(--t1);font-size:14px;line-height:1.55}
+.top{background:#fff;border-bottom:2px solid var(--gold);padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:42px;z-index:20}
+.inframe .top{top:0}
+.top h1{font-size:18px;color:var(--navy)}
+.top .sub{color:var(--t2);font-size:12px}
+.tag{font-size:12px;font-weight:700;color:#92400E;background:#FEF3C7;border-radius:8px;padding:3px 8px}
+.wrap{max-width:1320px;margin:0 auto;padding:18px 16px 60px;display:grid;grid-template-columns:minmax(0,540px) minmax(0,1fr);gap:18px;align-items:start}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.card h2{font-size:15px;color:var(--navy);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.fld{display:flex;flex-direction:column;gap:3px;font-size:12px;font-weight:700;color:var(--t2)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.span2{grid-column:1/-1}
+input,select,textarea{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:13.5px;color:var(--t1);background:#fff;width:100%}
+input.num{text-align:right}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold)}
+input.bad{border-color:var(--red);background:var(--redbg)}
+textarea{resize:vertical}
+.btn{border:none;border-radius:8px;padding:8px 13px;font-size:13px;font-weight:700;cursor:pointer;background:#E9F0F8;color:var(--navy);white-space:nowrap}
+.btn.p{background:var(--navy);color:#fff}.btn.g{background:var(--gold);color:#fff}.btn.d{background:var(--redbg);color:var(--red)}.btn.sm{padding:4px 9px;font-size:12px}
+.btn:hover{filter:brightness(.95)}
+.kinds{display:flex;flex-wrap:wrap;gap:6px}
+.kinds button{padding:6px 11px;border:1px solid var(--line);border-radius:20px;background:#fff;font-size:12.5px;font-weight:700;color:var(--navy);cursor:pointer}
+.kinds button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.chk{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--t2)}
+.chk input{width:auto}
+.note{background:var(--gsoft);border-left:4px solid var(--gold);padding:8px 12px;border-radius:0 8px 8px 0;font-size:12px;margin:8px 0;color:var(--t2)}
+.warn{background:var(--redbg);border-left-color:var(--red);color:var(--red)}
+table{width:100%;border-collapse:collapse}
+.mt8{margin-top:8px}.mt12{margin-top:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.empty{color:var(--gray);text-align:center;padding:20px 0}
+/* 카탈로그 */
+.cat{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.cat button{border:1px solid var(--line);background:#F8FAFC;border-radius:8px;padding:6px 9px;font-size:12.5px;cursor:pointer;color:var(--t1);text-align:left}
+.cat button:hover{border-color:var(--gold);background:#fffdf7}
+.cat button small{display:block;color:var(--gray);font-size:11.5px}
+/* 항목 편집 */
+.line{border:1px solid var(--line);border-radius:10px;padding:9px;margin-bottom:8px;background:#FAFCFE}
+.line .lh{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px;font-size:12px;font-weight:800;color:var(--t2)}
+.line .lg{display:grid;grid-template-columns:2.2fr 1.2fr .7fr .7fr;gap:6px}
+.line .amt{font-size:13px;color:var(--navy)}
+.sumbox{background:#F5F8FC;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px}
+.sumbox div{display:flex;justify-content:space-between;padding:2px 0}
+.sumbox .tt{border-top:1px dashed #b9c6d6;margin-top:4px;padding-top:6px;font-weight:800;color:var(--navy);font-size:15px}
+.hist td,.hist th,.ptab td,.ptab th{border:1px solid var(--line);padding:5px 6px;font-size:12.5px}
+.hist th,.ptab th{background:#f8fafc;color:#475569;text-align:center}
+.hist td.r,.ptab td.r{text-align:right}
+.ptab input{padding:4px 6px;font-size:12.5px}
+details summary{cursor:pointer;font-weight:800;color:var(--navy);font-size:14px}
+textarea.kakao{min-height:150px;font-size:13px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:9px 16px;border-radius:9px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:99}
+.toast.on{opacity:1}
+/* A4 청구서 */
+.docwrap{overflow-x:auto}
+.doc{width:210mm;min-height:297mm;margin:0 auto;background:#fff;padding:12mm 15mm 10mm;line-height:1.38;box-shadow:0 2px 12px rgba(15,36,64,.12);font-size:11pt;color:#111;position:relative;display:flex;flex-direction:column}
+.doc .hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2.5px solid var(--navy);padding-bottom:6px}
+.doc .hd .co{font-weight:800;color:var(--navy);font-size:12pt}
+.doc .hd .dt{font-size:11pt;color:#444}
+.doc h1{text-align:center;font-size:20pt;color:var(--navy);letter-spacing:4px;margin:5mm 0 1mm}
+.doc .subt{text-align:center;font-size:11pt;color:#555;margin-bottom:3mm}
+.doc table{font-size:11pt}
+.doc th,.doc td{border:1px solid #9aa9bb;padding:3px 7px;word-break:keep-all}
+.doc th{background:#EEF2F7;color:var(--navy);text-align:center;font-weight:800}
+.doc td.r{text-align:right;white-space:nowrap}.doc td.c{text-align:center}.doc td.nw{white-space:nowrap}
+.doc .who th{width:15%}
+.doc .who td{width:35%}
+.doc .big{margin:3mm 0 1mm;border:2px solid var(--navy);border-radius:4px;display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#F7F9FC}
+.doc .big .l{font-weight:800;color:var(--navy);font-size:12pt}
+.doc .big .v{font-weight:800;font-size:15pt;color:var(--navy);text-align:right}
+.doc .big .v small{display:block;font-size:11pt;color:#444;font-weight:700}
+.doc .tot td{font-weight:800;background:#FBF3E4}
+.doc .neg{color:var(--red)}
+.doc h2{font-size:12.5pt;color:var(--navy);margin:3.5mm 0 1.5mm;padding-left:8px;border-left:4px solid var(--gold)}
+.doc ul{padding-left:18px}
+.doc li{margin:2px 0}
+.doc .itemnote{font-size:11pt;color:#555}
+.doc .sign{margin:2mm 0 3mm;display:flex;justify-content:flex-end;align-items:center;gap:10px;font-size:12pt}
+.doc .sign b{color:var(--navy)}
+.doc .sealbox{position:relative;width:20mm;height:20mm;display:flex;align-items:center;justify-content:center;color:#999;font-size:11pt}
+.doc .sealbox img{width:20mm;height:20mm;object-fit:contain}
+.doc .foot{margin-top:auto;border-top:1.5px solid var(--navy);padding-top:6px;font-size:11pt;color:#333}
+.doc .foot b{color:var(--navy)}
+@media(max-width:1100px){.wrap{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:640px){.g3{grid-template-columns:1fr 1fr}.top{top:40px}.line .lg{grid-template-columns:1fr 1fr}.line .lg .nm{grid-column:1/-1}}
+@media print{
+  @page{size:A4;margin:0}
+  body{background:#fff}
+  #hbHome,.top,.side,.noprint,.toast{display:none!important}
+  .wrap{display:block;padding:0;max-width:none}
+  .docwrap{overflow:visible}
+  .doc{box-shadow:none;margin:0;min-height:297mm;padding:12mm 15mm 10mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .doc tr,.doc .foot,.doc li,.doc .sign{break-inside:avoid}
+  .doc h2{break-after:avoid}
+}
+</style>
+<script src="한백택스_계산신호.js" defer></script><!-- HB-SIGNAL -->
+</head>
+<body>
+<!-- HB-HOME v1 -->
+<script>
+/* 한백택스 홈 바 — 생성기: 02-도구 & 스크립트/Python 스크립트/홈바_주입.py
+   이 블록은 자동 생성이다. 직접 고치지 말고 생성기를 고쳐 다시 실행한다. */
+(function(){
+  if (window.self !== window.top) return;          /* 포털 iframe 안에서는 부모의 바를 쓴다 */
+  if (window.__hbHome) return;
+  window.__hbHome = 1;
+  var me = decodeURIComponent((location.pathname.split('/').pop() || '').toLowerCase());
+  var host = document.createElement('div');
+  host.id = 'hbHome';
+  host.setAttribute('data-nogate', '1');
+  host.style.cssText = 'display:block;position:sticky;top:0;z-index:2147483000;margin:0;padding:0;line-height:0';
+  var links = [
+    ['한백택스_세무계산_포털.html', '세무계산 포털'],
+    ['한백택스_모바일.html', '모바일 포털']
+  ].filter(function(l){ return l[0].toLowerCase() !== me; });
+  var sh = host.attachShadow({ mode: 'open' });
+  sh.innerHTML =
+    '<style>' +
+    ':host{all:initial;display:block}' +
+    '.bar{box-sizing:border-box;display:flex;align-items:center;gap:10px;height:42px;padding:0 16px;' +
+      'background:#fff;border-bottom:2px solid #C8963E;box-shadow:0 2px 8px rgba(15,36,64,.08);' +
+      'font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:13px;line-height:1;color:#1B3A5C}' +
+    '.home{display:inline-flex;align-items:center;gap:7px;background:#C8963E;color:#fff;font-weight:800;' +
+      'padding:3px 13px 3px 3px;border-radius:999px;text-decoration:none;white-space:nowrap;letter-spacing:-.2px}' +
+    '.mk{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#fff;flex:none}' +
+    '.mk img{width:24px;height:24px;display:block}' +
+    '.home:hover{background:#b8862f}' +
+    '.ttl{font-weight:700;color:#1B3A5C;white-space:nowrap;opacity:.85}' +
+    '.sp{flex:1}' +
+    '.lnk{color:#35507A;font-weight:700;text-decoration:none;padding:6px 10px;border:1px solid #DCE5F0;border-radius:999px;white-space:nowrap;background:#F5F8FC}' +
+    '.lnk:hover{border-color:#C8963E;color:#1B3A5C}' +
+    '@media(max-width:640px){.bar{padding:0 10px;gap:6px;height:40px}.ttl{display:none}.lnk{padding:6px 8px;font-size:12px}}' +
+    '@media print{.bar{display:none}}' +
+    '</style>' +
+    '<div class="bar">' +
+      '<a class="home" href="index.html" title="한백택스 세무 도구 모음(메인 화면)으로"><span class="mk"><img src="logo-mark.png" alt="HB"></span>&#8592; 메인 화면</a>' +
+      '<span class="ttl">세무법인 한백택스 · 세무 도구</span>' +
+      '<span class="sp"></span>' +
+      links.map(function(l){ return '<a class="lnk" href="' + l[0] + '">' + l[1] + '</a>'; }).join('') +
+    '</div>';
+  var s = document.currentScript;
+  if (s && s.parentNode) s.parentNode.insertBefore(host, s);
+  else document.body.insertBefore(host, document.body.firstChild);
+})();
+</script>
+<!-- /HB-HOME -->
+
+<div class="top">
+  <h1>청구서 작성기</h1><span class="tag">직원용</span>
+  <span class="sub">거래처 · 청구서 종류 · 항목 → 공급가액·부가세·합계 → 거래처용 청구서(인쇄·PDF) · 카톡 문구 · 발행 기록</span>
+</div>
+
+<div class="wrap">
+<div class="side">
+  <div class="card">
+    <h2>① 청구서 종류</h2>
+    <div class="kinds" id="types"></div>
+    <div class="note" id="typeNote"></div>
+  </div>
+
+  <div class="card">
+    <h2>② 청구받는 거래처 <span class="row"><select id="cliPick" style="width:auto;max-width:230px" onchange="pickClient()"><option value="">업무판 거래처 불러오기</option></select></span></h2>
+    <div class="g2">
+      <label class="fld">상호 · 성명<input id="cName" oninput="upd()"></label>
+      <label class="fld">대표자<input id="cCeo" oninput="upd()"></label>
+      <label class="fld">사업자등록번호 · 생년월일<input id="cId" oninput="chkId();upd()" placeholder="000-00-00000"></label>
+      <label class="fld">연락처<input id="cTel" oninput="upd()"></label>
+      <label class="fld span2">주소<input id="cAddr" oninput="upd()"></label>
+      <label class="fld">이메일<input id="cEmail" oninput="upd()"></label>
+      <label class="fld">받는 분 (담당자)<input id="cTo" oninput="upd()" placeholder="예: 경리 김○○ 과장"></label>
+    </div>
+    <div id="idMsg" class="note warn" style="display:none"></div>
+  </div>
+
+  <div class="card">
+    <h2>③ 청구 정보</h2>
+    <div class="g3">
+      <label class="fld">청구번호<input id="mNo" oninput="upd()"></label>
+      <label class="fld">청구일<input id="mDate" type="date" oninput="upd()"></label>
+      <label class="fld">입금기한<input id="mDue" type="date" oninput="upd()"></label>
+    </div>
+    <div class="g2 mt8">
+      <label class="fld span2">청구 건명 (귀속 · 대상 기간)<input id="mSubject" oninput="upd()" placeholder="예: 2025년 귀속 종합소득세 경정청구"></label>
+      <label class="fld">단가 기준<select id="mVat" onchange="upd()"><option value="ex">단가는 부가세 별도</option><option value="in">단가는 부가세 포함</option></select></label>
+      <label class="fld">담당자<input id="mStaff" oninput="upd()" placeholder="예: 박교원 세무사"></label>
+    </div>
+    <label class="chk mt8"><input type="checkbox" id="mTaxInv" onchange="upd()" checked> 「입금 확인 후 전자세금계산서 발행」 안내 넣기</label>
+  </div>
+
+  <div class="card">
+    <h2>④ 청구 항목 <span class="row"><button class="btn sm" onclick="addBlank()">빈 줄 추가</button><button class="btn sm d" onclick="clearItems()">모두 지우기</button></span></h2>
+    <div style="font-size:12px;color:var(--gray);font-weight:700">자주 쓰는 항목 — 누르면 아래에 한 줄 들어갑니다 (단가는 「⑦ 단가표」 기준)</div>
+    <div class="row mt8"><select id="catSel" style="width:auto" onchange="renderCatalog()"></select></div>
+    <div class="cat" id="catalog"></div>
+    <div id="feeBox"></div>
+    <div id="lines" class="mt12"></div>
+    <div class="sumbox" id="sumBox"></div>
+  </div>
+
+  <div class="card">
+    <h2>⑤ 비고 · 안내문</h2>
+    <textarea id="mMemo" rows="4" oninput="upd()" placeholder="거래처에 함께 알릴 내용"></textarea>
+  </div>
+
+  <div class="card">
+    <h2>⑥ 발행 기록 <span class="row"><button class="btn sm p" onclick="saveHistory()">지금 청구서 기록에 저장</button></span></h2>
+    <div id="hist"></div>
+  </div>
+
+  <div class="card">
+    <details id="setBox">
+      <summary>⑦ 설정 — 입금계좌 · 직인 · 단가표</summary>
+      <div class="g3 mt12">
+        <label class="fld">은행<input id="sBank" oninput="saveSet()" placeholder="예: ○○은행"></label>
+        <label class="fld">계좌번호<input id="sAcct" oninput="saveSet()"></label>
+        <label class="fld">예금주<input id="sHolder" oninput="saveSet()"></label>
+      </div>
+      <div class="g2 mt8">
+        <label class="fld">대표자 표기<input id="sRep" oninput="saveSet()"></label>
+        <label class="fld">발행 사업자등록번호<input id="sBiz" oninput="saveSet()"></label>
+      </div>
+      <div class="note">입금계좌와 직인 이미지는 이 앱 파일에 들어 있지 않습니다. 이 브라우저에만 저장되므로 PC마다 한 번 넣으십시오.</div>
+      <div class="row mt8">
+        <label class="btn sm" style="cursor:pointer">직인 이미지 불러오기<input type="file" id="sealFile" accept="image/png,image/jpeg" style="display:none" onchange="loadSeal(this)"></label>
+        <button class="btn sm d" onclick="clearSeal()">직인 지우기</button>
+        <span id="sealMsg" style="font-size:12px;color:var(--gray)"></span>
+      </div>
+      <h2 class="mt12" style="font-size:14px">단가표 (공급가액 기준, 원) <button class="btn sm d" onclick="resetPrices()">예시값으로 되돌리기</button></h2>
+      <div class="note">기본 단가는 예시값입니다. 사무소 보수 기준으로 고쳐 두면 이 브라우저에서 계속 씁니다. 0원은 「협의」로 들어갑니다.</div>
+      <div id="priceTab" style="max-height:360px;overflow:auto"></div>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>⑧ 카톡 · 문자 문구 <button class="btn sm" onclick="copyText($('kakao').value)">복사</button></h2>
+    <textarea class="kakao" id="kakao"></textarea>
+  </div>
+</div>
+
+<div>
+  <div class="row noprint" style="margin-bottom:10px">
+    <button class="btn g" onclick="window.print()">인쇄 · PDF 저장</button>
+    <button class="btn" onclick="newInvoice()">새 청구서</button>
+    <span style="font-size:12px;color:var(--gray)">인쇄 창에서 「PDF로 저장」을 고르면 거래처에 보낼 파일이 됩니다. 용지 A4 · 여백 없음 · 배경 그래픽 켜기.</span>
+  </div>
+  <div id="warnBox" class="noprint"></div>
+  <div class="docwrap"><div class="doc" id="doc"></div></div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const won=n=>Math.round(n||0).toLocaleString('ko-KR');
+const num=v=>{const n=parseInt(String(v==null?'':v).replace(/[^0-9-]/g,''),10);return isNaN(n)?0:n;};
+const dec=v=>{const n=parseFloat(String(v==null?'':v).replace(/[^0-9.]/g,''));return isNaN(n)?0:n;};
+const pad=n=>String(n).padStart(2,'0');
+const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const WD='일월화수목금토';
+const kdate=s=>{if(!s)return '';const d=new Date(s+'T00:00:00');return d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate()+'.('+WD[d.getDay()]+')';};
+const addDays=(s,n)=>{const d=new Date(s+'T00:00:00');d.setDate(d.getDate()+n);return iso(d);};
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),1800);}
+function copyText(s){(navigator.clipboard?navigator.clipboard.writeText(s):Promise.reject()).then(()=>toast('복사했습니다')).catch(()=>{const ta=document.createElement('textarea');ta.value=s;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('복사했습니다');}catch(e){}ta.remove();});}
+/* 금액 한글 표기: 12,345,000 → 일천이백삼십사만오천 */
+function hanNum(n){
+  n=Math.floor(Math.abs(n||0));if(!n)return '영';
+  const D=['','일','이','삼','사','오','육','칠','팔','구'],P=['','십','백','천'],G=['','만','억','조'];
+  let s=String(n),out='',g=0;
+  for(let i=s.length;i>0;i-=4,g++){
+    const part=s.substring(Math.max(0,i-4),i);let t='';
+    for(let j=0;j<part.length;j++){const d=+part[j];if(d)t+=D[d]+P[part.length-1-j];}
+    if(t)out=t+G[g]+out;
+  }
+  return out;
+}
+
+/* ---------- 사무소 정보 (CLAUDE.md 1장 · 사업자등록번호는 사무소 소개 페이지 공개값) ---------- */
+const OFFICE={name:'세무법인 한백택스',addr:'서울특별시 중구 동호로 315, 신안빌딩 2층',tel:'02-2277-3101',fax:'02-2277-3161',mail:'hb090@hanbaektax.kr · hb3101@nate.com'};
+const SET_DEFAULT={bank:'',acct:'',holder:'세무법인 한백택스',rep:'대표세무사 차재영',biz:'522-85-00152'};
+
+/* ---------- 항목 카탈로그 (단가: 공급가액, 예시값) ---------- */
+const CATS=[
+  ['book','기장 · 조정'],['reg','사업자등록 · 설립'],['agent','신고 · 업무대행'],['pay','급여 · 4대보험'],
+  ['refund','경정청구 · 환급'],['audit','세무조사 대리'],['appeal','조세불복'],['prop','재산제세'],
+  ['consult','자문 · 컨설팅'],['cost','대납 실비 (부가세 없음)'],['etc','기타']
+];
+/* [id, 분류, 품목, 단가, 단위, 부가세 대상] */
+const CATALOG=[
+  ['bk1','book','월 기장료 (개인 · 소규모)',100000,'월',1],
+  ['bk2','book','월 기장료 (개인 · 일반)',150000,'월',1],
+  ['bk3','book','월 기장료 (법인 · 소규모)',150000,'월',1],
+  ['bk4','book','월 기장료 (법인 · 일반)',200000,'월',1],
+  ['bk5','book','월 기장료 (법인 · 대형)',300000,'월',1],
+  ['bk6','book','종합소득세 세무조정료',300000,'건',1],
+  ['bk7','book','법인세 세무조정료 (소규모)',500000,'건',1],
+  ['bk8','book','법인세 세무조정료 (일반)',800000,'건',1],
+  ['bk9','book','법인세 세무조정료 (대형)',1500000,'건',1],
+  ['bk10','book','결산 조정료',500000,'건',1],
+  ['bk11','book','과거분 장부 정리 (기장 소급)',300000,'건',1],
+  ['rg1','reg','사업자등록 신청 대행 (개인)',100000,'건',1],
+  ['rg2','reg','사업자등록 신청 대행 (법인)',150000,'건',1],
+  ['rg3','reg','사업자등록 정정 (업종 추가 · 변경 · 이전)',50000,'건',1],
+  ['rg4','reg','휴업 · 폐업 신고 대행',50000,'건',1],
+  ['rg5','reg','법인 설립 대행 (등기 연계)',500000,'건',1],
+  ['rg6','reg','통신판매업 신고 대행',50000,'건',1],
+  ['rg7','reg','사업자등록증 재발급 · 증명 발급 대행',30000,'건',1],
+  ['ag1','agent','부가가치세 신고 대행 (개인)',100000,'건',1],
+  ['ag2','agent','부가가치세 신고 대행 (법인)',200000,'건',1],
+  ['ag3','agent','원천세 신고 대행',50000,'월',1],
+  ['ag4','agent','종합소득세 신고 대행',200000,'건',1],
+  ['ag5','agent','종합소득세 신고 대행 (복수 소득 · 복잡)',500000,'건',1],
+  ['ag6','agent','법인세 신고 대행',500000,'건',1],
+  ['ag7','agent','면세사업자 사업장현황 신고',50000,'건',1],
+  ['ag8','agent','지방소득세 신고 대행',50000,'건',1],
+  ['ag9','agent','수정신고 · 기한후신고 대행',200000,'건',1],
+  ['ag10','agent','납세증명서 · 소득금액증명 등 발급 대행',30000,'건',1],
+  ['ag11','agent','전자세금계산서 발급 대행',5000,'건',1],
+  ['ag12','agent','지급명세서 제출 대행',10000,'건',1],
+  ['py1','pay','급여 대행 (월)',50000,'월',1],
+  ['py2','pay','급여 대행 (인당 · 월)',5000,'인',1],
+  ['py3','pay','연말정산 대행 (인당)',30000,'인',1],
+  ['py4','pay','4대보험 취득 · 상실 신고',20000,'건',1],
+  ['py5','pay','4대보험 보수총액 · 정산 신고',50000,'건',1],
+  ['py6','pay','퇴직금 정산 대행',30000,'건',1],
+  ['rf1','refund','경정청구 착수금',300000,'건',1],
+  ['rf2','refund','경정청구 대행 (정액)',300000,'건',1],
+  ['rf3','refund','부가가치세 조기환급 신고',100000,'건',1],
+  ['ad1','audit','세무조사 대리 착수금',3000000,'건',1],
+  ['ad2','audit','세무조사 대리 (조사 기간 일당)',500000,'일',1],
+  ['ad3','audit','세무조사 사전 진단 · 자료 검토',1000000,'건',1],
+  ['ad4','audit','과세예고통지 대응 · 과세전적부심사 청구',1500000,'건',1],
+  ['ap1','appeal','이의신청 대리 착수금',1000000,'건',1],
+  ['ap2','appeal','심사청구 대리 착수금',2000000,'건',1],
+  ['ap3','appeal','조세심판청구 대리 착수금',3000000,'건',1],
+  ['pr1','prop','양도소득세 신고 (1건)',500000,'건',1],
+  ['pr2','prop','양도소득세 신고 (다주택 · 복잡)',1000000,'건',1],
+  ['pr3','prop','증여세 신고',500000,'건',1],
+  ['pr4','prop','증여세 신고 (부동산 · 고액)',1000000,'건',1],
+  ['pr5','prop','상속세 신고',3000000,'건',1],
+  ['pr6','prop','상속세 신고 (대형 · 복잡)',5000000,'건',1],
+  ['pr7','prop','비상장주식 평가',500000,'건',1],
+  ['cs1','consult','세무 상담 · 자문 (시간)',200000,'시간',1],
+  ['cs2','consult','세무 자문 (월정액)',200000,'월',1],
+  ['cs3','consult','세무 진단 보고서',500000,'건',1],
+  ['cs4','consult','절세 · 승계 플랜 수립',500000,'건',1],
+  ['ct1','cost','인지대 · 수입증지 대납',0,'건',0],
+  ['ct2','cost','등기 · 등록면허세 등 공과금 대납',0,'건',0],
+  ['ct3','cost','증명서 발급 수수료 대납',0,'건',0],
+  ['et1','etc','세무 교육 · 세미나',300000,'회',1],
+  ['et2','etc','기타 용역',0,'건',1]
+];
+
+/* ---------- 청구서 종류 ---------- */
+/* fee: 성공보수 계산 상자 — base 기준금액 이름, rate 기본 요율(%, 예시) */
+const TYPES={
+  book:{t:'기장 · 조정 보수',title:'기장 · 세무조정 보수 청구서',cat:'book',init:['bk2'],
+    memo:'',note:'월 기장료·결산·세무조정 보수 청구. 기간은 건명에 「2026년 9월분」처럼 적습니다.'},
+  reg:{t:'사업자등록',title:'사업자등록 대행 수수료 청구서',cat:'reg',init:['rg1'],
+    memo:'',note:'사업자등록 신청·정정·휴폐업·통신판매업 신고 대행 수수료. 공과금을 대신 냈으면 「대납 실비」 줄을 함께 넣습니다.'},
+  agent:{t:'업무대행',title:'업무대행 수수료 청구서',cat:'agent',init:[],
+    memo:'',note:'기장 계약 밖의 신고 대행·증명 발급·수정신고 등 건별 업무 수수료.'},
+  refund:{t:'경정청구',title:'경정청구 수수료 청구서',cat:'refund',init:['rf1'],
+    fee:{base:'환급결정세액',rate:20,line:'경정청구 성공보수'},
+    memo:'성공보수는 과세관청의 환급(경정) 결정세액을 기준으로 계산했습니다. 환급가산금은 기준금액에 넣지 않았습니다.',
+    note:'착수금 + 성공보수(환급결정세액 × 요율). 착수금을 먼저 받았으면 성공보수 청구 때 「기수령 착수금 차감」을 넣습니다.'},
+  audit:{t:'세무조사 대리',title:'세무조사 대리 수수료 청구서',cat:'audit',init:['ad1'],
+    fee:{base:'절감세액 (당초 추징예상 − 최종 결정)',rate:10,line:'세무조사 대리 성공보수'},
+    memo:'',note:'착수금(또는 일당) + 성공보수. 절감세액은 조사 착수 시 서면으로 합의한 추징예상세액에서 최종 결정세액을 뺀 금액으로 적습니다.'},
+  appeal:{t:'조세불복 대리',title:'조세불복 대리 수수료 청구서',cat:'appeal',init:['ap1'],
+    fee:{base:'취소 · 감액 결정세액',rate:15,line:'불복청구 성공보수'},
+    memo:'',note:'이의신청·심사청구·조세심판청구 착수금 + 인용(취소·감액) 세액 기준 성공보수.'},
+  prop:{t:'재산제세 신고',title:'재산제세 신고 수수료 청구서',cat:'prop',init:[],
+    memo:'',note:'양도·증여·상속세 신고 수수료. 평가·감정 관련 실비가 있으면 함께 넣습니다.'},
+  consult:{t:'자문 · 컨설팅',title:'자문 · 컨설팅 수수료 청구서',cat:'consult',init:[],
+    memo:'',note:'시간제·월정액·보고서 단위 자문 보수.'},
+  free:{t:'자유 작성',title:'수수료 청구서',cat:'etc',init:[],memo:'',note:'제목과 항목을 직접 적습니다. 문서 제목은 아래 칸에서 바꿉니다.'}
+};
+
+/* ---------- 상태 · 저장 ---------- */
+const BOARD_LS='hanbaek_board_v1',LS='hanbaek_invoice_v1',LS_SEAL='hanbaek_invoice_seal_v1';
+let BOARD=null;try{BOARD=JSON.parse(localStorage.getItem(BOARD_LS)||'null');}catch(e){}
+const today=iso(new Date());
+let S={type:'book',title:'',items:[],set:Object.assign({},SET_DEFAULT),prices:{},history:[],seq:{},c:{},m:{}};
+let SEAL='';
+function load(){try{const d=JSON.parse(localStorage.getItem(LS)||'null');if(d)S=Object.assign(S,d,{set:Object.assign({},SET_DEFAULT,d.set||{})});}catch(e){}
+  try{SEAL=localStorage.getItem(LS_SEAL)||'';}catch(e){}}
+function save(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){toast('이 브라우저에 저장하지 못했습니다');}}
+const priceOf=id=>{const p=S.prices[id];return p==null?CATALOG.find(x=>x[0]===id)[3]:p;};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function invNo(d){const k=(d||today).replace(/-/g,'');const n=(S.seq[k]||0)+1;return 'HB-'+k.slice(2)+'-'+pad(n);}
+
+/* ---------- 계산 ---------- */
+/* 줄 금액 = 단가 × 수량 (원 미만 없음). 부가세는 과세 줄 합계에서 한 번만 절사. */
+function calc(items,mode){
+  let tax=0,free=0;
+  items.forEach(it=>{const a=Math.round(num(it.price)*dec(it.qty));if(it.vat)tax+=a;else free+=a;});
+  let supply,vat;
+  if(mode==='in'){vat=Math.floor(tax/11);supply=tax-vat;}       /* 부가세 포함 단가: 세액 = 합계 × 10/110 */
+  else{supply=tax;vat=Math.floor(tax*0.1);}                      /* 부가가치세법 §30 세율 10% */
+  if(tax<0){vat=-Math.floor(Math.abs(mode==='in'?tax/11:tax*0.1));supply=tax-(mode==='in'?vat:0);}
+  return {supply,vat,free,total:supply+vat+free};
+}
+/* 성공보수 = ⌊기준금액 × 요율⌋, 최저보수가 있으면 그 이상 */
+function successFee(base,rate,min){const f=Math.floor(Math.max(0,num(base))*dec(rate)/100);return Math.max(f,num(min));}
+
+/* ---------- 화면: 종류 ---------- */
+function renderTypes(){
+  $('types').innerHTML=Object.keys(TYPES).map(k=>'<button class="'+(k===S.type?'on':'')+'" onclick="setType(\''+k+'\')">'+TYPES[k].t+'</button>').join('');
+  const T=TYPES[S.type];
+  $('typeNote').innerHTML=esc(T.note)+'<label class="fld mt8">문서 제목<input id="mTitle" value="'+esc(S.title||T.title)+'" oninput="S.title=this.value;upd()"></label>';
+}
+function setType(k){
+  if(k===S.type)return;
+  const T=TYPES[k];
+  if(S.items.some(it=>it.name||num(it.price))&&!confirm('청구서 종류를 「'+T.t+'」로 바꿉니다. 지금 항목을 비우고 기본 항목으로 시작할까요?\n(취소하면 항목은 그대로 두고 종류만 바꿉니다)')){S.type=k;S.title='';}
+  else{S.type=k;S.title='';S.items=T.init.map(fromCat);S.m.memo=defaultMemo(k);$('mMemo').value=S.m.memo;}
+  $('catSel').value=T.cat;renderAll();
+}
+function defaultMemo(k){const T=TYPES[k||S.type];return T.memo||'';}
+
+/* ---------- 카탈로그 ---------- */
+function fromCat(id){const c=CATALOG.find(x=>x[0]===id);return {id:uid(),name:c[2],price:priceOf(id),qty:1,unit:c[4],vat:!!c[5],note:''};}
+function renderCatalog(){
+  const cat=$('catSel').value;
+  $('catalog').innerHTML=CATALOG.filter(c=>c[1]===cat).map(c=>{const p=priceOf(c[0]);
+    return '<button onclick="addCat(\''+c[0]+'\')">'+esc(c[2])+'<small>'+(p?won(p)+'원 / '+esc(c[4]):'금액 직접 입력')+(c[5]?'':' · 부가세 없음')+'</small></button>';}).join('');
+  renderFeeBox();
+}
+function addCat(id){S.items.push(fromCat(id));upd(true);toast('항목을 넣었습니다');}
+function addBlank(){S.items.push({id:uid(),name:'',price:0,qty:1,unit:'건',vat:true,note:''});upd(true);}
+function clearItems(){if(S.items.length&&!confirm('청구 항목을 모두 지울까요?'))return;S.items=[];upd(true);}
+
+/* ---------- 성공보수 상자 ---------- */
+function renderFeeBox(){
+  const T=TYPES[S.type];
+  if(!T.fee){$('feeBox').innerHTML='';return;}
+  const f=S.fee&&S.fee.type===S.type?S.fee:{type:S.type,base:'',rate:T.fee.rate,min:'',paid:''};S.fee=f;
+  $('feeBox').innerHTML='<div class="card mt12" style="background:#FFFDF7;border-color:#EAD9B5;margin-bottom:0">'+
+    '<h2 style="font-size:14px">성공보수 계산</h2>'+
+    '<div class="g2"><label class="fld span2">'+esc(T.fee.base)+' (원)<input class="num" id="fBase" value="'+esc(f.base)+'" oninput="feeIn()"></label>'+
+    '<label class="fld">요율 (%)<input class="num" id="fRate" value="'+esc(f.rate)+'" oninput="feeIn()"></label>'+
+    '<label class="fld">최저보수 (원, 선택)<input class="num" id="fMin" value="'+esc(f.min)+'" oninput="feeIn()"></label>'+
+    '<label class="fld span2">기수령 착수금 (공급가액, 원 — 성공보수에서 뺄 때만)<input class="num" id="fPaid" value="'+esc(f.paid)+'" oninput="feeIn()"></label></div>'+
+    '<div class="row mt8"><b id="fOut" style="color:var(--navy)"></b></div>'+
+    '<div class="row mt8"><button class="btn sm p" onclick="addFee()">성공보수 줄 넣기</button><button class="btn sm" onclick="addPaid()">기수령 착수금 차감 줄 넣기</button></div>'+
+    '<div class="note">요율 기본값은 예시입니다. 위임계약서(약정서)에 정한 요율·기준금액·최저보수대로 넣으십시오. 성공보수도 부가세 과세 줄로 들어갑니다.</div></div>';
+  feeIn(true);
+}
+function feeIn(silent){
+  const f=S.fee;f.base=$('fBase').value;f.rate=$('fRate').value;f.min=$('fMin').value;f.paid=$('fPaid').value;
+  $('fOut').textContent='성공보수 '+won(successFee(f.base,f.rate,f.min))+'원 (공급가액)'+(num(f.paid)?' · 착수금 차감 −'+won(num(f.paid))+'원':'');
+  if(!silent)save();
+}
+function addFee(){
+  const T=TYPES[S.type],f=S.fee,amt=successFee(f.base,f.rate,f.min);
+  if(!num(f.base)){toast('기준금액을 넣으십시오');return;}
+  const raw=Math.floor(num(f.base)*dec(f.rate)/100);
+  S.items.push({id:uid(),name:T.fee.line,price:amt,qty:1,unit:'건',vat:true,
+    note:T.fee.base+' '+won(num(f.base))+'원 × '+dec(f.rate)+'%'+(amt>raw?' (최저보수 '+won(num(f.min))+'원 적용)':'')});
+  upd(true);toast('성공보수 줄을 넣었습니다');
+}
+function addPaid(){
+  const p=num(S.fee.paid);if(!p){toast('기수령 착수금을 넣으십시오');return;}
+  S.items.push({id:uid(),name:'기수령 착수금 차감',price:-p,qty:1,unit:'건',vat:true,note:'먼저 받은 착수금(공급가액)을 뺍니다'});
+  upd(true);
+}
+
+/* ---------- 항목 편집 ---------- */
+function renderLines(){
+  if(!S.items.length){$('lines').innerHTML='<div class="empty">위에서 항목을 고르거나 「빈 줄 추가」를 누르십시오</div>';return;}
+  $('lines').innerHTML=S.items.map((it,i)=>{
+    const a=Math.round(num(it.price)*dec(it.qty));
+    return '<div class="line"><div class="lh"><span>항목 '+(i+1)+'</span><span class="row"><span class="amt" id="amt_'+it.id+'">'+won(a)+'원</span>'+
+      '<button class="btn sm" onclick="mv(\''+it.id+'\',-1)" title="위로">▲</button><button class="btn sm" onclick="mv(\''+it.id+'\',1)" title="아래로">▼</button>'+
+      '<button class="btn sm d" onclick="delLine(\''+it.id+'\')">삭제</button></span></div>'+
+      '<div class="lg"><input class="nm" placeholder="품목" value="'+esc(it.name)+'" oninput="li(\''+it.id+'\',\'name\',this.value)">'+
+      '<input class="num" placeholder="단가" value="'+esc(it.price?won(it.price):'')+'" oninput="li(\''+it.id+'\',\'price\',num(this.value))" onblur="this.value=num(this.value)?won(num(this.value)):\'\'">'+
+      '<input class="num" placeholder="수량" value="'+esc(it.qty)+'" oninput="li(\''+it.id+'\',\'qty\',this.value)">'+
+      '<input placeholder="단위" value="'+esc(it.unit)+'" oninput="li(\''+it.id+'\',\'unit\',this.value)"></div>'+
+      '<div class="row mt8"><input style="flex:1;min-width:160px" placeholder="비고 (청구서에 작게 나옵니다)" value="'+esc(it.note)+'" oninput="li(\''+it.id+'\',\'note\',this.value)">'+
+      '<label class="chk"><input type="checkbox" '+(it.vat?'checked':'')+' onchange="li(\''+it.id+'\',\'vat\',this.checked)"> 부가세 대상</label></div></div>';
+  }).join('');
+}
+function li(id,k,v){const it=S.items.find(x=>x.id===id);if(!it)return;it[k]=v;
+  const e=$('amt_'+id);if(e)e.textContent=won(Math.round(num(it.price)*dec(it.qty)))+'원';upd();}
+function delLine(id){S.items=S.items.filter(x=>x.id!==id);upd(true);}
+function mv(id,d){const i=S.items.findIndex(x=>x.id===id),j=i+d;if(j<0||j>=S.items.length)return;[S.items[i],S.items[j]]=[S.items[j],S.items[i]];upd(true);}
+
+/* ---------- 거래처 ---------- */
+function bizValid(no){const d=String(no||'').replace(/[^0-9]/g,'');if(d.length!==10)return false;const w=[1,3,7,1,3,7,1,3,5];let s=0;for(let i=0;i<9;i++)s+=parseInt(d[i])*w[i];s+=Math.floor(parseInt(d[8])*5/10);return (10-(s%10))%10===parseInt(d[9]);}
+function fmtId(s){const d=String(s||'').replace(/[^0-9]/g,'');if(d.length===10)return d.slice(0,3)+'-'+d.slice(3,5)+'-'+d.slice(5);return s||'';}
+function chkId(){const d=$('cId').value.replace(/[^0-9]/g,''),m=$('idMsg');let e='';
+  if(d.length===10&&!bizValid(d))e='사업자등록번호 검증번호가 맞지 않습니다. 번호를 다시 확인하십시오.';
+  else if(d.length===13)e='주민등록번호는 청구서에 적지 않습니다. 개인은 성명·생년월일(6자리)만 적으십시오.';
+  else if(d&&d.length!==10&&d.length!==6)e='사업자등록번호는 10자리입니다(지금 '+d.length+'자리).';
+  m.style.display=e?'':'none';m.textContent=e;$('cId').classList.toggle('bad',!!e);}
+function fillClients(){const L=(BOARD&&BOARD.clients)||[];const s=$('cliPick');
+  if(!L.length){s.innerHTML='<option value="">업무판 거래처 없음</option>';s.disabled=true;return;}
+  s.innerHTML='<option value="">업무판 거래처 불러오기 ('+L.length+')</option>'+L.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.name||'(이름 없음)')+' '+esc(c.biz||'')+'</option>').join('');}
+function pickClient(){const c=((BOARD&&BOARD.clients)||[]).find(x=>x.id===$('cliPick').value);if(!c)return;
+  $('cName').value=c.name||'';$('cCeo').value=c.ceo||'';$('cId').value=c.biz||'';$('cTel').value=c.tel||'';$('cEmail').value=c.email||'';$('cAddr').value=c.addr||'';
+  if(c.staff&&!$('mStaff').value)$('mStaff').value=c.staff;chkId();upd();}
+
+/* ---------- 설정 · 직인 · 단가표 ---------- */
+const SETF={sBank:'bank',sAcct:'acct',sHolder:'holder',sRep:'rep',sBiz:'biz'};
+function fillSet(){for(const k in SETF)$(k).value=S.set[SETF[k]]||'';$('sealMsg').textContent=SEAL?'직인 이미지 있음':'직인 이미지 없음 — 청구서에 (인) 으로 나옵니다';}
+function saveSet(){for(const k in SETF)S.set[SETF[k]]=$(k).value;save();render();}
+function loadSeal(inp){const f=inp.files&&inp.files[0];if(!f)return;
+  if(f.size>400*1024){toast('400KB 이하 이미지만 씁니다');inp.value='';return;}
+  const r=new FileReader();r.onload=()=>{SEAL=r.result;try{localStorage.setItem(LS_SEAL,SEAL);}catch(e){toast('저장 공간이 부족합니다');}fillSet();render();toast('직인을 넣었습니다');};r.readAsDataURL(f);inp.value='';}
+function clearSeal(){if(!SEAL)return;if(!confirm('이 브라우저에 저장한 직인 이미지를 지울까요?'))return;SEAL='';try{localStorage.removeItem(LS_SEAL);}catch(e){}fillSet();render();}
+function renderPrices(){
+  $('priceTab').innerHTML='<table class="ptab"><tr><th>분류</th><th>품목</th><th>단가</th><th>단위</th></tr>'+
+    CATALOG.map(c=>'<tr><td>'+esc(CATS.find(x=>x[0]===c[1])[1])+'</td><td>'+esc(c[2])+'</td><td class="r"><input class="num" style="width:110px" value="'+won(priceOf(c[0]))+'" onchange="setPrice(\''+c[0]+'\',this)"></td><td>'+esc(c[4])+'</td></tr>').join('')+'</table>';
+}
+function setPrice(id,el){const v=num(el.value);const def=CATALOG.find(x=>x[0]===id)[3];if(v===def)delete S.prices[id];else S.prices[id]=v;el.value=won(v);save();renderCatalog();}
+function resetPrices(){if(!confirm('단가표를 예시값으로 되돌릴까요?'))return;S.prices={};save();renderPrices();renderCatalog();}
+
+/* ---------- 발행 기록 ---------- */
+function snapshot(){return {c:S.c,m:S.m,type:S.type,title:S.title,items:JSON.parse(JSON.stringify(S.items))};}
+function saveHistory(){
+  if(!S.items.length){toast('청구 항목이 없습니다');return;}
+  const k=(S.m.date||today).replace(/-/g,'');const r=calc(S.items,S.m.vat);
+  const ex=S.history.findIndex(h=>h.no===S.m.no);
+  const rec={no:S.m.no,at:S.m.date,name:S.c.name,type:S.type,total:r.total,snap:snapshot()};
+  if(ex>=0)S.history[ex]=rec;else{S.history.unshift(rec);const n=num(String(S.m.no).split('-').pop());if(String(S.m.no).indexOf(k.slice(2))>=0&&n>(S.seq[k]||0))S.seq[k]=n;}
+  S.history=S.history.slice(0,200);save();renderHist();toast(ex>=0?'기록을 고쳤습니다':'발행 기록에 저장했습니다');
+}
+function renderHist(){
+  $('hist').innerHTML=S.history.length?'<div style="max-height:240px;overflow:auto"><table class="hist"><tr><th>청구일</th><th>청구번호</th><th>거래처 · 종류</th><th>합계(원)</th><th></th></tr>'+
+    S.history.map((h,i)=>'<tr><td>'+esc(h.at||'')+'</td><td>'+esc(h.no)+'</td><td>'+esc(h.name||'')+'<br><span style="color:var(--gray)">'+esc((TYPES[h.type]||{}).t||'')+'</span></td><td class="r">'+won(h.total)+'</td><td><button class="btn sm" onclick="openHist('+i+')">열기</button> <button class="btn sm d" onclick="delHist('+i+')">삭제</button></td></tr>').join('')+'</table></div>'
+    :'<div class="empty">저장한 청구서가 없습니다. 거래처에 보낸 청구서는 기록에 남겨 두십시오.</div>';
+}
+function openHist(i){const h=S.history[i];if(!h)return;const s=h.snap;S.c=Object.assign({},s.c);S.m=Object.assign({},s.m);S.type=s.type;S.title=s.title||'';S.items=JSON.parse(JSON.stringify(s.items));fillForm();renderAll();toast(h.no+' 청구서를 열었습니다');}
+function delHist(i){if(!confirm('이 발행 기록을 지울까요?'))return;S.history.splice(i,1);save();renderHist();}
+function newInvoice(){
+  if(!confirm('새 청구서를 시작합니다. 거래처·항목을 비울까요? (발행 기록·설정은 남습니다)'))return;
+  S.c={};S.m={};S.title='';S.items=TYPES[S.type].init.map(fromCat);S.fee=null;fillForm();renderAll();
+}
+
+/* ---------- 입력 ↔ 상태 ---------- */
+const CF={cName:'name',cCeo:'ceo',cId:'id',cTel:'tel',cAddr:'addr',cEmail:'email',cTo:'to'};
+const MF={mNo:'no',mDate:'date',mDue:'due',mSubject:'subject',mVat:'vat',mStaff:'staff',mMemo:'memo'};
+function fillForm(){
+  if(!S.m.date)S.m.date=today;if(!S.m.due)S.m.due=addDays(S.m.date,14);if(!S.m.no)S.m.no=invNo(S.m.date);if(!S.m.vat)S.m.vat='ex';
+  if(S.m.taxInv==null)S.m.taxInv=true;if(S.m.memo==null)S.m.memo=defaultMemo();
+  for(const k in CF)$(k).value=S.c[CF[k]]||'';for(const k in MF)$(k).value=S.m[MF[k]]||'';$('mTaxInv').checked=!!S.m.taxInv;chkId();
+}
+function readForm(){for(const k in CF)S.c[CF[k]]=$(k).value;for(const k in MF)S.m[MF[k]]=$(k).value;S.m.taxInv=$('mTaxInv').checked;}
+function upd(redraw){readForm();save();if(redraw)renderLines();render();}
+function renderAll(){renderTypes();renderCatalog();renderLines();renderHist();render();save();}
+
+/* ---------- 청구서 · 카톡 ---------- */
+function render(){
+  const r=calc(S.items,S.m.vat),c=S.c,m=S.m,st=S.set,T=TYPES[S.type];
+  const title=S.title||T.title, inMode=m.vat==='in';
+  /* 요약 */
+  $('sumBox').innerHTML='<div><span>공급가액</span><b>'+won(r.supply)+'원</b></div><div><span>부가가치세 (10%)</span><b>'+won(r.vat)+'원</b></div>'+
+    (r.free?'<div><span>대납 실비 (부가세 없음)</span><b>'+won(r.free)+'원</b></div>':'')+'<div class="tt"><span>청구 합계</span><span>'+won(r.total)+'원</span></div>';
+  /* 점검 */
+  const W=[];
+  if(!c.name)W.push('거래처 상호·성명이 비어 있습니다.');
+  if(!S.items.length)W.push('청구 항목이 없습니다.');
+  if(S.items.some(it=>!num(it.price)))W.push('금액이 0원인 줄이 있습니다 — 「협의」로 나옵니다. 금액을 정했으면 넣으십시오.');
+  if(!st.bank||!st.acct)W.push('입금계좌가 설정되지 않았습니다(⑦ 설정). 청구서에는 「담당자 별도 안내」로 나옵니다.');
+  if(r.total<0)W.push('합계가 음수입니다. 차감 줄을 확인하십시오.');
+  if(m.due&&m.date&&m.due<m.date)W.push('입금기한이 청구일보다 앞섭니다.');
+  $('warnBox').innerHTML=W.length?'<div class="note warn" style="margin-top:0">'+W.map(esc).join('<br>')+'</div>':'';
+  /* 문서 */
+  const rows=S.items.map((it,i)=>{const a=Math.round(num(it.price)*dec(it.qty)),z=!num(it.price);
+    return '<tr><td class="c">'+(i+1)+'</td><td>'+esc(it.name||'—')+(it.note?'<div class="itemnote">'+esc(it.note)+'</div>':'')+(it.vat?'':'<div class="itemnote">부가세 없음</div>')+'</td>'+
+      '<td class="r'+(a<0?' neg':'')+'">'+(z?'협의':won(it.price))+'</td><td class="c nw">'+esc(dec(it.qty))+' '+esc(it.unit||'')+'</td><td class="r'+(a<0?' neg':'')+'">'+(z?'협의':won(a))+'</td></tr>';}).join('');
+  const blank=Array.from({length:Math.max(0,3-S.items.length)}).map(()=>'<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>').join('');
+  const acct=st.bank&&st.acct?esc(st.bank)+' '+esc(st.acct)+' (예금주 '+esc(st.holder||OFFICE.name)+')':'담당자가 별도로 안내드립니다';
+  const memo=(m.memo||'').trim();
+  $('doc').innerHTML=
+    '<div class="hd"><span class="co">세무법인 한백택스</span><span class="dt">청구번호 '+esc(m.no)+'</span></div>'+
+    '<h1>'+esc(title)+'</h1>'+
+    '<div class="subt">'+(m.subject?esc(m.subject):'&nbsp;')+'</div>'+
+    '<table class="who"><tr><th>받는 곳</th><td><b>'+esc(c.name||'')+'</b>'+(c.to?'<br>'+esc(c.to)+' 귀하':(c.ceo?' 귀하':''))+'</td><th>보내는 곳</th><td><b>'+OFFICE.name+'</b></td></tr>'+
+    '<tr><th>대표자</th><td>'+esc(c.ceo||'')+'</td><th>대표자</th><td>'+esc(st.rep||'')+'</td></tr>'+
+    '<tr><th>사업자번호</th><td class="nw">'+esc(fmtId(c.id))+'</td><th>사업자번호</th><td class="nw">'+esc(st.biz||'')+'</td></tr>'+
+    '<tr><th>주소</th><td>'+esc(c.addr||'')+'</td><th>주소</th><td>'+OFFICE.addr+'</td></tr>'+
+    '<tr><th>연락처</th><td>'+esc([c.tel,c.email].filter(Boolean).join(' · '))+'</td><th>연락처</th><td>'+OFFICE.tel+(m.staff?' · 담당 '+esc(m.staff):'')+'</td></tr></table>'+
+    '<div class="big"><span class="l">청구 금액<br><span style="font-size:11pt;font-weight:700;color:#555">'+(r.vat?'부가가치세 포함':'')+'</span></span><span class="v">₩ '+won(r.total)+'<small>일금 '+(r.total<0?'마이너스 ':'')+hanNum(r.total)+'원정</small></span></div>'+
+    '<h2>청구 내역</h2>'+
+    '<table><tr><th style="width:8%">No</th><th>품목</th><th style="width:17%">단가 (원)</th><th style="width:12%">수량</th><th style="width:19%">금액 (원)</th></tr>'+rows+blank+
+    '<tr><td colspan="4" class="c">공급가액</td><td class="r">'+won(r.supply)+'</td></tr>'+
+    '<tr><td colspan="4" class="c">부가가치세 (10%)</td><td class="r">'+won(r.vat)+'</td></tr>'+
+    (r.free?'<tr><td colspan="4" class="c">대납 실비 (부가세 없음)</td><td class="r">'+won(r.free)+'</td></tr>':'')+
+    '<tr class="tot"><td colspan="4" class="c">합 계</td><td class="r">'+won(r.total)+'</td></tr></table>'+
+    (inMode?'<p class="itemnote" style="margin-top:3px">단가는 부가가치세를 포함한 금액입니다.</p>':'')+
+    '<h2>입금 안내</h2><table><tr><th style="width:20%">입금계좌</th><td>'+acct+'</td></tr>'+
+    '<tr><th>입금기한</th><td>'+kdate(m.due)+' 까지</td></tr></table>'+
+    '<ul class="mt8">'+
+    '<li>입금하실 때 보내는 분 이름을 상호(또는 성명)로 적어 주십시오.</li>'+
+    (m.taxInv?'<li>입금이 확인되면 전자세금계산서를 발행해 드립니다'+(r.free?'(대납 실비는 세금계산서 발행 대상에서 뺍니다)':'')+'.</li>':'')+
+    '</ul>'+
+    (memo?'<h2>비고</h2><p style="white-space:pre-wrap">'+esc(memo)+'</p>':'')+
+    '<p style="margin-top:4mm;text-align:center;font-size:12pt">위와 같이 청구합니다.</p>'+
+    '<div class="sign"><span>'+kdate(m.date)+'</span><span><b>'+OFFICE.name+'</b> '+esc(st.rep||'')+'</span><span class="sealbox">'+(SEAL?'<img src="'+SEAL+'" alt="직인">':'(인)')+'</span></div>'+
+    '<div class="foot"><b>세무법인 한백택스</b> · '+OFFICE.addr+'<br>전화 '+OFFICE.tel+' · 팩스 '+OFFICE.fax+' · '+OFFICE.mail+'</div>';
+  /* 카톡 */
+  $('kakao').value=S.items.length?((c.name||'')+' '+(c.ceo?c.ceo+' 대표님':'담당자님')+', 세무법인 한백택스 '+(m.staff||'')+'입니다.\n'+
+    (m.subject?m.subject+' 관련 ':'')+esc0(title)+'를 보내 드립니다.\n\n'+
+    S.items.map(it=>'■ '+it.name+(num(it.price)?' '+won(Math.round(num(it.price)*dec(it.qty)))+'원':' (협의)')).join('\n')+
+    '\n\n공급가액 '+won(r.supply)+'원 / 부가세 '+won(r.vat)+'원'+(r.free?' / 실비 '+won(r.free)+'원':'')+'\n청구 합계 '+won(r.total)+'원\n'+
+    '입금계좌: '+(st.bank&&st.acct?st.bank+' '+st.acct+' ('+(st.holder||OFFICE.name)+')':'별도 안내')+'\n입금기한: '+kdate(m.due)+'\n'+
+    (m.taxInv?'입금 확인 후 전자세금계산서를 발행해 드리겠습니다.\n':'')+'문의 '+OFFICE.tel):'';
+}
+const esc0=s=>String(s||'');
+
+/* ---------- 시작 ---------- */
+load();
+$('catSel').innerHTML=CATS.map(c=>'<option value="'+c[0]+'">'+c[1]+'</option>').join('');
+$('catSel').value=TYPES[S.type].cat;
+if(!S.items.length&&!S.m.no)S.items=TYPES[S.type].init.map(fromCat);
+fillForm();fillClients();fillSet();renderPrices();renderAll();
+window.HB_INV={calc,successFee,hanNum,bizValid,TYPES,CATALOG,state:()=>S};
+</script>
+</body>
+</html>
