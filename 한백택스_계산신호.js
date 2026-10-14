@@ -133,3 +133,64 @@
   document.addEventListener('input', onEdit, true);
   document.addEventListener('change', onEdit, true);
 })();
+
+/* 새 버전 알림 — 화면을 연 뒤 이 페이지가 다시 배포되면 하단 팝업으로 알린다 (2026-10-14)
+ *   페이지 파일의 ETag(없으면 Last-Modified)를 처음 열 때 기억해 두고, 5분마다·창으로 돌아올 때 다시 확인한다.
+ *   바뀌었으면 하단에 「새 버전이 나왔습니다」 팝업 + 탭 제목 앞에 「(새 버전)」. 「새 버전으로 열기」를 누르면 새로고침.
+ *   HEAD 요청이라 서비스 워커를 거치지 않고, 본문을 받지 않는다. 파일로 연 화면(file:)·포털 안 iframe 에서는 돌지 않는다
+ *   (포털 첫 화면은 자체 새로고침 단추가 있다). 인쇄에는 나오지 않는다.
+ */
+(function () {
+  'use strict';
+  if (window.hbUpdateCheck || !/^https?:$/.test(location.protocol) || window.self !== window.top) return;
+  window.hbUpdateCheck = { now: function () { last = 0; laterUntil = 0; return check(); } };   /* 시험용: 바로 확인 */
+  var base = null, last = 0, shown = false, laterUntil = 0, title0 = document.title;
+  var EVERY = 5 * 60 * 1000;
+
+  function stampOf() {
+    return fetch(location.pathname, { method: 'HEAD', cache: 'no-store', credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? (r.headers.get('etag') || r.headers.get('last-modified') || '') : ''; })
+      .catch(function () { return ''; });
+  }
+  function check() {
+    if (shown || document.hidden || Date.now() - last < 60 * 1000) return Promise.resolve();
+    last = Date.now();
+    return stampOf().then(function (s) {
+      if (!s) return;
+      if (base === null) { base = s; return; }
+      if (s !== base && Date.now() >= laterUntil) popup();
+    });
+  }
+  function popup() {
+    shown = true;
+    if (document.title.indexOf('(새 버전)') !== 0) document.title = '(새 버전) ' + title0;
+    var host = document.createElement('div');
+    host.id = 'hbUpdate';
+    host.setAttribute('data-nogate', '1'); host.setAttribute('data-nosignal', '1');
+    host.style.cssText = 'position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:2147483601;width:min(560px,calc(100vw - 32px));margin:0;padding:0';
+    var ps = document.createElement('style');
+    ps.textContent = '@media print{#hbUpdate{display:none!important}}';
+    document.head.appendChild(ps);
+    var sh = host.attachShadow({ mode: 'open' });
+    sh.innerHTML =
+      '<style>' +
+      '.b{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#1B3A5C;color:#fff;border-radius:12px;padding:14px 16px;' +
+      'box-shadow:0 8px 28px rgba(0,0,0,.28);font:15px/1.45 "Noto Sans KR","Malgun Gothic",sans-serif;border-top:3px solid #C8963E}' +
+      '.t{flex:1 1 220px}.t b{color:#F2D49B}.s{display:block;font-size:12.5px;opacity:.8;margin-top:2px}' +
+      'button{font:inherit;border:0;border-radius:8px;padding:9px 14px;cursor:pointer;font-weight:700}' +
+      '.go{background:#C8963E;color:#fff}.go:hover{background:#b5832f}.no{background:transparent;color:#cfd8e3;font-weight:400;padding:9px 8px}' +
+      '</style>' +
+      '<div class="b" role="alert"><span class="t"><b>새 버전이 나왔습니다.</b> 새 버전으로 사용하십시오.' +
+      '<span class="s">작성 중인 내용이 있으면 저장·복사한 뒤 누르십시오.</span></span>' +
+      '<button class="go" type="button">새 버전으로 열기</button><button class="no" type="button">나중에</button></div>';
+    sh.querySelector('.go').addEventListener('click', function () { location.reload(); });
+    sh.querySelector('.no').addEventListener('click', function () {
+      host.remove(); shown = false; laterUntil = Date.now() + 30 * 60 * 1000;   /* 30분 뒤 다시 알림 */
+    });
+    (document.body || document.documentElement).appendChild(host);
+  }
+  check();
+  setInterval(check, EVERY);
+  document.addEventListener('visibilitychange', check);
+  window.addEventListener('focus', check);
+})();

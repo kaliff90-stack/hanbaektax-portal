@@ -275,13 +275,21 @@ textarea.kakao{min-height:150px;font-size:13px}
     <span style="font-size:12px;color:var(--gray)">인쇄 창에서 「PDF로 저장」을 고르면 거래처에 보낼 파일이 됩니다. 용지 A4 · 여백 없음 · 배경 그래픽 켜기.</span>
   </div>
   <div class="card noprint" id="sealCard">
-    <h2>직인 날인 (사무소 확인) <span id="sealState" style="font-size:12.5px"></span></h2>
+    <h2>직인 날인 (임직원 확인) <span id="sealState" style="font-size:12.5px"></span></h2>
     <div class="g3">
-      <label class="fld">사무소 확인 코드<input id="staffToken" type="password" autocomplete="off"></label>
-      <label class="fld">날인 담당<input id="staffBy" placeholder="예: 박교원"></label>
-      <span class="row" style="align-items:flex-end"><button class="btn p" id="btnSeal" onclick="requestSeal()">직인 날인 요청</button><button class="btn sm d" onclick="unSeal()">직인 빼기</button></span>
+      <label class="fld">임직원 이름<input id="staffBy" placeholder="예: 박교원" autocomplete="username"></label>
+      <label class="fld">비밀번호<input id="staffPw" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')requestSeal()"></label>
+      <span class="row" style="align-items:flex-end"><button class="btn p" id="btnSeal" onclick="requestSeal()">직인 날인</button><button class="btn sm d" onclick="unSeal()">직인 빼기</button></span>
     </div>
-    <div class="note">직인 이미지는 이 앱 파일에 없습니다. 사무소 확인 코드로 요청하면 날인번호와 함께 내려오고, 사무실 메일·접수대장에 기록됩니다. 날인한 뒤 거래처·금액·항목·청구번호를 고치면 직인이 빠지므로 다시 요청합니다.</div>
+    <details id="pwBox" style="margin-top:8px"><summary style="cursor:pointer;font-size:12.5px;color:var(--gray)">비밀번호 바꾸기 (선택)</summary>
+      <div class="g3" style="margin-top:6px">
+        <label class="fld">새 비밀번호 (6자 이상)<input id="staffPw1" type="password" autocomplete="new-password"></label>
+        <label class="fld">새 비밀번호 확인<input id="staffPw2" type="password" autocomplete="new-password"></label>
+        <span class="row" style="align-items:flex-end"><button class="btn sm" id="btnPw" onclick="changePw()">바꾸기</button></span>
+      </div>
+      <div class="note">위 칸에 이름과 지금 비밀번호를 넣은 채로 바꿉니다. 바꾼 뒤에는 내 이름으로 공용 비밀번호가 통하지 않습니다. 잊어버리면 대표에게 초기화를 요청합니다.</div>
+    </details>
+    <div class="note">임직원 이름과 비밀번호를 넣고 「직인 날인」을 누르면 직인이 찍히고, 날인번호·날인 담당(그 이름)이 사무실 메일·접수대장에 기록됩니다. 직인 이미지는 이 앱 파일에 없습니다. 날인한 뒤 거래처·금액·항목·청구번호를 고치면 직인이 빠지므로 다시 날인합니다.</div>
   </div>
   <div id="warnBox" class="noprint"></div>
   <div class="docwrap"><div class="doc" id="doc"></div></div>
@@ -777,12 +785,14 @@ function queueDocs(files){const l=[...files];if(!l.length)return docQueue;
   $('bPick').addEventListener('click',()=>$('fPick').click());
   $('fPick').addEventListener('change',e=>{queueDocs(e.target.files);e.target.value='';});})();
 
-/* ---------- 직인 날인 — 사무소 확인 코드(메일중계 STAFF_TOKEN) ----------
+/* ---------- 직인 날인 — 임직원 이름 + 비밀번호(메일중계가 확인, 2026-10-14) ----------
  * 직인 이미지는 이 파일에 없다. type:confirm · kind:invoice 로 요청하면 날인번호(I…)와 직인이 내려오고
- * 사무실 메일·접수대장에 기록된다(계약서 작성기와 같은 중계·같은 확인 코드 저장 키).
+ * 사무실 메일·접수대장에 기록된다. 날인 담당은 중계가 확인한 이름이다. 이름만 이 브라우저에 기억하고 비밀번호는 남기지 않는다.
  * 날인 당시 내용 지문(sigKey)과 지금 내용이 같을 때만 찍힌다 — 거래처·금액·항목·청구번호를 고치면 빠진다. */
 const RELAY={url:'https://script.google.com/macros/s/AKfycbxtBSiGZjkoJEl87cttAm1HUrR4A1D2zyz03S65NOkC6ezSUsHW_8BW5Pq5fkIyBZAK7A/exec',token:'hbtax-relay'};
-const STAFF_KEY='hbt_staff_token',STAFF_BY='hbt_staff_by';
+const STAFF_BY='hbt_staff_by';
+const PW_ERR={staff_unauthorized:'이름 또는 비밀번호가 맞지 않습니다.',pw_locked:'비밀번호를 여러 번 틀려 1시간 동안 잠겼습니다. 잠시 뒤 다시 하거나 대표에게 문의하십시오.',not_in_roster:'직인 날인이 등록되지 않은 이름입니다. 대표에게 문의하십시오.',pw_short:'새 비밀번호는 6자 이상이어야 합니다.',pw_same_as_init:'공용 비밀번호와 다른 비밀번호를 정하십시오.'};
+function pwErr(e){return PW_ERR[e]||e;}
 async function relaySend(payload){
   const body=JSON.stringify(Object.assign({token:RELAY.token,page:location.href.split('?')[0],ua:navigator.userAgent},payload));
   const res=await fetch(RELAY.url,{method:'POST',body});     /* Content-Type 지정 안 함 → preflight 없이 전송 */
@@ -790,25 +800,38 @@ async function relaySend(payload){
   if(!res.ok||!j.ok)throw new Error(j.error||('HTTP '+res.status));
   return j;
 }
-function initStaff(){try{$('staffToken').value=localStorage.getItem(STAFF_KEY)||'';$('staffBy').value=localStorage.getItem(STAFF_BY)||'';}catch(e){}}
+function initStaff(){try{$('staffBy').value=localStorage.getItem(STAFF_BY)||'';}catch(e){}}
 function sigKey(){const r=calc(S.items,S.m.vat);
   const s=JSON.stringify([S.c.name||'',String(S.c.id||'').replace(/\D/g,''),S.m.no||'',S.m.vat||'',r.total,S.items.map(it=>[it.name,num(it.price),dec(it.qty),!!it.vat])]);
   let h=5381;for(let i=0;i<s.length;i++)h=((h*33)^s.charCodeAt(i))>>>0;return h.toString(36)+'.'+s.length;}
 function sealOk(){return !!(S.confirm&&S.confirm.seal&&S.confirm.key===sigKey());}
 async function requestSeal(){
-  readForm();const tok=$('staffToken').value.trim(),by=$('staffBy').value.trim();
-  if(!tok){alert('사무소 확인 코드를 넣어 주십시오.');$('staffToken').focus();return;}
-  try{localStorage.setItem(STAFF_KEY,tok);localStorage.setItem(STAFF_BY,by);}catch(e){}
+  readForm();const by=$('staffBy').value.trim(),pw=$('staffPw').value;
+  if(!by){alert('임직원 이름을 넣어 주십시오.');$('staffBy').focus();return;}
+  if(!pw){alert('비밀번호를 넣어 주십시오.');$('staffPw').focus();return;}
+  try{localStorage.setItem(STAFF_BY,by);}catch(e){}
   const r=calc(S.items,S.m.vat);
   if(!(S.c.name||'').trim()){alert('거래처 상호·성명을 넣으십시오.');return;}
   if(!S.items.length||r.total<=0){alert('청구 금액이 없습니다.');return;}
-  if(!confirm((S.c.name||'')+' 앞 청구서 '+S.m.no+' (합계 '+won(r.total)+'원)에 직인을 찍습니다.\n날인 기록이 사무실 메일과 접수대장에 남습니다.'))return;
+  if(!confirm((S.c.name||'')+' 앞 청구서 '+S.m.no+' (합계 '+won(r.total)+'원)에 직인을 찍습니다.\n날인 담당: '+by+'\n날인 기록이 사무실 메일과 접수대장에 남습니다.'))return;
   const btn=$('btnSeal');btn.disabled=true;$('sealState').textContent='날인 요청 중…';
   try{const key=sigKey();
-    const j=await relaySend({type:'confirm',kind:'invoice',staff:tok,by,docId:S.m.no,client:S.c.name.trim(),phone:S.c.tel||'',email:S.c.email||'',fee:r.total,hash:key,
+    const j=await relaySend({type:'confirm',kind:'invoice',name:by,pw,by,docId:S.m.no,client:S.c.name.trim(),phone:S.c.tel||'',email:S.c.email||'',fee:r.total,hash:key,
       text:[S.title||TYPES[S.type].title,S.m.subject||'',...S.items.map(it=>'· '+it.name+' '+won(Math.round(num(it.price)*dec(it.qty)))+'원'),'공급가액 '+won(r.supply)+' / 부가세 '+won(r.vat)+(r.free?' / 실비 '+won(r.free):'')+' / 합계 '+won(r.total)].filter(Boolean).join('\n')});
-    S.confirm={no:j.id,at:j.at,by,seal:j.seal,key,kind:j.kind};save();render();toast('직인을 찍었습니다 · 날인번호 '+j.id);
-  }catch(err){const m=err.message==='staff_unauthorized'?'사무소 확인 코드가 맞지 않습니다.':err.message;alert('날인 실패: '+m);render();}
+    $('staffPw').value='';
+    S.confirm={no:j.id,at:j.at,by:j.by||by,seal:j.seal,key,kind:j.kind};save();render();toast('직인을 찍었습니다 · 날인번호 '+j.id+' · '+(j.by||by));
+  }catch(err){alert('날인 실패: '+pwErr(err.message));render();}
+  finally{btn.disabled=false;}
+}
+async function changePw(){
+  const by=$('staffBy').value.trim(),pw=$('staffPw').value,p1=$('staffPw1').value,p2=$('staffPw2').value;
+  if(!by||!pw){alert('위 칸에 임직원 이름과 지금 비밀번호를 넣어 주십시오.');(by?$('staffPw'):$('staffBy')).focus();return;}
+  if(p1.length<6){alert(PW_ERR.pw_short);$('staffPw1').focus();return;}
+  if(p1!==p2){alert('새 비밀번호 두 칸이 다릅니다.');$('staffPw2').focus();return;}
+  const btn=$('btnPw');btn.disabled=true;
+  try{const j=await relaySend({type:'staff_pw',name:by,pw,newPw:p1});
+    $('staffPw').value=$('staffPw1').value=$('staffPw2').value='';$('pwBox').open=false;toast((j.name||by)+' 님 비밀번호를 바꿨습니다');
+  }catch(err){alert('비밀번호 바꾸기 실패: '+pwErr(err.message));}
   finally{btn.disabled=false;}
 }
 function unSeal(){if(!S.confirm)return;if(!confirm('이 청구서의 직인을 뺍니다(사무실 기록은 남습니다).'))return;S.confirm=null;save();render();}

@@ -1110,12 +1110,14 @@ async function hardRefresh(){
   const u = new URL(location.href); u.searchParams.set('r', Date.now()); location.replace(u.toString());
 }
 refreshBtn.addEventListener('click', hardRefresh);
-/* 새 버전이 감지되면 단추를 진하게(금색) 켠다. 평소에는 연하게 둔다. */
+/* 새 버전이 감지되면 단추를 진하게(금색) 켜고 하단 팝업으로 알린다. 평소에는 연하게 둔다.
+ * (2026-10-14) 화면을 열어 둔 동안에도 5분마다·창으로 돌아올 때 새 버전을 확인한다 — 전에는 열 때 한 번만 봐서 금색이 켜지지 않았다. */
 function markNew(){
   if(refreshBtn.classList.contains('hasnew')) return;
   refreshBtn.classList.add('hasnew');
   refreshBtn.title = '새 버전이 있습니다 — 눌러서 최신 화면으로 새로고침';
   refreshBtn.setAttribute('aria-label', '새 버전이 있습니다. 새로고침');
+  showToast('새 버전이 나왔습니다. 새 버전으로 사용하십시오.', {action:'새 버전으로 열기', onAction: hardRefresh});
 }
 /* 새로고침 뒤 주소에 남은 r= 를 지운다 */
 if(new URL(location.href).searchParams.has('r')){ const u = new URL(location.href); u.searchParams.delete('r'); history.replaceState(null, '', u.pathname + (u.search || '') + u.hash); }
@@ -1148,15 +1150,15 @@ if(!swOK){
         const nw = reg.installing;
         if(!nw) return;
         nw.addEventListener('statechange', () => {
-          if(nw.state === 'installed' && navigator.serviceWorker.controller){
-            markNew();
-            showToast('새 버전이 준비되었습니다.', {
-              action:'새로고침',
-              onAction: () => { nw.postMessage({type:'SKIP_WAITING'}); location.reload(); }
-            });
-          }
+          if(nw.state === 'installed' && navigator.serviceWorker.controller) markNew();
         });
       });
+      /* 열어 둔 동안에도 새 버전 확인 — 배포 때마다 sw.js 의 캐시 이름이 바뀐다 */
+      let lastChk = Date.now();
+      const chk = () => { if(document.hidden || Date.now() - lastChk < 60000) return; lastChk = Date.now(); reg.update().catch(() => {}); };
+      setInterval(() => { lastChk = 0; chk(); }, 5 * 60 * 1000);
+      document.addEventListener('visibilitychange', chk);
+      window.addEventListener('focus', chk);
       /* 저장 상태를 물어 버튼에 반영한다 */
       navigator.serviceWorker.ready
         .then(r => swSend(r, {type:'CACHE_STATUS', urls: TOOL_URLS}))
