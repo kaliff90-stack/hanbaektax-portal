@@ -76,6 +76,9 @@ table{width:100%;border-collapse:collapse}
 .ptab input{padding:4px 6px;font-size:12.5px}
 details summary{cursor:pointer;font-weight:800;color:var(--navy);font-size:14px}
 textarea.kakao{min-height:150px;font-size:13px}
+.drop{border:2px dashed #B9C6D6;border-radius:10px;padding:10px 12px;font-size:12.5px;color:var(--t2);background:#FAFCFE;margin-bottom:4px;line-height:1.7}
+.drop.over{border-color:var(--gold);background:#fffdf7}
+.log{white-space:pre-wrap;word-break:break-all;font-size:12px;background:#F8FAFC;border:1px solid var(--line);border-radius:8px;padding:8px;max-height:200px;overflow:auto;margin:6px 0 10px;font-family:inherit}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:9px 16px;border-radius:9px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:99}
 .toast.on{opacity:1}
 /* A4 청구서 */
@@ -102,7 +105,8 @@ textarea.kakao{min-height:150px;font-size:13px}
 .doc ul{padding-left:18px}
 .doc li{margin:2px 0}
 .doc .itemnote{font-size:11pt;color:#555}
-.doc .sign{margin:2mm 0 3mm;display:flex;justify-content:flex-end;align-items:center;gap:10px;font-size:12pt}
+.doc .sign{margin:4mm 0 3mm;display:flex;justify-content:flex-end;align-items:center;gap:10px;font-size:12pt}
+.doc .sign .say{margin-right:auto}
 .doc .sign b{color:var(--navy)}
 .doc .sealbox{position:relative;width:20mm;height:20mm;display:flex;align-items:center;justify-content:center;color:#999;font-size:11pt}
 .doc .sealbox img{width:20mm;height:20mm;object-fit:contain}
@@ -188,6 +192,10 @@ textarea.kakao{min-height:150px;font-size:13px}
 
   <div class="card">
     <h2>② 청구받는 거래처 <span class="row"><select id="cliPick" style="width:auto;max-width:230px" onchange="pickClient()"><option value="">업무판 거래처 불러오기</option></select></span></h2>
+    <div class="drop" id="drop"><b>서류 올려 채우기</b> — 사업자등록증(증명) · 법인 등기사항증명서 · 신분증(주민등록증 · 운전면허증)<br>
+      PDF · JPG · PNG 를 여기에 끌어 놓거나 <button class="btn sm" id="bPick" type="button">파일 고르기</button><input type="file" id="fPick" multiple accept=".pdf,.jpg,.jpeg,.png,image/jpeg,image/png" style="display:none"></div>
+    <div class="note">서류는 이 브라우저 안에서만 읽고 어디에도 보내거나 저장하지 않습니다. 주민등록번호는 생년월일 6자리만 씁니다. 스캔본·사진은 글자 인식(OCR)에 장당 30초~1분 걸립니다. 읽은 값은 반드시 원본과 대조하십시오.</div>
+    <pre class="log" id="docLog" style="display:none"></pre>
     <div class="g2">
       <label class="fld">상호 · 성명<input id="cName" oninput="upd()"></label>
       <label class="fld">대표자<input id="cCeo" oninput="upd()"></label>
@@ -247,12 +255,7 @@ textarea.kakao{min-height:150px;font-size:13px}
         <label class="fld">대표자 표기<input id="sRep" oninput="saveSet()"></label>
         <label class="fld">발행 사업자등록번호<input id="sBiz" oninput="saveSet()"></label>
       </div>
-      <div class="note">입금계좌와 직인 이미지는 이 앱 파일에 들어 있지 않습니다. 이 브라우저에만 저장되므로 PC마다 한 번 넣으십시오.</div>
-      <div class="row mt8">
-        <label class="btn sm" style="cursor:pointer">직인 이미지 불러오기<input type="file" id="sealFile" accept="image/png,image/jpeg" style="display:none" onchange="loadSeal(this)"></label>
-        <button class="btn sm d" onclick="clearSeal()">직인 지우기</button>
-        <span id="sealMsg" style="font-size:12px;color:var(--gray)"></span>
-      </div>
+      <div class="note">입금계좌는 이 앱 파일에 들어 있지 않습니다. 이 브라우저에만 저장되므로 PC마다 한 번 넣으십시오.</div>
       <h2 class="mt12" style="font-size:14px">단가표 (공급가액 기준, 원) <button class="btn sm d" onclick="resetPrices()">예시값으로 되돌리기</button></h2>
       <div class="note">기본 단가는 예시값입니다. 사무소 보수 기준으로 고쳐 두면 이 브라우저에서 계속 씁니다. 0원은 「협의」로 들어갑니다.</div>
       <div id="priceTab" style="max-height:360px;overflow:auto"></div>
@@ -270,6 +273,15 @@ textarea.kakao{min-height:150px;font-size:13px}
     <button class="btn g" onclick="window.print()">인쇄 · PDF 저장</button>
     <button class="btn" onclick="newInvoice()">새 청구서</button>
     <span style="font-size:12px;color:var(--gray)">인쇄 창에서 「PDF로 저장」을 고르면 거래처에 보낼 파일이 됩니다. 용지 A4 · 여백 없음 · 배경 그래픽 켜기.</span>
+  </div>
+  <div class="card noprint" id="sealCard">
+    <h2>직인 날인 (사무소 확인) <span id="sealState" style="font-size:12.5px"></span></h2>
+    <div class="g3">
+      <label class="fld">사무소 확인 코드<input id="staffToken" type="password" autocomplete="off"></label>
+      <label class="fld">날인 담당<input id="staffBy" placeholder="예: 박교원"></label>
+      <span class="row" style="align-items:flex-end"><button class="btn p" id="btnSeal" onclick="requestSeal()">직인 날인 요청</button><button class="btn sm d" onclick="unSeal()">직인 빼기</button></span>
+    </div>
+    <div class="note">직인 이미지는 이 앱 파일에 없습니다. 사무소 확인 코드로 요청하면 날인번호와 함께 내려오고, 사무실 메일·접수대장에 기록됩니다. 날인한 뒤 거래처·금액·항목·청구번호를 고치면 직인이 빠지므로 다시 요청합니다.</div>
   </div>
   <div id="warnBox" class="noprint"></div>
   <div class="docwrap"><div class="doc" id="doc"></div></div>
@@ -407,13 +419,11 @@ const TYPES={
 };
 
 /* ---------- 상태 · 저장 ---------- */
-const BOARD_LS='hanbaek_board_v1',LS='hanbaek_invoice_v1',LS_SEAL='hanbaek_invoice_seal_v1';
+const BOARD_LS='hanbaek_board_v1',LS='hanbaek_invoice_v1';
 let BOARD=null;try{BOARD=JSON.parse(localStorage.getItem(BOARD_LS)||'null');}catch(e){}
 const today=iso(new Date());
 let S={type:'book',title:'',items:[],set:Object.assign({},SET_DEFAULT),prices:{},history:[],seq:{},c:{},m:{}};
-let SEAL='';
-function load(){try{const d=JSON.parse(localStorage.getItem(LS)||'null');if(d)S=Object.assign(S,d,{set:Object.assign({},SET_DEFAULT,d.set||{})});}catch(e){}
-  try{SEAL=localStorage.getItem(LS_SEAL)||'';}catch(e){}}
+function load(){try{const d=JSON.parse(localStorage.getItem(LS)||'null');if(d)S=Object.assign(S,d,{set:Object.assign({},SET_DEFAULT,d.set||{})});}catch(e){}}
 function save(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){toast('이 브라우저에 저장하지 못했습니다');}}
 const priceOf=id=>{const p=S.prices[id];return p==null?CATALOG.find(x=>x[0]===id)[3]:p;};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -533,12 +543,8 @@ function pickClient(){const c=((BOARD&&BOARD.clients)||[]).find(x=>x.id===$('cli
 
 /* ---------- 설정 · 직인 · 단가표 ---------- */
 const SETF={sBank:'bank',sAcct:'acct',sHolder:'holder',sRep:'rep',sBiz:'biz'};
-function fillSet(){for(const k in SETF)$(k).value=S.set[SETF[k]]||'';$('sealMsg').textContent=SEAL?'직인 이미지 있음':'직인 이미지 없음 — 청구서에 (인) 으로 나옵니다';}
+function fillSet(){for(const k in SETF)$(k).value=S.set[SETF[k]]||'';}
 function saveSet(){for(const k in SETF)S.set[SETF[k]]=$(k).value;save();render();}
-function loadSeal(inp){const f=inp.files&&inp.files[0];if(!f)return;
-  if(f.size>400*1024){toast('400KB 이하 이미지만 씁니다');inp.value='';return;}
-  const r=new FileReader();r.onload=()=>{SEAL=r.result;try{localStorage.setItem(LS_SEAL,SEAL);}catch(e){toast('저장 공간이 부족합니다');}fillSet();render();toast('직인을 넣었습니다');};r.readAsDataURL(f);inp.value='';}
-function clearSeal(){if(!SEAL)return;if(!confirm('이 브라우저에 저장한 직인 이미지를 지울까요?'))return;SEAL='';try{localStorage.removeItem(LS_SEAL);}catch(e){}fillSet();render();}
 function renderPrices(){
   $('priceTab').innerHTML='<table class="ptab"><tr><th>분류</th><th>품목</th><th>단가</th><th>단위</th></tr>'+
     CATALOG.map(c=>'<tr><td>'+esc(CATS.find(x=>x[0]===c[1])[1])+'</td><td>'+esc(c[2])+'</td><td class="r"><input class="num" style="width:110px" value="'+won(priceOf(c[0]))+'" onchange="setPrice(\''+c[0]+'\',this)"></td><td>'+esc(c[4])+'</td></tr>').join('')+'</table>';
@@ -547,7 +553,7 @@ function setPrice(id,el){const v=num(el.value);const def=CATALOG.find(x=>x[0]===
 function resetPrices(){if(!confirm('단가표를 예시값으로 되돌릴까요?'))return;S.prices={};save();renderPrices();renderCatalog();}
 
 /* ---------- 발행 기록 ---------- */
-function snapshot(){return {c:S.c,m:S.m,type:S.type,title:S.title,items:JSON.parse(JSON.stringify(S.items))};}
+function snapshot(){return {c:S.c,m:S.m,type:S.type,title:S.title,items:JSON.parse(JSON.stringify(S.items)),confirm:S.confirm||null};}
 function saveHistory(){
   if(!S.items.length){toast('청구 항목이 없습니다');return;}
   const k=(S.m.date||today).replace(/-/g,'');const r=calc(S.items,S.m.vat);
@@ -561,11 +567,11 @@ function renderHist(){
     S.history.map((h,i)=>'<tr><td>'+esc(h.at||'')+'</td><td>'+esc(h.no)+'</td><td>'+esc(h.name||'')+'<br><span style="color:var(--gray)">'+esc((TYPES[h.type]||{}).t||'')+'</span></td><td class="r">'+won(h.total)+'</td><td><button class="btn sm" onclick="openHist('+i+')">열기</button> <button class="btn sm d" onclick="delHist('+i+')">삭제</button></td></tr>').join('')+'</table></div>'
     :'<div class="empty">저장한 청구서가 없습니다. 거래처에 보낸 청구서는 기록에 남겨 두십시오.</div>';
 }
-function openHist(i){const h=S.history[i];if(!h)return;const s=h.snap;S.c=Object.assign({},s.c);S.m=Object.assign({},s.m);S.type=s.type;S.title=s.title||'';S.items=JSON.parse(JSON.stringify(s.items));fillForm();renderAll();toast(h.no+' 청구서를 열었습니다');}
+function openHist(i){const h=S.history[i];if(!h)return;const s=h.snap;S.c=Object.assign({},s.c);S.m=Object.assign({},s.m);S.type=s.type;S.title=s.title||'';S.items=JSON.parse(JSON.stringify(s.items));S.confirm=s.confirm||null;fillForm();renderAll();toast(h.no+' 청구서를 열었습니다');}
 function delHist(i){if(!confirm('이 발행 기록을 지울까요?'))return;S.history.splice(i,1);save();renderHist();}
 function newInvoice(){
   if(!confirm('새 청구서를 시작합니다. 거래처·항목을 비울까요? (발행 기록·설정은 남습니다)'))return;
-  S.c={};S.m={};S.title='';S.items=TYPES[S.type].init.map(fromCat);S.fee=null;fillForm();renderAll();
+  S.c={};S.m={};S.title='';S.items=TYPES[S.type].init.map(fromCat);S.fee=null;S.confirm=null;fillForm();renderAll();
 }
 
 /* ---------- 입력 ↔ 상태 ---------- */
@@ -595,6 +601,8 @@ function render(){
   if(!st.bank||!st.acct)W.push('입금계좌가 설정되지 않았습니다(⑦ 설정). 청구서에는 「담당자 별도 안내」로 나옵니다.');
   if(r.total<0)W.push('합계가 음수입니다. 차감 줄을 확인하십시오.');
   if(m.due&&m.date&&m.due<m.date)W.push('입금기한이 청구일보다 앞섭니다.');
+  if(S.confirm&&!sealOk())W.push('날인한 뒤 내용(거래처·금액·항목·청구번호)이 바뀌어 직인이 빠졌습니다. 다시 「직인 날인 요청」을 하십시오.');
+  $('sealState').innerHTML=sealOk()?'<span style="color:var(--green)">✓ 날인 '+esc(S.confirm.no)+' · '+esc(S.confirm.at)+(S.confirm.kind&&S.confirm.kind!=='invoice'?' — 중계가 옛 판이라 「세무대리 약정 확정」으로 기록됨':'')+'</span>':S.confirm?'<span style="color:var(--red)">내용이 바뀌어 직인이 빠짐</span>':'<span style="color:var(--gray)">날인 전 — (인) 으로 나옵니다</span>';
   $('warnBox').innerHTML=W.length?'<div class="note warn" style="margin-top:0">'+W.map(esc).join('<br>')+'</div>':'';
   /* 문서 */
   const rows=S.items.map((it,i)=>{const a=Math.round(num(it.price)*dec(it.qty)),z=!num(it.price);
@@ -604,7 +612,7 @@ function render(){
   const acct=st.bank&&st.acct?esc(st.bank)+' '+esc(st.acct)+' (예금주 '+esc(st.holder||OFFICE.name)+')':'담당자가 별도로 안내드립니다';
   const memo=(m.memo||'').trim();
   $('doc').innerHTML=
-    '<div class="hd"><span class="co">세무법인 한백택스</span><span class="dt">청구번호 '+esc(m.no)+'</span></div>'+
+    '<div class="hd"><span class="co">세무법인 한백택스</span><span class="dt">청구번호 '+esc(m.no)+(sealOk()?' · 날인번호 '+esc(S.confirm.no):'')+'</span></div>'+
     '<h1>'+esc(title)+'</h1>'+
     '<div class="subt">'+(m.subject?esc(m.subject):'&nbsp;')+'</div>'+
     '<table class="who"><tr><th>받는 곳</th><td><b>'+esc(c.name||'')+'</b>'+(c.to?'<br>'+esc(c.to)+' 귀하':(c.ceo?' 귀하':''))+'</td><th>보내는 곳</th><td><b>'+OFFICE.name+'</b></td></tr>'+
@@ -627,9 +635,12 @@ function render(){
     (m.taxInv?'<li>입금이 확인되면 전자세금계산서를 발행해 드립니다'+(r.free?'(대납 실비는 세금계산서 발행 대상에서 뺍니다)':'')+'.</li>':'')+
     '</ul>'+
     (memo?'<h2>비고</h2><p style="white-space:pre-wrap">'+esc(memo)+'</p>':'')+
-    '<p style="margin-top:4mm;text-align:center;font-size:12pt">위와 같이 청구합니다.</p>'+
-    '<div class="sign"><span>'+kdate(m.date)+'</span><span><b>'+OFFICE.name+'</b> '+esc(st.rep||'')+'</span><span class="sealbox">'+(SEAL?'<img src="'+SEAL+'" alt="직인">':'(인)')+'</span></div>'+
+    '<div class="sign"><span class="say">위와 같이 청구합니다.</span><span>'+kdate(m.date)+'</span><span><b>'+OFFICE.name+'</b> '+esc(st.rep||'')+'</span><span class="sealbox">'+(sealOk()?'<img src="'+S.confirm.seal+'" alt="직인">':'(인)')+'</span></div>'+
     '<div class="foot"><b>세무법인 한백택스</b> · '+OFFICE.addr+'<br>전화 '+OFFICE.tel+' · 팩스 '+OFFICE.fax+' · '+OFFICE.mail+'</div>';
+  /* A4 한 쪽 넘침 — .doc 은 화면·인쇄 모두 폭 210mm·여백 같고 최소 높이 297mm 이므로, 내용이 넘치면 그보다 길어진다 */
+  {const d=$('doc'),over=d.offsetHeight>Math.ceil(297*96/25.4)+1;
+   if(over&&!W.length)$('warnBox').innerHTML='<div class="note warn" style="margin-top:0">청구서가 A4 한 쪽을 넘을 수 있습니다. 비고를 줄이거나 항목을 묶으십시오.</div>';
+   else if(over)$('warnBox').querySelector('.note').innerHTML+='<br>청구서가 A4 한 쪽을 넘을 수 있습니다. 비고를 줄이거나 항목을 묶으십시오.';}
   /* 카톡 */
   $('kakao').value=S.items.length?((c.name||'')+' '+(c.ceo?c.ceo+' 대표님':'담당자님')+', 세무법인 한백택스 '+(m.staff||'')+'입니다.\n'+
     (m.subject?m.subject+' 관련 ':'')+esc0(title)+'를 보내 드립니다.\n\n'+
@@ -640,13 +651,175 @@ function render(){
 }
 const esc0=s=>String(s||'');
 
+
+/* ---------- 서류 올려 채우기 — 사업자등록증 · 등기사항증명서 · 신분증 ----------
+ * 사업자등록증·등기부 판독(E.parseCoDoc)은 비상장주식 평가계산기와 같은 코드다(그쪽이 원본 — 고치면 여기도 맞춘다).
+ * 파일은 브라우저 안에서만 읽는다. 주민등록번호는 앞 6자리(생년월일)만 쓰고 뒷자리는 어디에도 두지 않는다. */
+const E={};
+E.CO_STOP=['법인명(단체명)','상호(법인명)','대표자','성명','생년월일','개업연월일','회사성립연월일','법인등록번호','등록번호','사업장소재지','본점소재지','사업의종류','업태','종목','발급사유','공동사업자','주민등록번호','전자세금계산서','사업자단위과세'];
+E.spaced=k=>new RegExp(k.split('').map(c=>c.replace(/[()]/g,'\\$&')).join('\\s*'));
+/* 줄 머리가 key(공백 무시)면 그 뒤 값. 값은 다음 제목 앞에서 자른다 */
+E.afterKey=function(line,key){
+  const s=String(line).replace(/^[^가-힣A-Za-z0-9(]+/,'');let i=0,j=0;
+  while(i<s.length&&j<key.length){const c=s[i];if(/\s/.test(c)){i++;continue;}if(c!==key[j])return null;i++;j++;}
+  if(j<key.length)return null;
+  const v=s.slice(i).replace(/^[\s:：]+/,'');let cut=v.length;
+  for(const k of E.CO_STOP){if(k===key)continue;const m=v.match(E.spaced(k));if(m&&m.index>0&&m.index<cut)cut=m.index;}
+  return v.slice(0,cut).replace(/[\s:：|]+$/,'').trim();
+};
+E.parseCoDoc=function(lines){
+  const L=(Array.isArray(lines)?lines:String(lines||'').split('\n')).map(x=>String(x).replace(/ /g,' ').trim()).filter(Boolean);
+  const all=L.join('\n'), ns=all.replace(/\s+/g,'');
+  const o={}, first=keys=>{for(const k of keys)for(const ln of L){const v=E.afterKey(ln,k);if(v)return v;}return null;};
+  const docType=/등기사항|등기부|회사성립연월일|등기번호/.test(ns)?'reg':/사업자등록증|등록번호/.test(ns)||(/사업자등록/.test(ns)&&/증명/.test(ns))?'biz':'';   /* 사업자등록증명(원) 포함 */
+  let m=all.match(/(\d{3})\s*-\s*(\d{2})\s*-\s*(\d{5})(?!\d)/);if(m)o.biz=m[1]+'-'+m[2]+'-'+m[3];
+  m=ns.match(/(?:법인등록번호|등록번호)[:：]?(\d{6})-?(\d{7})/);if(m)o.corpNo=m[1]+'-'+m[2];
+  let v=first(['법인명(단체명)','상호(법인명)','상호(단체명)','법인명','상호']);if(v)o.name=v.replace(/\s+\d.*$/,'').trim();   /* OCR 꼬리(숫자·잡글자) 자름 */
+  v=first(['대표자성명','대표자']);if(!v&&docType!=='reg')v=first(['성명']);
+  const reps=[];for(const ln of L){const r=ln.match(/대\s*표\s*이\s*사\s*[:：]?\s*([가-힣]{2,5})(?=\s|\d|$)/);if(r&&!reps.includes(r[1]))reps.push(r[1]);}
+  if(v)o.rep=v.replace(/^[(（][^)）]*[)）]\s*/,'').split(/\s+/)[0].replace(/[(（].*$/,'');else if(reps.length)o.rep=reps[0];   /* 「(대표유형) 안혁주(단독대표)」 → 안혁주 */
+  m=ns.match(/(?:회사성립연월일|개업연월일|설립연월일|법인설립일|설립일)[:：]?(\d{4})[년.\-/](\d{1,2})[월.\-/](\d{1,2})/);
+  if(m)o.est=m[1]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[3]).slice(-2);
+  v=first(['사업장소재지','본점소재지','본점']);if(v)o.addr=v;
+  for(const ln of L){const t=ln.match(/업\s*태\s*[:：]?\s*(.+?)\s*종\s*목\s*[:：]?\s*(.+)$/);if(t){o.bizType=t[1].trim();o.bizItem=t[2].trim();break;}}
+  /* OCR 이 「총액」을 다른 글자로 읽어도 천 단위 구분 금액만 잡는다 */
+  m=ns.match(/자본금(?:의)?(?:총액)?.{0,3}?금?(\d{1,3}(?:[,.]\d{3})+)원/);if(m)o.capital=+m[1].replace(/[,.]/g,'');
+  if(/법인사업자|주식회사|유한회사|합자회사|합명회사|등기사항|회사성립연월일|법인등록번호/.test(ns))o.form='corp';
+  else if(/개인사업자|일반과세자|간이과세자|면세사업자/.test(ns))o.form='ind';
+  else if(o.biz){const c=+o.biz.slice(4,6);if(c>=81&&c<=88)o.form='corp';else if(c>=1&&c<=79)o.form='ind';}
+  if(o.bizType)o.ind=/제조/.test(o.bizType)?'mfg':/건설/.test(o.bizType)?'con':/도매|소매/.test(o.bizType)?'trd':'svc';
+  return {docType,fields:o,reps};
+};
+/* 신분증(주민등록증 · 운전면허증) → 성명 · 생년월일 · 주소 */
+function parseIdDoc(lines){
+  const L=(lines||[]).map(x=>String(x).replace(/ /g,' ').trim()).filter(Boolean);
+  const ns=L.join('').replace(/\s+/g,'');
+  const kind=/운전면허/.test(ns)?'dl':/주민등록증/.test(ns)?'id':'';
+  let ri=-1,birth='';
+  for(let i=0;i<L.length;i++){const x=L[i].match(/(\d{6})\s*[-–~]\s*[1-8]\s*\d{6}/);if(x){ri=i;birth=x[1];break;}}
+  if(!kind&&ri<0)return null;
+  const o={};if(birth)o.birth=birth;
+  const BAD=/주민등록|운전면허|대한민국|자동차|면허|발급|청장|시장|군수|구청장|경찰|도지사|적성|갱신|기간|조건|보통|대형|소형|특수|원동기|암호|일련/;
+  const cand=ri>=0?L.slice(0,ri+1):L;
+  for(const ln of cand.slice().reverse()){const s=ln.replace(/[(（].*$/,'').replace(/\d.*$/,'').replace(/[^가-힣]/g,'');
+    if(s.length>=2&&s.length<=5&&!BAD.test(ln)){o.name=s;break;}}
+  if(ri>=0){const ad=[];
+    for(let i=ri+1;i<L.length;i++){const ln=L[i];
+      if(/\d{4}\s*[.\-년]\s*\d{1,2}\s*[.\-월]\s*\d{1,2}/.test(ln)||/청장|시장|군수|경찰|도지사|적성|갱신|조건|암호|일련/.test(ln))break;
+      ad.push(ln);}
+    const a=ad.join(' ').replace(/\s+/g,' ').trim();if(/[가-힣]/.test(a)&&/(시|도|군|구|로|길|동|읍|면)/.test(a)&&a.length>=6)o.addr=a;}
+  return {kind:kind||'id',fields:o};
+}
+const maskRrn=s=>String(s).replace(/(\d{6})\s*[-–~]\s*[1-8]\s*\d{6}/g,'$1-*******');
+/* 판독 결과 → 거래처 칸. 사업자 서류는 읽은 칸을 새 값으로 바꾸고, 신분증은 빈 칸만 채운다(대표자 신분증을 사업자등록증 뒤에 올리는 경우) */
+function applyDoc(lines,name){
+  const co=E.parseCoDoc(lines),f=co.fields,set=(id,v)=>{$(id).value=v;},empty=id=>!$(id).value.trim();
+  const got=[];
+  if(co.docType==='biz'||co.docType==='reg'||f.biz){
+    if(f.name){set('cName',f.name);got.push('상호 '+f.name);}
+    if(f.rep){set('cCeo',f.rep);got.push('대표자 '+f.rep);}
+    if(f.biz){set('cId',f.biz);got.push('사업자등록번호 '+f.biz+(bizValid(f.biz)?'':' (검증번호 불일치 — 원본 대조)'));}
+    if(f.addr){set('cAddr',f.addr);got.push((co.docType==='reg'?'본점 ':'소재지 ')+f.addr);}
+    const ex=[f.corpNo&&'법인등록번호 '+f.corpNo,f.est&&'개업·설립일 '+f.est,f.bizType&&'업태 '+f.bizType,f.bizItem&&'종목 '+f.bizItem].filter(Boolean);
+    docLog('['+name+'] '+({biz:'사업자등록증',reg:'법인 등기사항증명서'}[co.docType]||'사업자 서류')+' — '+(got.length?got.join(' · '):'채울 칸을 찾지 못함')+(ex.length?'\n  참고(칸 없음): '+ex.join(' · '):''));
+    if(co.docType==='reg'&&co.reps&&co.reps.length>1)docLog('  ※ 대표이사가 여러 명 나옵니다('+co.reps.join(', ')+'). 현재 대표이사로 고치십시오');
+  }else{
+    const id=parseIdDoc(lines);
+    if(!id||!Object.keys(id.fields).length){docLog('['+name+'] 사업자등록증·등기부·신분증 항목을 찾지 못했습니다. 읽은 글자 앞부분: '+maskRrn(lines.filter(x=>String(x).trim()).slice(0,6).join(' / ')).slice(0,200));return 0;}
+    const g=id.fields;
+    if(g.name){if(empty('cName')){set('cName',g.name);got.push('성명 '+g.name);}if(empty('cCeo')){set('cCeo',g.name);got.push('대표자 '+g.name);}}
+    const curId=$('cId').value.replace(/\D/g,'');
+    if(g.birth&&curId.length!==10){set('cId',g.birth);got.push('생년월일 '+g.birth);}
+    if(g.addr&&empty('cAddr')){set('cAddr',g.addr);got.push('주소 '+g.addr);}
+    docLog('['+name+'] '+(id.kind==='dl'?'운전면허증':'주민등록증')+' — '+(got.length?got.join(' · '):'이미 채운 칸이라 바꾸지 않음 (성명 '+(g.name||'?')+')')+(g.birth?'\n  주민등록번호 뒷자리는 쓰지 않았습니다':''));
+  }
+  chkId();upd();return got.length;
+}
+function docLog(s){const l=$('docLog');l.style.display='block';l.textContent+=s+'\n';l.scrollTop=1e9;}
+const PDFV='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+function loadJs(src,integ){return new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;if(integ){s.integrity=integ;s.crossOrigin='anonymous';}s.referrerPolicy='no-referrer';s.onload=ok;s.onerror=()=>no(new Error('모듈을 불러오지 못했습니다(인터넷 연결 확인)'));document.head.appendChild(s);});}
+async function needPdf(){if(!window.pdfjsLib)await loadJs(PDFV+'pdf.min.js','sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e');pdfjsLib.GlobalWorkerOptions.workerSrc=PDFV+'pdf.worker.min.js';}
+/* 한글 CID 글꼴 PDF(홈택스 증명 등)는 CMap 이 있어야 글자가 나온다 — 같은 판 pdfjs-dist 를 jsdelivr 에서(신용평가 시뮬레이터와 같음) */
+async function pdfLines(f){
+  await needPdf();const DIST='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/';
+  const doc=await pdfjsLib.getDocument({data:await f.arrayBuffer(),cMapUrl:DIST+'cmaps/',cMapPacked:true,standardFontDataUrl:DIST+'standard_fonts/'}).promise;
+  const out=[];let hangul=0;
+  for(let p=1;p<=Math.min(doc.numPages,5);p++){const tc=await (await doc.getPage(p)).getTextContent();const rs=[];
+    tc.items.forEach(it=>{if(!it.str||!it.str.trim())return;hangul+=(it.str.match(/[가-힣]/g)||[]).length;const y=it.transform[5];let r=rs.find(r=>Math.abs(r.y-y)<3);if(!r){r={y,it:[]};rs.push(r);}r.it.push({x:it.transform[4],s:it.str,w:it.width||0});});
+    rs.sort((a,b)=>b.y-a.y).forEach(r=>{r.it.sort((a,b)=>a.x-b.x);let s='',px=null;r.it.forEach(i=>{if(px!=null&&i.x-px>2)s+=' ';s+=i.s;px=i.x+i.w;});out.push(s);});}
+  return {doc,lines:out,ok:hangul>=10};
+}
+async function loadTess(){if(!window.Tesseract)await loadJs('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');}
+const ocrLines=txt=>txt.split('\n').map(l=>l.replace(/[|]/g,' ')).filter(x=>x.trim());
+async function ocr(srcs){await loadTess();const w=await Tesseract.createWorker('kor+eng');await w.setParameters({tessedit_pageseg_mode:'6',preserve_interword_spaces:'1'});
+  const out=[];for(const s of srcs){const r=await w.recognize(s);out.push(...ocrLines(r.data.text));}await w.terminate();return out;}
+async function pdfOcr(doc){const cvs=[];for(let p=1;p<=Math.min(doc.numPages,3);p++){const page=await doc.getPage(p);const vp=page.getViewport({scale:3});const cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;const x=cv.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,cv.width,cv.height);await page.render({canvasContext:x,viewport:vp}).promise;cvs.push(cv);}return ocr(cvs);}
+async function readDoc(f){
+  const ext=f.name.split('.').pop().toLowerCase();
+  try{
+    let lines;
+    if(ext==='pdf'){const t=await pdfLines(f);lines=t.lines;
+      if(!t.ok||(!E.parseCoDoc(lines).docType&&!parseIdDoc(lines))){docLog('['+f.name+'] '+(t.ok?'글자층에서 항목을 찾지 못해':'글자층이 없는 스캔본이라')+' 글자 인식(OCR)으로 읽습니다…');lines=await pdfOcr(t.doc);}}
+    else if(['jpg','jpeg','png'].includes(ext)){docLog('['+f.name+'] 사진 — 글자 인식(OCR) 중…');lines=await ocr([f]);}
+    else{docLog('지원하지 않는 형식: '+f.name+' (PDF · JPG · PNG)');return;}
+    applyDoc(lines,f.name);
+  }catch(e){docLog('['+f.name+'] 읽기 실패: '+e.message);}
+}
+let docQueue=Promise.resolve();
+function queueDocs(files){const l=[...files];if(!l.length)return docQueue;
+  docQueue=docQueue.then(async()=>{if(window.hbBusy)hbBusy(true,'서류 읽는 중…');   /* 공용 계산 신호 — 읽는 동안 시계가 돈다 */
+    try{for(const f of l)await readDoc(f);}finally{if(window.hbBusy)hbBusy(false,'서류 읽기 완료');}}).catch(e=>docLog('읽기 실패: '+e.message));
+  return docQueue;}
+(()=>{const d=$('drop');
+  ['dragover','dragenter'].forEach(ev=>d.addEventListener(ev,e=>{e.preventDefault();d.classList.add('over');}));
+  ['dragleave','drop'].forEach(ev=>d.addEventListener(ev,e=>{e.preventDefault();d.classList.remove('over');}));
+  d.addEventListener('drop',e=>queueDocs(e.dataTransfer.files));
+  $('bPick').addEventListener('click',()=>$('fPick').click());
+  $('fPick').addEventListener('change',e=>{queueDocs(e.target.files);e.target.value='';});})();
+
+/* ---------- 직인 날인 — 사무소 확인 코드(메일중계 STAFF_TOKEN) ----------
+ * 직인 이미지는 이 파일에 없다. type:confirm · kind:invoice 로 요청하면 날인번호(I…)와 직인이 내려오고
+ * 사무실 메일·접수대장에 기록된다(계약서 작성기와 같은 중계·같은 확인 코드 저장 키).
+ * 날인 당시 내용 지문(sigKey)과 지금 내용이 같을 때만 찍힌다 — 거래처·금액·항목·청구번호를 고치면 빠진다. */
+const RELAY={url:'https://script.google.com/macros/s/AKfycbxtBSiGZjkoJEl87cttAm1HUrR4A1D2zyz03S65NOkC6ezSUsHW_8BW5Pq5fkIyBZAK7A/exec',token:'hbtax-relay'};
+const STAFF_KEY='hbt_staff_token',STAFF_BY='hbt_staff_by';
+async function relaySend(payload){
+  const body=JSON.stringify(Object.assign({token:RELAY.token,page:location.href.split('?')[0],ua:navigator.userAgent},payload));
+  const res=await fetch(RELAY.url,{method:'POST',body});     /* Content-Type 지정 안 함 → preflight 없이 전송 */
+  let j={};try{j=await res.json();}catch(e){}
+  if(!res.ok||!j.ok)throw new Error(j.error||('HTTP '+res.status));
+  return j;
+}
+function initStaff(){try{$('staffToken').value=localStorage.getItem(STAFF_KEY)||'';$('staffBy').value=localStorage.getItem(STAFF_BY)||'';}catch(e){}}
+function sigKey(){const r=calc(S.items,S.m.vat);
+  const s=JSON.stringify([S.c.name||'',String(S.c.id||'').replace(/\D/g,''),S.m.no||'',S.m.vat||'',r.total,S.items.map(it=>[it.name,num(it.price),dec(it.qty),!!it.vat])]);
+  let h=5381;for(let i=0;i<s.length;i++)h=((h*33)^s.charCodeAt(i))>>>0;return h.toString(36)+'.'+s.length;}
+function sealOk(){return !!(S.confirm&&S.confirm.seal&&S.confirm.key===sigKey());}
+async function requestSeal(){
+  readForm();const tok=$('staffToken').value.trim(),by=$('staffBy').value.trim();
+  if(!tok){alert('사무소 확인 코드를 넣어 주십시오.');$('staffToken').focus();return;}
+  try{localStorage.setItem(STAFF_KEY,tok);localStorage.setItem(STAFF_BY,by);}catch(e){}
+  const r=calc(S.items,S.m.vat);
+  if(!(S.c.name||'').trim()){alert('거래처 상호·성명을 넣으십시오.');return;}
+  if(!S.items.length||r.total<=0){alert('청구 금액이 없습니다.');return;}
+  if(!confirm((S.c.name||'')+' 앞 청구서 '+S.m.no+' (합계 '+won(r.total)+'원)에 직인을 찍습니다.\n날인 기록이 사무실 메일과 접수대장에 남습니다.'))return;
+  const btn=$('btnSeal');btn.disabled=true;$('sealState').textContent='날인 요청 중…';
+  try{const key=sigKey();
+    const j=await relaySend({type:'confirm',kind:'invoice',staff:tok,by,docId:S.m.no,client:S.c.name.trim(),phone:S.c.tel||'',email:S.c.email||'',fee:r.total,hash:key,
+      text:[S.title||TYPES[S.type].title,S.m.subject||'',...S.items.map(it=>'· '+it.name+' '+won(Math.round(num(it.price)*dec(it.qty)))+'원'),'공급가액 '+won(r.supply)+' / 부가세 '+won(r.vat)+(r.free?' / 실비 '+won(r.free):'')+' / 합계 '+won(r.total)].filter(Boolean).join('\n')});
+    S.confirm={no:j.id,at:j.at,by,seal:j.seal,key,kind:j.kind};save();render();toast('직인을 찍었습니다 · 날인번호 '+j.id);
+  }catch(err){const m=err.message==='staff_unauthorized'?'사무소 확인 코드가 맞지 않습니다.':err.message;alert('날인 실패: '+m);render();}
+  finally{btn.disabled=false;}
+}
+function unSeal(){if(!S.confirm)return;if(!confirm('이 청구서의 직인을 뺍니다(사무실 기록은 남습니다).'))return;S.confirm=null;save();render();}
+
 /* ---------- 시작 ---------- */
 load();
 $('catSel').innerHTML=CATS.map(c=>'<option value="'+c[0]+'">'+c[1]+'</option>').join('');
 $('catSel').value=TYPES[S.type].cat;
 if(!S.items.length&&!S.m.no)S.items=TYPES[S.type].init.map(fromCat);
-fillForm();fillClients();fillSet();renderPrices();renderAll();
-window.HB_INV={calc,successFee,hanNum,bizValid,TYPES,CATALOG,state:()=>S};
+fillForm();fillClients();fillSet();initStaff();renderPrices();renderAll();
+window.HB_INV={calc,successFee,hanNum,bizValid,TYPES,CATALOG,state:()=>S,parseCoDoc:E.parseCoDoc,parseIdDoc,applyDoc,sigKey,sealOk};
 </script>
 </body>
 </html>
