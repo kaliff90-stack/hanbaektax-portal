@@ -6,7 +6,7 @@
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>세무법인 한백택스 — 소개 · 서비스 · 상담</title>
-<meta name="description" content="세무법인 한백택스(차재영 대표세무사 · 박교원 · 이해별 · 신시현 세무사). 기장·세무대리 중심, 원천세·4대보험·노동법 급여 실무 특화. 급여 아웃소싱, 양도·상속·증여 재산 제세, 기업 경영컨설팅. 서울 중구 동호로 315 신안빌딩 2층 · 02-2277-3101">
+<meta name="description" content="세무법인 한백택스(차재영 대표세무사 · 박교원 · 이해별 · 신시현 세무사). 기장·세무대리 중심, 원천세·4대보험·노동법 급여 실무 특화. 급여 아웃소싱, 양도·상속·증여 재산 제세, 조세불복·세무조사 대리, 기업 경영컨설팅. 서울 중구 동호로 315 신안빌딩 2층 · 02-2277-3101">
 <meta property="og:title" content="세무법인 한백택스 — 소개 · 서비스 · 상담">
 <meta property="og:image" content="https://kaliff90-stack.github.io/hanbaektax-portal/og-image.png">
 <!--
@@ -22,6 +22,7 @@
   전문 분야: 차재영 기장·법인세·종합소득세, 박교원 원천세·인건비·4대보험, 이해별 지출증빙·부가세·양도, 신시현 상속·증여 (모두 차재영 대표 확인 2026-09-28).
   v4 (2026-10-02) 대표 지시: 기장·세무대리 비중이 크고 원천세·4대보험·노동법(급여 실무)에 특화되어 있음을 앞에 내세운다.
   「특화 분야」 구역(#focus)·기장 거래처 1년 흐름·급여 아웃소싱의 노동법 실무 상자를 더했다. 노무 대리(노동위원회 사건 등)는 내세우지 않는다.
+  v5 (2026-10-14) 대표 지시: 조세불복·세무조사 대리를 서비스로 넣었다(#appeal). 청구기간은 국세기본법 제61조 ①·제66조 ⑥·제68조 ①(90일), 제81조의15 ②(과세전적부심사 30일) — 2026-10-14 K-Law MCP 확인(2026.10.2. 시행본).
 -->
 <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
@@ -169,7 +170,7 @@ footer b{color:#fff}
 
 <div class="gnb"><div class="in">
   <img src="logo.png" alt="세무법인 한백택스">
-  <nav><a href="#greeting">인사말</a><a href="#about">소개</a><a href="#focus">특화 분야</a><a href="#service">서비스</a><a href="#book">기장·신고</a><a href="#payroll">급여 아웃소싱</a><a href="#asset">재산 제세</a><a href="#consulting">경영컨설팅</a><a href="#contact">상담</a></nav>
+  <nav><a href="#greeting">인사말</a><a href="#about">소개</a><a href="#focus">특화 분야</a><a href="#service">서비스</a><a href="#book">기장·신고</a><a href="#payroll">급여 아웃소싱</a><a href="#asset">재산 제세</a><a href="#appeal">조세불복·조사</a><a href="#consulting">경영컨설팅</a><a href="#contact">상담</a></nav>
 </div></div>
 
 <header class="hero"><div class="in">
@@ -228,6 +229,7 @@ footer b{color:#fff}
     <a href="#book"><div class="ic">📒</div><h3>기장 · 세무조정 · 신고</h3><p>장부 작성부터 부가세·소득세·법인세 신고까지 한 번에</p><span class="go">자세히 보기 →</span></a>
     <a href="#payroll"><div class="ic">💼</div><h3>급여 아웃소싱</h3><p>급여·퇴직금·4대보험·연말정산·원천세 전반</p><span class="go">자세히 보기 →</span></a>
     <a href="#asset"><div class="ic">🏠</div><h3>재산 제세</h3><p>양도소득세·상속세·증여세 — 현 상황 분석과 절세 방안</p><span class="go">자세히 보기 →</span></a>
+    <a href="#appeal"><div class="ic">⚖️</div><h3>조세불복 · 세무조사 대리</h3><p>세무조사 입회·소명부터 과세전적부심사·이의신청·심사·심판청구까지</p><span class="go">자세히 보기 →</span></a>
     <a href="#consulting"><div class="ic">📈</div><h3>기업 경영컨설팅</h3><p>비용 분석·세금 감면·국가지원 정책 — 회사의 전담 CFO</p><span class="go">자세히 보기 →</span></a>
   </div>
 </div></section>
@@ -266,6 +268,16 @@ footer b{color:#fff}
   </div>
   <p class="note">2026년 9월 현재 시행 법령 기준. 조정대상지역 다주택은 기본세율에 20%p·30%p가 더해지고, 보유 2년 미만 주택은 60%·70%입니다(소득세법 제104조). 증여세는 증여일이 속하는 달의 말일부터 3개월, 상속세는 6개월 이내에 신고합니다.</p>
   <p class="note">도구: <a href="한백택스_양도소득세_계산기.html">양도소득세</a> · <a href="한백택스_증여세_계산기.html">증여세</a> · <a href="한백택스_상속세_계산기.html">상속세</a> · <a href="한백택스_부담부증여_계산기.html">부담부증여</a> · <a href="한백택스_가업상속_시뮬레이터.html">가업상속</a></p>
+
+  <h3 id="appeal">조세불복 · 세무조사 대리</h3>
+  <p>세무조사는 통지를 받은 때부터, 조세불복은 과세 처분을 안 날부터 기간이 정해져 있습니다. 조사 단계에서 사실관계를 바로 세워야 불복 단계에서도 다툴 근거가 남습니다. 한백택스는 조사 대응과 불복 청구를 한 사무소에서 이어서 맡습니다.</p>
+  <div class="cols">
+    <div class="box"><h3>세무조사 대리</h3><ul><li>세무조사 사전통지 검토, 조사 대상 기간·세목 파악</li><li>조사 전 장부·증빙 점검과 쟁점 사전 정리</li><li>조사 입회, 질문 응대와 소명자료 작성·제출</li><li>조사 결과 통지 내용 검토와 대응 방향 협의</li></ul></div>
+    <div class="box"><h3>과세전적부심사</h3><ul><li>세무조사 결과 통지·과세예고통지에 대한 사전 권리구제</li><li>통지를 받은 날부터 30일 이내 청구</li><li>고지 전 단계에서 과세 내용의 적법성을 다툼</li></ul></div>
+    <div class="box"><h3>이의신청 · 심사청구 · 심판청구</h3><ul><li>부과 처분의 위법·부당 여부 검토</li><li>처분이 있음을 안 날부터 90일 이내 청구</li><li>이의신청(세무서·지방국세청), 심사청구(국세청), 심판청구(조세심판원)</li><li>청구서·이유서 작성, 의견진술 대리</li></ul></div>
+    <div class="box"><h3>경정청구 · 환급</h3><ul><li>과다 신고·납부한 세액의 경정청구</li><li>누락된 공제·감면 검토와 환급 신청</li></ul></div>
+  </div>
+  <p class="note">청구기간: 국세기본법 제81조의15 ②(과세전적부심사 30일), 제61조 ①·제66조 ⑥·제68조 ①(심사·이의·심판 90일). 기간이 지나면 다툴 수 없으므로 통지·고지를 받으면 바로 상담하십시오. 도구: <a href="한백택스_경정청구_v2.html">경정청구</a> · <a href="한백택스_가산세_계산기.html">가산세</a></p>
 
   <h3 id="consulting">기업 경영컨설팅</h3>
   <p>기업의 재무 전략 수립을 돕는 CFO가 되겠습니다.</p>
