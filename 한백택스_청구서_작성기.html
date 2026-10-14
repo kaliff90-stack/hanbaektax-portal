@@ -79,6 +79,11 @@ textarea.kakao{min-height:150px;font-size:13px}
 .drop{border:2px dashed #B9C6D6;border-radius:10px;padding:10px 12px;font-size:12.5px;color:var(--t2);background:#FAFCFE;margin-bottom:4px;line-height:1.7}
 .drop.over{border-color:var(--gold);background:#fffdf7}
 .log{white-space:pre-wrap;word-break:break-all;font-size:12px;background:#F8FAFC;border:1px solid var(--line);border-radius:8px;padding:8px;max-height:200px;overflow:auto;margin:6px 0 10px;font-family:inherit}
+.acctbox{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#FAFCFE;transition:box-shadow .3s}
+.acctbox.flash{box-shadow:0 0 0 3px var(--gold)}
+.doc td.pick{cursor:pointer}
+.doc td.pick:hover{outline:2px dashed var(--gold);outline-offset:-3px}
+@media print{.doc td.pick:hover{outline:none}}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:9px 16px;border-radius:9px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:99}
 .toast.on{opacity:1}
 /* A4 청구서 */
@@ -221,6 +226,18 @@ textarea.kakao{min-height:150px;font-size:13px}
       <label class="fld">담당자<input id="mStaff" oninput="upd()" placeholder="예: 박교원 세무사"></label>
     </div>
     <label class="chk mt8"><input type="checkbox" id="mTaxInv" onchange="upd()" checked> 「입금 확인 후 전자세금계산서 발행」 안내 넣기</label>
+    <div class="acctbox mt12" id="acctBox">
+      <div class="row" style="justify-content:space-between"><b style="color:var(--navy);font-size:13.5px">입금계좌</b><span class="row"><button class="btn sm" type="button" onclick="saveAcct()">이 계좌 저장</button></span></div>
+      <div class="kinds mt8" id="acctList"></div>
+      <div class="g3 mt8">
+        <label class="fld">은행<input id="sBank" list="bankList" oninput="saveSet()" placeholder="눌러서 고르기"></label>
+        <label class="fld">계좌번호<input id="sAcct" inputmode="numeric" oninput="saveSet()" placeholder="000-000-000000"></label>
+        <label class="fld">예금주<input id="sHolder" oninput="saveSet()"></label>
+      </div>
+      <datalist id="bankList"><option value="국민은행"><option value="신한은행"><option value="우리은행"><option value="하나은행"><option value="농협은행"><option value="지역농협"><option value="기업은행"><option value="SC제일은행"><option value="한국씨티은행"><option value="카카오뱅크"><option value="케이뱅크"><option value="토스뱅크"><option value="우체국"><option value="새마을금고"><option value="신협"><option value="수협은행"><option value="부산은행"><option value="경남은행"><option value="iM뱅크(대구은행)"><option value="광주은행"><option value="전북은행"><option value="제주은행"><option value="산업은행"></datalist>
+      <div id="acctMsg" class="note warn" style="display:none"></div>
+      <div class="note">계좌는 이 앱 파일에 들어 있지 않고 이 브라우저에만 저장됩니다. 「이 계좌 저장」을 누르면 위에 단추로 남아, 다음부터 누르기만 하면 들어갑니다.</div>
+    </div>
   </div>
 
   <div class="card">
@@ -245,17 +262,11 @@ textarea.kakao{min-height:150px;font-size:13px}
 
   <div class="card">
     <details id="setBox">
-      <summary>⑦ 설정 — 입금계좌 · 직인 · 단가표</summary>
-      <div class="g3 mt12">
-        <label class="fld">은행<input id="sBank" oninput="saveSet()" placeholder="예: ○○은행"></label>
-        <label class="fld">계좌번호<input id="sAcct" oninput="saveSet()"></label>
-        <label class="fld">예금주<input id="sHolder" oninput="saveSet()"></label>
-      </div>
-      <div class="g2 mt8">
+      <summary>⑦ 설정 — 발행자 표기 · 단가표</summary>
+      <div class="g2 mt12">
         <label class="fld">대표자 표기<input id="sRep" oninput="saveSet()"></label>
         <label class="fld">발행 사업자등록번호<input id="sBiz" oninput="saveSet()"></label>
       </div>
-      <div class="note">입금계좌는 이 앱 파일에 들어 있지 않습니다. 이 브라우저에만 저장되므로 PC마다 한 번 넣으십시오.</div>
       <h2 class="mt12" style="font-size:14px">단가표 (공급가액 기준, 원) <button class="btn sm d" onclick="resetPrices()">예시값으로 되돌리기</button></h2>
       <div class="note">기본 단가는 예시값입니다. 사무소 보수 기준으로 고쳐 두면 이 브라우저에서 계속 씁니다. 0원은 「협의」로 들어갑니다.</div>
       <div id="priceTab" style="max-height:360px;overflow:auto"></div>
@@ -551,8 +562,23 @@ function pickClient(){const c=((BOARD&&BOARD.clients)||[]).find(x=>x.id===$('cli
 
 /* ---------- 설정 · 직인 · 단가표 ---------- */
 const SETF={sBank:'bank',sAcct:'acct',sHolder:'holder',sRep:'rep',sBiz:'biz'};
-function fillSet(){for(const k in SETF)$(k).value=S.set[SETF[k]]||'';}
-function saveSet(){for(const k in SETF)S.set[SETF[k]]=$(k).value;save();render();}
+function fillSet(){for(const k in SETF)$(k).value=S.set[SETF[k]]||'';chkAcct();renderAccts();}
+function saveSet(){for(const k in SETF)S.set[SETF[k]]=$(k).value;chkAcct();save();render();renderAccts();}
+/* 입금계좌 — 저장한 계좌를 단추로 두고 누르면 들어간다. 자릿수는 은행마다 달라 숫자 10~14자리인지만 본다 */
+function chkAcct(){const d=$('sAcct').value.replace(/\D/g,''),m=$('acctMsg');let e='';
+  if($('sAcct').value&&/[^0-9\-\s]/.test($('sAcct').value))e='계좌번호에는 숫자와 - 만 씁니다.';
+  else if(d&&(d.length<10||d.length>14))e='계좌번호가 '+d.length+'자리입니다. 통장 사본과 대조하십시오(보통 10~14자리).';
+  m.style.display=e?'':'none';m.textContent=e;$('sAcct').classList.toggle('bad',!!e);}
+const acctKey=a=>(a.bank||'')+'|'+String(a.acct||'').replace(/\D/g,'');
+function renderAccts(){const L=S.set.accts||[],cur=acctKey(S.set);
+  $('acctList').innerHTML=L.length?L.map((a,i)=>'<button type="button" class="'+(acctKey(a)===cur?'on':'')+'" onclick="useAcct('+i+')">'+esc(a.bank)+' '+esc(a.acct)+(a.holder?' · '+esc(a.holder):'')+' <span onclick="event.stopPropagation();delAcct('+i+')" title="목록에서 빼기" style="margin-left:4px;opacity:.6">✕</span></button>').join(''):'<span style="font-size:12px;color:var(--gray)">저장한 계좌가 없습니다</span>';}
+function saveAcct(){const a={bank:$('sBank').value.trim(),acct:$('sAcct').value.trim(),holder:$('sHolder').value.trim()};
+  if(!a.bank||!a.acct){toast('은행과 계좌번호를 넣으십시오');return;}
+  S.set.accts=(S.set.accts||[]).filter(x=>acctKey(x)!==acctKey(a));S.set.accts.unshift(a);save();renderAccts();toast('계좌를 저장했습니다');}
+function useAcct(i){const a=(S.set.accts||[])[i];if(!a)return;$('sBank').value=a.bank;$('sAcct').value=a.acct;$('sHolder').value=a.holder||'';saveSet();toast('입금계좌를 넣었습니다');}
+function delAcct(i){const a=(S.set.accts||[])[i];if(!a||!confirm(a.bank+' '+a.acct+' 계좌를 목록에서 뺄까요?'))return;S.set.accts.splice(i,1);save();renderAccts();}
+function goAcct(){const b=$('acctBox');b.scrollIntoView({behavior:'smooth',block:'center'});b.classList.add('flash');setTimeout(()=>b.classList.remove('flash'),1500);
+  const f=!$('sBank').value?$('sBank'):$('sAcct');setTimeout(()=>f.focus(),300);}
 function renderPrices(){
   $('priceTab').innerHTML='<table class="ptab"><tr><th>분류</th><th>품목</th><th>단가</th><th>단위</th></tr>'+
     CATALOG.map(c=>'<tr><td>'+esc(CATS.find(x=>x[0]===c[1])[1])+'</td><td>'+esc(c[2])+'</td><td class="r"><input class="num" style="width:110px" value="'+won(priceOf(c[0]))+'" onchange="setPrice(\''+c[0]+'\',this)"></td><td>'+esc(c[4])+'</td></tr>').join('')+'</table>';
@@ -606,7 +632,7 @@ function render(){
   if(!c.name)W.push('거래처 상호·성명이 비어 있습니다.');
   if(!S.items.length)W.push('청구 항목이 없습니다.');
   if(S.items.some(it=>!num(it.price)))W.push('금액이 0원인 줄이 있습니다 — 「협의」로 나옵니다. 금액을 정했으면 넣으십시오.');
-  if(!st.bank||!st.acct)W.push('입금계좌가 설정되지 않았습니다(⑦ 설정). 청구서에는 「담당자 별도 안내」로 나옵니다.');
+  if(!st.bank||!st.acct)W.push('입금계좌가 비어 있습니다(③ 청구 정보 → 입금계좌, 미리보기의 입금계좌 칸을 눌러도 됩니다). 청구서에는 「담당자 별도 안내」로 나옵니다.');
   if(r.total<0)W.push('합계가 음수입니다. 차감 줄을 확인하십시오.');
   if(m.due&&m.date&&m.due<m.date)W.push('입금기한이 청구일보다 앞섭니다.');
   if(S.confirm&&!sealOk())W.push('날인한 뒤 내용(거래처·금액·항목·청구번호)이 바뀌어 직인이 빠졌습니다. 다시 「직인 날인 요청」을 하십시오.');
@@ -636,7 +662,7 @@ function render(){
     (r.free?'<tr><td colspan="4" class="c">대납 실비 (부가세 없음)</td><td class="r">'+won(r.free)+'</td></tr>':'')+
     '<tr class="tot"><td colspan="4" class="c">합 계</td><td class="r">'+won(r.total)+'</td></tr></table>'+
     (inMode?'<p class="itemnote" style="margin-top:3px">단가는 부가가치세를 포함한 금액입니다.</p>':'')+
-    '<h2>입금 안내</h2><table><tr><th style="width:20%">입금계좌</th><td>'+acct+'</td></tr>'+
+    '<h2>입금 안내</h2><table><tr><th style="width:20%">입금계좌</th><td class="pick" onclick="goAcct()" title="눌러서 입금계좌 넣기">'+acct+'</td></tr>'+
     '<tr><th>입금기한</th><td>'+kdate(m.due)+' 까지</td></tr></table>'+
     '<ul class="mt8">'+
     '<li>입금하실 때 보내는 분 이름을 상호(또는 성명)로 적어 주십시오.</li>'+
