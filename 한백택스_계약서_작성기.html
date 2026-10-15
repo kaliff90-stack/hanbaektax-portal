@@ -19,7 +19,8 @@
     제67조 ③(18세 미만 근로조건 서면 교부)·제69조(1일 7시간·1주 35시간, 합의 시 1일 1시간·1주 5시간 연장)·제70조 ②(18세 미만 야간·휴일근로 금지, 동의+인가 시 예외),
     소득세법 제47조 ②(일용근로자 근로소득공제 1일 15만원)·제129조 ① 4호(원천징수세율 6%)·제59조 ③(산출세액의 55% 세액공제)·제134조 ③·제86조 1호(1천원 미만 부징수),
     건설근로자법 제10조(건설공사 사업주 퇴직공제 당연 가입).
-  - 금전소비대차계약서 : 민법 제598조. 이자제한법 제2조(최고이자율 연 20%, 대통령령 제31593호) 점검,
+  - 금전소비대차계약서 : 민법 제598조. 종류 6종 — 일반 · 가족 간 · 간이 차용증(1쪽) · 법인→임원 가지급금(상법 제398조 이사회 승인, 법인세법 제28조 ① 4호 나목·령 제89조 ③)
+    · 임원→법인 가수금 · 기존 채무 확인(민법 제605조 준소비대차). 주소 ?doc=loan&kind=std|family|simple|corp2rep|rep2corp|confirm. 이자제한법 제2조(최고이자율 연 20%, 대통령령 제31593호) 점검,
     인지세(인지세법 제3조 ①·제6조 8호: 5천만원 이하 비과세) 안내, 비영업대금 이익 원천징수(소득세법 제127조·제129조 ① 1호 나목 25%)
     안내, 특수관계인 무상·저리 대출 증여(상증령 제31조의4, 적정이자율 = 법인세 시행규칙 제43조 ② 연 4.6%, 기준 1천만원) 안내,
     무이자 기준(무이자로 빌려도 증여세 없는 원금 217,391,304원 · 초과 시 최저 약정이율, 상증법 제41조의4 ②·③),
@@ -356,6 +357,23 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
 
   <!-- ══════════════ 금전소비대차계약서 입력 ══════════════ -->
   <div id="form-loan" style="display:none">
+    <div class="row" style="margin-bottom:6px">
+      <label class="fld" style="grid-column:1/-1">계약서 종류<select data-k="kind" id="loanKind"><option value="std">일반 금전소비대차계약서</option><option value="family">가족 간 금전소비대차계약서</option><option value="simple">간이 차용증 (1쪽)</option><option value="corp2rep">법인 → 대표자·임원 대여 (가지급금 약정서)</option><option value="rep2corp">대표자·임원 → 법인 대여 (가수금 약정서)</option><option value="confirm">기존 채무 확인 (준소비대차)</option></select></label>
+    </div>
+    <div class="hint" id="loanKindNote" style="font-size:12px;line-height:1.6;margin:-2px 0 8px"></div>
+    <div id="loanKindBox" class="staffbox" style="display:none;margin:0 0 10px">
+      <div class="kx" data-kinds="confirm">
+        <div class="fld" style="margin-bottom:4px"><b>기존 채무 확인</b> <span class="hint">민법 제605조 — 이미 있는 채무를 소비대차로 바꿉니다. 「대여일」 칸은 채무 확인 기준일로 씁니다</span></div>
+        <div class="row"><label class="fld" style="grid-column:1/-1">채무 발생 원인<input data-k="origin" placeholder="예: 2025.1.1.~2026.9.30. 물품 공급대금 미지급분"></label></div>
+      </div>
+      <div class="kx" data-kinds="corp2rep rep2corp">
+        <div class="fld" style="margin-bottom:4px"><b>이사회 승인</b> <span class="hint">상법 제398조 — 이사·주요주주 등과 회사 사이 거래는 미리 이사회에서 이사 3분의 2 이상으로 승인</span></div>
+        <div class="row">
+          <label class="chk"><input type="checkbox" data-k="boardNeed" checked>이사회 승인 조항 넣기</label>
+          <label class="fld">이사회 승인일<input type="date" data-k="boardDate"></label>
+        </div>
+      </div>
+    </div>
     <div class="staffbox" id="nointBox" style="margin:0 0 10px">
       <div style="font-weight:700;color:var(--navy)">🤝 무이자 차용증 — 빌려주는 사람과 빌리는 사람이 특수관계입니까?</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
@@ -881,7 +899,7 @@ const addDays=(iso,n)=>{const d=new Date(iso+'T00:00:00');d.setDate(d.getDate()+
 let doc='tax';
 const DEF={
   labor:{gdName:'',gdRel:'부',gdTel:'',gdAddr:'',gdForm:true,dPayWhen:'day',dSite:'',dConst:false,annualPay:'',fixedOT:'',gApproved:'n',gApproval:'',gShift:'',kind:'perm',start:'',end:'',coName:'',coRep:'',coBiz:'',coTel:'',coAddr:'',wName:'',wBirth:'',wTel:'',wRrn:'',wAddr:'',place:'',job:'',tIn:'09:00',tOut:'18:00',rest:60,restTime:'12:00~13:00',offDay:'일요일',daysPerWeek:5,dayHours:{월:8,화:8,수:8,목:8,금:8,토:'',일:''},payType:'month',base:'',bonus:'none',bonusDesc:'',allow:[],payDay:'10',payPeriod:'prev',payHow:'bank',probation:'0',probPay:'100',simple:'n',insNP:true,insHI:true,insEI:true,insWC:true,extra:'',signDate:'',showTool:false},
-  loan:{lName:'',lType:'ind',lId:'',lTel:'',lAddr:'',bName:'',bType:'ind',bId:'',bTel:'',bAddr:'',rel:'none',amt:'',loanDate:'',dueDate:'',give:'bank',acct:'',rate:'',intHow:'monthly',intDay:'last',repay:'bullet',lateRate:'',prepay:'ok',gName:'',gId:'',gAddr:'',collateral:'',court:'',signDate:'',extra:'',lossClause:true,showSched:true,notary:false,showTool:false},
+  loan:{kind:'std',origin:'',boardNeed:true,boardDate:'',lName:'',lType:'ind',lId:'',lTel:'',lAddr:'',bName:'',bType:'ind',bId:'',bTel:'',bAddr:'',rel:'none',amt:'',loanDate:'',dueDate:'',give:'bank',acct:'',rate:'',intHow:'monthly',intDay:'last',repay:'bullet',lateRate:'',prepay:'ok',gName:'',gId:'',gAddr:'',collateral:'',court:'',signDate:'',extra:'',lossClause:true,showSched:true,notary:false,showTool:false},
   free:{coName:'',coRep:'',coBiz:'',coTel:'',coAddr:'',fName:'',fRrn:'',fTel:'',fBiz:'n',fAddr:'',fAcct:'',job:'',deliver:'',start:'',end:'',where:'free',termDays:'30',feeType:'month',fee:'',taxMode:'wht',payDay:'10',expense:'self',ip:'client',confid:true,noSub:true,notWorker:true,showTool:false,rFixed:false,rOrder:false,rExcl:false,rTool:false,court:'',signDate:'',extra:''},
   exec:{coName:'',coRep:'',coBiz:'',coAddr:'',artNo:'',mode:'delegate',baseType:'avg3m',yrsMode:'month',inclBonus:true,countStaff:true,
     rows:[{pos:'대표이사',x:3},{pos:'부사장 · 전무이사',x:2},{pos:'상무이사',x:1.5},{pos:'이사',x:1},{pos:'감사',x:1}],
@@ -943,7 +961,7 @@ function showDoc(d){doc=d;document.querySelectorAll('#docTabs button').forEach(b
 document.querySelectorAll('#docTabs button').forEach(b=>b.addEventListener('click',()=>showDoc(b.dataset.doc)));
 function mobPv(on){document.body.classList.toggle('showpv',on);document.querySelectorAll('.mobtab button').forEach((b,i)=>b.classList.toggle('on',(i%2===1)===on));}
 function copyText(){const t=$('sheet').innerText;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>alert('본문을 복사했습니다.'),()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();alert('본문을 복사했습니다.');});}
-function saveJson(){const name=(doc==='labor'?'근로계약서_'+(S.labor.wName||'미정'):doc==='loan'?'금전소비대차계약서_'+(S.loan.bName||'미정'):doc==='tax'?'세무대리약정서_'+(S.tax.cName||'미정'):doc==='exec'?'임원퇴직금지급규정_'+(S.exec.coName||'미정'):doc==='resign'?'사직서_'+(S.resign.wName||'미정'):doc==='audit'?'세무조사착수서류_'+(S.audit.tName||'미정'):'프리랜서계약서_'+(S.free.fName||'미정'))+'_'+today()+'.json';const blob=new Blob([JSON.stringify({doc,data:S[doc]},null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
+function saveJson(){const name=(doc==='labor'?'근로계약서_'+(S.labor.wName||'미정'):doc==='loan'?(LOAN_KINDS[S.loan.kind]||LOAN_KINDS.std).h.replace(/[\s()→]+/g,'')+'_'+(S.loan.bName||'미정'):doc==='tax'?'세무대리약정서_'+(S.tax.cName||'미정'):doc==='exec'?'임원퇴직금지급규정_'+(S.exec.coName||'미정'):doc==='resign'?'사직서_'+(S.resign.wName||'미정'):doc==='audit'?'세무조사착수서류_'+(S.audit.tName||'미정'):'프리랜서계약서_'+(S.free.fName||'미정'))+'_'+today()+'.json';const blob=new Blob([JSON.stringify({doc,data:S[doc]},null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
 function loadJson(inp){const f=inp.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const o=JSON.parse(rd.result);const d=DEF[o.doc]?o.doc:'labor';S[d]=Object.assign({},DEF[d],o.data||{});if(d==='labor'){S[d].dayHours=Object.assign({},DEF.labor.dayHours,S[d].dayHours||{});S[d].allow=S[d].allow||[];}if(d==='exec'&&!Array.isArray(S[d].rows))S[d].rows=JSON.parse(JSON.stringify(DEF.exec.rows));if(d==='audit'&&!Array.isArray(S[d].members))S[d].members=JSON.parse(JSON.stringify(DEF.audit.members));showDoc(d);refill();render();}catch(e){alert('읽을 수 없는 파일입니다.');}inp.value='';};rd.readAsText(f);}
 function resetDoc(){if(!confirm('현재 문서의 입력을 모두 지웁니다.'))return;S[doc]=JSON.parse(JSON.stringify(DEF[doc]));persist();refill();render();}
 /* 근로계약 유형별 예시 — 「예시 채우기」가 지금 고른 유형에 맞춰 채운다 */
@@ -955,6 +973,25 @@ const LABOR_SAMPLE={
   annual:{payType:'month',annualPay:42000000,fixedOT:10,allow:[{name:'식대',amt:200000,ordinary:true}],probation:'3',probPay:'100'},
   guard:{wName:'정경비',job:'아파트 경비(순찰·출입 관리)',place:'○○아파트 관리사무소',gApproved:'y',gApproval:'2026.9.1. 서울중부지청 승인',gShift:'주간 순찰·출입 관리(야간은 교대 근무표에 따름)',tIn:'07:00',tOut:'16:00',rest:60,restTime:'12:00~13:00',probation:'0',dayHours:{월:8,화:8,수:8,목:8,금:8,토:'',일:''},payType:'month',base:2500000,allow:[]}
 };
+/* 금전소비대차 계약서 종류 — t 선택 목록 이름, h 서류 제목, note 안내, p 종류를 고를 때 바꾸는 값(이름·금액 등은 그대로) */
+const LOAN_KINDS={
+  std:{t:'일반 금전소비대차계약서',h:'금전소비대차계약서',note:'개인·사업자 사이의 일반 대여입니다. 이자·분할상환·연대보증·담보·공정증서 조항을 고를 수 있습니다.',p:{}},
+  family:{t:'가족 간 금전소비대차계약서',h:'금전소비대차계약서 (가족 간)',note:'부모·자녀 등 특수관계인 사이 대여입니다. 「증여가 아닌 대여」 확인과 계좌 변제 조항이 들어가고, 무이자 기준(원금 217,391,304원)을 점검합니다.',p:{rel:'family',lType:'ind',bType:'ind',give:'bank'}},
+  simple:{t:'간이 차용증 (1쪽)',h:'차 용 증',note:'금액·변제기·이자·서명만 담은 한 쪽 차용증입니다. 조건이 단순한 소액·단기 대여에 씁니다. 분할상환·담보 등은 일반 계약서를 쓰십시오.',p:{showSched:false}},
+  corp2rep:{t:'법인 → 대표자·임원 대여 (가지급금 약정서)',h:'금전소비대차약정서 (법인 → 임원)',note:'법인이 대표자·임원·주주에게 빌려줄 때입니다. 이사회 승인(상법 §398)·임원 지위 상실 시 변제 조항이 들어가고, 인정이자·업무무관 가지급금 지급이자 손금불산입을 점검합니다.',p:{lType:'corp',bType:'ind',rel:'corp-rep'}},
+  rep2corp:{t:'대표자·임원 → 법인 대여 (가수금 약정서)',h:'금전소비대차약정서 (임원 → 법인)',note:'대표자·임원·주주가 법인에 빌려줄 때입니다. 이사회 승인(상법 §398) 조항이 들어가고, 법인이 이자를 줄 때 27.5% 원천징수를 안내합니다.',p:{lType:'ind',bType:'corp',rel:'corp-rep'}},
+  confirm:{t:'기존 채무 확인 (준소비대차)',h:'채무 확인 및 금전소비대차계약서',note:'물품대금·공사대금·정산금 등 이미 있는 채무를 대여금으로 바꿔 변제 조건을 정할 때입니다(민법 §605). 교부 조항 대신 채무 확인 조항이 들어갑니다.',p:{give:'done'}}
+};
+const LOAN_SAMPLE={
+  std:{lName:'김대여',lType:'ind',lId:'1970-01-01',bName:'이차용',bType:'ind',bId:'1980-02-02',rel:'none',amt:30000000,acct:'○○은행 000-000-000000 김대여',rate:6,intHow:'monthly',repay:'equalPI',dueDate:addMonths(today(),12)},
+  family:{lName:'홍부모',lType:'ind',lId:'1960-03-03',bName:'홍자녀',bType:'ind',bId:'1990-04-04',rel:'family',amt:150000000,acct:'○○은행 000-000-000000 홍부모',rate:'',intHow:'none',repay:'bullet',dueDate:addMonths(today(),60)},
+  simple:{lName:'김대여',lType:'ind',lId:'1970-01-01',bName:'이차용',bType:'ind',bId:'1980-02-02',rel:'none',amt:5000000,acct:'○○은행 000-000-000000 김대여',rate:5,intHow:'maturity',repay:'bullet',dueDate:addMonths(today(),6),showSched:false},
+  corp2rep:{lName:'주식회사 예시상사',lType:'corp',lId:'123-45-67891',lTel:'02-000-0000',bName:'홍길동',bType:'ind',bId:'1975-05-05',rel:'corp-rep',amt:60000000,acct:'○○은행 000-000-000000 주식회사 예시상사',rate:4.6,intHow:'monthly',repay:'bullet',boardDate:today()},
+  rep2corp:{lName:'홍길동',lType:'ind',lId:'1975-05-05',bName:'주식회사 예시상사',bType:'corp',bId:'123-45-67891',bTel:'02-000-0000',rel:'corp-rep',amt:100000000,acct:'○○은행 000-000-000000 홍길동',rate:4.6,intHow:'maturity',repay:'bullet',boardDate:today()},
+  confirm:{lName:'주식회사 예시상사',lType:'corp',lId:'123-45-67891',lTel:'02-000-0000',bName:'주식회사 한빛예시',bType:'corp',bId:'234-56-78901',bTel:'02-111-1111',rel:'none',amt:40000000,give:'done',origin:'2025.1.1.~2026.9.30. 물품 공급대금 미지급분',acct:'○○은행 000-000-000000 주식회사 예시상사',rate:5,intHow:'monthly',repay:'equalP',dueDate:addMonths(today(),12)}
+};
+/* 종류를 바꾸면 그 종류의 기본값을 넣는다. 가족 간은 이율을 적지 않았으면 무이자로 */
+function applyLoanKind(k){const d=S.loan,K=LOAN_KINDS[k];if(!K)return;d.kind=k;Object.assign(d,K.p);if(k==='family'&&!(+d.rate))d.intHow='none';}
 function fillSample(){
   if(doc==='labor'){const k0=S.labor.kind;S.labor=Object.assign({},DEF.labor,{kind:'perm',start:today(),coName:'주식회사 예시상사',coRep:'홍길동',coBiz:'123-45-67891',coTel:'02-000-0000',coAddr:'서울특별시 중구 ○○로 00, 0층',wName:'김예시',wBirth:'1995-03-15',wTel:'010-0000-0000',wAddr:'서울특별시 성동구 ○○로 00',place:'본사 사무실(서울 중구)',job:'경리·회계 사무 및 부수 업무',base:2400000,allow:[{name:'식대',amt:200000,ordinary:true},{name:'자가운전보조금',amt:200000,ordinary:false}],probation:'3',probPay:'100',signDate:today(),dayHours:{월:8,화:8,수:8,목:8,금:8,토:'',일:''}});LABOR_SAMPLE[k0]&&Object.assign(S.labor,{kind:k0},LABOR_SAMPLE[k0]);}
   else if(doc==='free'){S.free=Object.assign({},DEF.free,{coName:'주식회사 예시상사',coRep:'홍길동',coBiz:'123-45-67891',coTel:'02-000-0000',coAddr:'서울특별시 중구 ○○로 00, 0층',fName:'이예시',fTel:'010-0000-0000',fAddr:'경기도 성남시 분당구 ○○로 00',fAcct:'○○은행 000-000-000000 이예시',job:'온라인 마케팅 콘텐츠(카드뉴스·블로그) 기획 및 제작',deliver:'매월 카드뉴스 8건·블로그 4건 납품(시안 수정 2회 포함), 매월 말일 검수',start:today(),end:addMonths(today(),12),fee:3000000,court:'서울중앙지방법원',signDate:today()});}
@@ -964,7 +1001,7 @@ function fillSample(){
     office:'서울지방국세청',team:'조사○국 조사○과 ○팀 · 02-000-0000',aKind:'법인세 정기',aTax:'법인세',aPeriod:'2023.1.1. ~ 2024.12.31. 사업연도',noticeDate:today(),aStart:addDays(today(),20),aEnd:addDays(today(),39),givePlace:'납세자 사업장',
     msgName:'홍길동',msgPos:'대표이사',msgPhone:'010-0000-0000',signDate:addDays(today(),20),deferFrom:addDays(today(),20),deferTo:addDays(today(),50),deferDetail:'대표이사 수술 후 입원(약 4주 예정) — 진단서·입원확인서 첨부'});}
   else if(doc==='tax'){S.tax=Object.assign({},DEF.tax,{cName:'주식회사 예시상사',cRep:'홍길동',cType:'corp',cBiz:'123-45-67891',cTel:'02-000-0000',cEmail:'admin@example.com',cAddr:'서울특별시 중구 ○○로 00, 0층',start:today(),fee:330000,feeVat:'in',court:'서울중앙지방법원',signDate:today()});}
-  else{S.loan=Object.assign({},DEF.loan,{lName:'주식회사 예시상사',lType:'corp',lId:'123-45-67891',lTel:'02-000-0000',lAddr:'서울특별시 중구 ○○로 00',bName:'홍길동',bType:'ind',bId:'1975-05-05',bTel:'010-0000-0000',bAddr:'서울특별시 강남구 ○○로 00',rel:'corp-rep',amt:60000000,loanDate:today(),dueDate:addMonths(today(),24),acct:'○○은행 000-000-000000 홍길동',rate:4.6,intHow:'monthly',repay:'bullet',lateRate:12,court:'서울중앙지방법원',signDate:today()});}
+  else{const k0=LOAN_KINDS[S.loan.kind]?S.loan.kind:'std';S.loan=Object.assign({},DEF.loan,{lTel:'010-0000-0000',lAddr:'서울특별시 중구 ○○로 00',bTel:'010-0000-0000',bAddr:'서울특별시 강남구 ○○로 00',loanDate:today(),dueDate:addMonths(today(),24),lateRate:12,court:'서울중앙지방법원',signDate:today()},LOAN_SAMPLE[k0],{kind:k0});}
   persist();refill();render();
 }
 function fromBoard(){
@@ -1176,6 +1213,18 @@ function loanChecks(d){
   const miss=[['lName','대여인'],['bName','차용인'],['amt','대여 원금'],['loanDate','대여일'],['dueDate','변제기일']].filter(([k])=>!d[k]).map(([,n])=>n);
   if(miss.length)add('err','<b>필수 기재 누락</b>: '+miss.join(', '));
   if(d.loanDate&&d.dueDate&&d.dueDate<=d.loanDate)add('err','변제기일이 대여일보다 같거나 앞섭니다.');
+  /* 계약서 종류별 */
+  if(d.kind==='corp2rep'){
+    if(d.lType!=='corp')add('warn','가지급금 약정서는 대여인(갑)이 법인입니다. ① 구분을 「법인」으로 고르십시오.');
+    add('info','<b>업무무관 가지급금</b>: 특수관계인에게 업무와 관련 없이 빌려준 가지급금이 있으면, 차입금 중 그 금액에 상당하는 이자는 손금에 넣지 않습니다(법인세법 §28 ① 4호 나목). 인정이자 시가는 가중평균차입이자율이 원칙이고, 적용할 수 없거나 대여기간 5년 초과 등은 당좌대출이자율 연 4.6%입니다(법인세령 §89 ③, 칙 §43 ②).');
+  }
+  if(d.kind==='rep2corp'&&d.bType!=='corp')add('warn','가수금 약정서는 차용인(을)이 법인입니다. ② 구분을 「법인」으로 고르십시오.');
+  if((d.kind==='corp2rep'||d.kind==='rep2corp')&&!d.boardNeed)add('warn','이사·주요주주(그 배우자·직계존비속 등 포함)와 회사 사이 거래는 미리 이사회에서 이사 3분의 2 이상으로 승인받아야 합니다(상법 §398). 해당하면 이사회 승인 조항을 넣으십시오.');
+  if((d.kind==='corp2rep'||d.kind==='rep2corp')&&d.boardNeed&&!d.boardDate)add('warn','이사회 승인일이 비어 있습니다. 승인 의사록을 갖춰 두십시오(상법 §398).');
+  if(d.kind==='confirm'){if(!d.origin)add('err','<b>채무 발생 원인</b>이 비어 있습니다. 준소비대차는 기존 채무를 특정해야 합니다(민법 §605).');if(d.give!=='done')add('info','기존 채무 확인 계약서는 새로 돈을 주는 것이 아니므로 교부 조항 대신 채무 확인 조항을 씁니다.');}
+  if(d.kind==='simple'&&d.repay!=='bullet')add('warn','간이 차용증은 변제기 일시 변제로 작성됩니다. 분할 상환이면 「일반 금전소비대차계약서」를 쓰십시오.');
+  if(d.kind==='simple'&&d.collateral)add('warn','간이 차용증에는 담보 조항이 들어가지 않습니다. 담보가 있으면 「일반 금전소비대차계약서」를 쓰십시오.');
+  if(d.kind==='family'&&d.rel!=='family')add('info','가족 간 계약서인데 당사자 관계가 「가족·친족 등 특수관계인」이 아닙니다. 맞는지 확인하십시오.');
   [['lId',d.lType,'대여인'],['bId',d.bType,'차용인']].forEach(([k,t,n])=>{if(t!=='ind'&&d[k]&&!bizOk(d[k]))add('warn',n+' 사업자등록번호 형식이 맞지 않습니다: '+esc(d[k]));});
   if(P&&P<100000)add('info','대차원금 10만원 미만은 이자제한법 최고이자율 적용 대상이 아닙니다(§2 ⑤).');
   if(d.intHow!=='none'&&r>MAX_RATE)add('err','<b>이자율 연 '+r+'%</b>는 최고이자율 연 '+MAX_RATE+'%(이자제한법 §2 ①, 대통령령 제31593호)를 넘습니다. 초과 부분은 무효이며(§2 ③), 초과 지급분은 원본에 충당됩니다(§2 ④).');
@@ -1209,23 +1258,51 @@ function renderLoan(){
   $('loanCalc').innerHTML=P?('원금 <b>'+fmt(P)+'원</b> (금 '+hangulMoney(P)+'정)'+(d.loanDate&&d.dueDate?' · 기간 <b>'+daysBetween(d.loanDate,d.dueDate)+'일</b>('+Math.round(daysBetween(d.loanDate,d.dueDate)/30.4375)+'개월)':'')+(d.intHow!=='none'&&r?' · 연 '+r+'% → 월 이자 약 <b>'+fmt(P*r/1200)+'원</b> · 총 이자(일정표) <b>'+fmt(totI)+'원</b>':' · 무이자')+(P>50000000?' · 인지세 '+fmt(stampTax(P))+'원':' · 인지세 없음')+(d.rel==='family'?' · 무이자 기준 <b>'+fmt(noIntFree())+'원</b> '+(giftBenefit(P,d.intHow==='none'?0:r)<GIFT_FLOOR?'<span style="color:#166534">이내 — 증여세 없음</span>':'<span style="color:#B91C1C">초과 — 연 '+minFreeRate(P).toFixed(2)+'% 이상 받아야 증여세 없음</span>'):'')):'대여 원금을 넣으면 한글 금액·이자·인지세가 계산됩니다.'+(d.rel==='family'?' 무이자 기준: 원금 '+fmt(noIntFree())+'원 이하이면 무이자라도 증여세가 없습니다.':'');
   $('loanChecks').innerHTML=loanChecks(d).map(x=>'<li class="'+x.lv+'">'+x.t+'</li>').join('');
   nointSync(d);
+  const K=LOAN_KINDS[d.kind]||LOAN_KINDS.std;$('loanKindNote').textContent=K.note;
+  const kb=$('loanKindBox');let any=false;kb.querySelectorAll('.kx').forEach(x=>{const on=x.dataset.kinds.split(' ').indexOf(d.kind)>=0;x.style.display=on?'':'none';if(on)any=true;});kb.style.display=any?'':'none';
   $('sheet').innerHTML=loanHtml(d,rows);
 }
-function loanHtml(d,rows){
+/* 간이 차용증 — 한 쪽. 차용인이 대여인에게 써 주는 형식 */
+function loanSimpleHtml(d){
   const P=+d.amt||0,r=+d.rate||0,lr=+d.lateRate||0;
+  const row=(k,v)=>'<tr><td>'+k+'</td><td>'+v+'</td></tr>';
+  const intT=d.intHow==='none'||!r?'없음 (무이자)':'연 '+r+'% — '+(d.intHow==='monthly'?'매월 '+(d.intDay==='last'?'말일':d.intDay+'일')+' 지급':'변제기에 원금과 함께 지급');
+  const who=(pre,nm,tp,id,addr,tel,role)=>'<table class="party"><tr><td>'+pre+' '+(tp==='ind'?'성명':'상호')+'</td><td>'+esc(nm)+' '+SG('loan',role,'<span class="stamp">(서명 또는 인)</span>')+'</td></tr><tr><td>'+(tp==='ind'?'생년월일':'사업자등록번호')+'</td><td>'+esc(id)+'</td></tr><tr><td>주소</td><td>'+esc(addr)+'</td></tr><tr><td>연락처</td><td>'+esc(tel)+'</td></tr></table>';
+  return '<h1>차 용 증</h1>'+
+  '<p style="text-align:center;font-size:13pt;margin:10pt 0"><b>금 '+(P?hangulMoney(P)+'정 (₩'+fmt(P)+')':'________원정')+'</b></p>'+
+  '<p>위 금액을 '+esc(d.lName||'________')+'(이하 "채권자")로부터 '+(d.give==='done'?'이미 수령하였음을 확인하고':kd(d.loanDate)+' '+(d.give==='cash'?'현금으로':'계좌 송금으로')+' 정히 차용하며')+', 아래 조건에 따라 변제할 것을 확약합니다.</p>'+
+  '<table class="party">'+row('차용일',kd(d.loanDate))+row('변제기일',kd(d.dueDate)+' (일시 변제)')+row('이자',intT)+row('변제 방법','채권자 계좌('+esc(d.acct||'________')+')로 송금')+row('지연손해금','변제기 다음 날부터 연 '+(lr||'__')+'% (연 '+MAX_RATE+'% 이내)')+(d.gName?row('연대보증인',esc(d.gName)+' — 위 채무 일체를 차용인과 연대하여 보증'):'')+(d.extra?row('특약',esc(d.extra).replace(/\n/g,'<br>')):'')+'</table>'+
+  '<p style="font-size:9.5pt">※ 차용인이 변제를 지체하거나 파산·회생 절차가 개시되면 채권자는 남은 금액 전부를 즉시 청구할 수 있습니다. 이 차용증에 정하지 않은 사항은 민법에 따릅니다.</p>'+
+  '<div class="sign"><p style="text-align:center;margin:10pt 0">'+kd(d.signDate)+'</p>'+
+  who('차용인(채무자)',d.bName,d.bType,d.bId,d.bAddr,d.bTel,'b')+
+  (d.gName?'<div style="height:6pt"></div><table class="party"><tr><td>연대보증인 성명</td><td>'+esc(d.gName)+' '+SG('loan','g','<span class="stamp">(서명 또는 인)</span>')+'</td></tr><tr><td>생년월일</td><td>'+esc(d.gId)+'</td></tr><tr><td>주소</td><td>'+esc(d.gAddr)+'</td></tr></table>':'')+
+  '<div style="height:6pt"></div>'+who('채권자(대여인)',d.lName,d.lType,d.lId,d.lAddr,d.lTel,'l')+'</div>'+
+  (d.showTool?'<div class="foot">세무법인 한백택스 계약서 작성기 · 02-2277-3101 · hb090@hanbaektax.kr</div>':'');
+}
+function loanHtml(d,rows){
+  if(d.kind==='simple')return loanSimpleHtml(d);
+  const K=LOAN_KINDS[d.kind]||LOAN_KINDS.std,corpK=d.kind==='corp2rep'||d.kind==='rep2corp';
+  const P=+d.amt||0,r=+d.rate||0,lr=+d.lateRate||0,base=d.kind==='confirm'?'채무 확인 기준일':'대여일';
   const idLabel=t=>t==='ind'?'생년월일':'사업자등록번호';
   const party=(pre,nm,tp,id,addr,tel,sign,role)=>'<table class="party"><tr><td>'+pre+' '+(tp==='ind'?'성명':'상호')+'</td><td>'+esc(nm)+(sign?' '+SG('loan',role,'<span class="stamp">(서명 또는 인)</span>')+'':'')+'</td></tr>'+(tp!=='ind'?'<tr><td>대표자</td><td>&nbsp;'+SG('loan',role,'<span class="stamp">(서명 또는 인)</span>')+'</td></tr>':'')+'<tr><td>'+idLabel(tp)+'</td><td>'+esc(id)+'</td></tr><tr><td>주소</td><td>'+esc(addr)+'</td></tr><tr><td>연락처</td><td>'+esc(tel)+'</td></tr></table>';
   let n=0;const art=t=>'<h2>제'+(++n)+'조 ('+t+')</h2>';
-  const intClause=d.intHow==='none'?'이 대여금에는 이자를 붙이지 아니한다.':'이자는 연 '+r+'%(연 '+MAX_RATE+'%를 초과하지 아니하는 범위)로 하고, '+(d.intHow==='monthly'?'대여일 다음 달부터 '+(d.intDay==='last'?'매월 말일':'매월 '+d.intDay+'일')+'에 그 달분 이자를 지급한다.':'변제기에 원금과 함께 일괄 지급한다.')+' 이자는 대여일부터 실제 변제일까지 일할(1년 365일) 계산한다.';
-  const repayT={bullet:'을은 변제기일인 '+kd(d.dueDate)+'에 원금 전액을 일시에 변제한다.',equalP:'을은 대여일 다음 달부터 변제기일까지 매월 이자 지급일에 원금을 균등 분할하여 변제하고, 이자는 매월 잔여 원금에 대하여 계산한다(별지 상환 일정표 참조).',equalPI:'을은 대여일 다음 달부터 변제기일까지 매월 이자 지급일에 원리금을 균등 분할하여 변제한다(별지 상환 일정표 참조).'}[d.repay];
+  const intClause=d.intHow==='none'?'이 대여금에는 이자를 붙이지 아니한다.':'이자는 연 '+r+'%(연 '+MAX_RATE+'%를 초과하지 아니하는 범위)로 하고, '+(d.intHow==='monthly'?base+' 다음 달부터 '+(d.intDay==='last'?'매월 말일':'매월 '+d.intDay+'일')+'에 그 달분 이자를 지급한다.':'변제기에 원금과 함께 일괄 지급한다.')+' 이자는 '+base+'부터 실제 변제일까지 일할(1년 365일) 계산한다.';
+  const repayT={bullet:'을은 변제기일인 '+kd(d.dueDate)+'에 원금 전액을 일시에 변제한다.',equalP:'을은 '+base+' 다음 달부터 변제기일까지 매월 이자 지급일에 원금을 균등 분할하여 변제하고, 이자는 매월 잔여 원금에 대하여 계산한다(별지 상환 일정표 참조).',equalPI:'을은 '+base+' 다음 달부터 변제기일까지 매월 이자 지급일에 원리금을 균등 분할하여 변제한다(별지 상환 일정표 참조).'}[d.repay];
   const giveT={bank:'갑은 '+kd(d.loanDate)+'에 위 금원을 을이 지정한 다음 계좌('+esc(d.acct||'________')+')로 송금하여 교부한다.',cash:'갑은 '+kd(d.loanDate)+'에 위 금원을 을에게 현금으로 교부하고, 을은 이를 수령하였음을 확인한다.',done:'갑은 '+kd(d.loanDate)+'에 위 금원을 을에게 교부하였고, 을은 이를 수령하였음을 확인한다.'}[d.give];
   const prepayT={ok:'을은 변제기 전이라도 원금의 전부 또는 일부를 변제할 수 있으며, 이 경우 수수료 없이 변제일까지의 이자만 지급한다.',notice:'을은 갑에게 7일 전에 서면(문자·전자우편 포함)으로 통지한 후 변제기 전에 원금의 전부 또는 일부를 변제할 수 있다.',no:'을은 갑의 동의 없이 변제기 전에 변제할 수 없다.'}[d.prepay];
   const sched=d.showSched&&rows.length>1?'<div class="pb"></div><h2 style="text-align:center">별지 — 상환 일정표</h2><table><tr><th>회차</th><th>일자</th><th>원금</th><th>이자</th><th>합계</th><th>잔액</th></tr>'+rows.map(x=>'<tr><td class="c">'+x.n+'</td><td class="c">'+esc(x.date)+'</td><td class="r">'+fmt(x.p)+'</td><td class="r">'+fmt(x.i)+'</td><td class="r">'+fmt(x.p+x.i)+'</td><td class="r">'+fmt(x.bal)+'</td></tr>').join('')+'<tr><th colspan="2">합계</th><td class="r">'+fmt(rows.reduce((s,x)=>s+x.p,0))+'</td><td class="r">'+fmt(rows.reduce((s,x)=>s+x.i,0))+'</td><td class="r">'+fmt(rows.reduce((s,x)=>s+x.p+x.i,0))+'</td><td></td></tr></table><p style="font-size:9.5pt">※ 이자는 월할 계산한 참고 금액이며, 실제 지급액은 제3조에 따른 일할 계산에 따른다.'+(r>0?' 이자 지급 시 비영업대금의 이익으로 소득세·지방소득세 27.5%를 원천징수한다(소득세법 제129조).':'')+'</p>':'';
-  return '<h1>금전소비대차계약서</h1>'+
-  '<p><b>'+esc(d.lName||'________')+'</b>(이하 "갑"이라 한다)과(와) <b>'+esc(d.bName||'________')+'</b>(이하 "을"이라 한다)은 다음과 같이 금전소비대차계약을 체결한다.</p>'+
-  art('대여 금액 및 교부')+'<p>① 갑은 을에게 금 <b>'+(P?hangulMoney(P)+'정 (₩'+fmt(P)+')':'________')+'</b>을 대여하고 을은 이를 차용한다.</p><p>② '+giveT+'</p>'+
+  const money='금 <b>'+(P?hangulMoney(P)+'정 (₩'+fmt(P)+')':'________')+'</b>';
+  const coName=d.kind==='corp2rep'?d.lName:d.bName;
+  return '<h1>'+K.h+'</h1>'+
+  '<p><b>'+esc(d.lName||'________')+'</b>(이하 "갑"이라 한다)과(와) <b>'+esc(d.bName||'________')+'</b>(이하 "을"이라 한다)은 다음과 같이 '+(d.kind==='confirm'?'기존 채무를 확인하고 이를 목적으로 하는 ':'')+'금전소비대차계약을 체결한다.</p>'+
+  (d.kind==='confirm'
+    ?art('채무의 확인 및 준소비대차')+'<p>① 을은 '+kd(d.loanDate)+' 현재 갑에게 다음 원인으로 인한 '+money+'의 채무가 있음을 확인한다.<br>원인: '+esc(d.origin||'________')+'</p><p>② 갑과 을은 위 채무를 소비대차의 목적으로 하기로 약정하며(민법 제605조), 을은 이 계약에서 정한 바에 따라 변제한다. 위 채무에 관하여 이 계약 전에 발생한 이자·지연손해금은 특약으로 달리 정하지 아니하면 위 금액에 포함된 것으로 본다.</p>'
+    :art('대여 금액 및 교부')+'<p>① 갑은 을에게 '+money+'을 대여하고 을은 이를 차용한다.</p><p>② '+giveT+'</p>')+
   art('변제기 및 변제 방법')+'<p>① 변제기일은 '+kd(d.dueDate)+'로 한다.</p><p>② '+repayT+'</p><p>③ 원리금은 갑이 지정하는 계좌('+esc(d.acct||'추후 통지')+')로 송금하여 변제하며, 송금 수수료는 을이 부담한다.</p>'+
   art('이자')+'<p>'+intClause+'</p>'+(d.intHow!=='none'&&r>0?'<p>이자 지급 시 을은 「소득세법」에 따라 원천징수할 세액이 있는 경우 이를 공제하고 지급하며, 원천징수영수증을 갑에게 교부한다.</p>':'')+
+  (d.kind==='family'?art('대여의 성격')+'<p>① 갑과 을은 이 계약의 금원이 증여가 아닌 대여임을 확인한다.</p><p>② 을은 원금'+(d.intHow!=='none'&&r>0?'과 이자':'')+'를 제2조에서 정한 계좌로 송금하여 변제하고, 갑과 을은 송금 내역을 보관한다.</p>':'')+
+  (corpK&&d.boardNeed?art('이사회 승인')+'<p>이 계약은 「상법」 제398조에 따라 '+esc(coName||'회사')+'의 이사회에서 거래에 관한 중요사실을 밝히고 이사 3분의 2 이상의 수로써 승인을 받아 체결한다(승인일: '+(d.boardDate?kd(d.boardDate):'________')+').</p>':'')+
+  (d.kind==='corp2rep'?art('임원 지위 상실 시 변제')+'<p>을이 갑의 임원 지위를 상실한 때에는 변제기에도 불구하고 그 날까지의 원리금 전액을 지체 없이 변제한다.</p>':'')+
   art('지연손해금')+'<p>을이 원금 또는 이자의 지급을 지체한 때에는 지체한 금액에 대하여 지급기일 다음 날부터 완제일까지 연 '+(lr||'__')+'%의 비율에 의한 지연손해금을 가산하여 지급한다(연 '+MAX_RATE+'%를 초과하지 아니한다).</p>'+
   art('중도상환')+'<p>'+prepayT+'</p>'+
   (d.lossClause?art('기한이익의 상실')+'<p>을에게 다음 각 호의 사유가 발생한 때에는 갑의 통지·최고 없이 기한의 이익을 상실하며, 을은 즉시 원리금 전액을 변제하여야 한다.</p><p>1. 이자 또는 분할 원금의 지급을 2회 이상 연속하여 지체한 때<br>2. 을이 발행·배서한 어음·수표가 부도 처리되거나 을에 대하여 파산·회생 절차가 개시된 때<br>3. 을의 재산에 대하여 압류·가압류·가처분·경매 신청이 있는 때<br>4. 을이 갑에게 통지 없이 주소·연락처를 변경하여 소재가 불명하게 된 때</p>':'')+
@@ -2240,8 +2317,9 @@ function printOne(i){
 window.addEventListener('beforeprint',()=>{if(!printOneOn)document.body.classList.remove('print-one');});
 window.addEventListener('afterprint',()=>{printOneOn=false;document.body.classList.remove('print-one');});
 function render(){$('sheet').classList.toggle('multi',doc==='audit');if(doc==='labor')renderLabor();else if(doc==='loan')renderLoan();else if(doc==='tax')renderTax();else if(doc==='exec')renderExec();else if(doc==='resign')renderResign();else if(doc==='audit')renderAudit();else renderFree();refreshSigs();}
-try{const q=new URLSearchParams(location.search),qd=q.get('doc');if(qd&&DEF[qd])doc=qd;if(q.get('noint')==='1'){doc='loan';applyNoint(q.get('rel'));}}catch(e){}   /* 바로가기 주소 */
-bind();renderDays();renderAllow();renderExecRows();renderAuditMembers();
+try{const q=new URLSearchParams(location.search),qd=q.get('doc'),qk=q.get('kind');if(qd&&DEF[qd])doc=qd;if(doc==='loan'&&LOAN_KINDS[qk])applyLoanKind(qk);if(q.get('noint')==='1'){doc='loan';applyNoint(q.get('rel'));}}catch(e){}   /* 바로가기 주소 ?doc=loan&kind=…&noint=1 */
+bind();
+$('loanKind').addEventListener('change',()=>{applyLoanKind(S.loan.kind);persist();refill();render();});renderDays();renderAllow();renderExecRows();renderAuditMembers();
 initStaff();
 PADS.client=sigPad('padClient','tax','sigClient','client');
 mountSigs();
