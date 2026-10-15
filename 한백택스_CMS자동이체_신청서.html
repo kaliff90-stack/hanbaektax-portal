@@ -175,6 +175,7 @@ body.staff .clientonly{display:none}
   .sheet+.sheet{page-break-before:always}
 }
 </style>
+<script src="한백택스_직인.js"></script><!-- HB-SEAL: 한백 직인 자리 공용 -->
 <script src="한백택스_계산신호.js" defer></script><!-- HB-SIGNAL -->
 </head>
 <body>
@@ -356,8 +357,9 @@ body.staff .clientonly{display:none}
     <div class="confirmpanel">
       <div class="hint" style="line-height:1.7;margin-bottom:6px">업체가 보낸 신청서(접수 메일의 JSON 을 「📂 불러오기」)를 열어 <b>월 기장료·이체일·계좌</b>를 약정서 확정 보수와 대조하고, 맞으면 <b>「출금 내용 확인 · 확정」</b>을 누릅니다. 신청서 아래에 확정번호·직인이 찍히고 사무실 메일·접수대장에 기록됩니다. 확정 뒤 계좌·금액·이체일을 고치면 확정 표시가 빠집니다.</div>
       <div class="row">
-        <label class="fld">사무소 확인 코드 <span class="hint">(이 브라우저에 저장)</span><input id="staffToken" type="password" autocomplete="off" placeholder="HB-…"></label>
-        <label class="fld">확인 담당자<input id="staffBy" placeholder="예: 차재영"></label>
+        <label class="fld">임직원 이름<input id="staffBy" placeholder="예: 차재영" autocomplete="username"></label>
+        <label class="fld">본인 비밀번호 <span class="hint">(저장하지 않음)</span><input id="staffPw" type="password" autocomplete="current-password"></label>
+        <label class="fld" style="grid-column:1/-1">사무소 확인 코드 <span class="hint">(예전 방식 — 새 중계 배포 전까지만 필요 · 이 브라우저에 저장)</span><input id="staffToken" type="password" autocomplete="off" placeholder="HB-…"></label>
       </div>
       <div class="toolbar" style="margin:8px 0 0">
         <button type="button" class="btn n" id="btnCmsConfirm" onclick="cmsConfirm()">✅ 출금 내용 확인 · 확정</button>
@@ -412,6 +414,7 @@ body.staff .clientonly{display:none}
 const BANKS=['경남','광주','국민','기업','농협','대구','부산','새마을금고','시티','신한','신협','외환','우리','우체국','전북','제일','제주','수협','하나'];
 const DAYS=[1,5,10,15,25,30];                   /* 사무소 이체일 — 이 여섯 날만 고른다 */
 const OFFICE='세무법인 한백택스';
+const OFFICE_REP='대표세무사 차재영';   /* 사무소 확인 직인 묶음 — 청구서 작성기 기본값과 같다 */
 const OFFICE_FOOT='서울특별시 중구 동호로 315, 신안빌딩 2층 · 전화 02-2277-3101 · 팩스 02-2277-3161 · hb090@hanbaektax.kr · hb3101@nate.com';
 const GREET=[
  '전자금융(인터넷뱅킹)의 발달로 인하여 모든 은행 업무가 자동화 되고 기존에 이용하던 지로에 대한 수요가 갈수록 감소하고 있습니다.',
@@ -624,7 +627,7 @@ function sheetHtml(d,wd){
   '</td></tr>'+
   '</table>'+
   '<div class="foot"><div class="of">'+esc(office)+'</div><div>'+esc(d.officeFoot||OFFICE_FOOT)+'</div></div>'+
-  (cmsConfirmValid(d)?'<div class="confirmbox"><span>사무소 확인 · 확정번호 <b>'+esc(d.confirm.no)+'</b> · '+esc(d.confirm.at)+(d.confirm.by?' · 담당 '+esc(d.confirm.by):'')+'</span><img class="csealimg" alt="직인" src="'+d.confirm.seal+'"></div>':'');
+  (cmsConfirmValid(d)?'<div class="confirmbox"><span>사무소 확인 — 위 자동이체 신청 내용(계좌·금액·이체일)을 확인하였습니다.</span>'+HBSeal.block({office:office,rep:OFFICE_REP,ok:true,seal:d.confirm.seal,conf:d.confirm,label:'확정번호'})+'</div>':'');
 }
 function cmsConfirmValid(d){return !!(d&&d.confirm&&d.confirm.seal&&d.confirm.key===sigKey(d));}
 function render(){
@@ -793,7 +796,7 @@ function wordDoc(inner){
   return '﻿<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'+
     '<head><meta charset="utf-8"><title>자동이체 신청서</title>'+
     '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->'+
-    '<style>'+WORD_CSS+'</style></head><body><div class="Section1">'+inner+'</div></body></html>';
+    '<style>'+WORD_CSS+HBSeal.css+'</style></head><body><div class="Section1">'+inner+'</div></body></html>';
 }
 function saveWord(){
   download(new Blob([wordDoc(wordize(sheetHtml(S,true)))],{type:'application/msword;charset=utf-8'}),baseName()+'.doc');
@@ -804,13 +807,13 @@ function saveWordAll(){
   download(new Blob([wordDoc(inner)],{type:'application/msword;charset=utf-8'}),'자동이체신청서_'+LIST.length+'건_'+today()+'.doc');
 }
 function saveJson(){
-  download(new Blob([JSON.stringify({app:'hbt-cms',ver:1,data:S},null,1)],{type:'application/json'}),baseName()+'.json');
+  download(new Blob([JSON.stringify({app:'hbt-cms',ver:1,data:HBSeal.strip(S)},null,1)],{type:'application/json'}),baseName()+'.json');   /* 직인 이미지·지문은 넣지 않는다 */
 }
 function loadJson(inp){
   const f=inp.files[0];if(!f)return;
   const rd=new FileReader();
   rd.onload=()=>{
-    try{const o=JSON.parse(rd.result);S=Object.assign({},DEF,o.data||o);fixDays();persist();refill();render();}
+    try{const o=HBSeal.strip(JSON.parse(rd.result));S=Object.assign({},DEF,o.data||o);fixDays();persist();refill();render();}
     catch(e){alert('읽을 수 없는 파일입니다.');}
     inp.value='';
   };
@@ -996,9 +999,16 @@ async function mailToOffice(checked){
 }
 
 /* ═══════ 사무소 확인 · 확정(직원용) ═══════
- * 확인 코드(중계 STAFF_TOKEN)로 type:confirm 을 요청하면 확정번호와 직인이 내려온다. 직인 이미지는 이 파일에 없다.
+ * 임직원 이름 + 본인 비밀번호(전환기간에는 사무소 확인 코드도)로 type:confirm 을 요청하면 확정번호와 직인이 내려온다. 직인 이미지는 이 파일에 없다.
  * 확정 당시 내용(sigKey)과 지금 내용이 같을 때만 신청서에 확정 표시가 찍힌다. */
 const STAFF_KEY='hbt_staff_token', STAFF_BY='hbt_staff_by';   /* 계약서 작성기와 같은 키 — 한 번 넣으면 두 앱에서 쓴다 */
+/* 직원 확인 (2026-10-15) — 임직원 이름 + 본인 비밀번호가 기본. 사무소 확인 코드는 새 중계 배포 전까지 함께 보낸다(전환기간).
+ * 비밀번호는 이 브라우저에 남기지 않는다. 오류 코드는 중계 Code.gs 와 같다. */
+const SEAL_ERR={staff_unauthorized:'이름·본인 비밀번호(또는 사무소 확인 코드)가 맞지 않습니다.',pw_locked:'비밀번호를 여러 번 틀려 1시간 동안 잠겼습니다. 잠시 뒤 다시 하거나 대표에게 문의하십시오.',not_in_roster:'직인 날인이 등록되지 않은 이름입니다. 대표에게 문의하십시오.',pw_init_only:'처음 비밀번호로는 직인을 찍을 수 없습니다. 청구서 작성기 「비밀번호 바꾸기」에서 본인 비밀번호를 정한 뒤 다시 하십시오.',bad_kind:'중계가 이 문서 종류를 모릅니다. 대표에게 문의하십시오.',staff_required:'직원 확인이 필요합니다. 이름과 본인 비밀번호를 넣으십시오.'};
+const sealErr=e=>SEAL_ERR[e]||e;
+function staffCred(){const by=($('staffBy').value||'').trim(),pw=$('staffPw').value||'',tok=($('staffToken').value||'').trim();return {by,pw,tok,ok:!!((by&&pw)||tok)};}
+function credBody(c){const b={by:c.by};if(c.by&&c.pw){b.name=c.by;b.pw=c.pw;}if(c.tok)b.staff=c.tok;return b;}
+function needCred(){alert('임직원 이름과 본인 비밀번호를 넣어 주십시오.');($('staffBy').value?$('staffPw'):$('staffBy')).focus();}
 function initStaff(){
   const t=$('staffToken'),b=$('staffBy');if(!t)return;
   try{t.value=localStorage.getItem(STAFF_KEY)||'';b.value=localStorage.getItem(STAFF_BY)||'';}catch(e){}
@@ -1007,8 +1017,8 @@ function initStaff(){
 }
 function setCmsConfirmStatus(t,lv){const el=$('cmsConfirmStatus');if(!el)return;el.textContent=t||'';el.style.color=lv==='err'?'#B91C1C':lv==='ok'?'#166534':'';el.style.fontWeight=lv?'700':'';}
 async function cmsConfirm(){
-  const tok=($('staffToken').value||'').trim();if(!tok){alert('사무소 확인 코드를 넣어 주십시오.');$('staffToken').focus();return;}
-  try{localStorage.setItem(STAFF_KEY,tok);localStorage.setItem(STAFF_BY,($('staffBy').value||'').trim());}catch(e){}
+  const cr=staffCred();if(!cr.ok){needCred();return;}
+  try{localStorage.setItem(STAFF_KEY,cr.tok);localStorage.setItem(STAFF_BY,cr.by);}catch(e){}
   if(!S.applicant.trim()){alert('신청인(상호)이 비어 있습니다.');return;}
   if(!num(S.fee)){alert('월 기장료가 비어 있습니다. 약정 보수를 넣은 뒤 확정하십시오.');return;}
   const errs=Array.from($('checks').querySelectorAll('li.err')).map(li=>'· '+li.textContent.replace(/^✕\s*/,''));
@@ -1017,14 +1027,15 @@ async function cmsConfirm(){
   const btn=$('btnCmsConfirm');btn.disabled=true;setCmsConfirmStatus('사무소 확정 요청 중…');
   try{
     const key=sigKey(S);
-    const r=await relaySend({type:'confirm',staff:tok,kind:'cms',by:($('staffBy').value||'').trim(),
+    const r=await relaySend(Object.assign(credBody(cr),{type:'confirm',kind:'cms',
       docId:'CMS-'+today().replace(/-/g,'')+'-'+(dg(S.acct).slice(-4)||'0000'),
-      client:S.applicant.trim(),phone:(S.mobile||S.tel||'').trim(),email:(S.email||'').trim(),fee:num(S.fee),hash:key,text:sendText('')});
-    S.confirm={no:r.id,at:r.at,by:($('staffBy').value||'').trim(),seal:r.seal,key};
+      client:S.applicant.trim(),phone:(S.mobile||S.tel||'').trim(),email:(S.email||'').trim(),fee:num(S.fee),hash:key,text:sendText('')}));
+    $('staffPw').value='';
+    S.confirm={no:r.id,at:r.at,by:r.by||cr.by,seal:r.seal,key};
     persist();render();
     setCmsConfirmStatus('확정되었습니다 · 확정번호 '+r.id+' · '+r.at+' — 신청서 아래에 확정 표시가 찍혔습니다. 「➕ 목록에 보관」으로 남겨 두십시오.','ok');
   }catch(err){
-    const m=err.message==='staff_unauthorized'?'사무소 확인 코드가 맞지 않습니다.':err.message;
+    const m=sealErr(err.message);
     setCmsConfirmStatus('확정 실패: '+m,'err');alert('확정 실패: '+m);
   }finally{btn.disabled=false;}
 }

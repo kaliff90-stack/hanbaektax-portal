@@ -163,6 +163,7 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
   body.print-one .sheet.multi .bj:not(.pick){display:none}
 }
 </style>
+<script src="한백택스_직인.js"></script><!-- HB-SEAL: 한백 직인 자리 공용 -->
 <script src="한백택스_계산신호.js" defer></script><!-- HB-SIGNAL -->
 </head>
 <body>
@@ -847,10 +848,11 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
     <div id="taxSendStatus" class="hint" style="margin-top:6px;line-height:1.6"></div>
     <details class="staffbox" id="taxStaffBox">
       <summary>⑧ 사무소 확인 · 확정 <span class="hint">(직원용 — 거래처는 쓰지 않습니다)</span></summary>
-      <div class="hint" style="line-height:1.7;margin:6px 0">절차: 접수 메일에 붙은 <b>신청 JSON</b>을 맨 위 「📂 불러오기」로 열고 → 보수·업무 범위를 검토·수정 → <b>「보수 확정 · 직인 날인」</b>(확정번호가 붙고 을의 직인이 찍힙니다) → <b>「확정본 거래처에 보내기」</b>. 확정한 뒤 보수·기간·업무 범위를 고치면 직인이 빠지므로 다시 확정합니다. 직인 이미지는 이 화면에 들어 있지 않고 확인 코드로 확정할 때만 내려옵니다.</div>
+      <div class="hint" style="line-height:1.7;margin:6px 0">절차: 접수 메일에 붙은 <b>신청 JSON</b>을 맨 위 「📂 불러오기」로 열고 → 보수·업무 범위를 검토·수정 → <b>「보수 확정 · 직인 날인」</b>(확정번호가 붙고 을의 직인이 찍힙니다) → <b>「확정본 거래처에 보내기」</b>. 확정한 뒤 보수·기간·업무 범위를 고치면 직인이 빠지므로 다시 확정합니다. 직인 이미지는 이 화면에 들어 있지 않고 임직원이 이름·본인 비밀번호로 확정할 때만 내려옵니다. 거래처에 보내는 JSON 에는 직인이 들어가지 않습니다.</div>
       <div class="row">
-        <label class="fld">사무소 확인 코드 <span class="hint">(이 브라우저에 저장)</span><input id="staffToken" type="password" autocomplete="off" placeholder="HB-…"></label>
-        <label class="fld">확정 담당자<input id="staffBy" placeholder="예: 차재영"></label>
+        <label class="fld">임직원 이름<input id="staffBy" placeholder="예: 차재영" autocomplete="username"></label>
+        <label class="fld">본인 비밀번호 <span class="hint">(저장하지 않음)</span><input id="staffPw" type="password" autocomplete="current-password"></label>
+        <label class="fld" style="grid-column:1/-1">사무소 확인 코드 <span class="hint">(예전 방식 — 새 중계 배포 전까지만 필요 · 이 브라우저에 저장)</span><input id="staffToken" type="password" autocomplete="off" placeholder="HB-…"></label>
       </div>
       <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
         <button type="button" class="btn n" id="btnTaxConfirm" onclick="taxConfirm()">✅ 보수 확정 · 직인 날인</button>
@@ -961,8 +963,8 @@ function showDoc(d){doc=d;document.querySelectorAll('#docTabs button').forEach(b
 document.querySelectorAll('#docTabs button').forEach(b=>b.addEventListener('click',()=>showDoc(b.dataset.doc)));
 function mobPv(on){document.body.classList.toggle('showpv',on);document.querySelectorAll('.mobtab button').forEach((b,i)=>b.classList.toggle('on',(i%2===1)===on));}
 function copyText(){const t=$('sheet').innerText;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>alert('본문을 복사했습니다.'),()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();alert('본문을 복사했습니다.');});}
-function saveJson(){const name=(doc==='labor'?'근로계약서_'+(S.labor.wName||'미정'):doc==='loan'?(LOAN_KINDS[S.loan.kind]||LOAN_KINDS.std).h.replace(/[\s()→]+/g,'')+'_'+(S.loan.bName||'미정'):doc==='tax'?'세무대리약정서_'+(S.tax.cName||'미정'):doc==='exec'?'임원퇴직금지급규정_'+(S.exec.coName||'미정'):doc==='resign'?'사직서_'+(S.resign.wName||'미정'):doc==='audit'?'세무조사착수서류_'+(S.audit.tName||'미정'):'프리랜서계약서_'+(S.free.fName||'미정'))+'_'+today()+'.json';const blob=new Blob([JSON.stringify({doc,data:S[doc]},null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
-function loadJson(inp){const f=inp.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const o=JSON.parse(rd.result);const d=DEF[o.doc]?o.doc:'labor';S[d]=Object.assign({},DEF[d],o.data||{});if(d==='labor'){S[d].dayHours=Object.assign({},DEF.labor.dayHours,S[d].dayHours||{});S[d].allow=S[d].allow||[];}if(d==='exec'&&!Array.isArray(S[d].rows))S[d].rows=JSON.parse(JSON.stringify(DEF.exec.rows));if(d==='audit'&&!Array.isArray(S[d].members))S[d].members=JSON.parse(JSON.stringify(DEF.audit.members));showDoc(d);refill();render();}catch(e){alert('읽을 수 없는 파일입니다.');}inp.value='';};rd.readAsText(f);}
+function saveJson(){const name=(doc==='labor'?'근로계약서_'+(S.labor.wName||'미정'):doc==='loan'?(LOAN_KINDS[S.loan.kind]||LOAN_KINDS.std).h.replace(/[\s()→]+/g,'')+'_'+(S.loan.bName||'미정'):doc==='tax'?'세무대리약정서_'+(S.tax.cName||'미정'):doc==='exec'?'임원퇴직금지급규정_'+(S.exec.coName||'미정'):doc==='resign'?'사직서_'+(S.resign.wName||'미정'):doc==='audit'?'세무조사착수서류_'+(S.audit.tName||'미정'):'프리랜서계약서_'+(S.free.fName||'미정'))+'_'+today()+'.json';const blob=new Blob([JSON.stringify({doc,data:HBSeal.strip(S[doc])},null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
+function loadJson(inp){const f=inp.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const o=HBSeal.strip(JSON.parse(rd.result));const d=DEF[o.doc]?o.doc:'labor';S[d]=Object.assign({},DEF[d],o.data||{});if(d==='labor'){S[d].dayHours=Object.assign({},DEF.labor.dayHours,S[d].dayHours||{});S[d].allow=S[d].allow||[];}if(d==='exec'&&!Array.isArray(S[d].rows))S[d].rows=JSON.parse(JSON.stringify(DEF.exec.rows));if(d==='audit'&&!Array.isArray(S[d].members))S[d].members=JSON.parse(JSON.stringify(DEF.audit.members));showDoc(d);refill();render();}catch(e){alert('읽을 수 없는 파일입니다.');}inp.value='';};rd.readAsText(f);}
 function resetDoc(){if(!confirm('현재 문서의 입력을 모두 지웁니다.'))return;S[doc]=JSON.parse(JSON.stringify(DEF[doc]));persist();refill();render();}
 /* 근로계약 유형별 예시 — 「예시 채우기」가 지금 고른 유형에 맞춰 채운다 */
 const LABOR_SAMPLE={
@@ -1544,16 +1546,23 @@ const staffBy=()=>{try{return (localStorage.getItem(STAFF_BY)||'').trim();}catch
 function taxConfirmValid(d){return !!(d&&d.confirm&&d.confirm.seal&&d.confirm.key===taxSigKey(d));}
 function sealSrc(d){return taxConfirmValid(d)?d.confirm.seal:'';}
 function setTaxConfirmStatus(t,lv){const el=$('taxConfirmStatus');if(!el)return;el.textContent=t||'';el.style.color=lv==='err'?'#B91C1C':lv==='ok'?'#166534':'';el.style.fontWeight=lv?'700':'';}
+/* 직원 확인 (2026-10-15) — 임직원 이름 + 본인 비밀번호가 기본. 사무소 확인 코드는 새 중계 배포 전까지 함께 보낸다(전환기간).
+ * 비밀번호는 이 브라우저에 남기지 않는다. 오류 코드는 중계 Code.gs 와 같다. */
+const SEAL_ERR={staff_unauthorized:'이름·본인 비밀번호(또는 사무소 확인 코드)가 맞지 않습니다.',pw_locked:'비밀번호를 여러 번 틀려 1시간 동안 잠겼습니다. 잠시 뒤 다시 하거나 대표에게 문의하십시오.',not_in_roster:'직인 날인이 등록되지 않은 이름입니다. 대표에게 문의하십시오.',pw_init_only:'처음 비밀번호로는 직인을 찍을 수 없습니다. 청구서 작성기 「비밀번호 바꾸기」에서 본인 비밀번호를 정한 뒤 다시 하십시오.',bad_kind:'중계가 이 문서 종류를 모릅니다. 대표에게 문의하십시오.',staff_required:'직원 확인이 필요합니다. 이름과 본인 비밀번호를 넣으십시오.'};
+const sealErr=e=>SEAL_ERR[e]||e;
+function staffCred(){const by=($('staffBy').value||'').trim(),pw=$('staffPw').value||'',tok=($('staffToken').value||'').trim();return {by,pw,tok,ok:!!((by&&pw)||tok)};}
+function credBody(c){const b={by:c.by};if(c.by&&c.pw){b.name=c.by;b.pw=c.pw;}if(c.tok)b.staff=c.tok;return b;}
+function needCred(){alert('임직원 이름과 본인 비밀번호를 넣어 주십시오.');($('staffBy').value?$('staffPw'):$('staffBy')).focus();}
 function initStaff(){
   const t=$('staffToken'),b=$('staffBy');if(!t)return;
   t.value=staffToken();b.value=staffBy();
   t.addEventListener('change',()=>{try{localStorage.setItem(STAFF_KEY,t.value.trim());}catch(e){}});
   b.addEventListener('change',()=>{try{localStorage.setItem(STAFF_BY,b.value.trim());}catch(e){}});
-  if(staffToken())$('taxStaffBox').open=true;
+  if(staffToken()||staffBy())$('taxStaffBox').open=true;
 }
 async function taxConfirm(){
-  const tok=($('staffToken').value||'').trim();if(!tok){alert('사무소 확인 코드를 넣어 주십시오.');$('staffToken').focus();return;}
-  try{localStorage.setItem(STAFF_KEY,tok);localStorage.setItem(STAFF_BY,($('staffBy').value||'').trim());}catch(e){}
+  const cr=staffCred();if(!cr.ok){needCred();return;}
+  try{localStorage.setItem(STAFF_KEY,cr.tok);localStorage.setItem(STAFF_BY,cr.by);}catch(e){}
   const d=S.tax,c=taxCalc(d);
   if(!d.cName.trim()){alert('위임인(상호)이 비어 있습니다.');return;}
   if(!c.fee){alert('월 기장료가 비어 있습니다. 보수를 넣은 뒤 확정하십시오.');return;}
@@ -1563,39 +1572,40 @@ async function taxConfirm(){
   const btn=$('btnTaxConfirm');btn.disabled=true;setTaxConfirmStatus('사무소 확정 요청 중…');
   try{
     const key=taxSigKey(d);
-    const r=await relaySend({type:'confirm',staff:tok,kind:'agreement',by:($('staffBy').value||'').trim(),
+    const r=await relaySend(Object.assign(credBody(cr),{type:'confirm',kind:'agreement',
       docId:'TAX-'+today().replace(/-/g,'')+'-'+(String(d.cBiz||'').replace(/\D/g,'').slice(-4)||'0000'),
-      client:d.cName.trim(),phone:(d.cTel||'').trim(),email:(d.cEmail||'').trim(),fee:c.feePay,hash:key,text:taxSendText('')});
-    S.tax.confirm={no:r.id,at:r.at,by:($('staffBy').value||'').trim(),seal:r.seal,key};
+      client:d.cName.trim(),phone:(d.cTel||'').trim(),email:(d.cEmail||'').trim(),fee:c.feePay,hash:key,text:taxSendText('')}));
+    S.tax.confirm={no:r.id,at:r.at,by:r.by||cr.by,seal:r.seal,key};
     persist();render();
     setTaxConfirmStatus('확정되었습니다 · 확정번호 '+r.id+' · '+r.at+' — 직인이 찍혔습니다. 「확정본 거래처에 보내기」를 누르십시오.','ok');
   }catch(err){
-    const m=err.message==='staff_unauthorized'?'사무소 확인 코드가 맞지 않습니다.':err.message;
+    const m=sealErr(err.message);
     setTaxConfirmStatus('확정 실패: '+m,'err');alert('확정 실패: '+m);
   }finally{btn.disabled=false;}
 }
 function taxUnconfirm(){if(!S.tax.confirm)return;if(!confirm('이 약정서의 확정 표시와 직인을 지웁니다(사무실 기록은 남습니다).'))return;S.tax.confirm=null;persist();render();setTaxConfirmStatus('확정을 취소했습니다.');}
 async function sendTaxFinal(){
-  const d=S.tax,tok=($('staffToken').value||'').trim();
+  const d=S.tax,cr=staffCred();
   if(!taxConfirmValid(d)){alert('먼저 「보수 확정 · 직인 날인」을 하십시오. 확정 뒤 내용이 바뀌었다면 다시 확정합니다.');return;}
-  if(!tok){alert('사무소 확인 코드를 넣어 주십시오.');return;}
+  if(!cr.ok){needCred();return;}
   const to=(d.cEmail||'').trim();if(!mailOk(to)){alert('위임인(갑) 이메일이 없거나 형식이 맞지 않습니다. ①에 이메일을 적어 주십시오.');return;}
   if(!confirm('확정된 약정서(직인 포함)를 '+to+' 로 보냅니다.'))return;
   const btn=$('btnTaxFinal');btn.disabled=true;
   try{
     setTaxConfirmStatus('확정본 이미지를 만드는 중…');
     const img=await sheetJpg();
-    const js=JSON.stringify({doc:'tax',data:d});
+    const js=JSON.stringify({doc:'tax',data:HBSeal.strip(d)});   /* 업체에게 가는 JSON 에는 직인 이미지·지문을 넣지 않는다 */
     const files=[{name:'세무대리약정서_확정_'+String(d.cName).replace(/[\\/:*?"<>|]/g,'')+'_'+d.confirm.no+'.jpg',type:'image/jpeg',size:img.size,data:await fileToB64(img)},
                  {name:'세무대리약정서_확정_'+d.confirm.no+'.json',type:'application/json',size:js.length,data:toB64(js)}];
     setTaxConfirmStatus('거래처로 보내는 중…');
     const c=taxCalc(d);
-    await relaySend({type:'notify',staff:tok,to,client:d.cName.trim(),docId:d.confirm.no,
+    await relaySend(Object.assign(credBody(cr),{type:'notify',to,client:d.cName.trim(),docId:d.confirm.no,
       subject:'[세무법인 한백택스] 세무대리 약정서 확정본 (확정번호 '+d.confirm.no+')',
       text:(d.cName||'')+' '+(d.cRep?d.cRep+' 대표님':'귀중')+', 안녕하십니까. 세무법인 한백택스입니다.\n\n신청하신 세무대리 약정을 아래와 같이 확정하고 직인을 날인한 약정서를 첨부해 보내 드립니다.\n\n확정번호: '+d.confirm.no+'\n확정일: '+d.confirm.at+'\n약정기간: '+(d.start||'')+' ~ '+(d.end||'(1년)')+'\n월 기장료: '+fmt(c.feePay)+'원 (부가세 포함'+(c.ex?', 별도 표시 금액 '+fmt(c.fee)+'원':'')+')\n결산·세무조정 보수: 보수 기준에 따라 별도 청구\n지급: '+(d.payDay==='last'?'매월 말일':'매월 '+d.payDay+'일')+' · '+(d.payHow==='cms'?'CMS 자동이체':'계좌이체')+'\n\n첨부의 약정서를 보관해 주시고, 내용이 신청과 다르면 이 메일에 답장해 주십시오.'+(d.payHow==='cms'?'\nCMS 자동이체 신청서를 아직 내지 않으셨다면 포털 「CMS 자동이체 신청서」에서 신청해 주십시오.':''),
-      files});
+      files}));
+    $('staffPw').value='';
     setTaxConfirmStatus('확정본을 '+to+' 로 보냈습니다(사무실 메일에 숨은참조).','ok');alert('확정본을 보냈습니다.');
-  }catch(err){setTaxConfirmStatus('보내기 실패: '+err.message,'err');alert('보내기 실패: '+err.message);}
+  }catch(err){const m=sealErr(err.message);setTaxConfirmStatus('보내기 실패: '+m,'err');alert('보내기 실패: '+m);}
   finally{btn.disabled=false;}
 }
 const sigOr=(src,txt)=>/^data:image\//.test(src||'')?'<img class="sigimg" alt="서명" src="'+src+'">':txt;
@@ -1847,7 +1857,7 @@ function taxHtml(d,c){
   '<p style="margin-top:8pt">이 약정의 성립을 증명하기 위하여 약정서 2통을 작성하여 갑과 을이 서명 또는 날인한 후 각 1통씩 보관한다.</p>'+
   '<div class="sign"><p style="text-align:center;margin:10pt 0">'+kd(d.signDate)+'</p>'+
   '<table class="party"><tr><td>(갑) 상호</td><td>'+esc(d.cName)+'</td></tr><tr><td>사업자등록번호</td><td>'+esc(d.cBiz)+'</td></tr><tr><td>주소</td><td>'+esc(d.cAddr)+'</td></tr><tr><td>전화</td><td>'+esc(d.cTel)+'</td></tr><tr><td>대표자</td><td>'+esc(d.cRep)+'\u3000'+sigOr(d.sigClient,'<span class="stamp">(서명 또는 인)</span>')+'</td></tr></table>'+
-  '<table class="party" style="margin-top:8pt"><tr><td>(을) 사무소</td><td>'+esc(d.oName)+'</td></tr><tr><td>사업자등록번호</td><td>'+esc(d.oBiz)+'</td></tr><tr><td>주소</td><td>'+esc(d.oAddr)+'</td></tr><tr><td>전화</td><td>'+esc(d.oTel)+'</td></tr><tr><td>대표 세무사</td><td>'+esc(d.oRep)+'\u3000'+(ok?'<img class="sealimg" alt="직인" src="'+sealSrc(d)+'">':'<span class="stamp">(을 확인·확정 후 날인)</span>')+'</td></tr>'+(d.oStaff?'<tr><td>담당</td><td>'+esc(d.oStaff)+'</td></tr>':'')+(ok?'<tr><td>확정</td><td>확정번호 '+esc(d.confirm.no)+' · '+esc(d.confirm.at)+(d.confirm.by?' · 담당 '+esc(d.confirm.by):'')+'</td></tr>':'')+'</table></div>'+
+  '<table class="party" style="margin-top:8pt"><tr><td>(을) 사무소</td><td>'+esc(d.oName)+'</td></tr><tr><td>사업자등록번호</td><td>'+esc(d.oBiz)+'</td></tr><tr><td>주소</td><td>'+esc(d.oAddr)+'</td></tr><tr><td>전화</td><td>'+esc(d.oTel)+'</td></tr><tr><td>대표 세무사</td><td>'+HBSeal.inline({rep:d.oRep,ok,seal:sealSrc(d)})+(ok?'':' <span class="stamp">(을 확인·확정 후 날인)</span>')+'</td></tr>'+(d.oStaff?'<tr><td>담당</td><td>'+esc(d.oStaff)+'</td></tr>':'')+(ok?'<tr><td>확정</td><td>확정번호 '+esc(d.confirm.no)+' · '+esc(d.confirm.at)+(d.confirm.by?' · 담당 '+esc(d.confirm.by):'')+'<br><span style="font-size:9pt">진위 확인: 세무법인 한백택스 02-2277-3101</span></td></tr>':'')+'</table></div>'+
   (d.showTool?'<div class="foot">세무법인 한백택스 계약서 작성기 · 02-2277-3101 · hb090@hanbaektax.kr</div>':'');
 }
 

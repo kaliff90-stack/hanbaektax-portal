@@ -130,6 +130,7 @@ textarea.kakao{min-height:150px;font-size:13px}
   .doc h2{break-after:avoid}
 }
 </style>
+<script src="한백택스_직인.js"></script><!-- HB-SEAL: 한백 직인 자리 공용 -->
 <script src="한백택스_계산신호.js" defer></script><!-- HB-SIGNAL -->
 </head>
 <body>
@@ -646,7 +647,7 @@ function render(){
   const acct=st.bank&&st.acct?esc(st.bank)+' '+esc(st.acct)+' (예금주 '+esc(st.holder||OFFICE.name)+')':'담당자가 별도로 안내드립니다';
   const memo=(m.memo||'').trim();
   $('doc').innerHTML=
-    '<div class="hd"><span class="co">세무법인 한백택스</span><span class="dt">청구번호 '+esc(m.no)+(sealOk()?' · 날인번호 '+esc(S.confirm.no):'')+'</span></div>'+
+    '<div class="hd"><span class="co">세무법인 한백택스</span><span class="dt">청구번호 '+esc(m.no)+'</span></div>'+
     '<h1>'+esc(title)+'</h1>'+
     '<div class="subt">'+(m.subject?esc(m.subject):'&nbsp;')+'</div>'+
     '<table class="who"><tr><th>받는 곳</th><td><b>'+esc(c.name||'')+'</b>'+(c.to?'<br>'+esc(c.to)+' 귀하':(c.ceo?' 귀하':''))+'</td><th>보내는 곳</th><td><b>'+OFFICE.name+'</b></td></tr>'+
@@ -669,7 +670,7 @@ function render(){
     (m.taxInv?'<li>입금이 확인되면 전자세금계산서를 발행해 드립니다'+(r.free?'(대납 실비는 세금계산서 발행 대상에서 뺍니다)':'')+'.</li>':'')+
     '</ul>'+
     (memo?'<h2>비고</h2><p style="white-space:pre-wrap">'+esc(memo)+'</p>':'')+
-    '<div class="sign"><span class="say">위와 같이 청구합니다.</span><span>'+kdate(m.date)+'</span><span><b>'+OFFICE.name+'</b> '+esc(st.rep||'')+'</span><span class="sealbox">'+(sealOk()?'<img src="'+S.confirm.seal+'" alt="직인">':'(인)')+'</span></div>'+
+    '<div class="sign"><span class="say">위와 같이 청구합니다.</span><span>'+kdate(m.date)+'</span>'+HBSeal.block({office:OFFICE.name,rep:st.rep||'',ok:sealOk(),seal:S.confirm&&S.confirm.seal,conf:S.confirm,cls:'sealbox'})+'</div>'+
     '<div class="foot"><b>세무법인 한백택스</b> · '+OFFICE.addr+'<br>전화 '+OFFICE.tel+' · 팩스 '+OFFICE.fax+' · '+OFFICE.mail+'</div>';
   /* A4 한 쪽 넘침 — .doc 은 화면·인쇄 모두 폭 210mm·여백 같고 최소 높이 297mm 이므로, 내용이 넘치면 그보다 길어진다 */
   {const d=$('doc'),over=d.offsetHeight>Math.ceil(297*96/25.4)+1;
@@ -817,7 +818,7 @@ function queueDocs(files){const l=[...files];if(!l.length)return docQueue;
  * 날인 당시 내용 지문(sigKey)과 지금 내용이 같을 때만 찍힌다 — 거래처·금액·항목·청구번호를 고치면 빠진다. */
 const RELAY={url:'https://script.google.com/macros/s/AKfycbxtBSiGZjkoJEl87cttAm1HUrR4A1D2zyz03S65NOkC6ezSUsHW_8BW5Pq5fkIyBZAK7A/exec',token:'hbtax-relay'};
 const STAFF_BY='hbt_staff_by';
-const PW_ERR={staff_unauthorized:'이름 또는 비밀번호가 맞지 않습니다.',pw_locked:'비밀번호를 여러 번 틀려 1시간 동안 잠겼습니다. 잠시 뒤 다시 하거나 대표에게 문의하십시오.',not_in_roster:'직인 날인이 등록되지 않은 이름입니다. 대표에게 문의하십시오.',pw_short:'새 비밀번호는 6자 이상이어야 합니다.',pw_same_as_init:'공용 비밀번호와 다른 비밀번호를 정하십시오.'};
+const PW_ERR={staff_unauthorized:'이름 또는 비밀번호가 맞지 않습니다.',pw_locked:'비밀번호를 여러 번 틀려 1시간 동안 잠겼습니다. 잠시 뒤 다시 하거나 대표에게 문의하십시오.',not_in_roster:'직인 날인이 등록되지 않은 이름입니다. 대표에게 문의하십시오.',pw_short:'새 비밀번호는 6자 이상이어야 합니다.',pw_same_as_init:'공용 비밀번호와 다른 비밀번호를 정하십시오.',pw_init_only:'처음 비밀번호로는 직인을 찍을 수 없습니다. 아래 「비밀번호 바꾸기」에서 본인 비밀번호를 정한 뒤 다시 날인하십시오.',bad_kind:'중계가 이 문서 종류를 모릅니다. 대표에게 문의하십시오.'};
 function pwErr(e){return PW_ERR[e]||e;}
 async function relaySend(payload){
   const body=JSON.stringify(Object.assign({token:RELAY.token,page:location.href.split('?')[0],ua:navigator.userAgent},payload));
