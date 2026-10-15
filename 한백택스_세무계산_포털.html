@@ -574,6 +574,12 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
       <h3>약정서 · 계약서 작성기</h3>
       <p>세무대리 약정서 · 근로 · 금전소비대차 · 프리랜서(3.3%)<br>임원퇴직금 지급규정(정관·지급배수) · 법정 기재사항 점검</p>
     </a>
+    <a class="dash-card" href="javascript:void(0)" onclick="openNointLoan()">
+      <div class="icon" style="background:#FEF3C7;color:#92400E">🤝</div>
+      <div class="badge">NEW</div>
+      <h3>무이자 차용증 (가족 간)</h3>
+      <p>금전소비대차 — 이자 없음으로 바로 시작<br>원금 217,391,304원 이하 증여세 없음 · 넘으면 최저 이율</p>
+    </a>
     <a class="dash-card" data-go="cms" href="javascript:void(0)" onclick="goPage('cms')">
       <div class="icon" style="background:#DBEAFE;color:#1E3A8A">🏦</div>
       <div class="badge">NEW</div>
@@ -730,9 +736,12 @@ window.openBizFull=function(){window.open(F,'_blank');};})();</script>
   <div class="calc-title"><h2>약정서 · 계약서 작성기</h2><div class="sub">세무대리 약정서 · 근로계약서(기간의 정함 없음·기간제·단시간) · 금전소비대차계약서 · 프리랜서(3.3%) 업무위탁계약서 · 임원퇴직금 지급규정(정관 조항·직위별 지급배수·주주총회 의사록) — 입력하면 바로 만들어지고 수임 범위·법정 기재사항·최저임금·이자 한도·인지세·원천징수를 점검합니다. 내용은 이 브라우저에만 저장됩니다.</div></div>
   <div style="margin:0 0 10px;text-align:right">
     <a href="한백택스_계약서_작성기.html" target="_blank" rel="noopener" style="display:inline-block;font-size:13px;font-weight:700;color:var(--blue);border:1.5px solid var(--blue);border-radius:8px;padding:7px 14px;text-decoration:none;cursor:pointer">새 창으로 크게 보기 ↗</a>
+    <a href="javascript:void(0)" onclick="openNointLoan()" style="display:inline-block;font-size:13px;font-weight:700;color:#92400E;border:1.5px solid #C8963E;border-radius:8px;padding:7px 14px;text-decoration:none;cursor:pointer;margin-left:6px">🤝 무이자 차용증으로 시작</a>
   </div>
   <iframe id="contractFrame" title="계약서 작성기" style="width:100%;height:82vh;min-height:560px;border:1px solid var(--border);border-radius:12px;background:#fff;display:block"></iframe>
-  <script>(function(){function fill(){var f=document.getElementById('contractFrame');if(f&&!f.getAttribute('src'))f.setAttribute('src','한백택스_계약서_작성기.html?v='+Date.now());}function on(e){var t=e.target,el=t&&t.closest?t.closest('[data-page="contract"],[data-go="contract"]'):null;if(el)setTimeout(fill,0);}document.addEventListener('click',on,true);document.addEventListener('touchend',on,true);window.addEventListener('load',function(){try{if(new URLSearchParams(location.search).get('page')==='contract')fill();}catch(e){}});})();</script>
+  <script>(function(){function fill(){var f=document.getElementById('contractFrame');if(f&&!f.getAttribute('src'))f.setAttribute('src','한백택스_계약서_작성기.html?v='+Date.now());}function on(e){var t=e.target,el=t&&t.closest?t.closest('[data-page="contract"],[data-go="contract"]'):null;if(el)setTimeout(fill,0);}document.addEventListener('click',on,true);document.addEventListener('touchend',on,true);window.addEventListener('load',function(){try{if(new URLSearchParams(location.search).get('page')==='contract')fill();}catch(e){}});
+    /* 무이자 차용증 바로가기 — 계약서 화면을 열고 작성기를 ?doc=loan&noint=1 로 다시 띄운다 */
+    window.openNointLoan=function(){goPage('contract');var f=document.getElementById('contractFrame');if(f)f.setAttribute('src','한백택스_계약서_작성기.html?doc=loan&noint=1&v='+Date.now());};})();</script>
 </div>
 <!-- ==================== CMS 자동이체 신청서 ==================== -->
 <div class="page" id="page-cms">

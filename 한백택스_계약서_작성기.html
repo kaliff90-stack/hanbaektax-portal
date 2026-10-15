@@ -356,6 +356,13 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
 
   <!-- ══════════════ 금전소비대차계약서 입력 ══════════════ -->
   <div id="form-loan" style="display:none">
+    <div class="staffbox" id="nointBox" style="margin:0 0 10px">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button type="button" class="btn n" onclick="loanNoint()">🤝 무이자 차용증(가족 간)으로 채우기</button>
+        <span class="hint" style="font-size:12px;line-height:1.6">이자 없음 · 당사자 관계 「가족·친족」으로 바꿉니다. 원금 <b>217,391,304원</b> 이하이면 무이자라도 증여세가 없습니다(상증법 §41의4, 연 이익 1천만원 미만).</span>
+      </div>
+      <div class="hint" id="nointState" style="margin-top:4px"></div>
+    </div>
     <h2>① 대여인(채권자, 갑)</h2>
     <div class="row">
       <label class="fld">성명 / 상호<input data-k="lName"></label>
@@ -1153,6 +1160,9 @@ const FAIR_BP=Math.round(FAIR_RATE*100);
 const giftBenefit=(P,r)=>Math.max(0,Math.floor(P*(FAIR_BP-Math.round((+r||0)*100))/10000));
 const noIntFree=()=>Math.ceil(GIFT_FLOOR*10000/FAIR_BP)-1;   /* 무이자로 빌려도 이익이 1천만원 미만인 최대 원금 */
 const minFreeRate=P=>P<=noIntFree()?0:(Math.floor(FAIR_BP-GIFT_FLOOR*10000/P)+1)/100;   /* 이익이 1천만원 미만이 되는 최저 약정이율(연 %) */
+/* 무이자 차용증 바로가기 — 버튼 또는 주소 ?doc=loan&noint=1 (첫 화면·포털·모바일 바로가기). 이름·금액 등 입력값은 그대로 둔다 */
+function applyNoint(){const d=S.loan;d.intHow='none';d.rate='';if(d.rel==='none')d.rel='family';}
+function loanNoint(){applyNoint();persist();refill();render();const el=$('nointState');if(el)el.textContent='무이자·가족 간으로 바꿨습니다. 대여 원금을 넣으면 아래 점검에 무이자 기준 판정이 나옵니다.';}
 function loanChecks(d){
   const L=[];const add=(lv,t)=>L.push({lv,t});const P=+d.amt||0,r=+d.rate||0,lr=+d.lateRate||0;
   const miss=[['lName','대여인'],['bName','차용인'],['amt','대여 원금'],['loanDate','대여일'],['dueDate','변제기일']].filter(([k])=>!d[k]).map(([,n])=>n);
@@ -1188,7 +1198,7 @@ function loanChecks(d){
 function renderLoan(){
   const d=S.loan,P=+d.amt||0,r=+d.rate||0;const rows=schedule(d);
   const totI=rows.reduce((s,x)=>s+x.i,0);
-  $('loanCalc').innerHTML=P?('원금 <b>'+fmt(P)+'원</b> (금 '+hangulMoney(P)+'정)'+(d.loanDate&&d.dueDate?' · 기간 <b>'+daysBetween(d.loanDate,d.dueDate)+'일</b>('+Math.round(daysBetween(d.loanDate,d.dueDate)/30.4375)+'개월)':'')+(d.intHow!=='none'&&r?' · 연 '+r+'% → 월 이자 약 <b>'+fmt(P*r/1200)+'원</b> · 총 이자(일정표) <b>'+fmt(totI)+'원</b>':' · 무이자')+(P>50000000?' · 인지세 '+fmt(stampTax(P))+'원':' · 인지세 없음')):'대여 원금을 넣으면 한글 금액·이자·인지세가 계산됩니다.';
+  $('loanCalc').innerHTML=P?('원금 <b>'+fmt(P)+'원</b> (금 '+hangulMoney(P)+'정)'+(d.loanDate&&d.dueDate?' · 기간 <b>'+daysBetween(d.loanDate,d.dueDate)+'일</b>('+Math.round(daysBetween(d.loanDate,d.dueDate)/30.4375)+'개월)':'')+(d.intHow!=='none'&&r?' · 연 '+r+'% → 월 이자 약 <b>'+fmt(P*r/1200)+'원</b> · 총 이자(일정표) <b>'+fmt(totI)+'원</b>':' · 무이자')+(P>50000000?' · 인지세 '+fmt(stampTax(P))+'원':' · 인지세 없음')+(d.rel==='family'?' · 무이자 기준 <b>'+fmt(noIntFree())+'원</b> '+(giftBenefit(P,d.intHow==='none'?0:r)<GIFT_FLOOR?'<span style="color:#166534">이내 — 증여세 없음</span>':'<span style="color:#B91C1C">초과 — 연 '+minFreeRate(P).toFixed(2)+'% 이상 받아야 증여세 없음</span>'):'')):'대여 원금을 넣으면 한글 금액·이자·인지세가 계산됩니다.'+(d.rel==='family'?' 무이자 기준: 원금 '+fmt(noIntFree())+'원 이하이면 무이자라도 증여세가 없습니다.':'');
   $('loanChecks').innerHTML=loanChecks(d).map(x=>'<li class="'+x.lv+'">'+x.t+'</li>').join('');
   $('sheet').innerHTML=loanHtml(d,rows);
 }
@@ -2221,6 +2231,7 @@ function printOne(i){
 window.addEventListener('beforeprint',()=>{if(!printOneOn)document.body.classList.remove('print-one');});
 window.addEventListener('afterprint',()=>{printOneOn=false;document.body.classList.remove('print-one');});
 function render(){$('sheet').classList.toggle('multi',doc==='audit');if(doc==='labor')renderLabor();else if(doc==='loan')renderLoan();else if(doc==='tax')renderTax();else if(doc==='exec')renderExec();else if(doc==='resign')renderResign();else if(doc==='audit')renderAudit();else renderFree();refreshSigs();}
+try{const q=new URLSearchParams(location.search),qd=q.get('doc');if(qd&&DEF[qd])doc=qd;if(q.get('noint')==='1'){doc='loan';applyNoint();}}catch(e){}   /* 바로가기 주소 */
 bind();renderDays();renderAllow();renderExecRows();renderAuditMembers();
 initStaff();
 PADS.client=sigPad('padClient','tax','sigClient','client');
