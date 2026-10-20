@@ -1,285 +1,357 @@
 {
- "date": "2026-10-19",
+ "date": "2026-10-20",
  "source": "한국수출입은행 환율 API (AP01) · 매매기준율은 서울외국환중개(KFTC_DEAL_BAS_R) 값",
- "fetched_at": "2026-10-19T14:56:30.169Z",
+ "fetched_at": "2026-10-20T02:00:05.707Z",
  "rates": [
   {
    "unit": "AED",
    "name": "아랍에미리트 디르함",
-   "base": 365.51,
-   "exim_base": 365.51,
-   "kftc_base": 365.51,
-   "ttb": 361.85,
-   "tts": 369.16
-  },
-  {
-   "unit": "ARS",
-   "name": "아르헨티나 페소",
-   "base": 0.88,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
+   "base": 362.67,
+   "exim_base": 362.67,
+   "kftc_base": 362.67,
+   "ttb": 359.04,
+   "tts": 366.29
   },
   {
    "unit": "AUD",
    "name": "호주 달러",
-   "base": 934.78,
-   "exim_base": 934.78,
-   "kftc_base": 934.78,
-   "ttb": 925.43,
-   "tts": 944.12
-  },
-  {
-   "unit": "BDT",
-   "name": "방글라데시 타카",
-   "base": 10.86,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
+   "base": 929.94,
+   "exim_base": 929.94,
+   "kftc_base": 929.94,
+   "ttb": 920.64,
+   "tts": 939.23
   },
   {
    "unit": "BHD",
    "name": "바레인 디나르",
-   "base": 3555.56,
-   "exim_base": 3555.56,
-   "kftc_base": 3555.56,
-   "ttb": 3520,
-   "tts": 3591.11
+   "base": 3528.74,
+   "exim_base": 3528.74,
+   "kftc_base": 3528.74,
+   "ttb": 3493.45,
+   "tts": 3564.02
   },
   {
    "unit": "BND",
    "name": "브루나이 달러",
-   "base": 1048.83,
-   "exim_base": 1048.83,
-   "kftc_base": 1048.83,
-   "ttb": 1038.34,
-   "tts": 1059.31
-  },
-  {
-   "unit": "BRL",
-   "name": "브라질 헤알",
-   "base": 265.04,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
+   "base": 1040.7,
+   "exim_base": 1040.7,
+   "kftc_base": 1040.7,
+   "ttb": 1030.29,
+   "tts": 1051.1
   },
   {
    "unit": "CAD",
    "name": "캐나다 달러",
-   "base": 950.14,
-   "exim_base": 950.14,
-   "kftc_base": 950.14,
-   "ttb": 940.63,
-   "tts": 959.64
+   "base": 944.32,
+   "exim_base": 944.32,
+   "kftc_base": 944.32,
+   "ttb": 934.87,
+   "tts": 953.76
   },
   {
    "unit": "CHF",
    "name": "스위스 프랑",
-   "base": 1628.24,
-   "exim_base": 1628.24,
-   "kftc_base": 1628.24,
-   "ttb": 1611.95,
-   "tts": 1644.52
-  },
-  {
-   "unit": "CLP",
-   "name": "칠레 페소",
-   "base": 1.36,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
+   "base": 1610.86,
+   "exim_base": 1610.86,
+   "kftc_base": 1610.86,
+   "ttb": 1594.75,
+   "tts": 1626.96
   },
   {
    "unit": "CNH",
    "name": "위안화",
-   "base": 201.03,
-   "exim_base": 201.03,
-   "kftc_base": 201.03,
-   "ttb": 199.01,
-   "tts": 203.04
-  },
-  {
-   "unit": "COP",
-   "name": "콜롬비아 페소",
-   "base": 0.42,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
-  },
-  {
-   "unit": "CZK",
-   "name": "체코 코루나",
-   "base": 61.86,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
+   "base": 199.41,
+   "exim_base": 199.41,
+   "kftc_base": 199.41,
+   "ttb": 197.41,
+   "tts": 201.4
   },
   {
    "unit": "DKK",
    "name": "덴마아크 크로네",
-   "base": 201.36,
-   "exim_base": 201.36,
-   "kftc_base": 201.36,
-   "ttb": 199.34,
-   "tts": 203.37
-  },
-  {
-   "unit": "EGP",
-   "name": "이집트 파운드",
-   "base": 25.07,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
-  },
-  {
-   "unit": "ETB",
-   "name": "에티오피아 비르",
-   "base": 8.32,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
+   "base": 199.81,
+   "exim_base": 199.81,
+   "kftc_base": 199.81,
+   "ttb": 197.81,
+   "tts": 201.8
   },
   {
    "unit": "EUR",
    "name": "유로",
-   "base": 1505.17,
-   "exim_base": 1505.17,
-   "kftc_base": 1505.17,
-   "ttb": 1490.11,
-   "tts": 1520.22
-  },
-  {
-   "unit": "FJD",
-   "name": "피지 달러",
-   "base": 594.15,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
+   "base": 1493.48,
+   "exim_base": 1493.48,
+   "kftc_base": 1493.48,
+   "ttb": 1478.54,
+   "tts": 1508.41
   },
   {
    "unit": "GBP",
    "name": "영국 파운드",
-   "base": 1788.61,
-   "exim_base": 1788.61,
-   "kftc_base": 1788.61,
-   "ttb": 1770.72,
-   "tts": 1806.49
+   "base": 1772.49,
+   "exim_base": 1772.49,
+   "kftc_base": 1772.49,
+   "ttb": 1754.76,
+   "tts": 1790.21
   },
   {
    "unit": "HKD",
    "name": "홍콩 달러",
-   "base": 171.05,
-   "exim_base": 171.05,
-   "kftc_base": 171.05,
-   "ttb": 169.33,
-   "tts": 172.76
-  },
-  {
-   "unit": "HUF",
-   "name": "헝가리 포린트",
-   "base": 4.14,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
+   "base": 169.74,
+   "exim_base": 169.74,
+   "kftc_base": 169.74,
+   "ttb": 168.04,
+   "tts": 171.43
   },
   {
    "unit": "IDR(100)",
    "name": "인도네시아 루피아",
-   "base": 7.46,
-   "exim_base": 7.46,
-   "kftc_base": 7.46,
-   "ttb": 7.38,
-   "tts": 7.53
-  },
-  {
-   "unit": "ILS",
-   "name": "이스라엘 세켈",
-   "base": 431.31,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
-  },
-  {
-   "unit": "INR",
-   "name": "인도 루피",
-   "base": 14.14,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
-  },
-  {
-   "unit": "JOD",
-   "name": "요르단 디나르",
-   "base": 1893.37,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
+   "base": 7.39,
+   "exim_base": 7.39,
+   "kftc_base": 7.39,
+   "ttb": 7.31,
+   "tts": 7.46
   },
   {
    "unit": "JPY(100)",
    "name": "일본 옌",
-   "base": 850.24,
-   "exim_base": 850.24,
-   "kftc_base": 850.24,
-   "ttb": 841.73,
-   "tts": 858.74
-  },
-  {
-   "unit": "KES",
-   "name": "케냐 실링",
-   "base": 10.34,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
-  },
-  {
-   "unit": "KHR",
-   "name": "캄보디아 리엘",
-   "base": 0.33,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
+   "base": 840.18,
+   "exim_base": 840.18,
+   "kftc_base": 840.18,
+   "ttb": 831.77,
+   "tts": 848.58
   },
   {
    "unit": "KWD",
    "name": "쿠웨이트 디나르",
-   "base": 4358.44,
-   "exim_base": 4358.44,
-   "kftc_base": 4358.44,
-   "ttb": 4314.85,
-   "tts": 4402.02
+   "base": 4325,
+   "exim_base": 4325,
+   "kftc_base": 4325,
+   "ttb": 4281.75,
+   "tts": 4368.25
   },
   {
-   "unit": "KZT",
-   "name": "카자흐스탄 텡게",
-   "base": 2.97,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
+   "unit": "MYR",
+   "name": "말레이지아 링기트",
+   "base": 326.3,
+   "exim_base": 326.3,
+   "kftc_base": 326.3,
+   "ttb": 323.03,
+   "tts": 329.56
   },
   {
-   "unit": "LKR",
-   "name": "스리랑카 루피",
-   "base": 4.05,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
+   "unit": "NOK",
+   "name": "노르웨이 크로네",
+   "base": 141.36,
+   "exim_base": 141.36,
+   "kftc_base": 141.36,
+   "ttb": 139.94,
+   "tts": 142.77
   },
   {
-   "unit": "LYD",
-   "name": "리비아 디나르",
-   "base": 209.04,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
+   "unit": "NZD",
+   "name": "뉴질랜드 달러",
+   "base": 754.37,
+   "exim_base": 754.37,
+   "kftc_base": 754.37,
+   "ttb": 746.82,
+   "tts": 761.91
   },
   {
-   "unit": "MMK",
-   "name": "미얀마 짯",
-   "base": 0.64,
+   "unit": "SAR",
+   "name": "사우디 리얄",
+   "base": 355,
+   "exim_base": 355,
+   "kftc_base": 355,
+   "ttb": 351.45,
+   "tts": 358.55
+  },
+  {
+   "unit": "SEK",
+   "name": "스웨덴 크로나",
+   "base": 134.36,
+   "exim_base": 134.36,
+   "kftc_base": 134.36,
+   "ttb": 133.01,
+   "tts": 135.7
+  },
+  {
+   "unit": "SGD",
+   "name": "싱가포르 달러",
+   "base": 1040.7,
+   "exim_base": 1040.7,
+   "kftc_base": 1040.7,
+   "ttb": 1030.29,
+   "tts": 1051.1
+  },
+  {
+   "unit": "THB",
+   "name": "태국 바트",
+   "base": 39.66,
+   "exim_base": 39.66,
+   "kftc_base": 39.66,
+   "ttb": 39.26,
+   "tts": 40.05
+  },
+  {
+   "unit": "USD",
+   "name": "미국 달러",
+   "base": 1332.1,
+   "exim_base": 1332.1,
+   "kftc_base": 1332.1,
+   "ttb": 1318.77,
+   "tts": 1345.42
+  },
+  {
+   "unit": "BRL",
+   "name": "브라질 헤알",
+   "base": 264.28,
    "ttb": null,
    "tts": null,
-   "src": "kmb"
+   "src": "ecos"
+  },
+  {
+   "unit": "MXN",
+   "name": "멕시코 페소",
+   "base": 72.29,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "ARS",
+   "name": "아르헨티나 페소",
+   "base": 0.87,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "TRY",
+   "name": "튀르키예 리라",
+   "base": 26.87,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "ZAR",
+   "name": "남아프리카공화국 랜드",
+   "base": 81.11,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "EGP",
+   "name": "이집트 파운드",
+   "base": 24.71,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "RUB",
+   "name": "러시아 루블",
+   "base": 16.1,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "HUF",
+   "name": "헝가리 포린트",
+   "base": 4.12,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "PLN",
+   "name": "폴란드 즈워티",
+   "base": 341.83,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "CZK",
+   "name": "체코 코루나",
+   "base": 61.37,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "QAR",
+   "name": "카타르 리얄",
+   "base": 365.76,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "ILS",
+   "name": "이스라엘 셰켈",
+   "base": 429.38,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "JOD",
+   "name": "요르단 디나르",
+   "base": 1878.84,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "INR",
+   "name": "인도 루피",
+   "base": 14.03,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "PKR",
+   "name": "파키스탄 루피",
+   "base": 4.81,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "BDT",
+   "name": "방글라데시 타카",
+   "base": 10.77,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "TWD",
+   "name": "대만 달러",
+   "base": 40.98,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "PHP",
+   "name": "필리핀 페소",
+   "base": 21.15,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
+  },
+  {
+   "unit": "VND(100)",
+   "name": "베트남 동",
+   "base": 5.14,
+   "ttb": null,
+   "tts": null,
+   "src": "ecos"
   },
   {
    "unit": "MNT",
@@ -287,200 +359,17 @@
    "base": 0.37,
    "ttb": null,
    "tts": null,
-   "src": "kmb"
+   "src": "ecos"
   },
   {
-   "unit": "MOP",
-   "name": "마카오 파타카",
-   "base": 165.97,
+   "unit": "KZT",
+   "name": "카자흐스탄 텡게",
+   "base": 2.95,
    "ttb": null,
    "tts": null,
-   "src": "kmb"
-  },
-  {
-   "unit": "MXN",
-   "name": "멕시코 페소",
-   "base": 72.7,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
-  },
-  {
-   "unit": "MYR",
-   "name": "말레이지아 링기트",
-   "base": 328.9,
-   "exim_base": 328.9,
-   "kftc_base": 328.9,
-   "ttb": 325.61,
-   "tts": 332.18
-  },
-  {
-   "unit": "NOK",
-   "name": "노르웨이 크로네",
-   "base": 142.18,
-   "exim_base": 142.18,
-   "kftc_base": 142.18,
-   "ttb": 140.75,
-   "tts": 143.6
-  },
-  {
-   "unit": "NPR",
-   "name": "네팔 루피",
-   "base": 8.83,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
-  },
-  {
-   "unit": "NZD",
-   "name": "뉴질랜드 달러",
-   "base": 758.52,
-   "exim_base": 758.52,
-   "kftc_base": 758.52,
-   "ttb": 750.93,
-   "tts": 766.1
-  },
-  {
-   "unit": "OMR",
-   "name": "오만 리알",
-   "base": 3486.66,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
-  },
-  {
-   "unit": "PHP",
-   "name": "필리핀 페소",
-   "base": 21.31,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
-  },
-  {
-   "unit": "PKR",
-   "name": "파키스탄 루피",
-   "base": 4.85,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
-  },
-  {
-   "unit": "PLN",
-   "name": "폴란드 주오티",
-   "base": 344.36,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
-  },
-  {
-   "unit": "QAR",
-   "name": "카타르 리알",
-   "base": 368.29,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
-  },
-  {
-   "unit": "RON",
-   "name": "루마니아 레우",
-   "base": 282.85,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
-  },
-  {
-   "unit": "RUB",
-   "name": "러시아 루블",
-   "base": 16.16,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
-  },
-  {
-   "unit": "SAR",
-   "name": "사우디 리얄",
-   "base": 357.72,
-   "exim_base": 357.72,
-   "kftc_base": 357.72,
-   "ttb": 354.14,
-   "tts": 361.29
-  },
-  {
-   "unit": "SEK",
-   "name": "스웨덴 크로나",
-   "base": 135.24,
-   "exim_base": 135.24,
-   "kftc_base": 135.24,
-   "ttb": 133.88,
-   "tts": 136.59
-  },
-  {
-   "unit": "SGD",
-   "name": "싱가포르 달러",
-   "base": 1048.83,
-   "exim_base": 1048.83,
-   "kftc_base": 1048.83,
-   "ttb": 1038.34,
-   "tts": 1059.31
-  },
-  {
-   "unit": "THB",
-   "name": "태국 바트",
-   "base": 40.16,
-   "exim_base": 40.16,
-   "kftc_base": 40.16,
-   "ttb": 39.75,
-   "tts": 40.56
-  },
-  {
-   "unit": "TRY",
-   "name": "터키 리라",
-   "base": 27.1,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
-  },
-  {
-   "unit": "TWD",
-   "name": "대만 달러",
-   "base": 41.38,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
-  },
-  {
-   "unit": "USD",
-   "name": "미국 달러",
-   "base": 1342.4,
-   "exim_base": 1342.4,
-   "kftc_base": 1342.4,
-   "ttb": 1328.97,
-   "tts": 1355.82
-  },
-  {
-   "unit": "UZS",
-   "name": "우즈베키스탄 숨",
-   "base": 0.11,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
-  },
-  {
-   "unit": "VND(100)",
-   "name": "베트남 동",
-   "base": 5.18,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
-  },
-  {
-   "unit": "ZAR",
-   "name": "남아공 랜드",
-   "base": 81.43,
-   "ttb": null,
-   "tts": null,
-   "src": "kmb"
+   "src": "ecos"
   }
  ],
- "source_extra": "한국자금중개 재정환율 조회 (외국환중개회사 고시)"
+ "ecos_note": "한국은행 ECOS 재정환율 21 통화 보완 (TTB/TTS 없음)",
+ "ecos_fetched_at": "2026-10-20T02:00:05.707Z"
 }
