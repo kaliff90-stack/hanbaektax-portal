@@ -46,6 +46,22 @@ body{background:var(--bg);color:#2D3748;min-height:100vh;font-size:17px}
 /* Pages */
 .page{display:none;max-width:1100px;margin:0 auto;padding:28px}
 .page.active{display:block}
+/* 우측 드로어 — 홈 목록은 그대로 두고 각 항목의 세부 화면을 오른쪽에서 밀어 연다 (2026-10-26) */
+#page-home{display:block}
+body.hb-dr-open{overflow:hidden}
+#hbDrawerMask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:opacity .28s ease;z-index:2147483100}
+#hbDrawerMask.open{opacity:1;pointer-events:auto}
+#hbDrawer{position:fixed;top:0;right:0;bottom:0;width:min(1180px,94vw);background:var(--bg);display:flex;flex-direction:column;box-shadow:-12px 0 32px rgba(15,36,64,.28);transform:translateX(100%);visibility:hidden;transition:transform .28s ease,visibility 0s linear .28s;z-index:2147483200}
+#hbDrawer.open{transform:none;visibility:visible;transition:transform .28s ease}
+#hbDrawer .dr-head{flex:none;display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--navy);color:#fff;border-bottom:3px solid var(--gold)}
+#hbDrawer .dr-title{flex:1;min-width:0;font-size:18px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hbDrawer .dr-btn{flex:none;height:38px;padding:0 14px;border:1px solid rgba(255,255,255,.35);border-radius:8px;background:transparent;color:#fff;font-size:15px;font-weight:700;cursor:pointer}
+#hbDrawer .dr-btn:hover,#hbDrawer .dr-btn:focus-visible{background:rgba(255,255,255,.12);border-color:var(--gold)}
+#hbDrawer .dr-x{width:38px;padding:0;font-size:20px}
+#hbDrawer .dr-body{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+@media(max-width:700px){#hbDrawer{width:100vw;box-shadow:none}#hbDrawer .dr-head{padding:8px 10px}#hbDrawer .dr-title{font-size:16px}#hbDrawer .dr-back{display:none}}
+@media(prefers-reduced-motion:reduce){#hbDrawer,#hbDrawer.open,#hbDrawerMask{transition:none}}
+@media print{body:not(.hb-dr-open) #hbDrawer{display:none!important}body.hb-dr-open .top-bar,body.hb-dr-open .brand-bar,body.hb-dr-open .nav,body.hb-dr-open #page-home,body.hb-dr-open .mobile-bottom-nav,#hbDrawerMask,#hbDrawer .dr-head{display:none!important}#hbDrawer{position:static!important;transform:none!important;width:auto!important;box-shadow:none!important;visibility:visible!important;display:block!important}#hbDrawer .dr-body{overflow:visible!important}}
 /* Dashboard */
 .dashboard-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:22px;margin-top:24px}
 .dash-card{display:block;background:#fff;border-radius:14px;padding:28px;cursor:pointer;transition:all 0.2s;border:2px solid transparent;position:relative;overflow:hidden;text-decoration:none;color:inherit;-webkit-user-select:none;user-select:none}
@@ -604,6 +620,16 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
     <a href="한백택스_개인정보처리방침.html">개인정보 처리방침</a>
   </div>
 </div>
+
+<!-- ==================== 우측 드로어: 항목별 세부 화면 ==================== -->
+<div id="hbDrawerMask" onclick="hbCloseDrawer()"></div>
+<aside id="hbDrawer" role="dialog" aria-modal="true" aria-labelledby="hbDrawerTitle" aria-hidden="true">
+  <div class="dr-head">
+    <button type="button" class="dr-btn dr-back" onclick="hbCloseDrawer()" title="계산기 목록으로 (Esc)">&#8592; 목록</button>
+    <div class="dr-title" id="hbDrawerTitle"></div>
+    <button type="button" class="dr-btn dr-x" onclick="hbCloseDrawer()" aria-label="닫기" title="닫기 (Esc)">&times;</button>
+  </div>
+  <div class="dr-body" id="hbDrawerBody">
 
 <!-- ==================== v2 내장: 법인세 계산기 ==================== -->
 <div class="page" id="page-corp">
@@ -1508,6 +1534,10 @@ window.openBizFull=function(){window.open(F,'_blank');};})();</script>
   </div>
 </div>
 
+  </div>
+</aside>
+<!-- /우측 드로어 -->
+
 <script>
 /* ===== 국민연금 기준소득월액 상·하한 (매년 7월 변동) =====
    2026.7~2027.6 : 상한 6,590,000 / 하한 410,000 (보건복지부 고시 제2026-31호, 2026.02.02)
@@ -1572,19 +1602,59 @@ function goPage(page){
   setTimeout(function(){ _goPageLock = false; }, 300);
   var target = document.getElementById('page-'+page);
   if(!target){ _goPageLock = false; return; }
-  var pages = document.querySelectorAll('.page');
+  if(page === 'home'){ hbCloseDrawer(); return; }
+  var pages = document.querySelectorAll('#hbDrawer .page');
   for(var i=0;i<pages.length;i++) pages[i].classList.remove('active');
-  var navs = document.querySelectorAll('.nav-item');
-  for(var i=0;i<navs.length;i++) navs[i].classList.remove('active');
-  var mnavs = document.querySelectorAll('.mobile-bottom-nav .nav-item');
-  for(var i=0;i<mnavs.length;i++) mnavs[i].classList.remove('active');
   target.classList.add('active');
-  var navTarget = document.querySelector('.nav [data-page="'+page+'"]');
-  if(navTarget) navTarget.classList.add('active');
-  var mnavTarget = document.querySelector('.mobile-bottom-nav [data-page="'+page+'"]');
-  if(mnavTarget) mnavTarget.classList.add('active');
-  window.scrollTo(0,0);
+  hbMarkNav(page);
+  hbOpenDrawer(page);
 }
+function hbMarkNav(page){
+  var navs = document.querySelectorAll('.nav-item');
+  for(var i=0;i<navs.length;i++) navs[i].classList.toggle('active', navs[i].getAttribute('data-page') === page);
+}
+// 드로어 제목: 홈 카드 제목(없으면 메뉴 이름)
+function hbDrawerTitle(page){
+  var h = document.querySelector('#page-home .dash-card[data-go="'+page+'"] h3');
+  var n = document.querySelector('.nav [data-page="'+page+'"]');
+  return ((h && h.textContent) || (n && n.textContent) || '').trim();
+}
+function hbOpenDrawer(page){
+  var dr = document.getElementById('hbDrawer');
+  var was = dr.classList.contains('open');
+  document.getElementById('hbDrawerTitle').textContent = hbDrawerTitle(page);
+  document.getElementById('hbDrawerBody').scrollTop = 0;
+  if(was) return;
+  window.__hbDrFocus = document.activeElement;
+  dr.classList.add('open'); dr.setAttribute('aria-hidden','false');
+  document.getElementById('hbDrawerMask').classList.add('open');
+  document.body.classList.add('hb-dr-open');
+  // 휴대폰 뒤로 가기 = 드로어 닫기
+  try{ if(!(history.state && history.state.hbDrawer)) history.pushState({hbDrawer:1}, ''); }catch(e){}
+  var x = dr.querySelector('.dr-x'); if(x) try{ x.focus({preventScroll:true}); }catch(e){}
+}
+function hbDoCloseDrawer(){
+  var dr = document.getElementById('hbDrawer');
+  if(!dr || !dr.classList.contains('open')) return;
+  dr.classList.remove('open'); dr.setAttribute('aria-hidden','true');
+  document.getElementById('hbDrawerMask').classList.remove('open');
+  document.body.classList.remove('hb-dr-open');
+  hbMarkNav('home');
+  var f = window.__hbDrFocus; window.__hbDrFocus = null;
+  if(f && f.focus) try{ f.focus({preventScroll:true}); }catch(e){}
+}
+function hbCloseDrawer(){
+  try{ if(history.state && history.state.hbDrawer){ history.back(); return; } }catch(e){}
+  hbDoCloseDrawer();
+}
+// 새로고침하면 드로어는 닫힌 채로 뜨므로 남은 기록 표시를 지운다(닫기가 페이지를 떠나지 않게)
+try{ if(history.state && history.state.hbDrawer) history.replaceState(null, ''); }catch(e){}
+window.addEventListener('popstate', hbDoCloseDrawer);
+// ?page=salary 처럼 주소로 바로 열기(메인 화면 카드·공유 링크용)
+window.addEventListener('load', function(){ try{ var q = new URLSearchParams(location.search).get('page'); if(q && q !== 'home' && document.getElementById('page-'+q)) goPage(q); }catch(e){} });
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape' && document.body.classList.contains('hb-dr-open')) hbCloseDrawer();
+});
 // Desktop nav (click + touch, 중복방지)
 (function(){
   var items = document.querySelectorAll('.nav .nav-item');
