@@ -598,7 +598,7 @@ input.dauto,select.dauto{background:#eefbe7!important;border-color:#86c96b!impor
  *   가① 법인세법 §18 4호(환급금이자) · 가② §18의2·§18의4 수입배당금 익금불산입 · 가③ §24 ⑤·§27의2 ③④ 이월 손금산입
  *   차① 법인세·농특세·지방소득세 · 차② §21 3호(벌금·과료·과태료·가산금·강제징수비)·4호(임의적 공과금)·§21의2·§27(업무무관비용)
  *   차③ §24~§26(기부금·기업업무추진비·과다경비), §27의2(업무용승용차), §28(지급이자) 손금불산입
- *   가산세는 §21 1호라 차② 대상이 아니다 — 자동으로 넣지 않고 확인 필요로만 알린다 */
+ *   조정합계표의 가산세(§21 1호)는 차② 에 넣되 세액조정계산서 가산세액(차① 가감계에 이미 있음)만큼 뺀다. 령 §56 ④ 2호 나목 문언은 §21 3·4호만 열거하므로 넣을 때마다 그 사실을 안내한다(2026-10-30 MCP 확인, 세무사 검증서 기준) */
 const DR=(function(){const E={};
 E.ACCOUNTS=[
  {k:'cash', l:'현금및현금성자산', s:'BS', syn:['현금및현금성자산','현금및현금등가물','현금및예금','현금과예금'], part:['현금','보통예금','당좌예금','제예금','기타제예금','외화예금','외화보통예금','기업자유예금','저축예금','요구불예금','현금성자산','현금등가물']},
@@ -932,7 +932,7 @@ E.parseAdj=function(lines){
     const lab=p.label.replace(/\s+/g,'').replace(/^(기타사외유출|유보감소|유보발생|유보|상여|배당|기타|손금불산입|익금불산입)+/,'');
     if(!lab||!p.nums.length)continue;const v=p.nums[0];if(!v)continue;
     const r=E.ADJ_RULES.find(x=>x.re.test(lab));
-    if(r)items.push({to:r.to,l:r.l,lab,v});else if(/가산세/.test(lab))unk.push({lab,v,why:'가산세(법인세법 §21 1호)는 차② 대상이 아닙니다 — 필요하면 직접 반영'});
+    if(r)items.push({to:r.to,l:r.l,lab,v});else if(/가산세/.test(lab))items.push({to:'s2',l:'가산세 손금불산입(§21 1호)',lab,v,pen:true});
     else if(/잡손실|세금과공과|잡비/.test(lab))unk.push({lab,v,why:'손금불산입 내용이 벌금·과태료·가산금(§21 3호)이면 차② 에 넣으십시오 — 「과목별 소득금액조정명세서」의 조정 내용으로 확인'});}}
   return {items,unk};
 };
@@ -958,6 +958,9 @@ E.readDoc=function(lines){
     /* 산출세액 — 법인지방소득세 신고서가 없을 때 추정용(지방세법 §103의20 표준세율은 법인세법 §55 세율의 1/10) */
     const q=E.vote(lines,[{keys:['산출세액'],codes:['12','16'],w:1}]);if(q&&q.v>0)o.f.taxCalc=q.v;
     const tb=E.vote(lines,[{keys:['과세표준'],codes:['10','56'],w:1}]);if(tb&&tb.v>0)o.f.tb=tb.v;
+    /* 결산서 당기순손익 — 순손익액 대조용. 가산세액 — 가감계에 이미 들어 있어 조정합계표 가산세와 겹치는 금액 */
+    const ni=E.vote(lines,[{keys:['결산서상당기순손익','결산서상당기순이익'],codes:['01'],w:1}]);if(ni)o.f.ni=ni.v;
+    const pe=E.vote(lines,[{keys:['가산세액'],w:1}]);if(pe&&pe.v>=1000)o.f.pen=pe.v;
     /* 기부금은 줄번호 뒤 천 단위 금액만 — 제목 뒤 아무 숫자(줄번호 열 「101 102…」)를 잡지 않게 */
     const d=E.vote(lines,[{codes:['05'],w:1}]);if(d&&d.v>0)o.items.push({to:'s3',l:'기부금 한도초과액(§24)',v:d.v});
     const c=E.vote(lines,[{codes:['54'],w:1}]);if(c&&c.v>0)o.items.push({to:'a3',l:'기부금 한도초과 이월액 손금산입(§24 ⑤)',v:c.v});
@@ -1017,11 +1020,14 @@ E.mergeDocs=function(docs,evalDate){
       const t=Y[y]=Y[y]||{};
       const main=d.kind!=='corp'||d.f.taxCorp!=null||t.inc==null;   /* 같은 해 세액조정계산서가 또 읽혀도(서식 오판) 가감계가 있는 쪽 값을 지킨다 */
       if(d.f.inc!=null&&main){t.inc=d.f.inc;t.incSrc=d.name;}
-      ['taxCorp','taxLocal','taxRural','taxCalc','tb'].forEach(k=>{if(d.f[k]!=null&&(main||t[k]==null))t[k]=d.f[k];});
-      (d.items||[]).forEach(it=>{t[it.to]=(t[it.to]||0)+it.v;});
+      ['taxCorp','taxLocal','taxRural','taxCalc','tb','ni','pen'].forEach(k=>{if(d.f[k]!=null&&(main||t[k]==null))t[k]=d.f[k];});
+      (d.items||[]).forEach(it=>{if(it.pen)t.adjPen=(t.adjPen||0)+it.v;else t[it.to]=(t[it.to]||0)+it.v;});
       t.year=d.year;});
     for(const y in Y){const t=Y[y];put('y'+y+'label',String(t.year),'');
       if(t.inc!=null)put('y'+y+'inc',t.inc,t.incSrc);
+      if(t.ni!=null)put('y'+y+'ni',t.ni,t.incSrc);
+      if(t.adjPen){const dup=Math.min(t.adjPen,t.pen||0),pv=t.adjPen-dup;if(pv>0)t.s2=(t.s2||0)+pv;
+        log.push(t.year+'년 차② 가산세 손금불산입 '+pv.toLocaleString('ko-KR')+'원을 넣었습니다'+(dup?'(법인세 가감계에 든 '+dup.toLocaleString('ko-KR')+'원은 차①과 겹쳐 제외)':'')+'. 상증령 §56 ④ 2호 나목은 법인세법 §21 3·4호만 열거하므로(가산세는 1호) 차감 여부를 판단하십시오. 빼려면 차② 에서 덜어 내십시오');}
       if(t.taxCorp!=null||t.taxLocal!=null||t.taxRural!=null){
         /* 법인지방소득세 신고서가 없으면 법인세 산출세액의 1/10 로 추정 — 2023~2025 사업연도 0.9·1.9·2.1·2.4% = 법인세 9·19·21·24% 의 1/10 (지방세법 §103의20 ①, 법인세법 §55 ①, 2026-10-12 MCP 확인), 조례 가감·토지등 양도소득분 제외 */
         /* 산출세액 검산: 과세표준(또는 각 사업연도 소득)에 세율표를 적용한 값과 맞으면 읽은 값을 믿는다. 안 맞으면 OCR 오독으로 보고 세율표 값을 쓴다 */
@@ -1034,15 +1040,16 @@ E.mergeDocs=function(docs,evalDate){
         let loc=t.taxLocal,locWhy='';
         if(loc==null){if(calcOk){loc=Math.floor(t.taxCalc/10);locWhy='법인세 산출세액 '+t.taxCalc.toLocaleString('ko-KR')+'원의 1/10';}
           else if(base!=null&&E.locTax(base,t.year)!=null){loc=E.locTax(base,t.year);locWhy='과세표준 '+base.toLocaleString('ko-KR')+'원 × 지방소득세 표준세율';}}
-        /* 농어촌특별세: 신고서 값 → 없거나 감면세액 20% 와 자릿수가 어긋나면(OCR 이 천 단위를 잘라 읽음) (산출세액 − 가감계) × 20% */
+        /* 농어촌특별세: 신고서 값만 쓴다. 신고서가 없으면 추정하지 않는다 — 조특법 §6·§7 중소기업 감면은 비과세라(농특세법 §4 3호, 2026-10-30 MCP 확인) 감면세액 × 20% 가 없는 세금을 만든다.
+         * 읽은 값이 감면세액 20% 와 자릿수가 어긋나면(OCR 이 천 단위를 잘라 읽음) (산출세액 − 가감계) × 20% */
         let rur=t.taxRural,rurWhy='';const gam=calc!=null&&t.taxCorp!=null&&calc>t.taxCorp?calc-t.taxCorp:0,rEst=gam?Math.floor(gam*0.2):null;
-        if(rEst!=null&&(rur==null||(rur>0&&rur<rEst/100))){if(rur!=null)rurWhy='읽은 값 '+rur.toLocaleString('ko-KR')+'원이 감면세액 20%('+rEst.toLocaleString('ko-KR')+'원)와 자릿수가 달라 바꿈 — ';rur=rEst;rurWhy+='감면세액 '+gam.toLocaleString('ko-KR')+'원(산출세액 − 가감계) × 20%';}
+        if(rEst!=null&&rur>0&&rur<rEst/100){rurWhy='읽은 값 '+rur.toLocaleString('ko-KR')+'원이 감면세액 20%('+rEst.toLocaleString('ko-KR')+'원)와 자릿수가 달라 바꿈 — ';rur=rEst;rurWhy+='감면세액 '+gam.toLocaleString('ko-KR')+'원(산출세액 − 가감계) × 20%';}
         put('y'+y+'s1',(t.taxCorp||0)+(loc||0)+(rur||0),'');
         if(t.taxLocal==null)log.push(loc!=null
           ?t.year+'년 차① — 법인지방소득세 신고서가 없어 '+locWhy+' = '+loc.toLocaleString('ko-KR')+'원으로 추정해 더했습니다(조례 가감 없는 표준세율). 지방소득세 신고서 금액과 대조하십시오'
           :t.year+'년 차① — 법인지방소득세 신고서가 없어 법인세'+(rur!=null?'·농특세':'')+'만 넣었습니다. 지방소득세를 더하거나 서류를 함께 올리십시오');
-        if(rurWhy)log.push(t.year+'년 차① 농어촌특별세 '+rur.toLocaleString('ko-KR')+'원 — '+rurWhy+(t.taxRural==null?' (농특세 신고서를 찾지 못해 추정. 농특세 비과세 감면이면 빼십시오)':''));
-        else if(rur==null)log.push(t.year+'년 차① — 농어촌특별세 신고서를 찾지 못했습니다. 공제·감면세액이 있으면 그 20%를 더하십시오');}
+        if(rurWhy)log.push(t.year+'년 차① 농어촌특별세 '+rur.toLocaleString('ko-KR')+'원 — '+rurWhy);
+        else if(rur==null)log.push(t.year+'년 차① — 농어촌특별세 신고서를 찾지 못해 넣지 않았습니다. 실제 신고한 세액이 있으면 더하십시오(조특법 §6·§7 감면은 농특세 비과세 — 농특세법 §4 3호)');}
       ['a1','a2','a3','s2','s3'].forEach(k=>{if(t[k])put('y'+y+k,t[k],'');});}
   }
   return {fields:out,src,log,base};
@@ -1058,9 +1065,10 @@ const N=x=>{const v=parseFloat(String(x==null?'':x).replace(/,/g,''));return isN
 function yearNet(S,y){
   const g=k=>N(S['y'+y+k]);
   const add=g('a1')+g('a2')+g('a3')+g('a4')+g('a5')+g('a6'),sub=g('s1')+g('s2')+g('s3')+g('s4')+g('s5')+g('s6');
-  let net=g('inc')+add-sub;const m=N(S['y'+y+'m'])||12;if(m>0&&m<12)net=fl(net*12/m);
+  const raw=g('inc')+add-sub,ni0=S['y'+y+'ni'],hasNi=ni0!==''&&ni0!=null;   /* 결산서 당기순이익 대조 — 환산 전 순손익액과 비교 */
+  let net=raw;const m=N(S['y'+y+'m'])||12;if(m>0&&m<12)net=fl(net*12/m);
   const shares=g('sh')>0?g('sh'):N(S.shares);
-  return{inc:g('inc'),add,sub,net,shares,ps:shares>0?net/shares:0,entered:S['y'+y+'inc']!==''&&S['y'+y+'inc']!=null};
+  return{inc:g('inc'),add,sub,net,shares,ps:shares>0?net/shares:0,entered:S['y'+y+'inc']!==''&&S['y'+y+'inc']!=null,ni:hasNi?N(ni0):null,gap:hasNi?raw-N(ni0):null};
 }
 /* 증자·감자 환산 — 규칙 §17의3 ⑤, 령 §56 ⑤ (율 10% — 규칙 §17의3 ⑥) */
 function capAdjust(S){
@@ -1179,13 +1187,14 @@ const DEF={name:'',ceo:'',biz:'',date:'',founded:'',shares:'',holdShares:'',stat
   asset:'',reBook:'',reMarket:'',evalDiff:'',aRecv:'',aPrepaid:'',liab:'',lTax:'',lDiv:'',lRetire:'',lReserve:'',gwMode:'auto',gwExcess:50,gwInt:10,gwPv:3.7908,gwManual:'',
   giftRel:'child',giftPrior:'',giftShares:'',spouse:'y',attachList:true,showHometax:true,docs:[],docAuto:{},
   dealRel:'child',dealG:'y',dealI:'y',dealShares:'',dealPrice:'',dealPrior:'',dealMb:false,dealMbUsed:'',dealSheet:true};
-[1,2,3].forEach(y=>['a1','a2','a3','a4','a5','a6','s1','s2','s3','s4','s5','s6'].forEach(k=>DEF['y'+y+k]=''));
+[1,2,3].forEach(y=>['a1','a2','a3','a4','a5','a6','s1','s2','s3','s4','s5','s6','ni'].forEach(k=>DEF['y'+y+k]=''));
 let S=JSON.parse(JSON.stringify(DEF)),mode='easy',step=0;
 const INC_ROWS=[['inc','각 사업연도 소득 (법인세법 §14)','','in'],
   ['a1','＋가① 국세·지방세 과오납 환급금이자','법 §18 4호','in'],['a2','＋가② 수입배당금 익금불산입액','법 §18의2·§18의4','in'],['a3','＋가③ 기부금 이월손금산입 등','§24 ⑤·§27의2','in'],['a4','＋가④ 화폐성외화자산 평가이익','령 §76','in'],['a5','＋가⑤ 그 밖의 가산','규칙','in'],['a6','＋가⑥ 유상증자 가산','령 §56 ⑤ 1호','in'],
   ['add','가산 소계','','out'],
   ['s1','−차① 법인세·농특세·지방소득세','§56 ④ 2호 가','in'],['s2','−차② 벌과금·강제징수비·징수불이행세액','2호 나','in'],['s3','−차③ 기부금·기업업무추진비 한도초과·지급이자 손금불산입 등','2호 다','in'],['s4','−차④ 시인부족액 − 상각부인 추인액','2호 라','in'],['s5','−차⑤ 화폐성외화자산 평가손실','2호 마','in'],['s6','−차⑥ 유상감자 차감','§56 ⑤ 2호','in'],
-  ['sub','차감 소계','','out'],['m','사업연도 월수 (1년 미만이면)','규칙 §17의3 ②','in'],['net','＝ 순손익액','','out'],['sh','사업연도말 발행주식수 (비우면 평가기준일 주식수)','§56 ③','in'],['ps','＝ 1주당 순손익액','','out']];
+  ['sub','차감 소계','','out'],['m','사업연도 월수 (1년 미만이면)','규칙 §17의3 ②','in'],['net','＝ 순손익액','','out'],['sh','사업연도말 발행주식수 (비우면 평가기준일 주식수)','§56 ③','in'],['ps','＝ 1주당 순손익액','','out'],
+  ['ni','(대조) 결산서 당기순이익','세액조정계산서 01줄','in'],['gap','(대조) 순손익액 − 당기순이익','유보성 세무조정이 아니면 0','out']];
 function buildProInc(){
   const t=$('proInc');let h='<thead><tr><th>구분 (법정 항목)</th><th class="num">직전 1년 ×3</th><th class="num">직전 2년 ×2</th><th class="num">직전 3년 ×1</th></tr></thead><tbody>';
   h+='<tr><td>사업연도</td>'+[1,2,3].map(y=>'<td><input type="text" data-k="y'+y+'label" placeholder="'+(2026-y)+'"></td>').join('')+'</tr>';
@@ -1261,7 +1270,8 @@ function renderEasy(R){
   if(R.before>R.weighted&&R.method.ft!=='netonly')F.push(['info','하한 적용','가중평균이 순자산가치의 80%(또는 순자산가치)보다 낮아 그 값이 적용됐습니다. 이익이 적어도 자산이 많으면 평가액이 높게 나오는 이유입니다.']);
   if(S.reCat==='unknown'&&!N(S.reMarket)&&!N(S.reBook))F.push(['warn','부동산 비율','부동산 비중을 모르고 금액도 없어 일반법인(3:2)으로 가정했습니다. 부동산이 절반 이상이면 평가액이 달라집니다.']);
   if(N(S.reMarket)&&N(S.reMarket)<N(S.reBook))F.push(['warn','부동산 평가','공시가격이 장부보다 낮아 장부금액을 썼습니다(§55 ① 후단). 정당한 사유가 있으면 낮은 값을 쓸 수 있으니 직원과 상의하십시오.']);
-  if(R.premRate>0&&!S.premManual&&(!S.major||!S.small||S.small==='u'))F.push(['warn','할증','최대주주 할증 문답을 다 답하지 않아 20%를 더했습니다. 대부분의 회사는 중소기업이라 할증이 없습니다 — 「최대주주 할증」 세 문항에 답하거나 「할증 없음」을 체크하십시오.']);
+  if(premOpen(R))F.push(['warn','할증','최대주주 할증 문답을 다 답하지 않아 20%를 더했습니다. 대부분의 회사는 중소기업이라 할증이 없습니다 — 「최대주주 할증」 세 문항에 답하거나 「할증 없음」을 체크하십시오.']);
+  niFlag(R,F);
   F.push(['info','평가심의','회사의 실제 가치가 이 값과 크게 다르면 70~130% 범위에서 평가심의위원회에 다른 평가방법(유사상장법인 비교·현금흐름할인 등)을 신청할 수 있습니다(§54 ⑥).']);
   F.push(['','참고','이 결과는 입력값으로 계산한 추정치입니다. 자산의 상증법 평가(시가·감정), 법정 가감 항목, 영업권, 증자·감자 환산은 정밀 조서에서 직원이 확인합니다. 10% 이하 출자주식(§54 ③), 추정이익(§56 ②) 등 특례는 반영하지 않았습니다.']);
   $('easyFlags').innerHTML=F.map(f=>'<div class="flag '+f[0]+'"><b>'+f[1]+'</b><span>'+f[2]+'</span></div>').join('');
@@ -1328,7 +1338,7 @@ function dealSheet(R){
 function renderPro(R){
   premShow(R,'premWhy2');
   dealRender(R);
-  [1,2,3].forEach(y=>{const Y=R.inc.Y[y];$('pi_'+y+'add').textContent=fmt(Y.add);$('pi_'+y+'sub').textContent=fmt(Y.sub);$('pi_'+y+'net').textContent=fmt(Y.net);$('pi_'+y+'ps').textContent=fmt(Y.ps);});
+  [1,2,3].forEach(y=>{const Y=R.inc.Y[y];$('pi_'+y+'add').textContent=fmt(Y.add);$('pi_'+y+'sub').textContent=fmt(Y.sub);$('pi_'+y+'net').textContent=fmt(Y.net);$('pi_'+y+'ps').textContent=fmt(Y.ps);$('pi_'+y+'gap').textContent=Y.gap==null?'—':fmt(Y.gap);});
   const c=capAdjust(S);$('capOut').innerHTML=c.valid?'배율 × '+c.ratio.toFixed(4)+' · 환산주식수 '+[1,2,3].map(y=>fmt(c.sh[y])).join(' / ')+' · '+(c.kind==='up'?'가산':'차감')+' '+[1,2,3].map(y=>fmt(c.adj[y])).join(' / '):'—';
   $('p_wavg').textContent=fmt(R.inc.wavgPS);$('p_inc').textContent=fmt(R.inc.incPer);
   $('p_assetSide').textContent=fmt(R.as.assetSide);$('p_liabSide').textContent=fmt(R.as.liabSide);$('p_selfCap').textContent=fmt(R.as.selfCap);
@@ -1344,12 +1354,19 @@ function renderPro(R){
   if(S.methodMode==='auto'&&!(N(S.reValue)||N(S.reMarket)||N(S.reBook)||N(S.stkValue))&&R.method.ft!=='netonly')F.push(['warn','방법 판정','부동산·주식 가액이 없어 비율 판정을 못 했습니다. 부동산등 가액을 넣거나 방법을 직접 고르십시오(§54 ①·④).']);
   if(S.prem==='20'&&S.small==='y')F.push(['info','할증','쉬운 입력에서 중소·중견기업으로 답해 할증을 제외했습니다. 대기업이면 「중소·중견」 답변을 바꾸십시오.']);
   if(R.hold>R.shares)F.push(['err','주식수','평가대상 주식수가 발행주식 총수보다 큽니다.']);
+  if(premOpen(R))F.push(['warn','할증','최대주주 여부·중소기업 여부를 답하지 않아 20%를 더했습니다. 중소기업이면 할증 제외(법 §63 ③, 령 §53 ⑧ 9호)로 1주당 '+fmt(R.before)+'원입니다 — 「최대주주 할증」 칸을 고르십시오.']);
+  niFlag(R,F);
   if(S.dealSheet&&N(S.shares)>0&&R.final>0){const d=dealCalc(R);if(d&&d.wide)F.push(['warn','특수관계 거래','넘길 주식이 '+fmt(d.n)+'주뿐이라 Ⅵ의 1주당 범위가 크게 벌어집니다 — 「넘길 주식 수」·「평가대상 주식수」를 확인하십시오.']);}
   F.push(['info','평가심의','납세자가 유사상장법인 비교·현금흐름할인·배당할인 등으로 평가한 가액이 보충적 평가액의 70~130%면 평가심의위원회 심의를 신청할 수 있습니다(§54 ⑥): '+fmt(R.lo)+' ~ '+fmt(R.hi)+'원.']);
   F.push(['info','특례','10% 이하 출자 비상장주식은 취득가액 평가 가능(§54 ③, 시가 우선). 일시적·우발적 손익 등 규칙 §17의3 ① 사유면 신용평가기관 등 둘 이상의 추정이익 평균가액으로 대체 가능(§56 ②).']);
   $('proFlags').innerHTML=F.map(f=>'<div class="flag '+f[0]+'"><b>'+f[1]+'</b><span>'+f[2]+'</span></div>').join('');
   $('sheet').innerHTML=sheetHtml(R);
 }
+/* 할증 문답을 다 답하지 않아 기본값 20% 가 그대로 더해진 상태 */
+function premOpen(R){return R.premRate>0&&!S.premManual&&(!S.major||!S.small||S.small==='u');}
+/* 순손익액 ↔ 결산서 당기순이익 — 차감 항목 오독·누락을 잡는 대조. 1천원 미만은 단수 차이로 본다 */
+function niFlag(R,F){const a=[1,2,3].filter(y=>Math.abs(R.inc.Y[y].gap||0)>=1000).map(y=>(S['y'+y+'label']||('직전 '+y+'년'))+' '+(R.inc.Y[y].gap>0?'＋':'−')+fmt(Math.abs(R.inc.Y[y].gap))+'원');
+  if(a.length)F.push(['warn','결산서 대조','순손익액이 결산서 당기순이익과 다릅니다: '+a.join(', ')+'. 상각부인 같은 유보성 세무조정이면 정상이고, 아니면 차감 항목의 오독·누락이니 소득금액조정합계표와 대조하십시오.']);}
 function sheetHtml(R){
   const y=k=>[1,2,3].map(i=>'<td class="r">'+fmt(R.inc.Y[i][k])+'</td>').join('');
   const g=(k)=>[1,2,3].map(i=>'<td class="r">'+fmt(N(S['y'+i+k]))+'</td>').join('');
@@ -1358,7 +1375,7 @@ function sheetHtml(R){
   h+='<table class="party"><tr><td>평가대상 법인</td><td>'+esc(S.name||'')+(S.biz?' ('+esc(S.biz)+')':'')+'</td><td>대표자</td><td>'+esc(S.ceo||'')+'</td></tr><tr><td>평가기준일</td><td>'+kd(S.date)+'</td><td>사업 개시일</td><td>'+kd(S.founded)+'</td></tr><tr><td>발행주식 총수</td><td class="r">'+fmt(R.shares)+'주</td><td>평가대상 주식수</td><td class="r">'+fmt(R.hold)+'주 ('+(R.shares?(R.hold/R.shares*100).toFixed(2):'0')+'%)</td></tr><tr><td>평가방법</td><td colspan="3">'+ftName(R.method.ft)+' — '+esc(R.method.why)+'</td></tr></table>';
   h+='<div class="big">1주당 평가액 '+won(R.final)+' &nbsp;·&nbsp; 평가대상 주식 '+won(R.holdVal)+'</div>';
   h+='<h2>Ⅰ. 1주당 순손익가치 (시행령 제56조)</h2><table><tr><th>구분</th>'+lab+'</tr>';
-  h+='<tr><td>각 사업연도 소득</td>'+y('inc')+'</tr><tr><td>가산액 계 (가①~⑥)</td>'+y('add')+'</tr><tr><td>차감액 계 (차①~⑥)</td>'+y('sub')+'</tr><tr class="tot"><td>순손익액</td>'+y('net')+'</tr><tr><td>사업연도말 발행주식수</td>'+y('shares')+'</tr><tr class="tot"><td>1주당 순손익액</td>'+[1,2,3].map(i=>'<td class="r">'+fmt(R.inc.Y[i].ps)+'</td>').join('')+'</tr></table>';
+  h+='<tr><td>각 사업연도 소득</td>'+y('inc')+'</tr><tr><td>가산액 계 (가①~⑥)</td>'+y('add')+'</tr><tr><td>차감액 계 (차①~⑥)</td>'+y('sub')+'</tr><tr class="tot"><td>순손익액</td>'+y('net')+'</tr><tr><td>사업연도말 발행주식수</td>'+y('shares')+'</tr><tr class="tot"><td>1주당 순손익액</td>'+[1,2,3].map(i=>'<td class="r">'+fmt(R.inc.Y[i].ps)+'</td>').join('')+'</tr>'+([1,2,3].some(i=>R.inc.Y[i].ni!=null)?'<tr><td>(대조) 결산서 당기순이익</td>'+[1,2,3].map(i=>'<td class="r">'+(R.inc.Y[i].ni==null?'—':fmt(R.inc.Y[i].ni))+'</td>').join('')+'</tr><tr><td>(대조) 순손익액 − 당기순이익</td>'+[1,2,3].map(i=>'<td class="r">'+(R.inc.Y[i].gap==null?'—':fmt(R.inc.Y[i].gap))+'</td>').join('')+'</tr>':'')+'</table>';
   h+='<table><tr><td>가중평균 1주당 순손익액 = (1년×3 + 2년×2 + 3년×1) ÷ 6 (음수면 0)</td><td class="r">'+fmt(R.inc.wavgPS)+'</td></tr><tr class="tot"><td>① 1주당 순손익가치 = 가중평균 ÷ 환원율 '+N(S.rate)+'% (규칙 제17조)</td><td class="r">'+fmt(R.inc.incPer)+'</td></tr></table>';
   const capC=capAdjust(S);if(capC.valid)h+='<div class="note">증자·감자 환산(규칙 제17조의3 제5항·영 제56조 제5항): '+(capC.kind==='up'?'유상증자':'유상감자')+' 직전 사업연도말 '+fmt(N(S.capBefore))+'주, '+(capC.kind==='up'?'증가':'감소')+' '+fmt(N(S.capDelta))+'주, 1주당 '+fmt(N(S.capPaid))+'원 → 환산배율 '+capC.ratio.toFixed(4)+', 가감액(10%) '+[1,2,3].map(i=>fmt(capC.adj[i])).join(' / ')+'</div>';
   h+='<h2>Ⅱ. 1주당 순자산가치 (시행령 제55조·규칙 제17조의2)</h2><table>';
@@ -1369,6 +1386,7 @@ function sheetHtml(R){
   h+=r('영업권 (영 §59 ②: [순손익 가중평균 '+fmt(R.inc.wavgNet)+' × '+N(S.gwExcess)+'% − 자기자본 × '+N(S.gwInt)+'%] × '+N(S.gwPv)+')'+(R.as.gwNote?' — '+esc(R.as.gwNote):''),R.as.gw);
   h+=r('순자산가액 (0 이하면 0)',R.as.networth,'tot')+r('② 1주당 순자산가치 = 순자산가액 ÷ '+fmt(R.shares)+'주',R.as.assetPer,'tot')+'</table>';
   h+='<h2>Ⅲ. 최종 평가 (시행령 제54조, 법 제63조 제3항)</h2><table>'+r('가중평균 — '+esc(R.formula),R.weighted)+r(R.floorLbl,R.floorVal)+r('할증 전 1주당 평가액',R.before,'tot')+r('최대주주 할증 '+(R.premRate*100)+'%'+(R.premWhy?' — '+esc(R.premWhy):''),R.prem)+r('최종 1주당 평가액',R.final,'tot')+r('회사 전체 ('+fmt(R.shares)+'주)',R.total)+r('평가대상 주식 ('+fmt(R.hold)+'주)',R.holdVal,'tot')+'</table>';
+  if(premOpen(R))h+='<div class="note" style="color:#B42318;font-weight:700">할증 판정 미완료 — 최대주주 여부·중소기업 여부를 답하지 않아 20%를 더한 값입니다. 중소기업이면 할증 제외(법 §63 ③, 령 §53 ⑧ 9호)로 1주당 '+fmt(R.before)+'원입니다.</div>';
   h+='<div class="note">평가심의위원회 신청 가능 범위(§54 ⑥ · 70~130%): '+fmt(R.lo)+' ~ '+fmt(R.hi)+'원 / 1주</div>';
   if(S.showHometax)h+='<h2>Ⅳ. 홈택스 「상속(증여)재산 및 평가명세서」 기재값</h2><table><tr><th>재산 종류</th><th>소재지·발행법인</th><th>수량</th><th>단가</th><th>평가가액</th><th>평가방법</th></tr><tr><td class="c">비상장주식</td><td>'+esc(S.name||'')+'</td><td class="r">'+fmt(R.hold)+'주</td><td class="r">'+fmt(R.final)+'</td><td class="r">'+fmt(R.holdVal)+'</td><td class="c">보충적 평가 (법 §63 ① 1호 나목)</td></tr></table>';
   if(S.attachList)h+='<h2>Ⅴ. 첨부 서류 · 검토</h2><table><tr><th style="width:8%">□</th><th>서류</th><th style="width:30%">확인 사항</th></tr>'+[['법인등기부등본·주주명부','발행주식 총수·평가대상 주식수·최대주주 여부'],['최근 3개 사업연도 법인세 신고서 (과세표준 및 세액조정계산서·소득금액조정합계표)','각 사업연도 소득·법인세·가감 항목'],['평가기준일(또는 직전 결산일) 재무상태표·손익계산서·계정별 명세','자산·부채 장부가액, 충당금·준비금'],['부동산 등기부·공시가격·기준시가·감정평가서','상증법 평가액(§60~§66), 부동산 비율'],['퇴직급여추계액 산정표','전원 퇴직 가정'],['증자·감자 내역 (등기·주금납입 자료)','환산주식수·가감액'],['중소기업 확인서 또는 매출액 자료','할증 제외 요건']].map(x=>'<tr><td class="c">□</td><td>'+x[0]+'</td><td>'+x[1]+'</td></tr>').join('')+'</table>';
@@ -1420,7 +1438,7 @@ setMode(mode);go(mode==='easy'?Math.min(step,3):0);
 const PDFV='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/',DIST='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/';
 const KIND={biz:'사업자등록증',reg:'법인 등기부등본',fs:'재무제표',corp:'법인세 세액조정계산서',local:'법인지방소득세 신고서',rural:'농어촌특별세 신고서',adj:'소득금액조정합계표',stk:'주식등변동상황명세서'};
 const LAB={name:'법인명',ceo:'대표자',biz:'사업자등록번호',founded:'설립일',shares:'발행주식 총수',asset:'자산총계',liab:'부채총계',reBook:'부동산 장부금액'};
-const lab=k=>LAB[k]||(k.replace(/^y(\d)(.*)$/,(m,y,f)=>'직전 '+y+'년 '+({label:'사업연도',inc:'각 사업연도 소득',s1:'차① 법인세 등',s2:'차② 벌과금 등',s3:'차③ 한도초과 등',a1:'가① 환급금이자',a2:'가② 수입배당금',a3:'가③ 이월 손금산입'}[f]||f)));
+const lab=k=>LAB[k]||(k.replace(/^y(\d)(.*)$/,(m,y,f)=>'직전 '+y+'년 '+({label:'사업연도',inc:'각 사업연도 소득',ni:'결산서 당기순이익',s1:'차① 법인세 등',s2:'차② 벌과금 등',s3:'차③ 한도초과 등',a1:'가① 환급금이자',a2:'가② 수입배당금',a3:'가③ 이월 손금산입'}[f]||f)));
 const logEl=()=>document.getElementById('docLog');
 const said=new Set();  /* 합치기 안내는 같은 문장을 한 번만 */
 function once(t){if(said.has(t))return;said.add(t);log(t);}
