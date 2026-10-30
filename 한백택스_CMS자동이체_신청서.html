@@ -25,7 +25,7 @@
   - 계좌번호·주민등록번호는 이 브라우저(localStorage)에만 남는다. 서버로 보내지 않는다.
     업체 작성 링크에도 계좌번호·주민등록번호·대리인 주민번호는 담지 않는다.
   - 예외: 「한백택스로 바로 보내기」(v2, 2026-09-17)
-    전송 동의를 체크하고 누를 때만 신청 내용 전부(계좌번호·주민등록번호 포함)와 신청서 이미지(PNG),
+    「신청하기」를 누를 때만(화면에 전송 사실 안내, 체크란은 2026-10-30 삭제) 신청 내용 전부(계좌번호·주민등록번호 포함)와 신청서 이미지(PNG),
     업체가 고른 첨부(통장 사본·서명본)를 자료전송 메일중계(Google Apps Script)로 보내
     사무실 메일(hb090@hanbaektax.kr)에 접수한다. 카톡채널 포털 상담신청과 같은 중계·토큰을 쓴다.
     중계 실패 시 메일 앱(mailto)으로 대신 보낸다(첨부는 업체가 직접).
@@ -67,6 +67,13 @@ html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic"
 .fld.num input{text-align:right}
 .chk{display:flex;align-items:center;gap:6px;font-size:13px;color:#111;font-weight:400;padding:4px 0}
 .chk input{width:auto}
+.doneov{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(15,23,42,.55)}
+.donebox{background:#fff;border-radius:14px;padding:24px 22px;max-width:420px;width:100%;text-align:center;font-size:14px;line-height:1.6;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.donebox h3{margin:8px 0 10px;font-size:18px;color:var(--navy)}
+.donebox p{margin:0 0 8px}.donebox .hint{font-size:13px}.donebox .btn{font-size:15px;padding:10px 32px;margin-top:6px}
+.donemk{width:48px;height:48px;line-height:48px;margin:0 auto;border-radius:50%;background:var(--green);color:#fff;font-size:26px;font-weight:800}
+.donewarn{color:var(--amber);font-weight:700}
+@media print{.doneov{display:none!important}}
 .hint{font-size:11px;color:var(--gray);font-weight:400}
 .toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 .btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;font-weight:700;cursor:pointer;color:var(--navy);font-family:inherit;font-size:12px}
@@ -380,8 +387,7 @@ body.staff .clientonly{display:none}
     </div>
     <div class="list" id="sendFileList"></div>
     <label class="fld" style="margin-top:8px">전할 말 <span class="hint">(선택)</span><textarea id="sendMemo" rows="2" placeholder="예: 다음 달부터 출금해 주세요. 서명본은 우편으로 보냅니다."></textarea></label>
-    <label class="chk" style="margin-top:6px"><input type="checkbox" id="sendAgree">계좌번호·주민(사업자)등록번호가 담긴 신청 내용을 자동이체 등록 목적으로 세무법인 한백택스에 보내는 데 동의합니다.</label>
-    <div class="hint" style="margin:2px 0 0 22px">자세한 처리 기준은 <a href="한백택스_개인정보처리방침.html" target="_blank" rel="noopener">개인정보 처리방침</a>을 확인하십시오. 접수 자료는 1년 보관 후 자동 삭제됩니다.</div>
+    <div class="hint" style="margin:6px 0 2px;line-height:1.6">「신청하기」를 누르면 계좌번호·주민(사업자)등록번호가 담긴 신청 내용이 자동이체 등록 목적으로 세무법인 한백택스에 전송됩니다. 자세한 처리 기준은 <a href="한백택스_개인정보처리방침.html" target="_blank" rel="noopener">개인정보 처리방침</a>을 확인하십시오. 접수 자료는 1년 보관 후 자동 삭제됩니다.</div>
     <label class="chk" id="sendCopyRow"><input type="checkbox" id="sendCopy" checked>접수 확인 메일을 <span id="sendCopyTo">위 이메일</span>로 받기 <span class="hint">(계좌·주민번호는 가려서 보냅니다)</span></label>
     <div class="toolbar" style="margin:8px 0 0">
       <button type="button" class="btn n" id="sendBtn" onclick="sendToOffice()" style="font-size:15px;padding:10px 22px">📨 신청하기</button>
@@ -823,7 +829,7 @@ function resetDoc(){
   if(!confirm('지금 화면의 입력과 서명을 모두 지웁니다. 보관 목록은 남습니다.'))return;
   const keep={office:S.office,officeFoot:S.officeFoot};
   S=Object.assign(JSON.parse(JSON.stringify(DEF)),keep);   /* 서명·서명 동의도 함께 지워진다 */
-  $('sendAgree').checked=false;$('sendMemo').value='';sendFiles=[];renderSendFiles();
+  $('sendMemo').value='';sendFiles=[];renderSendFiles();
   setSendStatus('입력과 서명을 모두 지웠습니다.');
   persist();refill();render();
 }
@@ -934,10 +940,23 @@ function sendPreflight(){
   const errs=Array.from($('checks').querySelectorAll('li.err')).map(li=>'· '+li.textContent.replace(/^✕\s*/,''));
   if(errs.length&&!confirm('아직 채우지 않았거나 맞지 않는 항목이 있습니다.\n\n'+errs.join('\n')+'\n\n그래도 보낼까요? (사무소에서 연락드려 보완합니다)'))return false;
   if(!S.sigApplicant&&!confirm('신청인 서명 없이 보냅니다. 사무소가 서명본을 따로 요청할 수 있습니다.\n그래도 보낼까요?'))return false;
-  if(!$('sendAgree').checked){alert('계좌번호·주민(사업자)등록번호 전송 동의란에 체크해 주십시오.');$('sendAgree').focus();return false;}
   return true;
 }
+/* 접수 성공 확인 창 — 서버가 접수를 돌려준 뒤에만 띄운다 */
+function hideSendDone(){const o=$('sendDone');if(o)o.remove();}
+function showSendDone(r,copied,to){
+  hideSendDone();
+  const o=document.createElement('div');o.id='sendDone';o.className='doneov';
+  o.innerHTML='<div class="donebox" role="dialog" aria-modal="true" aria-labelledby="sendDoneT"><div class="donemk">✓</div><h3 id="sendDoneT">신청서가 성공적으로 전송되었습니다</h3>'+
+    '<p>세무법인 한백택스 메일로 접수되었습니다.'+(r.id?'<br>접수번호 <b>'+esc(r.id)+'</b>':'')+'</p>'+
+    (copied?'<p>접수 확인 메일을 <b>'+esc(to)+'</b> 로 보냈습니다.</p>':'')+
+    (S.sigApplicant?'':'<p class="donewarn">화면 서명 없이 보냈습니다. 인쇄 후 서명해 사진으로 보내 주십시오.</p>')+
+    '<p class="hint">확인 후 연락드립니다. (문의 02-2277-3101)</p><button type="button" class="btn n" id="sendDoneOk">확인</button></div>';
+  o.addEventListener('click',e=>{if(e.target===o||e.target.id==='sendDoneOk')hideSendDone();});
+  document.body.appendChild(o);$('sendDoneOk').focus();
+}
 async function sendToOffice(){
+  hideSendDone();
   if(!sendPreflight())return;
   if(!relayReady()){mailToOffice(true);return;}
   const btn=$('sendBtn');btn.disabled=true;
@@ -980,7 +999,7 @@ async function sendToOffice(){
       }catch(e){}
     }
     setSendStatus('접수되었습니다'+(r.id?' · 접수번호 '+r.id:'')+(copied?' · 확인 메일을 '+to+' 로 보냈습니다':'')+' — 확인 후 연락드립니다. (문의 02-2277-3101)','ok');
-    alert('신청이 한백택스로 접수되었습니다.'+(r.id?'\n접수번호 '+r.id:'')+(S.sigApplicant?'':'\n\n화면 서명 없이 보냈습니다. 인쇄 후 서명해 사진으로 보내 주십시오.'));
+    showSendDone(r,copied,to);
     sendFiles=[];renderSendFiles();$('sendMemo').value='';
   }catch(err){
     setSendStatus('자동 접수 실패('+err.message+') — 「메일 앱으로 보내기」를 누르면 신청서 이미지를 저장한 뒤 메일 앱을 엽니다.','err');
