@@ -161,7 +161,7 @@ table.sz th{background:#EEF2F7;color:var(--navy);white-space:nowrap}
       <select id="f_suffix" data-k="suffix"><option value="">없음</option><option value="인">인</option><option value="印">印</option><option value="之印">之印</option><option value="지인">지인</option></select></div>
     <div class="hj" data-hj="name"></div>
   </div>
-  <div data-show="c_round">
+  <div data-show="c_round c_oval c_sqring">
     <div class="row"><label for="f_corp1">둘레 글자</label><input type="text" id="f_corp1" data-k="corp" maxlength="30" placeholder="예: 주식회사 한백"></div>
     <div class="hj" data-hj="corp"></div>
     <div class="row"><label for="f_center">가운데 글자</label><input type="text" id="f_center" data-k="center" maxlength="8" placeholder="예: 대표이사인"></div>
@@ -174,7 +174,7 @@ table.sz th{background:#EEF2F7;color:var(--navy);white-space:nowrap}
     <div class="row"><label for="f_csuffix">끝 글자</label>
       <select id="f_csuffix" data-k="csuffix"><option value="">없음</option><option value="인">인</option><option value="印">印</option><option value="之印">之印</option><option value="직인">직인</option><option value="지인">지인</option></select></div>
   </div>
-  <div data-show="c_biz">
+  <div data-show="c_biz c_biz2">
     <div class="row"><label for="f_regno">등록번호</label><input type="text" id="f_regno" data-k="regno" maxlength="20" placeholder="123-45-67890"></div>
     <div class="row2">
       <div class="row"><label for="f_biz">상호</label><input type="text" id="f_biz" data-k="biz" maxlength="30"></div>
@@ -185,7 +185,24 @@ table.sz th{background:#EEF2F7;color:var(--navy);white-space:nowrap}
       <div class="row"><label for="f_uptae">업태</label><input type="text" id="f_uptae" data-k="uptae" maxlength="30"></div>
       <div class="row"><label for="f_jong">종목</label><input type="text" id="f_jong" data-k="jong" maxlength="30"></div>
     </div>
-    <div class="hint">세금계산서·영수증·거래명세서에 찍는 사업자 고무인입니다. 빈 칸은 제목만 남습니다.</div>
+    <div class="row"><label for="f_tel">전화</label><input type="text" id="f_tel" data-k="tel" maxlength="20" placeholder="간이 고무인에만 들어갑니다"></div>
+    <div class="hint">세금계산서·영수증·거래명세서에 찍는 사업자 고무인입니다. 표 모양은 빈 칸에 제목만 남고, 간이 고무인은 빈 줄을 뺍니다.</div>
+  </div>
+  <div data-show="c_en">
+    <div class="row"><label for="f_corpEn">영문 상호</label><input type="text" id="f_corpEn" data-k="corpEn" maxlength="40" placeholder="예: HANBAEK CO., LTD."></div>
+    <div class="row"><label for="f_centerEn">가운데 글자</label><input type="text" id="f_centerEn" data-k="centerEn" maxlength="16" placeholder="예: SEAL · CEO · 대표이사인"></div>
+    <div class="hint">수출 서류·영문 계약서용입니다. 둘레는 대문자로 바뀝니다. 가운데가 한글·한자면 칸에 나눠 넣습니다.</div>
+  </div>
+  <div data-show="c_plate">
+    <div class="row"><label for="f_corp3">상호</label><input type="text" id="f_corp3" data-k="corp" maxlength="30" placeholder="예: 주식회사 한백"></div>
+    <div class="hj" data-hj="corp"></div>
+    <div class="row2">
+      <div class="row"><label for="f_ceoTitle">직함</label><input type="text" id="f_ceoTitle" data-k="ceoTitle" maxlength="10" placeholder="대표이사"></div>
+      <div class="row"><label for="f_ceo2">성명</label><input type="text" id="f_ceo2" data-k="ceo" maxlength="15"></div>
+    </div>
+    <div class="row"><label for="f_addr2">주소</label><input type="text" id="f_addr2" data-k="addr" maxlength="60"></div>
+    <div class="row"><label for="f_tel2">전화</label><input type="text" id="f_tel2" data-k="tel" maxlength="20"></div>
+    <div class="hint">계약서·위임장의 상호·대표자 자리에 찍는 명판입니다. 빈 줄은 빠집니다. 법인 인감과 함께 씁니다.</div>
   </div>
   <div data-show="w_label">
     <div class="row"><label for="f_label">문구</label><input type="text" id="f_label" data-k="label" maxlength="8" list="labelList" placeholder="예: 원본대조필"></div>
@@ -220,11 +237,11 @@ table.sz th{background:#EEF2F7;color:var(--navy);white-space:nowrap}
     <div class="colors" id="colors"><input type="color" id="f_color" data-k="color" title="직접 고르기"></div></div>
   <div class="row" data-show="p_round p_oval p_square c_square"><label>새김</label>
     <div class="inl"><label><input type="radio" name="style" value="yang" data-k="style"> 양각 (글자가 빨강)</label><label><input type="radio" name="style" value="eum" data-k="style"> 음각 (바탕이 빨강)</label></div></div>
-  <div class="row" data-show="p_round p_oval p_square c_round c_square"><label>글자 방향</label>
+  <div class="row" data-show="p_round p_oval p_square c_round c_oval c_sqring c_square"><label>글자 방향</label>
     <div class="inl"><label><input type="radio" name="layout" value="v" data-k="layout"> 세로쓰기 (오른쪽부터)</label><label><input type="radio" name="layout" value="h" data-k="layout"> 가로쓰기</label></div></div>
   <div class="row"><label for="f_border">테두리 굵기</label><div class="rng"><input type="range" id="f_border" data-k="border" min="1" max="10" step="1"><span class="val" id="v_border"></span></div></div>
   <div class="row"><label>옵션</label>
-    <div class="inl"><label><input type="checkbox" data-k="dbl"> 이중 테두리</label><label data-show="p_round p_oval p_square c_round c_square w_label"><input type="checkbox" data-k="stretch"> 글자 꽉 채우기</label></div></div>
+    <div class="inl"><label><input type="checkbox" data-k="dbl"> 이중 테두리</label><label data-show="p_round p_oval p_square c_round c_oval c_sqring c_square c_en w_label"><input type="checkbox" data-k="stretch"> 글자 꽉 채우기</label></div></div>
 
   <h3>4. 찍힌 느낌</h3>
   <div class="row"><label for="f_rough">인주 번짐·빈틈</label><div class="rng"><input type="range" id="f_rough" data-k="rough" min="0" max="100" step="5"><span class="val" id="v_rough"></span></div></div>
@@ -249,7 +266,8 @@ table.sz th{background:#EEF2F7;color:var(--navy);white-space:nowrap}
         <option value="400">작게 (400px)</option><option value="800">보통 (800px)</option><option value="1200">크게 (1200px)</option><option value="2000">인쇄용 (2000px)</option>
       </select>
       <button class="btn p" id="dl" type="button">PNG 저장</button>
-      <button class="btn n" id="cp" type="button">이미지 복사</button>
+      <button class="btn n" id="cp" type="button">복사 (투명)</button>
+      <button class="btn" id="cpw" type="button">흰 바탕 복사</button>
     </div>
     <div id="msg"></div>
   </div>
@@ -267,7 +285,7 @@ table.sz th{background:#EEF2F7;color:var(--navy);white-space:nowrap}
 <div class="card">
   <h2>문서에 넣는 방법</h2>
   <div class="hint">
-    <b>한글(HWP)</b> — 입력 › 그림 › 그림 넣기 → 그림을 고른 뒤 개체 속성에서 <b>본문과의 배치: 글 앞으로</b>, 크기를 아래 표처럼 mm로 맞춥니다. 「(인)」 글자 위에 겹치면 실제로 찍은 것처럼 보입니다.<br>
+    <b>가장 빠른 방법</b> — 「복사 (투명)」을 누르고 한글·워드에 붙여 넣으면 바탕이 투명한 도장이 알맞은 크기로 들어갑니다. 한글은 그림을 누르고 개체 속성에서 <b>본문과의 배치: 글 앞으로</b>를 고르면 글자 위에 겹쳐집니다.<br><b>한글(HWP) 파일로 넣기</b> — 입력 › 그림 › 그림 넣기 → 저장한 PNG를 고른 뒤 <b>글 앞으로</b>, 크기를 아래 표처럼 mm로 맞춥니다. 「(인)」 글자 위에 겹치면 실제로 찍은 것처럼 보입니다.<br>
     <b>워드</b> — 삽입 › 그림 → 레이아웃 옵션 <b>텍스트 앞</b>. 「이미지 복사」 후 붙여 넣어도 됩니다.<br>
     <b>PDF 전자서명</b> — 서명 도구의 이미지 서명에 저장한 PNG를 등록합니다. 배경이 투명하므로 글자가 비칩니다.
   </div>
@@ -276,7 +294,8 @@ table.sz th{background:#EEF2F7;color:var(--navy);white-space:nowrap}
     <tr><td>개인 성명인(원형·사각)</td><td>지름·한 변 12~15mm</td></tr>
     <tr><td>타원 성명인</td><td>가로 10~12mm × 세로 14~16mm</td></tr>
     <tr><td>법인 원형 인감 · 사각 직인</td><td>지름·한 변 18~24mm</td></tr>
-    <tr><td>사업자 고무인</td><td>가로 60~75mm</td></tr>
+    <tr><td>타원 법인 인감 · 영문 직인</td><td>가로 24~30mm</td></tr>
+    <tr><td>사업자 고무인 · 간이 고무인 · 법인 명판</td><td>가로 60~75mm</td></tr>
     <tr><td>업무 스탬프 · 날짜 도장 · 결재란</td><td>가로 30~60mm (문서 여백에 맞춤)</td></tr>
   </table>
   <div class="warn" style="margin-top:12px">
@@ -313,8 +332,13 @@ const TYPES = [
   {id:'p_oval',  g:'p', n:'타원 성명인'},
   {id:'p_square',g:'p', n:'사각 성명인'},
   {id:'c_round', g:'c', n:'법인 원형 인감'},
+  {id:'c_oval',  g:'c', n:'타원 법인 인감'},
+  {id:'c_sqring',g:'c', n:'사각 둘레 인감'},
   {id:'c_square',g:'c', n:'사각 직인'},
+  {id:'c_en',    g:'c', n:'영문 원형 직인'},
+  {id:'c_plate', g:'c', n:'법인 명판'},
   {id:'c_biz',   g:'c', n:'사업자 고무인'},
+  {id:'c_biz2',  g:'c', n:'간이 고무인'},
   {id:'w_label', g:'w', n:'업무 스탬프'},
   {id:'w_date',  g:'w', n:'날짜 도장'},
   {id:'w_appr',  g:'w', n:'결재란'}
@@ -328,7 +352,7 @@ const DEF = {
   type:'p_round', font:'myeongjo', color:'#D0261D', style:'yang', layout:'v', border:4, dbl:false, stretch:true,
   rough:35, tilt:0, seed:7, size:800, bg:'paper', galShape:'', galVar:false, hj:null,
   name:'홍길동', suffix:'인', corp:'주식회사 한백', center:'대표이사인', csuffix:'인',
-  regno:'123-45-67890', biz:'한백상사', ceo:'홍길동', addr:'서울특별시 중구 동호로 315', uptae:'서비스', jong:'세무회계',
+  regno:'123-45-67890', tel:'02-1234-5678', ceoTitle:'대표이사', corpEn:'HANBAEK CO., LTD.', centerEn:'SEAL', biz:'한백상사', ceo:'홍길동', addr:'서울특별시 중구 동호로 315', uptae:'서비스', jong:'세무회계',
   label:'원본대조필', l2mode:'date', l2:'', l3:'세무법인 한백택스', lshape:'rect',
   dtop:'접 수', dbot:'한백택스', date:'', dfmt:'dot',
   appr:'담당,팀장,대표', aside:'결재'
@@ -505,6 +529,144 @@ function seal(x, W, H, S, o, f, lw, shape, list){
   grid(x, list, box, f, o.stretch, o.layout);
   if (eum) x.restore();
 }
+/* 원·타원 둘레에 글자를 위 가운데 기준으로 시계 방향으로 놓는다. 글자 머리는 바깥쪽. k: 글자 폭 비율(영문 0.72) */
+function ringText(x, cx, cy, rx, ry, t, list, f, stretch, k){
+  const n = list.length; if (!n) return;
+  if (k < 1) return ringLatin(x, cx, cy, (rx + ry)/2, t, list.join(''), f);
+  const rm = (rx + ry)/2, ideal = t*0.95*k/rm, gap = Math.max(ideal*1.6, Math.PI*2*0.1);
+  const a = Math.min((Math.PI*2 - gap)/n, ideal*1.45), span = a*n, cw = Math.min(a, ideal)*rm*0.86;
+  for (let i = 0; i < n; i++){
+    const th = -span/2 + a*(i + 0.5);
+    x.save(); x.translate(cx + rx*Math.sin(th), cy - ry*Math.cos(th)); x.rotate(Math.atan2(ry*Math.sin(th), rx*Math.cos(th)));
+    glyph(x, list[i], 0, 0, cw, t*0.7, f, stretch); x.restore();
+  }
+  if (span > Math.PI*2*0.72) star(x, cx, cy + ry, t*0.2);
+}
+/* 영문 둘레 — 글자 폭대로 간격을 잡고(비례), 문장부호는 늘리지 않는다. 대문자 높이를 t*0.62 에 맞춘다 */
+function ringLatin(x, cx, cy, rm, t, str, f){
+  const P = 200; x.font = fstr(f, P);
+  const capH = x.measureText('H').actualBoundingBoxAscent || P*0.7;
+  let s = t*0.62/capH;
+  const ws = Array.from(str).map(c => x.measureText(c).width);
+  const sum = ws.reduce((a, b) => a + b, 0), track = 0.12*capH, maxArc = (Math.PI*2*0.86)*rm;
+  let arc = (sum + track*(ws.length - 1))*s;
+  if (arc > maxArc){ s *= maxArc/arc; arc = maxArc; }
+  let th = -arc/rm/2;
+  Array.from(str).forEach((c, i) => {
+    const a = ws[i]*s/rm, mid = th + a/2;
+    if (c.trim()){
+      x.save(); x.translate(cx + rm*Math.sin(mid), cy - rm*Math.cos(mid)); x.rotate(mid); x.scale(s, s);
+      x.textAlign = 'center'; x.textBaseline = 'alphabetic'; x.fillText(c, 0, capH/2); x.restore();
+    }
+    th += a + track*s/rm;
+  });
+  if (arc/rm > Math.PI*2*0.72) star(x, cx, cy + rm, t*0.2);
+}
+function centerBox(cx, cy, w, h, n, layout){
+  if (n > 2) return bx(cx, cy, w, h);
+  return layout === 'h' ? bx(cx, cy, w*1.12, h*0.7) : bx(cx, cy, w*0.7, h*1.12);
+}
+function corpOval(x, W, H, S, o, f, lw){
+  const cx = W/2, cy = H/2, m = lw/2 + S*0.02, RX = W/2 - m, RY = H/2 - m;
+  const ell = (a, b) => { x.beginPath(); x.ellipse(cx, cy, a, b, 0, 0, Math.PI*2); x.stroke(); };
+  x.lineWidth = lw; ell(RX, RY);
+  let d = lw*0.6;
+  if (o.dbl){ x.lineWidth = Math.max(1, lw*0.4); ell(RX - lw*1.7, RY - lw*1.7); d = lw*1.9; }
+  const t = Math.min(RX, RY)*0.36, IX = RX - d - t, IY = RY - d - t;
+  x.lineWidth = lw*0.75; ell(IX, IY);
+  ringText(x, cx, cy, RX - d - t/2, RY - d - t/2, t*0.9, chars(eff(o, 'corp')), f, true, 1);
+  const ct = chars(eff(o, 'center'));
+  grid(x, ct, centerBox(cx, cy, IX*1.28, IY*1.25, ct.length, o.layout), f, o.stretch, o.layout);
+}
+/* 사각 둘레형 — 상호를 네 변에 나눠 시계 방향으로, 가운데는 칸 나누기 */
+function corpSqRing(x, W, H, S, o, f, lw){
+  const m = lw/2 + S*0.02;
+  x.lineWidth = lw; rrect(x, m, m, W - 2*m, H - 2*m, S*0.02); x.stroke();
+  let ins = lw*0.6;
+  if (o.dbl){ const d = lw*1.8; x.lineWidth = Math.max(1, lw*0.4); rrect(x, m+d, m+d, W - 2*(m+d), H - 2*(m+d), S*0.012); x.stroke(); ins = d + lw*0.3; }
+  const A = m + ins, t = S*0.165, B = A + t;
+  x.lineWidth = lw*0.75; rrect(x, B, B, W - 2*B, H - 2*B, S*0.01); x.stroke();
+  const list = chars(eff(o, 'corp')), n = list.length, c = (A + B)/2, L = W - 2*c;
+  if (n){
+    const base = Math.floor(n/4), extra = n % 4, cnt = [0,1,2,3].map(i => base + (i < extra ? 1 : 0));
+    let idx = 0;
+    cnt.forEach((k, sd) => {
+      if (!k) return;
+      const sp = Math.min(L*0.78/k, t*1.5);
+      for (let j = 0; j < k; j++){
+        const u = (j - (k-1)/2)*sp;
+        const pos = [[W/2 + u, c, 0], [W - c, H/2 + u, Math.PI/2], [W/2 - u, H - c, Math.PI], [c, H/2 - u, -Math.PI/2]][sd];
+        x.save(); x.translate(pos[0], pos[1]); x.rotate(pos[2]);
+        glyph(x, list[idx++], 0, 0, Math.min(sp*0.9, t*0.9), t*0.7, f, o.stretch); x.restore();
+      }
+    });
+  }
+  const p = B + lw*0.6 + S*0.03, ct = chars(eff(o, 'center'));
+  grid(x, ct, centerBox(W/2, H/2, W - 2*p, H - 2*p, ct.length, o.layout), f, o.stretch, o.layout);
+}
+/* 영문 원형 직인 — 둘레 영문(대문자), 가운데 SEAL 등 */
+function corpEn(x, W, H, S, o, f, lw){
+  const cx = W/2, cy = H/2, m = lw/2 + S*0.02, R = W/2 - m;
+  const circ = r => { x.beginPath(); x.arc(cx, cy, r, 0, Math.PI*2); x.stroke(); };
+  x.lineWidth = lw; circ(R);
+  let Ro = R - lw*0.6;
+  if (o.dbl){ x.lineWidth = Math.max(1, lw*0.4); circ(R - lw*1.7); Ro = R - lw*1.9; }
+  const Ri = R*0.6; x.lineWidth = lw*0.7; circ(Ri);
+  const ri = Ri + lw*0.4, t = Ro - ri, rm = (Ro + ri)/2;
+  const ring = Array.from(String(o.corpEn || '').toUpperCase().replace(/\s+/g, ' ').trim());
+  ringText(x, cx, cy, rm, rm, t, ring, f, false, 0.72);
+  const ce = String(o.centerEn || '').trim(), r = Ri - lw*0.4 - S*0.03;
+  if (HAN_RE.test(ce) || /[가-힣]/.test(ce)){
+    const ct = chars(ce); grid(x, ct, centerBox(cx, cy, r*1.36, r*1.36, ct.length, o.layout), f, o.stretch, o.layout);
+  } else if (ce){
+    const up = ce.toUpperCase(), sp = up.indexOf(' '), two = up.length > 7 && sp > 0;
+    x.lineWidth = Math.max(1, lw*0.45);
+    if (two){
+      const mid = up.lastIndexOf(' ', Math.ceil(up.length/2)) > 0 ? up.lastIndexOf(' ', Math.ceil(up.length/2)) : sp;
+      textLine(x, up.slice(0, mid).trim(), cx, cy - r*0.25, r*1.6, r*0.32, f, 'center');
+      textLine(x, up.slice(mid).trim(), cx, cy + r*0.25, r*1.6, r*0.32, f, 'center');
+    } else {
+      line(x, cx - r*0.75, cy - r*0.38, cx + r*0.75, cy - r*0.38);
+      line(x, cx - r*0.75, cy + r*0.38, cx + r*0.75, cy + r*0.38);
+      textLine(x, up, cx, cy, r*1.55, r*0.42, f, 'center');
+    }
+  }
+}
+/* 여러 줄 네모 — 법인 명판·간이 고무인. lines [{t, h(S 비율)}] */
+const LGAP = 0.022, LPAD = 0.075;
+function linesH(lines, S){ return Math.round(S*(lines.reduce((a, l) => a + l.h, 0) + LGAP*Math.max(0, lines.length - 1) + 2*LPAD)); }
+function linesStamp(x, W, H, S, o, f, lw, lines, sep){
+  const m = lw/2 + S*0.02; x.lineWidth = lw; rrect(x, m, m, W - 2*m, H - 2*m, S*0.008); x.stroke();
+  if (o.dbl){ const d = lw*1.8; x.lineWidth = Math.max(1, lw*0.4); rrect(x, m+d, m+d, W - 2*(m+d), H - 2*(m+d), S*0.004); x.stroke(); }
+  const iw = W - 2*(m + S*0.05);
+  let y = S*LPAD;
+  lines.forEach((l, i) => {
+    textLine(x, l.t, W/2, y + l.h*S/2, iw, l.h*S*0.78, f, 'center');
+    y += l.h*S;
+    if (sep && i === 0 && lines.length > 1){ x.lineWidth = Math.max(1, lw*0.4); line(x, W*0.12, y + S*LGAP/2, W*0.88, y + S*LGAP/2); }
+    y += S*LGAP;
+  });
+}
+const has = v => String(v || '').trim() !== '';
+function plateLines(o){
+  const corp = eff(o, 'corp').trim(), name = Array.from(corp.replace(/\s+/g, '')).length <= 8 ? Array.from(corp.replace(/\s+/g, '')).join(' ') : corp;
+  const a = [{t: name || '상호', h: 0.13}];
+  if (has(o.ceo) || has(o.ceoTitle)) a.push({t: (String(o.ceoTitle || '').trim() + '   ' + String(o.ceo || '').trim()).trim(), h: 0.078});
+  if (has(o.addr)) a.push({t: String(o.addr).trim(), h: 0.052});
+  if (has(o.tel)) a.push({t: '전화 ' + String(o.tel).trim(), h: 0.052});
+  return a;
+}
+function biz2Lines(o){
+  const a = [];
+  if (has(o.regno)) a.push({t: '등록번호  ' + String(o.regno).trim(), h: 0.075});
+  const nm = [has(o.biz) ? '상호  ' + String(o.biz).trim() : '', has(o.ceo) ? '성명  ' + String(o.ceo).trim() : ''].filter(Boolean).join('     ');
+  if (nm) a.push({t: nm, h: 0.062});
+  if (has(o.addr)) a.push({t: '주소  ' + String(o.addr).trim(), h: 0.052});
+  const uj = [has(o.uptae) ? '업태  ' + String(o.uptae).trim() : '', has(o.jong) ? '종목  ' + String(o.jong).trim() : ''].filter(Boolean).join('     ');
+  if (uj) a.push({t: uj, h: 0.052});
+  if (has(o.tel)) a.push({t: '전화  ' + String(o.tel).trim(), h: 0.052});
+  return a.length ? a : [{t: '사업자 정보를 입력하십시오', h: 0.06}];
+}
 function corpRound(x, W, H, S, o, f, lw){
   const cx = W/2, cy = H/2, m = lw/2 + S*0.02, R = W/2 - m;
   const circ = r => { x.beginPath(); x.arc(cx, cy, r, 0, Math.PI*2); x.stroke(); };
@@ -513,21 +675,9 @@ function corpRound(x, W, H, S, o, f, lw){
   if (o.dbl){ x.lineWidth = Math.max(1, lw*0.4); circ(R - lw*1.7); Ro = R - lw*1.9; }
   const Ri = R*0.58; x.lineWidth = lw*0.75; circ(Ri);
   const ri = Ri + lw*0.45, t = Ro - ri, rm = (Ro + ri)/2;
-  const ring = chars(eff(o, 'corp')), n = ring.length;
-  if (n){
-    const ideal = t*0.95/rm, gap = Math.max(ideal*1.6, Math.PI*2*0.1);
-    let a = Math.min((Math.PI*2 - gap)/n, ideal*1.45), span = a*n;
-    const cw = Math.min(a, ideal)*rm*0.86;
-    for (let i = 0; i < n; i++){
-      const th = -span/2 + a*(i + 0.5);
-      x.save(); x.translate(cx + rm*Math.sin(th), cy - rm*Math.cos(th)); x.rotate(th);
-      glyph(x, ring[i], 0, 0, cw, t*0.7, f, true); x.restore();
-    }
-    if (span > Math.PI*2*0.72) star(x, cx, cy + rm, t*0.2);
-  }
-  const ct = chars(eff(o, 'center')), r = Ri - lw*0.4 - S*0.02, one = ct.length <= 2;
-  const box = one ? (o.layout === 'h' ? bx(cx, cy, r*1.55, r*0.95) : bx(cx, cy, r*0.95, r*1.55)) : bx(cx, cy, r*1.36, r*1.36);
-  grid(x, ct, box, f, o.stretch, o.layout);
+  ringText(x, cx, cy, rm, rm, t, chars(eff(o, 'corp')), f, true, 1);
+  const ct = chars(eff(o, 'center')), r = Ri - lw*0.4 - S*0.02;
+  grid(x, ct, centerBox(cx, cy, r*1.36, r*1.36, ct.length, o.layout), f, o.stretch, o.layout);
 }
 function biz(x, W, H, S, o, f, lw){
   const m = lw/2 + S*0.015, X0 = m, Y0 = m, X1 = W - m, Y1 = H - m;
@@ -640,6 +790,9 @@ function draw(o, S){
   let W = S, H = S;
   if (T === 'p_oval') W = Math.round(S*0.76);
   else if (T === 'c_biz') H = Math.round(S*0.46);
+  else if (T === 'c_oval') H = Math.round(S*0.72);
+  else if (T === 'c_plate') H = linesH(plateLines(o), S);
+  else if (T === 'c_biz2') H = linesH(biz2Lines(o), S);
   else if (T === 'w_label') H = labelH(o, S);
   else if (T === 'w_appr') H = apprH(o, S);
   const c = mk(W, H), x = c.getContext('2d');
@@ -652,6 +805,11 @@ function draw(o, S){
   else if (T === 'c_square') seal(x, W, H, S, o, f, lw, 'square', chars(eff(o, 'corp') + (o.csuffix || '')));
   else if (T === 'c_round') corpRound(x, W, H, S, o, f, lw);
   else if (T === 'c_biz') biz(x, W, H, S, o, f, lw);
+  else if (T === 'c_oval') corpOval(x, W, H, S, o, f, lw);
+  else if (T === 'c_sqring') corpSqRing(x, W, H, S, o, f, lw);
+  else if (T === 'c_en') corpEn(x, W, H, S, o, f, lw);
+  else if (T === 'c_plate') linesStamp(x, W, H, S, o, f, lw, plateLines(o), true);
+  else if (T === 'c_biz2') linesStamp(x, W, H, S, o, f, lw, biz2Lines(o), false);
   else if (T === 'w_label') label(x, W, H, S, o, f, lw);
   else if (T === 'w_date') dateStamp(x, W, H, S, o, f, lw);
   else if (T === 'w_appr') appr(x, W, H, S, o, f, lw);
@@ -662,7 +820,7 @@ function draw(o, S){
 /* ══════════ 글꼴 불러오기 ══════════ */
 function allText(){
   return ['name','suffix','corp','center','csuffix','regno','biz','ceo','addr','uptae','jong','label','l2','l3','dtop','dbot','appr','aside']
-    .map(k => eff(st, k)).join('') + '0123456789.-\'등록번호상호성명사업장업태종목한글';
+    .concat(['tel','ceoTitle','corpEn','centerEn']).map(k => eff(st, k)).join('') + '0123456789.-\'등록번호상호성명사업장업태종목한글';
 }
 function loadFonts(list){
   if (!document.fonts || !document.fonts.load) return Promise.resolve();
@@ -793,7 +951,7 @@ async function renderGallery(){
     const b = document.createElement('button'); b.type = 'button'; b.className = 'gi'; b.dataset.t = t.id; b.dataset.f = f.id;
     if (v.style) { b.dataset.style = v.style; b.dataset.dbl = v.dbl ? '1' : ''; }
     const o = Object.assign({}, st, {type:t.id, font:f.id}, v);
-    b.appendChild(draw(o, t.id === 'c_biz' || t.id === 'w_appr' || t.id === 'w_label' ? 300 : 220));
+    b.appendChild(draw(o, /^(c_biz|c_biz2|c_plate|w_appr|w_label)$/.test(t.id) ? 300 : 220));
     const s = document.createElement('span'); s.textContent = t.n + ' · ' + f.n + (v._n ? ' · ' + v._n : ''); b.appendChild(s);
     frag.appendChild(b); cnt++;
   })));
@@ -835,7 +993,7 @@ $('#reset').addEventListener('click', () => { st = Object.assign({}, DEF, {date:
 
 /* ── 내보내기 ── */
 function fileName(){
-  const main = {p_round:st.name, p_oval:st.name, p_square:st.name, c_round:st.corp, c_square:st.corp, c_biz:st.biz, w_label:st.label, w_date:st.dtop, w_appr:'결재란'}[st.type] || '';
+  const main = {p_round:st.name, p_oval:st.name, p_square:st.name, c_round:st.corp, c_oval:st.corp, c_sqring:st.corp, c_square:st.corp, c_en:st.corpEn, c_plate:st.corp, c_biz:st.biz, c_biz2:st.biz, w_label:st.label, w_date:st.dtop, w_appr:'결재란'}[st.type] || '';
   const safe = String(main).replace(/[\\\/:*?"<>|\s]+/g, '').slice(0, 20) || '도장';
   return '도장_' + TYPE[st.type].n.replace(/\s+/g, '') + '_' + safe + '.png';
 }
@@ -848,13 +1006,31 @@ $('#dl').addEventListener('click', async () => {
     msg('저장했습니다 — ' + fileName(), 'ok');
   }catch(err){ msg(err.message, 'err'); }
 });
+/* 복사 — 크롬은 이미지를 비트맵으로도 함께 올리는데 그 비트맵은 투명 부분이 검게 된다(한글이 이것을 씀).
+ * 투명 PNG 를 HTML(<img>)로도 함께 올리면 한글·워드·파워포인트가 PNG 를 그대로 받아 바탕이 투명하다(2026-11-18 한글 COM 으로 확인).
+ * HTML 에는 실제 도장 크기(mm)를 넣어 붙여 넣자마자 알맞은 크기가 된다. */
+const MM = {p_round:14, p_oval:15, p_square:14, c_round:22, c_oval:26, c_sqring:22, c_square:22, c_en:24, c_plate:70, c_biz:70, c_biz2:70, w_label:45, w_date:24, w_appr:60};
+async function copyImg(white){
+  if (!navigator.clipboard || !window.ClipboardItem) throw new Error('이 브라우저는 이미지 복사를 지원하지 않습니다. PNG 저장을 쓰십시오.');
+  let c = mainCanvas; if (!c) throw new Error('미리보기가 아직 없습니다');
+  if (white){ const w = mk(c.width, c.height), g = w.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, w.width, w.height); g.drawImage(c, 0, 0); c = w; }
+  const blob = await new Promise((ok, no) => c.toBlob(b => b ? ok(b) : no(new Error('이미지를 만들지 못했습니다')), 'image/png'));
+  const items = {'image/png': blob};
+  const mm = MM[st.type] || 25, sc = (mm*96/25.4)/Math.max(c.width, c.height);
+  if (!white){
+    const url = await new Promise((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.onerror = () => no(new Error('이미지를 읽지 못했습니다')); fr.readAsDataURL(blob); });
+    items['text/html'] = new Blob(['<img src="' + url + '" width="' + Math.round(c.width*sc) + '" height="' + Math.round(c.height*sc) + '" alt="도장">'], {type: 'text/html'});
+  }
+  await navigator.clipboard.write([new ClipboardItem(items)]);
+  return mm;
+}
 $('#cp').addEventListener('click', async () => {
-  try{
-    if (!navigator.clipboard || !window.ClipboardItem) throw new Error('이 브라우저는 이미지 복사를 지원하지 않습니다. PNG 저장을 쓰십시오.');
-    const b = await toBlob();
-    await navigator.clipboard.write([new ClipboardItem({'image/png': b})]);
-    msg('복사했습니다. 한글·워드·카톡에 붙여 넣으십시오.', 'ok');
-  }catch(err){ msg(err.message || '복사하지 못했습니다.', 'err'); }
+  try{ const mm = await copyImg(false); msg('투명 바탕으로 복사했습니다. 한글·워드·파워포인트에 붙여 넣으면 약 ' + mm + 'mm 크기로 들어갑니다. 바탕이 검게 보이는 프로그램(카톡 등)에서는 「흰 바탕 복사」를 쓰십시오.', 'ok'); }
+  catch(err){ msg(err.message || '복사하지 못했습니다.', 'err'); }
+});
+$('#cpw').addEventListener('click', async () => {
+  try{ await copyImg(true); msg('흰 바탕으로 복사했습니다. 카톡·메신저·그림판 등에 붙여 넣으십시오.', 'ok'); }
+  catch(err){ msg(err.message || '복사하지 못했습니다.', 'err'); }
 });
 
 buildStatic();
