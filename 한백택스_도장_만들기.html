@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>한백택스 도장 이미지 만들기</title>
+<meta name="description" content="성명인·법인 인감·사각 직인·사업자 고무인·원본대조필·날짜 도장·결재란을 투명 PNG 도장 이미지로 만듭니다. 글꼴 11종, 인주 질감, 기울기 조절.">
+<!--
+  세무법인 한백택스 도장 이미지 만들기 v1 (2026-11-18)
+  - 모든 그림은 이 브라우저의 캔버스에서 만든다. 입력값은 서버로 보내지 않는다(설정만 localStorage hbt_stamp_v1 에 둔다).
+  - 종류 9가지: 개인(원형·타원·사각) / 법인·사업자(원형 인감·사각 직인·고무인) / 업무(스탬프·날짜 도장·결재란)
+  - 글꼴은 Google Fonts(한글). 오프라인이면 기본 명조로 그린다.
+  - 사무소 직인(HBSeal, 한백택스_직인.js)과는 별개다. 이 도구는 사무소 직인을 만들거나 내려주지 않는다.
+-->
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Nanum+Myeongjo:wght@800&family=Song+Myung&family=Hahmlet:wght@900&family=Gowun+Batang:wght@700&family=Nanum+Brush+Script&family=Black+Han+Sans&family=Do+Hyeon&family=Yeon+Sung&family=Gugi&family=East+Sea+Dokdo&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1B3A5C;--gold:#C8963E;--bg:#F4F6F9;--line:#DCE3EC;--gray:#5F6E80;--red:#B91C1C;--green:#166534;--amber:#92400E}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:#1f2937;font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:14px}
+main{max-width:1180px;margin:0 auto;padding:18px 16px 50px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+h1{font-size:21px;color:var(--navy);margin:0 0 4px}
+h2{font-size:15px;color:var(--navy);margin:0 0 10px}
+h3{font-size:13px;color:var(--navy);margin:14px 0 6px;padding-top:12px;border-top:1px dashed var(--line)}
+h3:first-child{margin-top:0;padding-top:0;border-top:0}
+.sub{color:var(--gray);font-size:13px;line-height:1.7}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:14px;align-items:start}
+.sticky{position:sticky;top:54px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.tab{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;font-weight:800;color:var(--navy);cursor:pointer;font-family:inherit;font-size:13px}
+.tab.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:#F8FAFC;border-radius:8px;padding:6px 11px;cursor:pointer;font-family:inherit;font-size:13px;color:#1f2937;font-weight:700}
+.chip.on{border-color:var(--gold);background:#FFF8EB;color:var(--amber)}
+.row{display:grid;grid-template-columns:110px minmax(0,1fr);gap:8px;align-items:center;margin:7px 0}
+.row>label{font-size:13px;color:var(--gray);font-weight:700}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+input[type=text],input[type=date],select{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:14px;background:#fff;color:#1f2937}
+input[type=text]:focus,input[type=date]:focus,select:focus{outline:2px solid #C8963E55;border-color:var(--gold)}
+input[type=range]{width:100%;accent-color:var(--navy)}
+.inl{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:13px}
+.inl label{display:inline-flex;gap:5px;align-items:center;cursor:pointer}
+.colors{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.sw{width:28px;height:28px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
+.sw.on{box-shadow:0 0 0 2px var(--navy)}
+input[type=color]{width:34px;height:30px;border:1px solid var(--line);border-radius:8px;padding:2px;background:#fff;cursor:pointer}
+.val{font-size:12px;color:var(--gray);min-width:38px;text-align:right}
+.rng{display:flex;gap:8px;align-items:center}
+.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:9px 14px;font-weight:800;cursor:pointer;color:var(--navy);font-family:inherit;font-size:13px}
+.btn.p{background:var(--gold);color:#fff;border-color:var(--gold)}
+.btn.n{background:var(--navy);color:#fff;border-color:var(--navy)}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+#pv{display:flex;align-items:center;justify-content:center;min-height:340px;border:1px solid var(--line);border-radius:10px;padding:18px;overflow:hidden}
+#pv canvas{max-width:100%;max-height:420px;width:auto;height:auto;display:block}
+#pv.paper{background:#FBF9F4 repeating-linear-gradient(0deg,transparent 0 31px,#E8E2D4 31px 32px)}
+#pv.paper canvas{mix-blend-mode:multiply}
+#pv.white{background:#fff}
+#pv.check{background:#fff conic-gradient(#E5E7EB 25%,#fff 0 50%,#E5E7EB 0 75%,#fff 0) 0 0/20px 20px}
+#msg{margin-top:8px;font-size:13px;min-height:18px}
+#msg.ok{color:var(--green);font-weight:700}
+#msg.err{color:var(--red);font-weight:700}
+.hint{font-size:12px;color:var(--gray);line-height:1.65}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px}
+.gi{border:1px solid var(--line);border-radius:10px;background:#FBF9F4;padding:8px 6px 6px;cursor:pointer;text-align:center;font-family:inherit;color:inherit}
+.gi:hover{border-color:var(--gold)}
+.gi.on{border:2px solid var(--gold);background:#FFF8EB}
+.gi canvas{width:100%;height:96px;object-fit:contain;display:block;mix-blend-mode:multiply}
+.gi span{display:block;font-size:11px;color:var(--gray);margin-top:4px;line-height:1.35}
+.warn{background:#FEF3C7;border:1px solid #FCD34D;color:#78350F;border-radius:10px;padding:10px 12px;font-size:12.5px;line-height:1.65}
+table.sz{border-collapse:collapse;width:100%;font-size:13px;margin-top:6px}
+table.sz th,table.sz td{border:1px solid var(--line);padding:6px 8px;text-align:left}
+table.sz th{background:#EEF2F7;color:var(--navy);white-space:nowrap}
+.hide{display:none!important}
+@media(max-width:860px){.layout{grid-template-columns:1fr}.sticky{position:static}.row{grid-template-columns:96px minmax(0,1fr)}#pv{min-height:260px}}
+@media print{body *{visibility:hidden}#pv,#pv *{visibility:visible}#pv{position:absolute;left:0;top:0;border:0;background:#fff!important}}
+</style>
+</head>
+<body>
+<!-- HB-HOME v1 -->
+<script>
+/* 한백택스 홈 바 — 생성기: 02-도구 & 스크립트/Python 스크립트/홈바_주입.py
+   이 블록은 자동 생성이다. 직접 고치지 말고 생성기를 고쳐 다시 실행한다. */
+(function(){
+  if (window.self !== window.top) return;          /* 포털 iframe 안에서는 부모의 바를 쓴다 */
+  if (window.__hbHome) return;
+  window.__hbHome = 1;
+  var me = decodeURIComponent((location.pathname.split('/').pop() || '').toLowerCase());
+  var host = document.createElement('div');
+  host.id = 'hbHome';
+  host.setAttribute('data-nogate', '1');
+  host.style.cssText = 'display:block;position:sticky;top:0;z-index:2147483000;margin:0;padding:0;line-height:0';
+  var links = [
+    ['한백택스_세무계산_포털.html', '세무계산 포털'],
+    ['한백택스_모바일.html', '모바일 포털']
+  ].filter(function(l){ return l[0].toLowerCase() !== me; });
+  var sh = host.attachShadow({ mode: 'open' });
+  sh.innerHTML =
+    '<style>' +
+    ':host{all:initial;display:block}' +
+    '.bar{box-sizing:border-box;display:flex;align-items:center;gap:10px;height:42px;padding:0 16px;' +
+      'background:#fff;border-bottom:2px solid #C8963E;box-shadow:0 2px 8px rgba(15,36,64,.08);' +
+      'font-family:"Nanum Gothic","맑은 고딕","Malgun Gothic",sans-serif;font-size:13px;line-height:1;color:#1B3A5C}' +
+    '.home{display:inline-flex;align-items:center;gap:7px;background:#C8963E;color:#fff;font-weight:800;' +
+      'padding:3px 13px 3px 3px;border-radius:999px;text-decoration:none;white-space:nowrap;letter-spacing:-.2px}' +
+    '.mk{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#fff;flex:none}' +
+    '.mk img{width:24px;height:24px;display:block}' +
+    '.home:hover{background:#b8862f}' +
+    '.ttl{font-weight:700;color:#1B3A5C;white-space:nowrap;opacity:.85}' +
+    '.sp{flex:1}' +
+    '.lnk{color:#35507A;font-weight:700;text-decoration:none;padding:6px 10px;border:1px solid #DCE5F0;border-radius:999px;white-space:nowrap;background:#F5F8FC}' +
+    '.lnk:hover{border-color:#C8963E;color:#1B3A5C}' +
+    '@media(max-width:640px){.bar{padding:0 10px;gap:6px;height:40px}.ttl{display:none}.lnk{padding:6px 8px;font-size:12px}}' +
+    '@media print{.bar{display:none}}' +
+    '</style>' +
+    '<div class="bar">' +
+      '<a class="home" href="index.html" title="한백택스 세무 도구 모음(메인 화면)으로"><span class="mk"><img src="logo-mark.png" alt="HB"></span>&#8592; 메인 화면</a>' +
+      '<span class="ttl">세무법인 한백택스 · 세무 도구</span>' +
+      '<span class="sp"></span>' +
+      links.map(function(l){ return '<a class="lnk" href="' + l[0] + '">' + l[1] + '</a>'; }).join('') +
+    '</div>';
+  var s = document.currentScript;
+  if (s && s.parentNode) s.parentNode.insertBefore(host, s);
+  else document.body.insertBefore(host, document.body.firstChild);
+})();
+</script>
+<!-- /HB-HOME -->
+<main>
+<div class="card">
+  <h1>도장 이미지 만들기</h1>
+  <div class="sub">이름이나 상호를 넣으면 성명인·법인 인감·사각 직인·사업자 고무인·업무 스탬프를 <b>배경이 투명한 PNG 이미지</b>로 만들어 드립니다. 아래 <b>모아 보기</b>에서 글꼴·모양을 한눈에 비교하고 마음에 드는 것을 누르면 됩니다. 입력한 내용은 이 브라우저 안에서만 그려지고 어디로도 전송되지 않습니다.</div>
+</div>
+
+<div class="layout">
+<!-- ───── 왼쪽: 설정 ───── -->
+<div class="card" id="ctl">
+  <h3>1. 종류</h3>
+  <div class="tabs" id="groups">
+    <button class="tab" data-g="p">개인 도장</button>
+    <button class="tab" data-g="c">법인 · 사업자</button>
+    <button class="tab" data-g="w">업무 스탬프</button>
+  </div>
+  <div class="chips" id="types"></div>
+
+  <h3>2. 내용</h3>
+  <div data-show="p_round p_oval p_square">
+    <div class="row"><label for="f_name">이름</label><input type="text" id="f_name" data-k="name" maxlength="12" placeholder="예: 홍길동"></div>
+    <div class="row"><label for="f_suffix">끝 글자</label>
+      <select id="f_suffix" data-k="suffix"><option value="">없음</option><option value="인">인</option><option value="印">印</option><option value="之印">之印</option><option value="지인">지인</option></select></div>
+  </div>
+  <div data-show="c_round">
+    <div class="row"><label for="f_corp1">둘레 글자</label><input type="text" id="f_corp1" data-k="corp" maxlength="30" placeholder="예: 주식회사 한백"></div>
+    <div class="row"><label for="f_center">가운데 글자</label><input type="text" id="f_center" data-k="center" maxlength="8" placeholder="예: 대표이사인"></div>
+    <div class="hint">법인 인감은 보통 둘레에 법인명, 가운데에 「대표이사인」·「대표이사지인」을 넣습니다.</div>
+  </div>
+  <div data-show="c_square">
+    <div class="row"><label for="f_corp2">상호</label><input type="text" id="f_corp2" data-k="corp" maxlength="30" placeholder="예: 주식회사 한백"></div>
+    <div class="row"><label for="f_csuffix">끝 글자</label>
+      <select id="f_csuffix" data-k="csuffix"><option value="">없음</option><option value="인">인</option><option value="印">印</option><option value="之印">之印</option><option value="직인">직인</option><option value="지인">지인</option></select></div>
+  </div>
+  <div data-show="c_biz">
+    <div class="row"><label for="f_regno">등록번호</label><input type="text" id="f_regno" data-k="regno" maxlength="20" placeholder="123-45-67890"></div>
+    <div class="row2">
+      <div class="row"><label for="f_biz">상호</label><input type="text" id="f_biz" data-k="biz" maxlength="30"></div>
+      <div class="row"><label for="f_ceo">성명</label><input type="text" id="f_ceo" data-k="ceo" maxlength="15"></div>
+    </div>
+    <div class="row"><label for="f_addr">사업장 주소</label><input type="text" id="f_addr" data-k="addr" maxlength="60"></div>
+    <div class="row2">
+      <div class="row"><label for="f_uptae">업태</label><input type="text" id="f_uptae" data-k="uptae" maxlength="30"></div>
+      <div class="row"><label for="f_jong">종목</label><input type="text" id="f_jong" data-k="jong" maxlength="30"></div>
+    </div>
+    <div class="hint">세금계산서·영수증·거래명세서에 찍는 사업자 고무인입니다. 빈 칸은 제목만 남습니다.</div>
+  </div>
+  <div data-show="w_label">
+    <div class="row"><label for="f_label">문구</label><input type="text" id="f_label" data-k="label" maxlength="8" list="labelList" placeholder="예: 원본대조필"></div>
+    <datalist id="labelList"><option value="원본대조필"><option value="확인"><option value="검토필"><option value="수령"><option value="접수"><option value="결재"><option value="사본"><option value="완납"><option value="지급완료"><option value="기장완료"><option value="대외비"><option value="초안"><option value="정정"><option value="보관용"></datalist>
+    <div class="row"><label for="f_l2mode">둘째 줄</label>
+      <select id="f_l2mode" data-k="l2mode"><option value="date">날짜</option><option value="text">직접 입력</option><option value="none">없음</option></select></div>
+    <div class="row" data-l2="text"><label for="f_l2">둘째 줄 글자</label><input type="text" id="f_l2" data-k="l2" maxlength="30"></div>
+    <div class="row"><label for="f_l3">셋째 줄</label><input type="text" id="f_l3" data-k="l3" maxlength="30" placeholder="예: 세무법인 한백택스 / 담당 김○○"></div>
+    <div class="row"><label for="f_lshape">테두리 모양</label>
+      <select id="f_lshape" data-k="lshape"><option value="rect">네모</option><option value="round">둥근 네모</option></select></div>
+  </div>
+  <div data-show="w_date">
+    <div class="row"><label for="f_dtop">윗줄</label><input type="text" id="f_dtop" data-k="dtop" maxlength="12" placeholder="예: 접 수"></div>
+    <div class="row"><label for="f_dbot">아랫줄</label><input type="text" id="f_dbot" data-k="dbot" maxlength="12" placeholder="예: 한백택스"></div>
+  </div>
+  <div data-show="w_label w_date">
+    <div class="row"><label for="f_date">날짜</label><input type="date" id="f_date" data-k="date"></div>
+    <div class="row"><label for="f_dfmt">날짜 표시</label>
+      <select id="f_dfmt" data-k="dfmt"><option value="dot">2026.11.18</option><option value="dash">2026-11-18</option><option value="short">'26.11.18</option><option value="kor">2026. 11. 18.</option></select></div>
+  </div>
+  <div data-show="w_appr">
+    <div class="row"><label for="f_appr">칸 제목</label><input type="text" id="f_appr" data-k="appr" maxlength="60" placeholder="쉼표로 구분: 담당,팀장,대표"></div>
+    <div class="row"><label for="f_aside">왼쪽 글자</label><input type="text" id="f_aside" data-k="aside" maxlength="4" placeholder="예: 결재 (비우면 없음)"></div>
+  </div>
+
+  <h3>3. 모양 · 색</h3>
+  <div class="row"><label for="f_font">글꼴</label><select id="f_font" data-k="font"></select></div>
+  <div class="row"><label>인주 색</label>
+    <div class="colors" id="colors"><input type="color" id="f_color" data-k="color" title="직접 고르기"></div></div>
+  <div class="row" data-show="p_round p_oval p_square c_square"><label>새김</label>
+    <div class="inl"><label><input type="radio" name="style" value="yang" data-k="style"> 양각 (글자가 빨강)</label><label><input type="radio" name="style" value="eum" data-k="style"> 음각 (바탕이 빨강)</label></div></div>
+  <div class="row" data-show="p_round p_oval p_square c_round c_square"><label>글자 방향</label>
+    <div class="inl"><label><input type="radio" name="layout" value="v" data-k="layout"> 세로쓰기 (오른쪽부터)</label><label><input type="radio" name="layout" value="h" data-k="layout"> 가로쓰기</label></div></div>
+  <div class="row"><label for="f_border">테두리 굵기</label><div class="rng"><input type="range" id="f_border" data-k="border" min="1" max="10" step="1"><span class="val" id="v_border"></span></div></div>
+  <div class="row"><label>옵션</label>
+    <div class="inl"><label><input type="checkbox" data-k="dbl"> 이중 테두리</label><label data-show="p_round p_oval p_square c_round c_square w_label"><input type="checkbox" data-k="stretch"> 글자 꽉 채우기</label></div></div>
+
+  <h3>4. 찍힌 느낌</h3>
+  <div class="row"><label for="f_rough">인주 번짐·빈틈</label><div class="rng"><input type="range" id="f_rough" data-k="rough" min="0" max="100" step="5"><span class="val" id="v_rough"></span></div></div>
+  <div class="row"><label for="f_tilt">기울기</label><div class="rng"><input type="range" id="f_tilt" data-k="tilt" min="-15" max="15" step="1"><span class="val" id="v_tilt"></span></div></div>
+  <div class="bar"><button class="btn" id="reseed" type="button">다시 찍기 (질감 새로)</button><button class="btn" id="reset" type="button">처음 값으로</button></div>
+</div>
+
+<!-- ───── 오른쪽: 미리보기 ───── -->
+<div class="sticky">
+  <div class="card">
+    <h2 id="pvTitle">미리보기</h2>
+    <div id="pv" class="paper"></div>
+    <div class="bar" style="justify-content:space-between">
+      <div class="inl"><span style="color:var(--gray);font-weight:700">바탕</span>
+        <label><input type="radio" name="bg" value="paper" data-k="bg"> 종이</label>
+        <label><input type="radio" name="bg" value="white" data-k="bg"> 흰색</label>
+        <label><input type="radio" name="bg" value="check" data-k="bg"> 투명 확인</label></div>
+      <span class="hint" id="pxInfo"></span>
+    </div>
+    <div class="bar">
+      <select id="f_size" data-k="size" style="width:auto">
+        <option value="400">작게 (400px)</option><option value="800">보통 (800px)</option><option value="1200">크게 (1200px)</option><option value="2000">인쇄용 (2000px)</option>
+      </select>
+      <button class="btn p" id="dl" type="button">PNG 저장</button>
+      <button class="btn n" id="cp" type="button">이미지 복사</button>
+    </div>
+    <div id="msg"></div>
+  </div>
+</div>
+</div>
+
+<div class="card">
+  <h2>모아 보기 — 누르면 위에 적용됩니다</h2>
+  <div class="bar" style="margin:0 0 8px"><span style="color:var(--gray);font-weight:700;font-size:13px">모양</span><div class="chips" id="galShapes"></div></div>
+  <div class="inl" style="margin-bottom:8px"><label><input type="checkbox" data-k="galVar"> 변형도 함께 보기 (음각 · 이중 테두리)</label></div>
+  <div class="sub" id="galInfo" style="margin-bottom:10px"></div>
+  <div class="gal" id="gal"></div>
+</div>
+
+<div class="card">
+  <h2>문서에 넣는 방법</h2>
+  <div class="hint">
+    <b>한글(HWP)</b> — 입력 › 그림 › 그림 넣기 → 그림을 고른 뒤 개체 속성에서 <b>본문과의 배치: 글 앞으로</b>, 크기를 아래 표처럼 mm로 맞춥니다. 「(인)」 글자 위에 겹치면 실제로 찍은 것처럼 보입니다.<br>
+    <b>워드</b> — 삽입 › 그림 → 레이아웃 옵션 <b>텍스트 앞</b>. 「이미지 복사」 후 붙여 넣어도 됩니다.<br>
+    <b>PDF 전자서명</b> — 서명 도구의 이미지 서명에 저장한 PNG를 등록합니다. 배경이 투명하므로 글자가 비칩니다.
+  </div>
+  <table class="sz">
+    <tr><th>종류</th><th>흔히 쓰는 크기</th></tr>
+    <tr><td>개인 성명인(원형·사각)</td><td>지름·한 변 12~15mm</td></tr>
+    <tr><td>타원 성명인</td><td>가로 10~12mm × 세로 14~16mm</td></tr>
+    <tr><td>법인 원형 인감 · 사각 직인</td><td>지름·한 변 18~24mm</td></tr>
+    <tr><td>사업자 고무인</td><td>가로 60~75mm</td></tr>
+    <tr><td>업무 스탬프 · 날짜 도장 · 결재란</td><td>가로 30~60mm (문서 여백에 맞춤)</td></tr>
+  </table>
+  <div class="warn" style="margin-top:12px">
+    이 이미지는 전자문서 날인·견본·사내 결재용입니다. 주민센터에 등록한 <b>인감</b>이나 등기소에 신고한 <b>법인 인감</b>을 대신할 수 없으며, 인감증명서가 필요한 서류에는 실제 인감을 찍어야 합니다.
+    본인 또는 권한을 받은 명의로만 만드십시오. 다른 사람 명의의 도장 이미지를 만들어 문서에 쓰면 사문서위조 등에 해당할 수 있습니다.
+  </div>
+</div>
+</main>
+
+<script>
+(function(){
+'use strict';
+/* ══════════ 기준값 ══════════ */
+const FONTS = [
+  {id:'myeongjo', n:'나눔명조',      fam:'Nanum Myeongjo',     w:800},
+  {id:'songmyung',n:'송명 (전통)',   fam:'Song Myung',         w:400},
+  {id:'hahmlet',  n:'함렛 (굵은 명조)',fam:'Hahmlet',           w:900},
+  {id:'gowun',    n:'고운바탕',      fam:'Gowun Batang',       w:700},
+  {id:'brush',    n:'나눔 붓글씨',   fam:'Nanum Brush Script', w:400},
+  {id:'dokdo',    n:'동해독도 (붓펜)',fam:'East Sea Dokdo',     w:400},
+  {id:'blackhan', n:'검은고딕',      fam:'Black Han Sans',     w:400},
+  {id:'dohyeon',  n:'도현',          fam:'Do Hyeon',           w:400},
+  {id:'gothic',   n:'나눔고딕 굵게', fam:'Nanum Gothic',       w:800},
+  {id:'yeonsung', n:'연성 (손글씨)', fam:'Yeon Sung',          w:400},
+  {id:'gugi',     n:'구기 (장식)',   fam:'Gugi',               w:400}
+];
+const FONT = {}; FONTS.forEach(f => FONT[f.id] = f);
+const TYPES = [
+  {id:'p_round', g:'p', n:'원형 성명인'},
+  {id:'p_oval',  g:'p', n:'타원 성명인'},
+  {id:'p_square',g:'p', n:'사각 성명인'},
+  {id:'c_round', g:'c', n:'법인 원형 인감'},
+  {id:'c_square',g:'c', n:'사각 직인'},
+  {id:'c_biz',   g:'c', n:'사업자 고무인'},
+  {id:'w_label', g:'w', n:'업무 스탬프'},
+  {id:'w_date',  g:'w', n:'날짜 도장'},
+  {id:'w_appr',  g:'w', n:'결재란'}
+];
+const TYPE = {}; TYPES.forEach(t => TYPE[t.id] = t);
+const INKS = [
+  ['#D0261D','인주 빨강'],['#E0412B','주홍'],['#A3121B','진홍'],['#1E4FA8','파랑'],['#1B3A5C','남색'],['#222222','검정']
+];
+const todayStr = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
+const DEF = {
+  type:'p_round', font:'myeongjo', color:'#D0261D', style:'yang', layout:'v', border:4, dbl:false, stretch:true,
+  rough:35, tilt:0, seed:7, size:800, bg:'paper', galShape:'', galVar:false,
+  name:'홍길동', suffix:'인', corp:'주식회사 한백', center:'대표이사인', csuffix:'인',
+  regno:'123-45-67890', biz:'한백상사', ceo:'홍길동', addr:'서울특별시 중구 동호로 315', uptae:'서비스', jong:'세무회계',
+  label:'원본대조필', l2mode:'date', l2:'', l3:'세무법인 한백택스', lshape:'rect',
+  dtop:'접 수', dbot:'한백택스', date:'', dfmt:'dot',
+  appr:'담당,팀장,대표', aside:'결재'
+};
+const LSK = 'hbt_stamp_v1';
+function load(){ try{ const v = JSON.parse(localStorage.getItem(LSK) || 'null'); return v && typeof v === 'object' ? v : {}; }catch(e){ return {}; } }
+function save(){ try{ const o = Object.assign({}, st); delete o.date; localStorage.setItem(LSK, JSON.stringify(o)); }catch(e){} }
+let st = Object.assign({}, DEF, load());
+st.date = todayStr();                       /* 날짜는 늘 오늘로 시작 */
+if (!TYPE[st.type]) st.type = DEF.type;
+if (!FONT[st.font]) st.font = DEF.font;
+
+/* ══════════ 그리기 도구 ══════════ */
+const fstr = (f, px) => f.w + ' ' + px + 'px "' + f.fam + '", "Nanum Myeongjo", serif';
+function mk(w, h){ const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; }
+function rrect(x, a, b, w, h, r){
+  r = Math.max(0, Math.min(r, w/2, h/2));
+  x.beginPath(); x.moveTo(a+r, b); x.lineTo(a+w-r, b); x.quadraticCurveTo(a+w, b, a+w, b+r);
+  x.lineTo(a+w, b+h-r); x.quadraticCurveTo(a+w, b+h, a+w-r, b+h); x.lineTo(a+r, b+h);
+  x.quadraticCurveTo(a, b+h, a, b+h-r); x.lineTo(a, b+r); x.quadraticCurveTo(a, b, a+r, b); x.closePath();
+}
+function line(x, a, b, c, d){ x.beginPath(); x.moveTo(a, b); x.lineTo(c, d); x.stroke(); }
+const bx = (cx, cy, w, h) => ({x:cx-w/2, y:cy-h/2, w:w, h:h});
+function rng(seed){ let a = seed >>> 0; return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+/* 글자 하나를 칸(w×h)에 맞춰 가운데 그린다. stretch 면 칸 비율에 맞게 늘린다(도장 글자 관행) */
+function glyph(x, ch, cx, cy, w, h, f, stretch){
+  if (!ch || !ch.trim()) return;
+  const P = 200; x.font = fstr(f, P);
+  const m = x.measureText(ch);
+  const L = m.actualBoundingBoxLeft || 0, R = m.actualBoundingBoxRight || m.width;
+  const A = m.actualBoundingBoxAscent || P*0.8, D = m.actualBoundingBoxDescent || 0;
+  const gw = Math.max(1, L + R), gh = Math.max(1, A + D);
+  let sx = w / gw, sy = h / gh;
+  if (stretch){ if (sx > sy*1.7) sx = sy*1.7; if (sy > sx*1.9) sy = sx*1.9; }
+  else { sx = sy = Math.min(sx, sy); }
+  x.save(); x.translate(cx, cy); x.scale(sx, sy);
+  x.textAlign = 'left'; x.textBaseline = 'alphabetic';
+  x.fillText(ch, -(R - L)/2, (A - D)/2);
+  x.restore();
+}
+/* 한 줄 글. 높이는 한글 기준으로 맞추고, 넓으면 가로만 줄인다. align: center|left */
+function textLine(x, str, cx, cy, w, h, f, align){
+  str = String(str || ''); if (!str.trim()) return;
+  const P = 200; x.font = fstr(f, P);
+  const ref = x.measureText('한글'), A = ref.actualBoundingBoxAscent || P*0.8, D = ref.actualBoundingBoxDescent || P*0.1;
+  const s = h / (A + D); let sx = s;
+  const tw = x.measureText(str).width;
+  if (tw * s > w) sx = w / tw;
+  x.save(); x.translate(cx, cy); x.scale(sx, s);
+  x.textAlign = align || 'center'; x.textBaseline = 'alphabetic';
+  x.fillText(str, 0, (A - D)/2);
+  x.restore();
+}
+/* 칸 나누기 — 세로쓰기는 오른쪽 줄부터 위→아래. 남는 글자는 왼쪽(가로쓰기는 아래) 줄로 */
+function grid(x, chars, box, f, stretch, layout){
+  const n = chars.length; if (!n) return;
+  const L = n <= 2 ? 1 : n <= 6 ? 2 : n <= 12 ? 3 : 4;
+  const base = Math.floor(n / L), extra = n % L, counts = [];
+  for (let i = 0; i < L; i++) counts.push(base + (i >= L - extra ? 1 : 0));
+  let idx = 0;
+  if (layout === 'h'){
+    const gap = box.h * 0.05, rh = (box.h - gap*(L-1)) / L;
+    for (let i = 0; i < L; i++){
+      const k = counts[i], g2 = box.w * 0.04, cw = (box.w - g2*(k-1)) / k, y = box.y + (rh+gap)*i + rh/2;
+      for (let j = 0; j < k; j++) glyph(x, chars[idx++], box.x + (cw+g2)*j + cw/2, y, cw, rh, f, stretch);
+    }
+  } else {
+    const gap = box.w * 0.05, cw = (box.w - gap*(L-1)) / L;
+    for (let i = 0; i < L; i++){
+      const k = counts[i], g2 = box.h * 0.04, rh = (box.h - g2*(k-1)) / k, cx = box.x + box.w - (cw+gap)*i - cw/2;
+      for (let j = 0; j < k; j++) glyph(x, chars[idx++], cx, box.y + (rh+g2)*j + rh/2, cw, rh, f, stretch);
+    }
+  }
+}
+const chars = s => Array.from(String(s || '').replace(/\s+/g, ''));
+function fmtDate(v, fmt){
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ''); if (!m) return '';
+  if (fmt === 'dash') return m[1] + '-' + m[2] + '-' + m[3];
+  if (fmt === 'short') return "'" + m[1].slice(2) + '.' + m[2] + '.' + m[3];
+  if (fmt === 'kor') return m[1] + '. ' + (+m[2]) + '. ' + (+m[3]) + '.';
+  return m[1] + '.' + m[2] + '.' + m[3];
+}
+function star(x, cx, cy, r){
+  x.beginPath();
+  for (let i = 0; i < 10; i++){ const a = -Math.PI/2 + i*Math.PI/5, rr = i % 2 ? r*0.42 : r; x.lineTo(cx + rr*Math.cos(a), cy + rr*Math.sin(a)); }
+  x.closePath(); x.fill();
+}
+
+/* ══════════ 종류별 ══════════ */
+function seal(x, W, H, S, o, f, lw, shape, list){
+  const m = lw/2 + S*0.02, cx = W/2, cy = H/2, eum = o.style === 'eum';
+  const path = ins => {
+    x.beginPath();
+    if (shape === 'round') x.arc(cx, cy, W/2 - m - ins, 0, Math.PI*2);
+    else if (shape === 'oval') x.ellipse(cx, cy, W/2 - m - ins, H/2 - m - ins, 0, 0, Math.PI*2);
+    else rrect(x, m+ins, m+ins, W - 2*(m+ins), H - 2*(m+ins), Math.max(0, S*0.035 - ins*0.5));
+  };
+  if (eum){ path(0); x.fill(); } else { x.lineWidth = lw; path(0); x.stroke(); }
+  let inner = lw*0.9;
+  if (o.dbl){
+    const d = lw*1.9; x.lineWidth = Math.max(1, lw*0.4);
+    if (eum){ x.save(); x.globalCompositeOperation = 'destination-out'; path(d); x.stroke(); x.restore(); }
+    else { path(d); x.stroke(); }
+    inner = d + lw*0.7;
+  }
+  const one = list.length <= 2, h = o.layout === 'h';
+  let box;
+  if (shape === 'round'){
+    const r = W/2 - m - inner - S*0.025;
+    box = one ? (h ? bx(cx, cy, r*1.6, r*1.0) : bx(cx, cy, r*1.0, r*1.6)) : bx(cx, cy, r*1.37, r*1.37);
+  } else if (shape === 'oval'){
+    const rx = W/2 - m - inner - S*0.02, ry = H/2 - m - inner - S*0.02;
+    box = one ? (h ? bx(cx, cy, rx*1.5, ry*0.9) : bx(cx, cy, rx*1.15, ry*1.55)) : bx(cx, cy, rx*1.36, ry*1.4);
+  } else {
+    const p = m + inner + S*0.03; box = {x:p, y:p, w:W - 2*p, h:H - 2*p};
+    if (one && list.length === 1) box = bx(cx, cy, box.w*0.8, box.h*0.8);
+    else if (one) box = h ? bx(cx, cy, box.w, box.h*0.62) : bx(cx, cy, box.w*0.62, box.h);
+  }
+  if (eum){ x.save(); x.globalCompositeOperation = 'destination-out'; }
+  grid(x, list, box, f, o.stretch, o.layout);
+  if (eum) x.restore();
+}
+function corpRound(x, W, H, S, o, f, lw){
+  const cx = W/2, cy = H/2, m = lw/2 + S*0.02, R = W/2 - m;
+  const circ = r => { x.beginPath(); x.arc(cx, cy, r, 0, Math.PI*2); x.stroke(); };
+  x.lineWidth = lw; circ(R);
+  let Ro = R - lw*0.6;
+  if (o.dbl){ x.lineWidth = Math.max(1, lw*0.4); circ(R - lw*1.7); Ro = R - lw*1.9; }
+  const Ri = R*0.58; x.lineWidth = lw*0.75; circ(Ri);
+  const ri = Ri + lw*0.45, t = Ro - ri, rm = (Ro + ri)/2;
+  const ring = chars(o.corp), n = ring.length;
+  if (n){
+    const ideal = t*0.95/rm, gap = Math.max(ideal*1.6, Math.PI*2*0.1);
+    let a = Math.min((Math.PI*2 - gap)/n, ideal*1.45), span = a*n;
+    const cw = Math.min(a, ideal)*rm*0.86;
+    for (let i = 0; i < n; i++){
+      const th = -span/2 + a*(i + 0.5);
+      x.save(); x.translate(cx + rm*Math.sin(th), cy - rm*Math.cos(th)); x.rotate(th);
+      glyph(x, ring[i], 0, 0, cw, t*0.7, f, true); x.restore();
+    }
+    if (span > Math.PI*2*0.72) star(x, cx, cy + rm, t*0.2);
+  }
+  const ct = chars(o.center), r = Ri - lw*0.4 - S*0.02, one = ct.length <= 2;
+  const box = one ? (o.layout === 'h' ? bx(cx, cy, r*1.55, r*0.95) : bx(cx, cy, r*0.95, r*1.55)) : bx(cx, cy, r*1.36, r*1.36);
+  grid(x, ct, box, f, o.stretch, o.layout);
+}
+function biz(x, W, H, S, o, f, lw){
+  const m = lw/2 + S*0.015, X0 = m, Y0 = m, X1 = W - m, Y1 = H - m;
+  x.lineWidth = lw; x.strokeRect(X0, Y0, X1 - X0, Y1 - Y0);
+  const rows = [[['등록번호', o.regno]], [['상  호', o.biz], ['성  명', o.ceo]], [['사 업 장', o.addr]], [['업  태', o.uptae], ['종  목', o.jong]]];
+  const rh = (Y1 - Y0)/rows.length, lab = (X1 - X0)*0.15;
+  x.lineWidth = Math.max(1, lw*0.5);
+  rows.forEach((row, ri) => {
+    const y = Y0 + rh*ri, cw = (X1 - X0)/row.length;
+    if (ri) line(x, X0, y, X1, y);
+    row.forEach((cell, ci) => {
+      const c0 = X0 + cw*ci;
+      if (ci) line(x, c0, y, c0, y + rh);
+      line(x, c0 + lab, y, c0 + lab, y + rh);
+      textLine(x, cell[0], c0 + lab/2, y + rh/2, lab*0.84, rh*0.34, f, 'center');
+      textLine(x, cell[1], c0 + lab + (cw - lab)/2, y + rh/2, (cw - lab)*0.9, rh*(ri === 0 ? 0.5 : 0.4), f, 'center');
+    });
+  });
+}
+function labelSubs(o){
+  const a = [];
+  if (o.l2mode === 'date'){ const d = fmtDate(o.date, o.dfmt); if (d) a.push(d); }
+  else if (o.l2mode === 'text' && String(o.l2 || '').trim()) a.push(String(o.l2).trim());
+  if (String(o.l3 || '').trim()) a.push(String(o.l3).trim());
+  return a;
+}
+const labelH = (o, S) => Math.round(S*(0.34 + 0.13*labelSubs(o).length));
+function label(x, W, H, S, o, f, lw){
+  const m = lw/2 + S*0.02, rad = o.lshape === 'round' ? Math.min(W, H)*0.16 : S*0.008;
+  x.lineWidth = lw; rrect(x, m, m, W - 2*m, H - 2*m, rad); x.stroke();
+  let ins = lw*0.9;
+  if (o.dbl){ const d = lw*1.8; x.lineWidth = Math.max(1, lw*0.4); rrect(x, m+d, m+d, W - 2*(m+d), H - 2*(m+d), Math.max(0, rad - d)); x.stroke(); ins = d + lw*0.6; }
+  const p = m + ins + S*0.03, iw = W - 2*p, subs = labelSubs(o);
+  const mainH = S*0.17, subH = S*0.072, sg = S*0.058;
+  let y = (H - (mainH + subs.length*(subH + sg)))/2;
+  const cs = chars(o.label), n = cs.length;
+  if (n){
+    const cw = Math.min(iw/n, mainH*(n <= 2 ? 1.3 : 1.05)), x0 = W/2 - cw*n/2;
+    cs.forEach((c, i) => glyph(x, c, x0 + cw*i + cw/2, y + mainH/2, cw*0.88, mainH, f, o.stretch));
+  }
+  y += mainH;
+  if (subs.length){ x.lineWidth = Math.max(1, lw*0.45); line(x, p, y + sg*0.5, W - p, y + sg*0.5); }
+  subs.forEach(s => { y += sg; textLine(x, s, W/2, y + subH/2, iw*0.96, subH, f, 'center'); y += subH; });
+}
+function dateStamp(x, W, H, S, o, f, lw){
+  const cx = W/2, cy = H/2, m = lw/2 + S*0.02, R = W/2 - m;
+  const circ = r => { x.beginPath(); x.arc(cx, cy, r, 0, Math.PI*2); x.stroke(); };
+  x.lineWidth = lw; circ(R);
+  let Ri = R - lw*0.6;
+  if (o.dbl){ x.lineWidth = Math.max(1, lw*0.4); circ(R - lw*1.7); Ri = R - lw*1.9; }
+  const b = Ri*0.24, hw = Math.sqrt(Ri*Ri - b*b);
+  x.lineWidth = Math.max(1, lw*0.6);
+  line(x, cx - hw, cy - b, cx + hw, cy - b); line(x, cx - hw, cy + b, cx + hw, cy + b);
+  const yy = (b + Ri)/2 - Ri*0.04, cw = 2*Math.sqrt(Ri*Ri - yy*yy)*0.86;
+  textLine(x, o.dtop, cx, cy - yy, cw, (Ri - b)*0.36, f, 'center');
+  textLine(x, fmtDate(o.date, o.dfmt), cx, cy, 2*hw*0.86, b*1.05, f, 'center');
+  textLine(x, o.dbot, cx, cy + yy, cw, (Ri - b)*0.36, f, 'center');
+}
+function apprCols(o){ const a = String(o.appr || '').split(/[,，、\/]/).map(s => s.trim()).filter(Boolean).slice(0, 8); return a.length ? a : ['담당']; }
+function apprH(o, S){
+  const n = apprCols(o).length, side = chars(o.aside).length ? S*0.09 : 0, cw = (S - side - S*0.06)/n;
+  const c = Math.min(cw, S*0.28); return Math.round(c*0.34 + c*0.86 + S*0.06);
+}
+function appr(x, W, H, S, o, f, lw){
+  const m = S*0.03, cols = apprCols(o), sc = chars(o.aside), side = sc.length ? S*0.09 : 0;
+  const X0 = m, Y0 = m, IW = W - 2*m, IH = H - 2*m, headH = IH*0.28, cw = (IW - side)/cols.length;
+  x.lineWidth = lw; x.strokeRect(X0, Y0, IW, IH);
+  x.lineWidth = Math.max(1, lw*0.55);
+  if (side){
+    line(x, X0 + side, Y0, X0 + side, Y0 + IH);
+    const k = sc.length, ch = IH*0.78/k;
+    sc.forEach((c, i) => glyph(x, c, X0 + side/2, Y0 + IH*0.11 + ch*i + ch/2, side*0.56, ch*0.8, f, false));
+  }
+  line(x, X0 + side, Y0 + headH, X0 + IW, Y0 + headH);
+  cols.forEach((t, i) => {
+    const c0 = X0 + side + cw*i;
+    if (i) line(x, c0, Y0, c0, Y0 + IH);
+    textLine(x, t, c0 + cw/2, Y0 + headH/2, cw*0.84, headH*0.42, f, 'center');
+  });
+}
+
+/* 인주 질감 — 작은 빈틈·번짐을 지워 낸다(같은 seed 면 같은 모양) */
+function texture(c, rough, seed){
+  const k = (+rough || 0)/100; if (k <= 0) return;
+  const W = c.width, H = c.height, r = rng(seed), n = mk(W, H), g = n.getContext('2d'), u = Math.max(W, H)/300;
+  g.fillStyle = '#000';
+  const blot = Math.round(W*H/900*k*0.55);
+  for (let i = 0; i < blot; i++){ g.globalAlpha = 0.12 + r()*0.55*k; g.beginPath(); g.arc(r()*W, r()*H, (0.4 + r()*2.4)*u, 0, Math.PI*2); g.fill(); }
+  const dust = Math.round(W*H/70*k*0.22);
+  for (let i = 0; i < dust; i++){ g.globalAlpha = 0.35 + r()*0.65; const s = (0.25 + r()*0.6)*u; g.fillRect(r()*W, r()*H, s, s); }
+  const fade = 2 + Math.round(r()*3);
+  for (let i = 0; i < fade; i++){
+    const px = r()*W, py = r()*H, rad = (0.15 + r()*0.3)*Math.max(W, H);
+    const gr = g.createRadialGradient(px, py, 0, px, py, rad);
+    gr.addColorStop(0, 'rgba(0,0,0,' + (0.28*k).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.globalAlpha = 1; g.fillStyle = gr; g.fillRect(0, 0, W, H); g.fillStyle = '#000';
+  }
+  const x = c.getContext('2d');
+  x.save(); x.globalCompositeOperation = 'destination-out'; x.drawImage(n, 0, 0); x.restore();
+}
+function rotate(c, deg){
+  if (!+deg) return c;
+  const a = deg*Math.PI/180, W = c.width, H = c.height, cs = Math.abs(Math.cos(a)), sn = Math.abs(Math.sin(a));
+  const o = mk(W*cs + H*sn, W*sn + H*cs), x = o.getContext('2d');
+  x.translate(o.width/2, o.height/2); x.rotate(a); x.drawImage(c, -W/2, -H/2);
+  return o;
+}
+function draw(o, S){
+  const T = o.type, f = FONT[o.font] || FONTS[0];
+  let W = S, H = S;
+  if (T === 'p_oval') W = Math.round(S*0.76);
+  else if (T === 'c_biz') H = Math.round(S*0.46);
+  else if (T === 'w_label') H = labelH(o, S);
+  else if (T === 'w_appr') H = apprH(o, S);
+  const c = mk(W, H), x = c.getContext('2d');
+  x.fillStyle = x.strokeStyle = o.color || '#D0261D'; x.lineJoin = 'round';
+  const lw = S*(0.006 + (+o.border || 4)*0.0045);
+  if (T === 'p_round') seal(x, W, H, S, o, f, lw, 'round', chars(o.name + (o.suffix || '')));
+  else if (T === 'p_oval') seal(x, W, H, S, o, f, lw, 'oval', chars(o.name + (o.suffix || '')));
+  else if (T === 'p_square') seal(x, W, H, S, o, f, lw, 'square', chars(o.name + (o.suffix || '')));
+  else if (T === 'c_square') seal(x, W, H, S, o, f, lw, 'square', chars(o.corp + (o.csuffix || '')));
+  else if (T === 'c_round') corpRound(x, W, H, S, o, f, lw);
+  else if (T === 'c_biz') biz(x, W, H, S, o, f, lw);
+  else if (T === 'w_label') label(x, W, H, S, o, f, lw);
+  else if (T === 'w_date') dateStamp(x, W, H, S, o, f, lw);
+  else if (T === 'w_appr') appr(x, W, H, S, o, f, lw);
+  texture(c, o.rough, o.seed);
+  return rotate(c, o.tilt);
+}
+
+/* ══════════ 글꼴 불러오기 ══════════ */
+function allText(){
+  return ['name','suffix','corp','center','csuffix','regno','biz','ceo','addr','uptae','jong','label','l2','l3','dtop','dbot','appr','aside']
+    .map(k => st[k] || '').join('') + '0123456789.-\'등록번호상호성명사업장업태종목한글';
+}
+function loadFonts(list){
+  if (!document.fonts || !document.fonts.load) return Promise.resolve();
+  const t = allText();
+  return Promise.all(list.map(f => document.fonts.load(fstr(f, 48), t).catch(() => null)));
+}
+
+/* ══════════ 화면 ══════════ */
+const $ = s => document.querySelector(s), $$ = s => Array.from(document.querySelectorAll(s));
+let mainCanvas = null;
+const msg = (t, cls) => { const m = $('#msg'); m.textContent = t || ''; m.className = cls || ''; };
+
+function buildStatic(){
+  const fs = $('#f_font'); FONTS.forEach(f => { const op = document.createElement('option'); op.value = f.id; op.textContent = f.n; fs.appendChild(op); });
+  const box = $('#colors'), pick = $('#f_color');
+  INKS.forEach(([v, n]) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'sw'; b.style.background = v; b.title = n; b.dataset.ink = v; box.insertBefore(b, pick); });
+}
+function syncForm(){
+  $$('#groups .tab').forEach(b => b.classList.toggle('on', b.dataset.g === TYPE[st.type].g));
+  const tb = $('#types'); tb.textContent = '';
+  TYPES.filter(t => t.g === TYPE[st.type].g).forEach(t => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (t.id === st.type ? ' on' : ''); b.textContent = t.n; b.dataset.t = t.id; tb.appendChild(b);
+  });
+  const gs = $('#galShapes'); gs.textContent = '';
+  if (st.galShape && (!TYPE[st.galShape] || TYPE[st.galShape].g !== TYPE[st.type].g)) st.galShape = '';
+  [{id:'', n:'전체'}].concat(TYPES.filter(t => t.g === TYPE[st.type].g)).forEach(t => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (t.id === st.galShape ? ' on' : ''); b.textContent = t.n; b.dataset.gs = t.id; gs.appendChild(b);
+  });
+  $$('[data-show]').forEach(el => el.classList.toggle('hide', el.dataset.show.split(' ').indexOf(st.type) < 0));
+  $$('[data-l2]').forEach(el => el.classList.toggle('hide', st.type !== 'w_label' || st.l2mode !== el.dataset.l2));
+  $$('[data-k]').forEach(el => {
+    const k = el.dataset.k, v = st[k];
+    if (el.type === 'radio') el.checked = String(v) === el.value;
+    else if (el.type === 'checkbox') el.checked = !!v;
+    else if (document.activeElement !== el) el.value = v == null ? '' : v;
+  });
+  $$('#colors .sw').forEach(b => b.classList.toggle('on', b.dataset.ink.toLowerCase() === String(st.color).toLowerCase()));
+  $('#v_border').textContent = st.border;
+  $('#v_rough').textContent = st.rough + '%';
+  $('#v_tilt').textContent = st.tilt + '°';
+  $('#pv').className = st.bg;
+  $('#pvTitle').textContent = '미리보기 — ' + TYPE[st.type].n + ' · ' + (FONT[st.font] || FONTS[0]).n;
+}
+
+let tMain = 0, tGal = 0, tok = 0, galTok = 0, galKey = '';
+function schedule(gallery){
+  save(); syncForm();
+  clearTimeout(tMain); tMain = setTimeout(renderMain, 90);
+  if (gallery){ clearTimeout(tGal); tGal = setTimeout(renderGallery, 380); } else markGallery();
+}
+async function renderMain(){
+  const my = ++tok;
+  await loadFonts([FONT[st.font] || FONTS[0]]);
+  if (my !== tok) return;
+  const c = draw(st, +st.size || 800);
+  mainCanvas = c;
+  const pv = $('#pv'); pv.textContent = ''; pv.appendChild(c);
+  $('#pxInfo').textContent = c.width + ' × ' + c.height + 'px · 투명 PNG';
+}
+function galTypes(){ return TYPES.filter(t => t.g === TYPE[st.type].g && (!st.galShape || t.id === st.galShape)); }
+const EUM_T = {p_round:1, p_oval:1, p_square:1, c_square:1};
+/* 모아 보기 변형 — 끄면 지금 설정 그대로, 켜면 양각·음각·이중 테두리를 나란히 */
+function galVariants(t){
+  if (!st.galVar) return [{}];
+  const v = [{style:'yang', dbl:false, _n:'양각'}];
+  if (EUM_T[t]) v.push({style:'eum', dbl:false, _n:'음각'});
+  v.push({style:'yang', dbl:true, _n:'이중 테두리'});
+  return v;
+}
+async function renderGallery(){
+  const my = ++galTok, g = $('#gal');
+  $('#galInfo').textContent = '글꼴을 불러오는 중…';
+  await loadFonts(FONTS);
+  if (my !== galTok) return;
+  const types = galTypes();
+  g.textContent = '';
+  const frag = document.createDocumentFragment();
+  let cnt = 0;
+  types.forEach(t => FONTS.forEach(f => galVariants(t.id).forEach(v => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'gi'; b.dataset.t = t.id; b.dataset.f = f.id;
+    if (v.style) { b.dataset.style = v.style; b.dataset.dbl = v.dbl ? '1' : ''; }
+    const o = Object.assign({}, st, {type:t.id, font:f.id}, v);
+    b.appendChild(draw(o, t.id === 'c_biz' || t.id === 'w_appr' || t.id === 'w_label' ? 300 : 220));
+    const s = document.createElement('span'); s.textContent = t.n + ' · ' + f.n + (v._n ? ' · ' + v._n : ''); b.appendChild(s);
+    frag.appendChild(b); cnt++;
+  })));
+  g.appendChild(frag);
+  $('#galInfo').textContent = types.length + '가지 모양 × 글꼴 ' + FONTS.length + '종' + (st.galVar ? ' × 변형' : '') + ' = ' + cnt + '개. 색·질감·테두리 굵기는 위 설정을 따릅니다.';
+  markGallery();
+}
+function markGallery(){ $$('#gal .gi').forEach(b => b.classList.toggle('on', b.dataset.t === st.type && b.dataset.f === st.font && (!b.dataset.style || (b.dataset.style === st.style && !!b.dataset.dbl === !!st.dbl)))); }
+
+/* ── 입력 ── */
+const NUM = {border:1, rough:1, tilt:1, size:1};
+function onField(e){
+  const el = e.target, k = el.dataset && el.dataset.k; if (!k) return;
+  if (el.type === 'radio' && !el.checked) return;
+  st[k] = el.type === 'checkbox' ? el.checked : NUM[k] ? +el.value : el.value;
+  /* 갤러리에 영향 없는 값(바탕·출력 크기)은 본 그림만 */
+  schedule(!(k === 'bg' || k === 'size' || k === 'font'));
+}
+document.addEventListener('input', onField);
+document.addEventListener('change', onField);
+document.addEventListener('click', e => {
+  const t = e.target.closest ? e.target : null; if (!t) return;
+  const g = t.closest('#groups .tab');
+  if (g){ const first = TYPES.find(x => x.g === g.dataset.g); if (TYPE[st.type].g !== g.dataset.g){ st.type = first.id; schedule(true); } return; }
+  const c = t.closest('#types .chip'); if (c){ st.type = c.dataset.t; schedule(false); return; }
+  const s = t.closest('#colors .sw'); if (s){ st.color = s.dataset.ink; schedule(true); return; }
+  const gi = t.closest('#gal .gi');
+  const gsb = t.closest('#galShapes .chip'); if (gsb){ st.galShape = gsb.dataset.gs; if (gsb.dataset.gs) st.type = gsb.dataset.gs; schedule(true); return; }
+  if (gi){ st.type = gi.dataset.t; st.font = gi.dataset.f; if (gi.dataset.style){ st.style = gi.dataset.style; st.dbl = !!gi.dataset.dbl; schedule(true); } else schedule(false); if (window.innerWidth <= 860) $('#pv').scrollIntoView({behavior:'smooth', block:'center'}); return; }
+});
+$('#reseed').addEventListener('click', () => { st.seed = Math.floor(Math.random()*1e9); schedule(true); });
+$('#reset').addEventListener('click', () => { st = Object.assign({}, DEF, {date: todayStr()}); schedule(true); msg('처음 값으로 되돌렸습니다.', 'ok'); });
+
+/* ── 내보내기 ── */
+function fileName(){
+  const main = {p_round:st.name, p_oval:st.name, p_square:st.name, c_round:st.corp, c_square:st.corp, c_biz:st.biz, w_label:st.label, w_date:st.dtop, w_appr:'결재란'}[st.type] || '';
+  const safe = String(main).replace(/[\\\/:*?"<>|\s]+/g, '').slice(0, 20) || '도장';
+  return '도장_' + TYPE[st.type].n.replace(/\s+/g, '') + '_' + safe + '.png';
+}
+function toBlob(){ return new Promise((ok, no) => { if (!mainCanvas) return no(new Error('미리보기가 아직 없습니다')); mainCanvas.toBlob(b => b ? ok(b) : no(new Error('이미지를 만들지 못했습니다')), 'image/png'); }); }
+$('#dl').addEventListener('click', async () => {
+  try{
+    const b = await toBlob(), a = document.createElement('a');
+    a.href = URL.createObjectURL(b); a.download = fileName(); document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    msg('저장했습니다 — ' + fileName(), 'ok');
+  }catch(err){ msg(err.message, 'err'); }
+});
+$('#cp').addEventListener('click', async () => {
+  try{
+    if (!navigator.clipboard || !window.ClipboardItem) throw new Error('이 브라우저는 이미지 복사를 지원하지 않습니다. PNG 저장을 쓰십시오.');
+    const b = await toBlob();
+    await navigator.clipboard.write([new ClipboardItem({'image/png': b})]);
+    msg('복사했습니다. 한글·워드·카톡에 붙여 넣으십시오.', 'ok');
+  }catch(err){ msg(err.message || '복사하지 못했습니다.', 'err'); }
+});
+
+buildStatic();
+syncForm();
+renderMain();
+renderGallery();
+})();
+</script>
+</body>
+</html>
