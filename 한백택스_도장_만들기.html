@@ -14,7 +14,7 @@
   - 글꼴은 Google Fonts(한글). 오프라인이면 기본 명조로 그린다.
   - 사무소 직인(HBSeal, 한백택스_직인.js)과는 별개다. 이 도구는 사무소 직인을 만들거나 내려주지 않는다.
 -->
-<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Nanum+Myeongjo:wght@800&family=Song+Myung&family=Hahmlet:wght@900&family=Gowun+Batang:wght@700&family=Nanum+Brush+Script&family=Black+Han+Sans&family=Do+Hyeon&family=Yeon+Sung&family=Gugi&family=East+Sea+Dokdo&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Noto+Serif+KR:wght@900&family=Yuji+Syuku&family=Yuji+Boku&family=Zen+Antique&family=Nanum+Myeongjo:wght@800&family=Song+Myung&family=Hahmlet:wght@900&family=Gowun+Batang:wght@700&family=Nanum+Brush+Script&family=Black+Han+Sans&family=Do+Hyeon&family=Yeon+Sung&family=Gugi&family=East+Sea+Dokdo&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#1B3A5C;--gold:#C8963E;--bg:#F4F6F9;--line:#DCE3EC;--gray:#5F6E80;--red:#B91C1C;--green:#166534;--amber:#92400E}
 *{box-sizing:border-box}
@@ -72,8 +72,19 @@ input[type=color]{width:34px;height:30px;border:1px solid var(--line);border-rad
 table.sz{border-collapse:collapse;width:100%;font-size:13px;margin-top:6px}
 table.sz th,table.sz td{border:1px solid var(--line);padding:6px 8px;text-align:left}
 table.sz th{background:#EEF2F7;color:var(--navy);white-space:nowrap}
+.hj{margin:2px 0 10px 118px}
+.hj .hjt{font-size:12px;color:var(--gray);font-weight:700;margin-bottom:4px}
+.hjs{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.hjc{min-width:40px;padding:4px 6px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;font-family:"Noto Serif KR","Nanum Myeongjo",serif;font-size:19px;line-height:1.15;text-align:center;color:#1f2937}
+.hjc small{display:block;font-size:10px;color:var(--gray);font-family:"Nanum Gothic",sans-serif}
+.hjc.cv{border-color:var(--gold);background:#FFF8EB}
+.hjc.sel{border-color:var(--navy);box-shadow:0 0 0 1px var(--navy)}
+.hjc.sn{border-color:#FCA5A5;background:#FEF2F2}
+.hjc.k{font-family:"Nanum Gothic",sans-serif;font-size:12px;font-weight:700}
+.hjp{margin-top:6px;padding:8px;border:1px dashed #C8963E;border-radius:8px;background:#FFFDF7;max-height:190px;overflow:auto}
+.hjx{border:0;background:none;color:var(--gray);text-decoration:underline;cursor:pointer;font-family:inherit;font-size:12px;padding:2px 4px}
 .hide{display:none!important}
-@media(max-width:860px){.layout{grid-template-columns:1fr}.sticky{position:static}.row{grid-template-columns:96px minmax(0,1fr)}#pv{min-height:260px}}
+@media(max-width:860px){.hj{margin-left:0}.layout{grid-template-columns:1fr}.sticky{position:static}.row{grid-template-columns:96px minmax(0,1fr)}#pv{min-height:260px}}
 @media print{body *{visibility:hidden}#pv,#pv *{visibility:visible}#pv{position:absolute;left:0;top:0;border:0;background:#fff!important}}
 </style>
 </head>
@@ -148,14 +159,18 @@ table.sz th{background:#EEF2F7;color:var(--navy);white-space:nowrap}
     <div class="row"><label for="f_name">이름</label><input type="text" id="f_name" data-k="name" maxlength="12" placeholder="예: 홍길동"></div>
     <div class="row"><label for="f_suffix">끝 글자</label>
       <select id="f_suffix" data-k="suffix"><option value="">없음</option><option value="인">인</option><option value="印">印</option><option value="之印">之印</option><option value="지인">지인</option></select></div>
+    <div class="hj" data-hj="name"></div>
   </div>
   <div data-show="c_round">
     <div class="row"><label for="f_corp1">둘레 글자</label><input type="text" id="f_corp1" data-k="corp" maxlength="30" placeholder="예: 주식회사 한백"></div>
+    <div class="hj" data-hj="corp"></div>
     <div class="row"><label for="f_center">가운데 글자</label><input type="text" id="f_center" data-k="center" maxlength="8" placeholder="예: 대표이사인"></div>
+    <div class="hj" data-hj="center"></div>
     <div class="hint">법인 인감은 보통 둘레에 법인명, 가운데에 「대표이사인」·「대표이사지인」을 넣습니다.</div>
   </div>
   <div data-show="c_square">
     <div class="row"><label for="f_corp2">상호</label><input type="text" id="f_corp2" data-k="corp" maxlength="30" placeholder="예: 주식회사 한백"></div>
+    <div class="hj" data-hj="corp"></div>
     <div class="row"><label for="f_csuffix">끝 글자</label>
       <select id="f_csuffix" data-k="csuffix"><option value="">없음</option><option value="인">인</option><option value="印">印</option><option value="之印">之印</option><option value="직인">직인</option><option value="지인">지인</option></select></div>
   </div>
@@ -174,6 +189,7 @@ table.sz th{background:#EEF2F7;color:var(--navy);white-space:nowrap}
   </div>
   <div data-show="w_label">
     <div class="row"><label for="f_label">문구</label><input type="text" id="f_label" data-k="label" maxlength="8" list="labelList" placeholder="예: 원본대조필"></div>
+    <div class="hj" data-hj="label"></div>
     <datalist id="labelList"><option value="원본대조필"><option value="확인"><option value="검토필"><option value="수령"><option value="접수"><option value="결재"><option value="사본"><option value="완납"><option value="지급완료"><option value="기장완료"><option value="대외비"><option value="초안"><option value="정정"><option value="보관용"></datalist>
     <div class="row"><label for="f_l2mode">둘째 줄</label>
       <select id="f_l2mode" data-k="l2mode"><option value="date">날짜</option><option value="text">직접 입력</option><option value="none">없음</option></select></div>
@@ -184,7 +200,9 @@ table.sz th{background:#EEF2F7;color:var(--navy);white-space:nowrap}
   </div>
   <div data-show="w_date">
     <div class="row"><label for="f_dtop">윗줄</label><input type="text" id="f_dtop" data-k="dtop" maxlength="12" placeholder="예: 접 수"></div>
+    <div class="hj" data-hj="dtop"></div>
     <div class="row"><label for="f_dbot">아랫줄</label><input type="text" id="f_dbot" data-k="dbot" maxlength="12" placeholder="예: 한백택스"></div>
+    <div class="hj" data-hj="dbot"></div>
   </div>
   <div data-show="w_label w_date">
     <div class="row"><label for="f_date">날짜</label><input type="date" id="f_date" data-k="date"></div>
@@ -274,6 +292,10 @@ table.sz th{background:#EEF2F7;color:var(--navy);white-space:nowrap}
 /* ══════════ 기준값 ══════════ */
 const FONTS = [
   {id:'myeongjo', n:'나눔명조',      fam:'Nanum Myeongjo',     w:800},
+  {id:'notoserif',n:'본명조 (한자 많음)', fam:'Noto Serif KR',  w:900},
+  {id:'yujisyuku',n:'한자 해서 붓글씨', fam:'Yuji Syuku',        w:400, hj:1},
+  {id:'yujiboku', n:'한자 굵은 붓',     fam:'Yuji Boku',         w:400, hj:1},
+  {id:'zenantique',n:'한자 고전 명조',  fam:'Zen Antique',       w:400, hj:1},
   {id:'songmyung',n:'송명 (전통)',   fam:'Song Myung',         w:400},
   {id:'hahmlet',  n:'함렛 (굵은 명조)',fam:'Hahmlet',           w:900},
   {id:'gowun',    n:'고운바탕',      fam:'Gowun Batang',       w:700},
@@ -304,7 +326,7 @@ const INKS = [
 const todayStr = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
 const DEF = {
   type:'p_round', font:'myeongjo', color:'#D0261D', style:'yang', layout:'v', border:4, dbl:false, stretch:true,
-  rough:35, tilt:0, seed:7, size:800, bg:'paper', galShape:'', galVar:false,
+  rough:35, tilt:0, seed:7, size:800, bg:'paper', galShape:'', galVar:false, hj:null,
   name:'홍길동', suffix:'인', corp:'주식회사 한백', center:'대표이사인', csuffix:'인',
   regno:'123-45-67890', biz:'한백상사', ceo:'홍길동', addr:'서울특별시 중구 동호로 315', uptae:'서비스', jong:'세무회계',
   label:'원본대조필', l2mode:'date', l2:'', l3:'세무법인 한백택스', lshape:'rect',
@@ -319,8 +341,61 @@ st.date = todayStr();                       /* 날짜는 늘 오늘로 시작 */
 if (!TYPE[st.type]) st.type = DEF.type;
 if (!FONT[st.font]) st.font = DEF.font;
 
+/* ══════════ 한자 ══════════
+ * 성씨·이름에 흔히 쓰는 한자와 법인 글자(株式會社·代表理事 등). 두음법칙 글자는 두 음 모두에 둔다(李 → 이·리).
+ * 목록에 없는 한자는 입력칸에서 한글을 쓰고 [한자] 키로 바꿔 넣으면 그대로 그려진다. */
+const HJ_SRC = `가:家佳可嘉加價歌街賈稼架伽珂迦柯 각:各角閣覺珏恪 간:干看間簡幹杆侃 갈:葛 감:甘減感敢監鑑 갑:甲 강:姜康江剛强綱鋼降講岡崗疆彊 개:改開皆介個蓋凱塏 거:巨去居車擧渠據 건:建乾健件鍵楗 걸:傑杰 검:檢儉劍 격:格擊激 견:見堅絹甄鵑 결:決結潔 겸:兼謙 경:京景慶敬經庚卿耕輕競鏡炅璟暻瓊境警涇勁頃 계:季癸桂啓溪計界階繼系係戒 고:高古固告考故苦庫姑皐顧鼓 곡:谷曲穀 곤:坤昆崑琨 공:公孔工功空共恭貢珙 곽:郭 관:官觀關寬管冠貫琯款 광:光廣鑛匡珖洸 교:敎校交橋喬巧皎僑 구:九口求救究久句具丘邱球區舊俱玖龜構鷗 국:國菊局鞠 군:君軍郡群 굴:屈 궁:宮弓 권:權勸卷拳券 귀:貴歸 규:圭奎規珪揆葵閨硅 균:均鈞 극:極克劇 근:根近勤謹槿瑾斤 금:金今琴錦禁 급:急給級及 긍:肯兢 기:企基己記起其期氣技器機奇紀旗祈箕琪璣淇麒騏沂耆冀綺錤 길:吉佶姞 김:金 나:羅那奈娜 낙:樂洛落諾 난:蘭難暖 남:南男楠 낭:郞朗浪 납:納 내:內乃奈耐 녀:女 년:年 념:念 녕:寧 노:盧魯路老勞努露蘆 녹:綠鹿祿錄 논:論 농:農 능:能陵 니:尼 다:多茶 단:丹單端段檀團短旦壇 달:達 담:談淡潭譚擔 답:答 당:唐堂當黨棠 대:大代對待臺帶隊垈戴 덕:德悳 도:道都度島圖刀到桃陶稻濤燾導途渡 독:獨讀督篤 돈:敦惇燉頓 돌:乭 동:東同洞童冬動銅桐董棟 두:斗杜頭豆枓 둔:屯 득:得 등:等登燈鄧騰 라:羅 락:樂洛落珞 란:蘭 람:藍覽嵐 랑:郞朗浪廊 래:來萊 량:良兩量梁涼亮諒 려:麗呂旅慮勵黎 력:力歷曆 련:蓮連練鍊憐聯漣 렬:烈列 렴:廉 령:令領嶺靈玲鈴齡 례:禮例 로:路老勞露魯盧 록:綠祿錄鹿 론:論 롱:瓏 뢰:賴雷 료:了料 룡:龍 루:樓累 류:柳流留類劉琉 륙:六陸 륜:倫輪崙 률:律栗率 륭:隆 릉:陵 리:李里理利梨吏璃履莉 린:隣麟璘潾鱗 림:林臨琳霖 립:立 마:馬麻磨摩瑪 막:莫幕 만:萬滿晩曼灣蔓 말:末 망:望 매:每梅買賣妹媒枚 맥:麥脈 맹:孟猛盟 면:面免勉綿冕 명:明名命鳴銘溟 모:母毛模慕謀茅牟某暮謨 목:木目牧睦穆沐 몽:夢蒙 묘:妙卯苗廟 무:無武務茂舞霧戊貿珷 묵:墨默 문:文門問聞紋汶雯 물:物 미:美米味未尾眉微薇渼媄彌 민:民敏珉旻玟閔慜旼岷 밀:密蜜 박:朴博泊薄珀 반:半反班般盤飯潘磐伴 발:發拔渤 방:方房放訪邦防芳坊龐 배:培拜杯背配排輩裵倍 백:白百伯柏栢 번:番繁 벌:伐 범:凡範汎帆梵 법:法 벽:碧壁 변:變邊辯卞 별:別 병:丙兵病炳秉柄昞昺屛並 보:保寶步報普補甫輔譜潽 복:福服復伏腹複卜馥 본:本 봉:奉鳳峰逢蜂封蓬琫 부:夫父部富婦府扶浮付副符負傅釜溥阜 북:北 분:分粉奮芬 불:不佛 붕:朋鵬 비:比非悲飛備碑妃批秘費鼻丕毖斐琵 빈:貧賓彬斌濱嬪頻 빙:氷聘 사:四士史使事師思寺舍謝社絲査沙斯司詞寫射獅泗砂 삭:朔 산:山産散算 삼:三參森杉 상:上相商想常祥尙象賞霜狀床箱庠湘翔爽詳 색:色索 생:生 서:西序書署暑瑞徐敍舒緖誓恕庶曙抒胥 석:石夕席昔惜錫釋碩奭晳析 선:先仙線鮮善船選宣旋禪璇瑄墡嬋銑渲 설:雪說設舌薛卨 섬:蟾 섭:涉燮攝 성:成城誠性姓星聖聲省盛晟珹惺宬 세:世洗稅細勢歲 소:小少所消素笑召昭蘇邵沼紹炤韶疏 속:速俗束續屬 손:孫遜 솔:率 송:松宋送頌誦 수:水手守收秀首受授修壽數樹洙銖隨須粹遂綏琇 숙:叔淑宿肅熟琡 순:順純旬舜淳循珣洵荀筍 술:術述戌 숭:崇嵩 슬:瑟 습:習拾 승:承乘勝昇升丞 시:市示是時詩始施試視侍柴恃 식:食式植識息飾湜軾殖 신:申信新神身臣辛愼晨伸紳莘宸 실:室實 심:心深沈審尋 십:十拾 쌍:雙 씨:氏 아:兒我牙芽雅亞阿娥峨 악:岳樂嶽 안:安案顔眼岸晏雁 암:巖岩庵 앙:仰央 애:愛哀涯艾 액:額液 야:夜野也耶冶 약:約若藥躍 양:羊洋養陽楊揚讓梁樣壤良亮 어:魚語漁御於 억:億憶 언:言彦 엄:嚴 업:業 여:余如汝與餘予輿呂麗黎旅 역:亦易役驛譯域 연:然煙硏延燃燕沿宴演緣軟淵衍姸娟涓蓮連練鍊憐 열:熱悅閱烈列 염:炎染鹽廉 엽:葉燁曄 영:永英迎榮泳詠營影映暎瑛煐渶玲令領靈鈴寧 예:芮藝豫譽銳叡睿禮例 오:五午吾悟烏吳梧晤旿 옥:玉屋沃鈺 온:溫穩 옹:翁擁雍 와:瓦臥 완:完緩玩莞琓婉宛 왕:王往旺汪 외:外 요:要搖謠遙曜堯耀姚瑤了料 욕:浴 용:用勇容庸龍溶鎔瑢 우:于宇右牛友雨憂又尤遇羽郵偶祐禹佑旴瑀玗 욱:旭昱煜郁頊彧 운:雲運云韻芸耘澐沄 울:蔚 웅:雄熊 원:元原願遠園圓員源援院媛苑瑗垣沅洹袁爰 월:月越 위:位偉威胃謂圍緯衛委慰渭韋魏瑋 유:由油酉有猶唯遊柔遺幼幽惟維乳儒裕誘愈悠柳劉留流類庾兪侑洧 육:肉育六陸 윤:尹允潤閏胤倫輪崙玧鈗 율:律栗率 융:融隆戎 은:恩銀隱殷垠誾珢溵 을:乙 음:音吟飮陰 읍:邑 응:應凝鷹 의:衣依義議矣醫意宜儀誼毅 이:二貳以已耳而異移夷怡珥伊易李利理里梨吏履 익:益翼翊瀷 인:人引仁因忍認寅印刃姻麟隣璘鱗 일:一日逸壹溢鎰佾 임:壬任林臨琳霖妊 입:入立 자:子字自者姉慈玆紫資姿滋磁 작:作昨酌爵灼雀 잠:潛 장:長章場將壯丈張帳莊裝奬墻粧掌藏障匠庄璋漳蔣 재:才材財在栽再哉災裁載宰梓縡齋渽 쟁:爭錚 저:著貯低底楮 적:的赤適敵笛寂籍跡積績迪 전:田全典前展戰電錢傳專轉殿甸銓詮佺琠篆 절:節絶切折 점:店占點漸 접:接蝶 정:丁頂停井正政定貞精情靜淨庭亭訂程征整廷鄭晶晸珽禎汀旌楨婷鼎炡姃偵呈 제:弟第祭帝題除諸製提堤制際齊濟悌梯瑅霽 조:兆早造鳥調朝助祖操照條潮租組趙曺祚措釣彫肇 족:足族 존:存尊 졸:卒 종:宗種鐘終從縱鍾琮淙棕倧綜 좌:左坐佐座 주:主注住朱宙走酒晝舟周株州洲珠柱奏鑄駐疇胄炷澍姝湊 죽:竹 준:準俊遵峻浚晙埈竣駿濬雋隼寯儁焌 중:中重衆仲 즉:卽 증:曾增證贈蒸拯 지:只支枝止之知地指志至紙持池誌智遲旨芝址祉摯沚趾祗 직:直職織稷 진:辰眞進盡振鎭陣陳珍晉秦津震診縝瑨璡昣臻蓁 질:質秩 집:集執輯 징:徵澄 차:且次此借差車茶 착:着錯 찬:贊讚燦璨瓚纂撰粲澯 찰:察札 참:參 창:昌唱窓倉創蒼暢彰敞昶滄菖 채:菜採彩債采埰蔡綵寀 책:責冊策 처:妻處 척:尺斥拓戚陟 천:千天川泉淺踐遷薦釧阡 철:鐵哲徹喆澈 첨:尖添瞻僉 청:靑淸晴請聽廳菁 체:體替 초:初草招肖超抄礎焦楚蕉 촉:促燭蜀 촌:寸村 총:總聰寵 최:最崔 추:秋追推抽趨鄒樞 축:丑祝畜蓄築逐軸 춘:春椿 출:出 충:充忠衝沖衷 취:取吹就醉趣翠聚 측:側測 층:層 치:治致齒値置稚峙熾 칙:則 친:親 칠:七漆 침:針侵浸寢沈枕 칭:稱 쾌:快 타:他打妥陀 탁:濁托卓濯琢託鐸 탄:炭歎彈誕坦 탐:探 탑:塔 태:太泰態胎台兌汰 택:宅澤擇 토:土吐討 통:通統 퇴:退 투:投透 특:特 파:破波派播罷頗把巴芭坡 판:判板販版阪 팔:八 패:貝浿霸 팽:彭澎 편:片便篇編遍扁 평:平評坪 포:布抱包胞浦捕鋪圃 폭:暴爆幅瀑 표:表票標漂杓豹 품:品稟 풍:風豊楓馮 피:皮彼被避 필:必匹筆畢弼泌苾 하:下夏賀何河荷霞廈昰 학:學鶴 한:寒恨限韓漢旱汗閑翰澣瀚邯 할:割 함:咸含函涵艦 합:合陜盒 항:恒巷港項抗航亢沆 해:害海亥解奚該諧偕楷瑎 핵:核 행:行幸杏 향:向香鄕響享珦 허:虛許 헌:憲獻軒櫶 험:險驗 혁:革赫爀奕 현:玄現賢弦絃縣懸顯炫鉉峴晛泫玹睍俔 혈:血穴 협:協峽俠挾浹 형:兄刑形亨螢衡型邢炯瀅瑩馨熒珩灐 혜:惠慧兮彗蕙憓譿暳 호:戶乎呼好虎號湖互胡浩毫豪護皓昊祜鎬晧瑚澔灝壕滸 혹:或 혼:婚混魂昏渾 홀:忽 홍:紅洪弘鴻泓烘虹 화:火化花和話畫華禾貨樺嬅 확:確擴廓 환:歡患丸換環還煥桓奐晥喚 활:活闊 황:黃皇況荒晃滉煌璜凰愰 회:回會悔懷灰繪晦檜淮 획:獲劃 횡:橫 효:孝效曉驍斅涍爻 후:後厚侯候后珝煦垕 훈:訓勳薰熏壎焄曛燻 훤:暄煊萱 휘:揮輝徽暉彙煇 휴:休携烋 흉:胸 흑:黑 흔:欣昕炘 흘:屹 흠:欽歆 흡:吸洽 흥:興 희:希喜稀姬熙禧僖熹憙嬉晞曦羲憘`;
+const HJ = {};
+HJ_SRC.split(/\s+/).forEach(seg => { const p = seg.split(':'); if (p[1]) HJ[p[0]] = Array.from(new Set(Array.from(p[1]))); });
+/* 성씨 — 이름 첫 자리 후보 맨 앞에 둔다. 자동 변환은 첫 번째 것을 쓴다 */
+const SURNAME = {김:'金',이:'李',리:'李',박:'朴',최:'崔',정:'鄭丁程',강:'姜康',조:'趙曺',윤:'尹',장:'張蔣',임:'林任',림:'林',한:'韓',오:'吳',서:'徐',신:'申辛愼',권:'權',황:'黃',안:'安',송:'宋',류:'柳劉',유:'柳劉兪庾',전:'全田錢',홍:'洪',고:'高',문:'文',양:'梁楊',손:'孫',배:'裵',백:'白',허:'許',남:'南',심:'沈',노:'盧魯',하:'河',곽:'郭',성:'成',차:'車',주:'朱周',우:'禹',구:'具丘',민:'閔',나:'羅',라:'羅',진:'陳秦晉',지:'池',엄:'嚴',채:'蔡',원:'元',천:'千',방:'方',공:'孔',현:'玄',함:'咸',변:'卞',염:'廉',여:'呂',추:'秋',도:'都',소:'蘇',석:'石',선:'宣',설:'薛',마:'馬',길:'吉',연:'延',위:'魏',표:'表',명:'明',기:'奇',반:'潘',왕:'王',금:'琴',옥:'玉',육:'陸',인:'印',맹:'孟',제:'諸',모:'牟',탁:'卓',국:'鞠',어:'魚',은:'殷',편:'片',용:'龍',예:'芮',경:'景',봉:'奉',사:'史',부:'夫',가:'賈',태:'太',목:'睦',형:'邢',두:'杜',감:'甘',빈:'賓',동:'董',온:'溫'};
+const SURNAME2 = {황보:'皇甫',남궁:'南宮',제갈:'諸葛',선우:'鮮于',독고:'獨孤',사공:'司空',서문:'西門',동방:'東方'};
+/* 낱말 — 자동 변환에서 통째로 바꾼다(긴 것부터) */
+const WORDS = {주식회사:'株式會社',유한회사:'有限會社',유한책임회사:'有限責任會社',합자회사:'合資會社',합명회사:'合名會社',사단법인:'社團法人',재단법인:'財團法人',세무법인:'稅務法人',회계법인:'會計法人',법무법인:'法務法人',협동조합:'協同組合',대표이사지인:'代表理事之印',대표이사인:'代表理事印',대표자인:'代表者印',직인:'職印',대표이사:'代表理事',이사장:'理事長',대표:'代表',회장:'會長',원장:'院長',조합장:'組合長',지인:'之印',
+  원본대조필:'原本對照畢',대조필:'對照畢',확인:'確認',검토필:'檢討畢',수령:'受領',접수:'接受',결재:'決裁',사본:'寫本',완납:'完納',대외비:'對外秘',정정:'訂正',지급완료:'支給完了',기장완료:'記帳完了',보관용:'保管用',초안:'草案',영수:'領收',
+  세무:'稅務',회계:'會計',상사:'商事',산업:'産業',건설:'建設',무역:'貿易',전자:'電子',물산:'物産',개발:'開發',기획:'企劃',유통:'流通',식품:'食品'};
+const WORD_KEYS = Object.keys(WORDS).sort((a, b) => b.length - a.length);
+/* 자리 i 의 후보 — 이름 첫 자리(또는 두 글자 성)면 성씨 한자를 앞에 */
+function hjCands(f, src, i){
+  const c = src[i], base = HJ[c] || [];
+  let sn = [];
+  if (f === 'name'){
+    const lead = src.join('').replace(/^\s+/, ''), off = src.length - Array.from(lead).length;
+    const two = SURNAME2[lead.slice(0, 2)];
+    if (two && i >= off && i - off < 2) sn = [two[i - off]];
+    else if (i === off && SURNAME[c]) sn = Array.from(SURNAME[c]);
+  }
+  return {sn: sn, list: sn.concat(base.filter(h => sn.indexOf(h) < 0))};
+}
+/* 자동 변환 — 성씨와 낱말만 바꾼다. 이미 고른 자리는 그대로 둔다 */
+function hjAuto(f){
+  const src = Array.from(String(st[f] || '')), m = ((st.hj && st.hj[f]) || []).slice(), str = src.join('');
+  let n = 0;
+  const set = (i, h) => { if (!(m[i] && m[i].k === src[i])){ m[i] = {k: src[i], h: h}; n++; } };
+  if (f === 'name'){
+    const lead = str.replace(/^\s+/, ''), off = src.length - Array.from(lead).length, two = SURNAME2[lead.slice(0, 2)];
+    if (two && lead.length > 2){ set(off, two[0]); set(off + 1, two[1]); }
+    else if (lead.length >= 2 && SURNAME[src[off]]) set(off, Array.from(SURNAME[src[off]])[0]);
+  }
+  for (let i = 0; i < src.length; ){
+    const w = WORD_KEYS.find(k => str.substr(i, k.length) === k);
+    if (w){ Array.from(WORDS[w]).forEach((h, j) => set(i + j, h)); i += w.length; } else i++;
+  }
+  st.hj = Object.assign({}, st.hj || {}); st.hj[f] = m;
+  /* 끝 글자도 한자로 — 인 → 印, 지인 → 之印 */
+  const sk = f === 'name' ? 'suffix' : f === 'corp' ? 'csuffix' : '', SUF = {인:'印', 지인:'之印'};
+  if (sk && SUF[st[sk]]){ st[sk] = SUF[st[sk]]; n++; }
+  return n;
+}
+const HAN_RE = /[㐀-鿿豈-﫿]/;
+/* 입력값에 한자 선택을 입힌 글자열. 선택은 자리별 {k:원래 한글, h:한자} — 글자가 바뀐 자리는 버린다 */
+function eff(o, k){
+  const a = Array.from(String(o[k] || '')), m = (o.hj && o.hj[k]) || [];
+  return a.map((c, i) => (m[i] && m[i].k === c) ? m[i].h : c).join('');
+}
+
 /* ══════════ 그리기 도구 ══════════ */
-const fstr = (f, px) => f.w + ' ' + px + 'px "' + f.fam + '", "Nanum Myeongjo", serif';
+const fstr = (f, px) => f.w + ' ' + px + 'px "' + f.fam + '", "Noto Serif KR", "Nanum Myeongjo", serif';
 function mk(w, h){ const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; }
 function rrect(x, a, b, w, h, r){
   r = Math.max(0, Math.min(r, w/2, h/2));
@@ -438,7 +513,7 @@ function corpRound(x, W, H, S, o, f, lw){
   if (o.dbl){ x.lineWidth = Math.max(1, lw*0.4); circ(R - lw*1.7); Ro = R - lw*1.9; }
   const Ri = R*0.58; x.lineWidth = lw*0.75; circ(Ri);
   const ri = Ri + lw*0.45, t = Ro - ri, rm = (Ro + ri)/2;
-  const ring = chars(o.corp), n = ring.length;
+  const ring = chars(eff(o, 'corp')), n = ring.length;
   if (n){
     const ideal = t*0.95/rm, gap = Math.max(ideal*1.6, Math.PI*2*0.1);
     let a = Math.min((Math.PI*2 - gap)/n, ideal*1.45), span = a*n;
@@ -450,7 +525,7 @@ function corpRound(x, W, H, S, o, f, lw){
     }
     if (span > Math.PI*2*0.72) star(x, cx, cy + rm, t*0.2);
   }
-  const ct = chars(o.center), r = Ri - lw*0.4 - S*0.02, one = ct.length <= 2;
+  const ct = chars(eff(o, 'center')), r = Ri - lw*0.4 - S*0.02, one = ct.length <= 2;
   const box = one ? (o.layout === 'h' ? bx(cx, cy, r*1.55, r*0.95) : bx(cx, cy, r*0.95, r*1.55)) : bx(cx, cy, r*1.36, r*1.36);
   grid(x, ct, box, f, o.stretch, o.layout);
 }
@@ -488,7 +563,7 @@ function label(x, W, H, S, o, f, lw){
   const p = m + ins + S*0.03, iw = W - 2*p, subs = labelSubs(o);
   const mainH = S*0.17, subH = S*0.072, sg = S*0.058;
   let y = (H - (mainH + subs.length*(subH + sg)))/2;
-  const cs = chars(o.label), n = cs.length;
+  const cs = chars(eff(o, 'label')), n = cs.length;
   if (n){
     const cw = Math.min(iw/n, mainH*(n <= 2 ? 1.3 : 1.05)), x0 = W/2 - cw*n/2;
     cs.forEach((c, i) => glyph(x, c, x0 + cw*i + cw/2, y + mainH/2, cw*0.88, mainH, f, o.stretch));
@@ -507,9 +582,9 @@ function dateStamp(x, W, H, S, o, f, lw){
   x.lineWidth = Math.max(1, lw*0.6);
   line(x, cx - hw, cy - b, cx + hw, cy - b); line(x, cx - hw, cy + b, cx + hw, cy + b);
   const yy = (b + Ri)/2 - Ri*0.04, cw = 2*Math.sqrt(Ri*Ri - yy*yy)*0.86;
-  textLine(x, o.dtop, cx, cy - yy, cw, (Ri - b)*0.36, f, 'center');
+  textLine(x, eff(o, 'dtop'), cx, cy - yy, cw, (Ri - b)*0.36, f, 'center');
   textLine(x, fmtDate(o.date, o.dfmt), cx, cy, 2*hw*0.86, b*1.05, f, 'center');
-  textLine(x, o.dbot, cx, cy + yy, cw, (Ri - b)*0.36, f, 'center');
+  textLine(x, eff(o, 'dbot'), cx, cy + yy, cw, (Ri - b)*0.36, f, 'center');
 }
 function apprCols(o){ const a = String(o.appr || '').split(/[,，、\/]/).map(s => s.trim()).filter(Boolean).slice(0, 8); return a.length ? a : ['담당']; }
 function apprH(o, S){
@@ -570,10 +645,11 @@ function draw(o, S){
   const c = mk(W, H), x = c.getContext('2d');
   x.fillStyle = x.strokeStyle = o.color || '#D0261D'; x.lineJoin = 'round';
   const lw = S*(0.006 + (+o.border || 4)*0.0045);
-  if (T === 'p_round') seal(x, W, H, S, o, f, lw, 'round', chars(o.name + (o.suffix || '')));
-  else if (T === 'p_oval') seal(x, W, H, S, o, f, lw, 'oval', chars(o.name + (o.suffix || '')));
-  else if (T === 'p_square') seal(x, W, H, S, o, f, lw, 'square', chars(o.name + (o.suffix || '')));
-  else if (T === 'c_square') seal(x, W, H, S, o, f, lw, 'square', chars(o.corp + (o.csuffix || '')));
+  const nm = eff(o, 'name') + (o.suffix || '');
+  if (T === 'p_round') seal(x, W, H, S, o, f, lw, 'round', chars(nm));
+  else if (T === 'p_oval') seal(x, W, H, S, o, f, lw, 'oval', chars(nm));
+  else if (T === 'p_square') seal(x, W, H, S, o, f, lw, 'square', chars(nm));
+  else if (T === 'c_square') seal(x, W, H, S, o, f, lw, 'square', chars(eff(o, 'corp') + (o.csuffix || '')));
   else if (T === 'c_round') corpRound(x, W, H, S, o, f, lw);
   else if (T === 'c_biz') biz(x, W, H, S, o, f, lw);
   else if (T === 'w_label') label(x, W, H, S, o, f, lw);
@@ -586,11 +662,13 @@ function draw(o, S){
 /* ══════════ 글꼴 불러오기 ══════════ */
 function allText(){
   return ['name','suffix','corp','center','csuffix','regno','biz','ceo','addr','uptae','jong','label','l2','l3','dtop','dbot','appr','aside']
-    .map(k => st[k] || '').join('') + '0123456789.-\'등록번호상호성명사업장업태종목한글';
+    .map(k => eff(st, k)).join('') + '0123456789.-\'등록번호상호성명사업장업태종목한글';
 }
 function loadFonts(list){
   if (!document.fonts || !document.fonts.load) return Promise.resolve();
   const t = allText();
+  /* 한자가 있으면 한자 대체 글꼴(본명조)도 함께 받는다 — 한자가 없는 글꼴은 이 글꼴로 그려진다 */
+  if (HAN_RE.test(t) && list.indexOf(FONT.notoserif) < 0) list = list.concat([FONT.notoserif]);
   return Promise.all(list.map(f => document.fonts.load(fstr(f, 48), t).catch(() => null)));
 }
 
@@ -616,6 +694,7 @@ function syncForm(){
     const b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (t.id === st.galShape ? ' on' : ''); b.textContent = t.n; b.dataset.gs = t.id; gs.appendChild(b);
   });
   $$('[data-show]').forEach(el => el.classList.toggle('hide', el.dataset.show.split(' ').indexOf(st.type) < 0));
+  renderHj();
   $$('[data-l2]').forEach(el => el.classList.toggle('hide', st.type !== 'w_label' || st.l2mode !== el.dataset.l2));
   $$('[data-k]').forEach(el => {
     const k = el.dataset.k, v = st[k];
@@ -629,6 +708,50 @@ function syncForm(){
   $('#v_tilt').textContent = st.tilt + '°';
   $('#pv').className = st.bg;
   $('#pvTitle').textContent = '미리보기 — ' + TYPE[st.type].n + ' · ' + (FONT[st.font] || FONTS[0]).n;
+}
+
+/* ── 한자 고르기 — 글자 단추를 누르면 후보가 펼쳐지고, 고르면 다음 글자로 넘어간다 ── */
+let hjOpen = null;   /* {f, i} */
+function hjEl(tag, cls, txt){ const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+function renderHj(){
+  $$('.hj').forEach(box => {
+    const f = box.dataset.hj, src = Array.from(String(st[f] || '')), m = (st.hj && st.hj[f]) || [];
+    box.textContent = '';
+    if (!src.some(c => c.trim())) return;
+    box.appendChild(hjEl('div', 'hjt', '한자로 바꾸기 — 글자를 누르고 한자를 고르십시오'));
+    const row = hjEl('div', 'hjs');
+    src.forEach((c, i) => {
+      if (!c.trim()) return;
+      const on = m[i] && m[i].k === c, b = hjEl('button', 'hjc' + (on ? ' cv' : '') + (hjOpen && hjOpen.f === f && hjOpen.i === i ? ' sel' : ''));
+      b.type = 'button'; b.dataset.f = f; b.dataset.i = i;
+      b.appendChild(document.createTextNode(on ? m[i].h : c));
+      if (on) b.appendChild(hjEl('small', '', c));
+      row.appendChild(b);
+    });
+    const au = hjEl('button', 'hjx', '자동 한자 (성씨·낱말)'); au.type = 'button'; au.dataset.hjauto = f; row.appendChild(au);
+    if (m.some(Boolean)){ const x = hjEl('button', 'hjx', '모두 한글로'); x.type = 'button'; x.dataset.hjclear = f; row.appendChild(x); }
+    box.appendChild(row);
+    if (hjOpen && hjOpen.f === f && src[hjOpen.i]){
+      const c = src[hjOpen.i], cd = hjCands(f, src, hjOpen.i), list = cd.list, p = hjEl('div', 'hjp'), r2 = hjEl('div', 'hjs');
+      const k = hjEl('button', 'hjc k', c + ' (한글)'); k.type = 'button'; k.dataset.pick = ''; r2.appendChild(k);
+      list.forEach(h => { const isSn = cd.sn.indexOf(h) >= 0, b = hjEl('button', 'hjc' + (m[hjOpen.i] && m[hjOpen.i].k === c && m[hjOpen.i].h === h ? ' cv' : '') + (isSn ? ' sn' : ''), h); b.type = 'button'; b.dataset.pick = h; if (isSn) b.appendChild(hjEl('small', '', '성씨')); r2.appendChild(b); });
+      p.appendChild(r2);
+      p.appendChild(hjEl('div', 'hint', list.length
+        ? '「' + c + '」 후보 ' + list.length + '자. 찾는 한자가 없으면 입력칸에서 「' + c + '」 뒤에 커서를 두고 키보드 [한자] 키로 바꿔 넣으십시오.'
+        : '「' + c + '」는 목록에 없습니다. 입력칸에서 글자 뒤에 커서를 두고 키보드 [한자] 키로 바꿔 넣으십시오.'));
+      box.appendChild(p);
+    }
+  });
+}
+function hjPick(h){
+  if (!hjOpen) return;
+  const f = hjOpen.f, src = Array.from(String(st[f] || '')), i = hjOpen.i;
+  st.hj = Object.assign({}, st.hj || {}); const m = (st.hj[f] || []).slice();
+  m[i] = h ? {k: src[i], h: h} : null; st.hj[f] = m;
+  /* 다음 한글 글자로 넘어간다. 없으면 닫는다 */
+  let n = -1; for (let j = i + 1; j < src.length; j++) if (hjCands(f, src, j).list.length){ n = j; break; }
+  hjOpen = n >= 0 ? {f: f, i: n} : null;
+  schedule(true);
 }
 
 let tMain = 0, tGal = 0, tok = 0, galTok = 0, galKey = '';
@@ -665,7 +788,8 @@ async function renderGallery(){
   g.textContent = '';
   const frag = document.createDocumentFragment();
   let cnt = 0;
-  types.forEach(t => FONTS.forEach(f => galVariants(t.id).forEach(v => {
+  const hasHan = ['name','corp','center','label','dtop','dbot'].some(k => HAN_RE.test(eff(st, k))), gf = FONTS.filter(f => !f.hj || hasHan);
+  types.forEach(t => gf.forEach(f => galVariants(t.id).forEach(v => {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'gi'; b.dataset.t = t.id; b.dataset.f = f.id;
     if (v.style) { b.dataset.style = v.style; b.dataset.dbl = v.dbl ? '1' : ''; }
     const o = Object.assign({}, st, {type:t.id, font:f.id}, v);
@@ -674,7 +798,7 @@ async function renderGallery(){
     frag.appendChild(b); cnt++;
   })));
   g.appendChild(frag);
-  $('#galInfo').textContent = types.length + '가지 모양 × 글꼴 ' + FONTS.length + '종' + (st.galVar ? ' × 변형' : '') + ' = ' + cnt + '개. 색·질감·테두리 굵기는 위 설정을 따릅니다.';
+  $('#galInfo').textContent = types.length + '가지 모양 × 글꼴 ' + gf.length + '종' + (st.galVar ? ' × 변형' : '') + ' = ' + cnt + '개. 색·질감·테두리 굵기는 위 설정을 따릅니다.' + (hasHan ? ' 한자가 없는 글꼴은 한자를 본명조로 그립니다.' : ' 한자로 바꾸면 한자 전용 글꼴 3종이 더 나옵니다.');
   markGallery();
 }
 function markGallery(){ $$('#gal .gi').forEach(b => b.classList.toggle('on', b.dataset.t === st.type && b.dataset.f === st.font && (!b.dataset.style || (b.dataset.style === st.style && !!b.dataset.dbl === !!st.dbl)))); }
@@ -697,11 +821,17 @@ document.addEventListener('click', e => {
   const c = t.closest('#types .chip'); if (c){ st.type = c.dataset.t; schedule(false); return; }
   const s = t.closest('#colors .sw'); if (s){ st.color = s.dataset.ink; schedule(true); return; }
   const gi = t.closest('#gal .gi');
+  const pk = t.closest('.hjp .hjc'); if (pk){ hjPick(pk.dataset.pick); return; }
+  const hc = t.closest('.hjs .hjc[data-i]');
+  if (hc){ const i = +hc.dataset.i, f = hc.dataset.f; hjOpen = (hjOpen && hjOpen.f === f && hjOpen.i === i) ? null : {f: f, i: i}; renderHj(); return; }
+  const ha = t.closest('[data-hjauto]');
+  if (ha){ const n = hjAuto(ha.dataset.hjauto); hjOpen = null; schedule(true); msg(n ? n + '자를 한자로 바꿨습니다(성씨·낱말). 나머지 글자는 눌러서 고르십시오.' : '자동으로 바꿀 성씨·낱말이 없습니다. 글자를 눌러 직접 고르십시오.', n ? 'ok' : ''); return; }
+  const hx = t.closest('[data-hjclear]'); if (hx){ st.hj = Object.assign({}, st.hj || {}); st.hj[hx.dataset.hjclear] = []; hjOpen = null; schedule(true); return; }
   const gsb = t.closest('#galShapes .chip'); if (gsb){ st.galShape = gsb.dataset.gs; if (gsb.dataset.gs) st.type = gsb.dataset.gs; schedule(true); return; }
   if (gi){ st.type = gi.dataset.t; st.font = gi.dataset.f; if (gi.dataset.style){ st.style = gi.dataset.style; st.dbl = !!gi.dataset.dbl; schedule(true); } else schedule(false); if (window.innerWidth <= 860) $('#pv').scrollIntoView({behavior:'smooth', block:'center'}); return; }
 });
 $('#reseed').addEventListener('click', () => { st.seed = Math.floor(Math.random()*1e9); schedule(true); });
-$('#reset').addEventListener('click', () => { st = Object.assign({}, DEF, {date: todayStr()}); schedule(true); msg('처음 값으로 되돌렸습니다.', 'ok'); });
+$('#reset').addEventListener('click', () => { st = Object.assign({}, DEF, {date: todayStr(), hj: null}); hjOpen = null; schedule(true); msg('처음 값으로 되돌렸습니다.', 'ok'); });
 
 /* ── 내보내기 ── */
 function fileName(){

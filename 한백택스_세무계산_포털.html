@@ -416,7 +416,7 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
   <div class="nav-item" data-page="ins">4대보험</div>
   <div class="nav-item" data-page="retire">퇴직소득세</div>
   <div class="nav-item" data-page="exretire">임원퇴직한도</div>
-  <div class="nav-item" data-page="acq">취득세·종부세</div><div class="nav-item" data-page="inh">상속세</div><div class="nav-item" data-page="bugift">부담부증여</div><div class="nav-item" data-page="bizinh">가업상속</div><div class="nav-item" data-page="gasan">가산세</div><div class="nav-item" data-page="biz">업종코드</div><div class="nav-item" data-page="contract">계약서</div><div class="nav-item" data-page="cms">CMS신청서</div><div class="nav-item" data-page="board">내부 업무</div>
+  <div class="nav-item" data-page="acq">취득세·종부세</div><div class="nav-item" data-page="inh">상속세</div><div class="nav-item" data-page="bugift">부담부증여</div><div class="nav-item" data-page="bizinh">가업상속</div><div class="nav-item" data-page="gasan">가산세</div><div class="nav-item" data-page="biz">업종코드</div><div class="nav-item" data-page="contract">계약서</div><div class="nav-item" data-page="cms">CMS신청서</div><div class="nav-item" data-page="stamp">도장 만들기</div><div class="nav-item" data-page="board">내부 업무</div>
 </div>
 
 <!-- ==================== HOME ==================== -->
@@ -613,6 +613,12 @@ table.fm tr.net .v{padding:8px 6px;text-align:right;color:var(--gold);font-weigh
       <h3>CMS 자동이체 신청서</h3>
       <p>기장료 출금이체 신청서를 화면에서 작성<br>업체에 작성 링크 전송 · 인쇄·PDF·이미지·워드 출력</p>
     </a>
+    <a class="dash-card" data-go="stamp" href="javascript:void(0)" onclick="goPage('stamp')">
+      <div class="icon" style="background:#FEE2E2;color:#B91C1C">㊞</div>
+      <div class="badge">NEW</div>
+      <h3>도장 이미지 만들기</h3>
+      <p>성명인·법인 인감·사각 직인·고무인·원본대조필·결재란<br>한자 선택 · 글꼴 모아 보기 · 투명 PNG</p>
+    </a>
     <a class="dash-card" data-go="board" href="javascript:void(0)" onclick="goPage('board')">
       <div class="icon" style="background:#FEF3C7;color:#92400E">🗓️</div>
       <div class="badge">직원용</div>
@@ -788,6 +794,15 @@ window.openBizFull=function(){window.open(F,'_blank');};})();</script>
   </div>
   <iframe id="cmsFrame" title="CMS 자동이체 신청서 작성기" style="width:100%;height:82vh;min-height:560px;border:1px solid var(--border);border-radius:12px;background:#fff;display:block"></iframe>
   <script>(function(){function fill(){var f=document.getElementById('cmsFrame');if(f&&!f.getAttribute('src'))f.setAttribute('src','한백택스_CMS자동이체_신청서.html?v='+Date.now());}function on(e){var t=e.target,el=t&&t.closest?t.closest('[data-page="cms"],[data-go="cms"]'):null;if(el)setTimeout(fill,0);}document.addEventListener('click',on,true);document.addEventListener('touchend',on,true);window.addEventListener('load',function(){try{if(new URLSearchParams(location.search).get('page')==='cms')fill();}catch(e){}});})();</script>
+</div>
+<!-- ==================== 도장 이미지 만들기 ==================== -->
+<div class="page" id="page-stamp">
+  <div class="calc-title"><h2>도장 이미지 만들기</h2><div class="sub">성명인(원형·타원·사각)·법인 원형 인감·사각 직인·사업자 고무인·업무 스탬프·날짜 도장·결재란을 투명 PNG로 만듭니다. 이름은 글자마다 한자를 고를 수 있고, 성씨·주식회사·대표이사 같은 낱말은 자동으로 한자로 바꿉니다. 그림은 이 브라우저에서만 만들어집니다.</div></div>
+  <div style="margin:0 0 10px;text-align:right">
+    <a href="한백택스_도장_만들기.html" target="_blank" rel="noopener" style="display:inline-block;font-size:13px;font-weight:700;color:var(--blue);border:1.5px solid var(--blue);border-radius:8px;padding:7px 14px;text-decoration:none;cursor:pointer">새 창으로 크게 보기 ↗</a>
+  </div>
+  <iframe id="stampFrame" title="도장 이미지 만들기" style="width:100%;height:82vh;min-height:560px;border:1px solid var(--border);border-radius:12px;background:#fff;display:block"></iframe>
+  <script>(function(){function fill(){var f=document.getElementById('stampFrame');if(f&&!f.getAttribute('src'))f.setAttribute('src','한백택스_도장_만들기.html?v='+Date.now());}function on(e){var t=e.target,el=t&&t.closest?t.closest('[data-page="stamp"],[data-go="stamp"]'):null;if(el)setTimeout(fill,0);}document.addEventListener('click',on,true);document.addEventListener('touchend',on,true);window.addEventListener('load',function(){try{if(new URLSearchParams(location.search).get('page')==='stamp')fill();}catch(e){}});})();</script>
 </div>
 <!-- ==================== 거래처 업무판(직원용) ==================== -->
 <div class="page" id="page-board">
