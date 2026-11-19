@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<title>한백택스 도장 이미지 만들기</title>
-<meta name="description" content="성명인·법인 인감·사각 직인·사업자 고무인·원본대조필·날짜 도장·결재란을 투명 PNG 도장 이미지로 만듭니다. 글꼴 11종, 인주 질감, 기울기 조절.">
+<title>한백택스 도장 · 서명 만들기</title>
+<meta name="description" content="마우스·전자펜·손가락으로 전자 서명을 그려 투명 PNG로 저장하고, 성명인·법인 인감·사각 직인·사업자 고무인·원본대조필·날짜 도장·결재란을 투명 PNG 도장 이미지로 만듭니다. 글꼴 11종, 인주 질감, 기울기 조절.">
 <!--
   세무법인 한백택스 도장 이미지 만들기 v1 (2026-11-18)
   - 모든 그림은 이 브라우저의 캔버스에서 만든다. 입력값은 서버로 보내지 않는다(설정만 localStorage hbt_stamp_v1 에 둔다).
@@ -83,6 +83,24 @@ table.sz th{background:#EEF2F7;color:var(--navy);white-space:nowrap}
 .hjc.k{font-family:"Nanum Gothic",sans-serif;font-size:12px;font-weight:700}
 .hjp{margin-top:6px;padding:8px;border:1px dashed #C8963E;border-radius:8px;background:#FFFDF7;max-height:190px;overflow:auto}
 .hjx{border:0;background:none;color:var(--gray);text-decoration:underline;cursor:pointer;font-family:inherit;font-size:12px;padding:2px 4px}
+.modes{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.mode{flex:1 1 220px;border:2px solid var(--line);background:#fff;border-radius:12px;padding:11px 14px;cursor:pointer;text-align:left;font-family:inherit;color:var(--navy)}
+.mode b{font-size:16px;display:block;margin-bottom:2px}
+.mode span{font-size:12px;color:var(--gray)}
+.mode.on{border-color:var(--gold);background:#FFF8EB}
+#padWrap{position:relative;border:1.5px dashed #9AA7B6;border-radius:12px;background:#fff;margin-top:10px;overflow:hidden}
+#padWrap.guide{background:#fff linear-gradient(to bottom,transparent calc(74% - 1px),#CBD5E1 calc(74% - 1px),#CBD5E1 74%,transparent 74%) no-repeat}
+#padWrap.guide::before{content:'×';position:absolute;left:16px;top:calc(74% - 34px);font-size:24px;color:#94A3B8;pointer-events:none}
+#padWrap .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#B6C0CC;font-size:16px;pointer-events:none;text-align:center;padding:0 20px}
+#pad{display:block;width:100%;aspect-ratio:5/2;touch-action:none;cursor:crosshair;-webkit-user-select:none;user-select:none}
+.sgtools{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.sgtools .rng{min-width:180px}
+.sglist{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.sgi{border:1px solid var(--line);border-radius:10px;padding:8px;background:#FBF9F4}
+.sgi canvas{width:100%;height:84px;object-fit:contain;display:block;mix-blend-mode:multiply}
+.sgi .meta{font-size:12px;color:var(--gray);margin:4px 0 2px;word-break:break-all}
+.sgi .bar{margin-top:4px;gap:4px}
+.sgi .btn{padding:5px 8px;font-size:12px}
 .hide{display:none!important}
 @media(max-width:860px){.hj{margin-left:0}.layout{grid-template-columns:1fr}.sticky{position:static}.row{grid-template-columns:96px minmax(0,1fr)}#pv{min-height:260px}}
 @media print{body *{visibility:hidden}#pv,#pv *{visibility:visible}#pv{position:absolute;left:0;top:0;border:0;background:#fff!important}}
@@ -139,9 +157,47 @@ table.sz th{background:#EEF2F7;color:var(--navy);white-space:nowrap}
 <!-- /HB-HOME -->
 <main>
 <div class="card">
-  <h1>도장 이미지 만들기</h1>
+  <h1>도장 · 서명 만들기</h1>
   <div class="sub">이름이나 상호를 넣으면 성명인·법인 인감·사각 직인·사업자 고무인·업무 스탬프를 <b>배경이 투명한 PNG 이미지</b>로 만들어 드립니다. 아래 <b>모아 보기</b>에서 글꼴·모양을 한눈에 비교하고 마음에 드는 것을 누르면 됩니다. 입력한 내용은 이 브라우저 안에서만 그려지고 어디로도 전송되지 않습니다.</div>
+  <div class="modes">
+    <button class="mode" type="button" data-mode="stamp"><b>㊞ 도장 만들기</b><span>성명인 · 법인 인감 · 직인 · 고무인 · 업무 스탬프</span></button>
+    <button class="mode" type="button" data-mode="sign"><b>✍ 서명하기</b><span>마우스 · 전자펜 · 손가락으로 서명 → 투명 PNG 저장 · 보관</span></button>
+  </div>
 </div>
+
+<!-- ───── 서명 ───── -->
+<div id="signArea" class="hide">
+<div class="card">
+  <h2>서명하기</h2>
+  <div class="sub">아래 칸에 마우스·전자펜·손가락으로 서명하십시오. 전자펜은 누르는 힘에 따라, 마우스·손가락은 움직이는 빠르기에 따라 굵기가 달라집니다. 색과 굵기는 다 쓴 뒤에도 바꿀 수 있습니다.</div>
+  <div class="sgtools" style="margin-top:10px">
+    <div class="colors" id="sgColors"></div>
+    <div class="rng"><span style="font-size:13px;color:var(--gray);font-weight:700;white-space:nowrap">굵기</span><input type="range" id="sgSize" min="1" max="10" step="1"><span class="val" id="sgSizeV"></span></div>
+    <label class="inl"><input type="checkbox" id="sgPress"> 펜 필압</label>
+    <label class="inl"><input type="checkbox" id="sgGuide"> 기준선</label>
+  </div>
+  <div id="padWrap" class="guide"><canvas id="pad" aria-label="서명 칸"></canvas><div class="ph" id="padPh">여기에 서명하십시오</div></div>
+  <div class="bar" style="justify-content:space-between">
+    <div class="bar" style="margin:0"><button class="btn" id="sgUndo" type="button">↶ 되돌리기</button><button class="btn" id="sgClear" type="button">지우기</button><span class="hint" id="sgInfo"></span></div>
+    <label class="inl"><input type="checkbox" id="sgTrim"> 여백 자르기</label>
+  </div>
+  <div class="bar">
+    <button class="btn p" id="sgDl" type="button">PNG 저장</button>
+    <button class="btn n" id="sgCp" type="button">복사 (투명)</button>
+    <button class="btn" id="sgCpw" type="button">흰 바탕 복사</button>
+    <input type="text" id="sgName" maxlength="20" placeholder="보관 이름 (예: 대표 서명)" style="width:200px">
+    <button class="btn" id="sgKeep" type="button">이 브라우저에 보관</button>
+  </div>
+  <div id="sgMsg" class="hint" style="margin-top:8px;min-height:18px"></div>
+</div>
+<div class="card">
+  <h2>보관한 서명</h2>
+  <div class="sub" style="margin-bottom:10px">보관한 서명은 <b>이 기기의 이 브라우저에만</b> 남습니다. 공용 PC에서는 보관하지 말고, 다 쓴 뒤 지우십시오. 「불러오기」로 서명 칸에 되살려 색·굵기를 바꿀 수 있습니다.</div>
+  <div class="sglist" id="sgList"></div>
+</div>
+</div>
+
+<div id="stampArea">
 
 <div class="layout">
 <!-- ───── 왼쪽: 설정 ───── -->
@@ -281,6 +337,7 @@ table.sz th{background:#EEF2F7;color:var(--navy);white-space:nowrap}
   <div class="sub" id="galInfo" style="margin-bottom:10px"></div>
   <div class="gal" id="gal"></div>
 </div>
+</div><!-- /stampArea -->
 
 <div class="card">
   <h2>문서에 넣는 방법</h2>
@@ -300,7 +357,7 @@ table.sz th{background:#EEF2F7;color:var(--navy);white-space:nowrap}
   </table>
   <div class="warn" style="margin-top:12px">
     이 이미지는 전자문서 날인·견본·사내 결재용입니다. 주민센터에 등록한 <b>인감</b>이나 등기소에 신고한 <b>법인 인감</b>을 대신할 수 없으며, 인감증명서가 필요한 서류에는 실제 인감을 찍어야 합니다.
-    본인 또는 권한을 받은 명의로만 만드십시오. 다른 사람 명의의 도장 이미지를 만들어 문서에 쓰면 사문서위조 등에 해당할 수 있습니다.
+    본인 또는 권한을 받은 명의로만 만드십시오. 다른 사람 명의의 도장·서명 이미지를 만들어 문서에 쓰면 사문서위조 등에 해당할 수 있습니다. 서명 이미지도 법적 효력이 필요한 전자서명(공동·금융인증서 등)을 대신하지 않습니다.
   </div>
 </div>
 </main>
@@ -1011,15 +1068,18 @@ $('#dl').addEventListener('click', async () => {
  * HTML 에는 실제 도장 크기(mm)를 넣어 붙여 넣자마자 알맞은 크기가 된다. */
 const MM = {p_round:14, p_oval:15, p_square:14, c_round:22, c_oval:26, c_sqring:22, c_square:22, c_en:24, c_plate:70, c_biz:70, c_biz2:70, w_label:45, w_date:24, w_appr:60};
 async function copyImg(white){
+  if (!mainCanvas) throw new Error('미리보기가 아직 없습니다');
+  return copyCanvas(mainCanvas, white, MM[st.type] || 25);
+}
+async function copyCanvas(c, white, mm){
   if (!navigator.clipboard || !window.ClipboardItem) throw new Error('이 브라우저는 이미지 복사를 지원하지 않습니다. PNG 저장을 쓰십시오.');
-  let c = mainCanvas; if (!c) throw new Error('미리보기가 아직 없습니다');
   if (white){ const w = mk(c.width, c.height), g = w.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, w.width, w.height); g.drawImage(c, 0, 0); c = w; }
   const blob = await new Promise((ok, no) => c.toBlob(b => b ? ok(b) : no(new Error('이미지를 만들지 못했습니다')), 'image/png'));
   const items = {'image/png': blob};
-  const mm = MM[st.type] || 25, sc = (mm*96/25.4)/Math.max(c.width, c.height);
+  const sc = (mm*96/25.4)/Math.max(c.width, c.height);
   if (!white){
     const url = await new Promise((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.onerror = () => no(new Error('이미지를 읽지 못했습니다')); fr.readAsDataURL(blob); });
-    items['text/html'] = new Blob(['<img src="' + url + '" width="' + Math.round(c.width*sc) + '" height="' + Math.round(c.height*sc) + '" alt="도장">'], {type: 'text/html'});
+    items['text/html'] = new Blob(['<img src="' + url + '" width="' + Math.round(c.width*sc) + '" height="' + Math.round(c.height*sc) + '" alt="도장·서명">'], {type: 'text/html'});
   }
   await navigator.clipboard.write([new ClipboardItem(items)]);
   return mm;
@@ -1033,10 +1093,187 @@ $('#cpw').addEventListener('click', async () => {
   catch(err){ msg(err.message || '복사하지 못했습니다.', 'err'); }
 });
 
+/* ══════════ 서명 ══════════
+ * 좌표는 칸 크기와 무관한 1000×400 단위로 둔다(화면 크기가 바뀌어도, 보관 후 불러와도 같은 모양).
+ * 점마다 굵기 계수를 함께 둔다 — 전자펜은 필압, 마우스·손가락은 속도(빠를수록 가늘게). 색·굵기는 그릴 때 입힌다. */
+const SG = {W:1000, H:400}, SKEY = 'hbt_sign_v1', SOPT = 'hbt_sign_opt';
+const SINKS = [['#111111','검정'],['#1E3A8A','파랑'],['#1B3A5C','남색'],['#B91C1C','빨강']];
+let sg = Object.assign({color:'#111111', size:4, press:true, trim:true, guide:true}, (function(){ try{ const v = JSON.parse(localStorage.getItem(SOPT) || '{}'); return v && typeof v === 'object' ? v : {}; }catch(e){ return {}; } })());
+let strokes = [], cur = null, cleared = null, padReq = 0;
+const pad = $('#pad'), pctx = pad.getContext('2d');
+const sgMsg = (t, cls) => { const m = $('#sgMsg'); m.textContent = t || ''; m.style.color = cls === 'err' ? 'var(--red)' : cls === 'ok' ? 'var(--green)' : ''; m.style.fontWeight = cls ? '700' : ''; };
+const baseW = size => 2 + (+size || 4)*1.1;
+function sgSaveOpt(){ try{ localStorage.setItem(SOPT, JSON.stringify(sg)); }catch(e){} }
+function drawStrokes(ctx, list, k, ox, oy, color, size){
+  const b = baseW(size);
+  ctx.fillStyle = ctx.strokeStyle = color; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  list.forEach(st0 => {
+    const q = st0.p; if (!q || !q.length) return;
+    const X = i => (q[i][0] - ox)*k, Y = i => (q[i][1] - oy)*k, Wd = i => Math.max(0.7, b*q[i][2]*k);
+    if (q.length === 1){ ctx.beginPath(); ctx.arc(X(0), Y(0), Wd(0)/2, 0, Math.PI*2); ctx.fill(); return; }
+    let mx = X(0), my = Y(0);
+    for (let i = 1; i < q.length; i++){
+      const nx = (X(i-1) + X(i))/2, ny = (Y(i-1) + Y(i))/2;
+      ctx.beginPath(); ctx.moveTo(mx, my); ctx.quadraticCurveTo(X(i-1), Y(i-1), nx, ny);
+      ctx.lineWidth = (Wd(i-1) + Wd(i))/2; ctx.stroke(); mx = nx; my = ny;
+    }
+    const L = q.length - 1;
+    ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(X(L), Y(L)); ctx.lineWidth = Wd(L); ctx.stroke();
+  });
+}
+function redrawPad(){
+  padReq = 0;
+  pctx.clearRect(0, 0, pad.width, pad.height);
+  drawStrokes(pctx, strokes, pad.width/SG.W, 0, 0, sg.color, sg.size);
+  $('#padPh').classList.toggle('hide', strokes.length > 0);
+}
+const reqPad = () => { if (!padReq) padReq = requestAnimationFrame(redrawPad); };
+function sizePad(){
+  const r = pad.getBoundingClientRect(); if (!r.width) return;
+  const R = Math.max(2, window.devicePixelRatio || 1);
+  pad.width = Math.round(r.width*R); pad.height = Math.round(r.width*R*SG.H/SG.W);
+  redrawPad();
+}
+function ptOf(e){
+  const r = pad.getBoundingClientRect(), u = SG.W/r.width;
+  return [Math.min(SG.W, Math.max(0, (e.clientX - r.left)*u)), Math.min(SG.H, Math.max(0, (e.clientY - r.top)*u))];
+}
+const penF = e => 0.3 + Math.min(1, e.pressure)*1.2;
+pad.addEventListener('pointerdown', e => {
+  if (e.button > 0) return;
+  e.preventDefault();
+  try{ pad.setPointerCapture(e.pointerId); }catch(err){}
+  const q = ptOf(e), pen = e.pointerType === 'pen' && sg.press && e.pressure > 0, f = pen ? penF(e) : 1;
+  cur = {p:[[+q[0].toFixed(1), +q[1].toFixed(1), +f.toFixed(2)]], t:e.timeStamp, f:f, pen:pen};
+  strokes.push(cur); cleared = null; reqPad();
+});
+function addPt(ev){
+  const q = ptOf(ev), last = cur.p[cur.p.length - 1], d = Math.hypot(q[0] - last[0], q[1] - last[1]);
+  if (d < 0.8) return;
+  const dt = Math.max(1, ev.timeStamp - cur.t); cur.t = ev.timeStamp;
+  let f;
+  if (cur.pen && ev.pressure > 0) f = penF(ev);
+  else { const tgt = Math.min(1.25, Math.max(0.45, 1.3 - (d/dt)*0.45)); f = cur.f*0.65 + tgt*0.35; }
+  cur.f = f; cur.p.push([+q[0].toFixed(1), +q[1].toFixed(1), +f.toFixed(2)]);
+}
+pad.addEventListener('pointermove', e => {
+  if (!cur) return;
+  e.preventDefault();
+  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+  (evs.length ? evs : [e]).forEach(addPt); reqPad();
+});
+['pointerup', 'pointercancel', 'lostpointercapture'].forEach(n => pad.addEventListener(n, () => { if (cur){ cur = null; sgInfo(); } }));
+function sgInfo(){ $('#sgInfo').textContent = strokes.length ? '획 ' + strokes.length + '개' : ''; }
+function sgBounds(list, size){
+  const a = [1e9, 1e9, -1e9, -1e9];
+  list.forEach(s0 => s0.p.forEach(q => { a[0] = Math.min(a[0], q[0]); a[1] = Math.min(a[1], q[1]); a[2] = Math.max(a[2], q[0]); a[3] = Math.max(a[3], q[1]); }));
+  const m = baseW(size)*1.4 + 8;
+  return [a[0] - m, a[1] - m, a[2] + m, a[3] + m];
+}
+/* 내보낼 그림 — 여백 자르기면 획 둘레만, 아니면 칸 전체. 긴 변 약 1600px */
+function sgCanvas(list, color, size, trim){
+  if (!list.length) throw new Error('먼저 서명 칸에 서명해 주십시오.');
+  let ox = 0, oy = 0, w = SG.W, h = SG.H;
+  if (trim){ const b = sgBounds(list, size); ox = b[0]; oy = b[1]; w = b[2] - b[0]; h = b[3] - b[1]; }
+  const k = Math.min(6, Math.max(1.5, 1600/Math.max(w, h))), c = mk(w*k, h*k);
+  drawStrokes(c.getContext('2d'), list, k, ox, oy, color, size);
+  return c;
+}
+const stamp2 = () => { const d = new Date(), z = n => String(n).padStart(2, '0'); return d.getFullYear() + z(d.getMonth()+1) + z(d.getDate()) + '_' + z(d.getHours()) + z(d.getMinutes()); };
+function sgDownload(c, name){
+  c.toBlob(b => {
+    if (!b){ sgMsg('이미지를 만들지 못했습니다.', 'err'); return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000); sgMsg('저장했습니다 — ' + name, 'ok');
+  }, 'image/png');
+}
+const SIGN_MM = 40;   /* 붙여 넣을 때 가로 약 40mm */
+async function sgCopy(c, white){
+  await copyCanvas(c, white, SIGN_MM);
+  sgMsg(white ? '흰 바탕으로 복사했습니다. 카톡·메신저 등에 붙여 넣으십시오.' : '투명 바탕으로 복사했습니다. 한글·워드·파워포인트에 붙여 넣으면 가로 약 ' + SIGN_MM + 'mm로 들어갑니다.', 'ok');
+}
+$('#sgDl').addEventListener('click', () => { try{ sgDownload(sgCanvas(strokes, sg.color, sg.size, sg.trim), '서명_' + stamp2() + '.png'); }catch(err){ sgMsg(err.message, 'err'); } });
+$('#sgCp').addEventListener('click', async () => { try{ await sgCopy(sgCanvas(strokes, sg.color, sg.size, sg.trim), false); }catch(err){ sgMsg(err.message || '복사하지 못했습니다.', 'err'); } });
+$('#sgCpw').addEventListener('click', async () => { try{ await sgCopy(sgCanvas(strokes, sg.color, sg.size, sg.trim), true); }catch(err){ sgMsg(err.message || '복사하지 못했습니다.', 'err'); } });
+function sgUndo(){
+  if (strokes.length) strokes.pop();
+  else if (cleared){ strokes = cleared; cleared = null; }
+  reqPad(); sgInfo();
+}
+$('#sgUndo').addEventListener('click', sgUndo);
+$('#sgClear').addEventListener('click', () => { if (strokes.length){ cleared = strokes; strokes = []; reqPad(); sgInfo(); sgMsg('지웠습니다. 「되돌리기」로 되살릴 수 있습니다.'); } });
+document.addEventListener('keydown', e => { if (st.mode === 'sign' && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)){ e.preventDefault(); sgUndo(); } });
+
+/* 보관 — 이 브라우저(localStorage)에 획 자료로 둔다. 그림은 볼 때 다시 그린다 */
+function sgList(){ try{ const a = JSON.parse(localStorage.getItem(SKEY) || '[]'); return Array.isArray(a) ? a.filter(x => x && Array.isArray(x.s) && x.s.length) : []; }catch(e){ return []; } }
+function sgPut(a){ try{ localStorage.setItem(SKEY, JSON.stringify(a)); return true; }catch(e){ return false; } }
+function sgRenderList(){
+  const box = $('#sgList'), list = sgList(); box.textContent = '';
+  if (!list.length){ box.appendChild(hjEl('div', 'hint', '보관한 서명이 없습니다. 서명한 뒤 「이 브라우저에 보관」을 누르십시오.')); return; }
+  list.forEach(it => {
+    const d = hjEl('div', 'sgi');
+    try{ d.appendChild(sgCanvas(it.s, it.color || '#111111', it.size || 4, true)); }catch(e){}
+    d.appendChild(hjEl('div', 'meta', (it.name ? it.name + ' · ' : '') + (it.at || '')));
+    const bar = hjEl('div', 'bar');
+    [['load', '불러오기'], ['png', 'PNG'], ['cp', '복사'], ['del', '삭제']].forEach(([a, t]) => { const b = hjEl('button', 'btn', t); b.type = 'button'; b.dataset.sga = a; b.dataset.id = it.id; if (a === 'del') b.style.color = 'var(--red)'; bar.appendChild(b); });
+    d.appendChild(bar); box.appendChild(d);
+  });
+}
+$('#sgKeep').addEventListener('click', () => {
+  if (!strokes.length){ sgMsg('먼저 서명 칸에 서명해 주십시오.', 'err'); return; }
+  const list = sgList(), d = new Date(), z = n => String(n).padStart(2, '0');
+  list.unshift({id: Date.now().toString(36), at: d.getFullYear() + '-' + z(d.getMonth()+1) + '-' + z(d.getDate()) + ' ' + z(d.getHours()) + ':' + z(d.getMinutes()),
+    name: $('#sgName').value.trim().slice(0, 20), color: sg.color, size: sg.size, s: strokes.map(x => ({p: x.p}))});
+  if (list.length > 20) list.length = 20;
+  if (sgPut(list)){ sgMsg('이 브라우저에 보관했습니다(최대 20개).', 'ok'); $('#sgName').value = ''; sgRenderList(); }
+  else sgMsg('보관하지 못했습니다. 브라우저 저장 공간이 꽉 찼거나 막혀 있습니다. PNG 저장을 쓰십시오.', 'err');
+});
+$('#sgList').addEventListener('click', async e => {
+  const b = e.target.closest('[data-sga]'); if (!b) return;
+  const list = sgList(), it = list.find(x => x.id === b.dataset.id); if (!it) return;
+  try{
+    if (b.dataset.sga === 'load'){
+      strokes = it.s.map(x => ({p: x.p})); cleared = null; sg.color = it.color || sg.color; sg.size = it.size || sg.size; sgSaveOpt(); sgSync(); reqPad(); sgInfo();
+      sgMsg('불러왔습니다. 이어서 쓰거나 색·굵기를 바꿀 수 있습니다.', 'ok'); $('#padWrap').scrollIntoView({behavior:'smooth', block:'center'});
+    } else if (b.dataset.sga === 'png') sgDownload(sgCanvas(it.s, it.color, it.size, true), '서명_' + (it.name || it.at || '').replace(/[\\\/:*?"<>|\s]+/g, '') + '.png');
+    else if (b.dataset.sga === 'cp') await sgCopy(sgCanvas(it.s, it.color, it.size, true), false);
+    else if (b.dataset.sga === 'del'){
+      if (b.dataset.sure !== '1'){ b.dataset.sure = '1'; b.textContent = '정말 삭제'; setTimeout(() => { b.dataset.sure = ''; b.textContent = '삭제'; }, 3000); return; }
+      sgPut(list.filter(x => x.id !== it.id)); sgRenderList(); sgMsg('보관한 서명을 삭제했습니다.');
+    }
+  }catch(err){ sgMsg(err.message || '처리하지 못했습니다.', 'err'); }
+});
+
+/* 도구 막대 */
+function sgSync(){
+  const box = $('#sgColors'); box.textContent = '';
+  SINKS.forEach(([v, n]) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'sw' + (v === sg.color ? ' on' : ''); b.style.background = v; b.title = n; b.dataset.sink = v; box.appendChild(b); });
+  $('#sgSize').value = sg.size; $('#sgSizeV').textContent = sg.size;
+  $('#sgPress').checked = !!sg.press; $('#sgTrim').checked = !!sg.trim; $('#sgGuide').checked = !!sg.guide;
+  $('#padWrap').classList.toggle('guide', !!sg.guide);
+}
+$('#sgColors').addEventListener('click', e => { const b = e.target.closest('[data-sink]'); if (!b) return; sg.color = b.dataset.sink; sgSaveOpt(); sgSync(); reqPad(); });
+$('#sgSize').addEventListener('input', e => { sg.size = +e.target.value; sgSaveOpt(); sgSync(); reqPad(); });
+[['sgPress', 'press'], ['sgTrim', 'trim'], ['sgGuide', 'guide']].forEach(([id, k]) => $('#' + id).addEventListener('change', e => { sg[k] = e.target.checked; sgSaveOpt(); sgSync(); }));
+if (window.ResizeObserver) new ResizeObserver(() => { if (st.mode === 'sign') sizePad(); }).observe(pad);
+else window.addEventListener('resize', () => { if (st.mode === 'sign') sizePad(); });
+
+/* 도장 / 서명 전환 — 주소 ?mode=sign 으로 바로 열 수 있다 */
+function setMode(m){
+  st.mode = m === 'sign' ? 'sign' : 'stamp'; save();
+  $('#stampArea').classList.toggle('hide', st.mode === 'sign');
+  $('#signArea').classList.toggle('hide', st.mode !== 'sign');
+  $$('.mode').forEach(b => b.classList.toggle('on', b.dataset.mode === st.mode));
+  if (st.mode === 'sign'){ sgSync(); sgRenderList(); requestAnimationFrame(sizePad); }
+}
+$$('.mode').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+
 buildStatic();
 syncForm();
 renderMain();
 renderGallery();
+/* 목록의 「도장」·「서명」 항목이 늘 제 화면으로 열리도록 주소로만 정한다(마지막 화면을 기억하지 않는다) */
+try{ setMode(new URLSearchParams(location.search).get('mode') === 'sign' ? 'sign' : 'stamp'); }catch(e){ setMode('stamp'); }
 })();
 </script>
 </body>
